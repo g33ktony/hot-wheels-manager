@@ -197,17 +197,7 @@ export default function Sales() {
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-medium text-gray-900">Nueva Venta</h3>
                             <button
-                                onClick={() => {
-                                    setShowCreateModal(false)
-                                    setNewSale({
-                                        items: [],
-                                        customerId: '',
-                                        totalAmount: 0,
-                                        deliveryId: '',
-                                        paymentMethod: 'cash',
-                                        notes: ''
-                                    })
-                                }}
+                                onClick={() => setShowCreateModal(false)}
                                 className="text-gray-400 hover:text-gray-600"
                             >
                                 <X size={20} />
