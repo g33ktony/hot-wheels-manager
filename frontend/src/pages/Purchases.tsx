@@ -156,7 +156,7 @@ export default function Purchases() {
         const confirmDelete = window.confirm(
             '¿Estás seguro de que quieres eliminar esta compra?\n\nEsta acción no se puede deshacer y afectará las estadísticas de ventas.'
         )
-        
+
         if (confirmDelete) {
             try {
                 await deletePurchaseMutation.mutateAsync(purchaseId)
@@ -677,7 +677,7 @@ export default function Purchases() {
                     </div>
                 </div>
             )}
-            
+
             {/* Purchase Details Modal */}
             {showDetailsModal && selectedPurchase && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -693,14 +693,14 @@ export default function Purchases() {
                                     <X size={20} />
                                 </Button>
                             </div>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div>
                                     <h3 className="text-lg font-semibold mb-3">Información General</h3>
                                     <div className="space-y-2">
                                         <p><span className="font-medium">Proveedor:</span> {typeof selectedPurchase.supplierId === 'object' ? selectedPurchase.supplierId.name : suppliers?.find(s => s._id === selectedPurchase.supplierId)?.name || 'Proveedor desconocido'}</p>
                                         <p><span className="font-medium">Fecha de Compra:</span> {new Date(selectedPurchase.purchaseDate).toLocaleDateString()}</p>
-                                        <p><span className="font-medium">Estado:</span> 
+                                        <p><span className="font-medium">Estado:</span>
                                             <span className={`ml-2 px-2 py-1 text-xs rounded-full ${selectedPurchase.status === 'received' ? 'bg-green-100 text-green-800' :
                                                 selectedPurchase.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
                                                     selectedPurchase.status === 'paid' ? 'bg-purple-100 text-purple-800' :
@@ -718,7 +718,7 @@ export default function Purchases() {
                                         {selectedPurchase.notes && <p><span className="font-medium">Notas:</span> {selectedPurchase.notes}</p>}
                                     </div>
                                 </div>
-                                
+
                                 <div>
                                     <h3 className="text-lg font-semibold mb-3">Resumen Financiero</h3>
                                     <div className="space-y-2">
@@ -728,7 +728,7 @@ export default function Purchases() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div>
                                 <h3 className="text-lg font-semibold mb-3">Artículos Comprados</h3>
                                 <div className="overflow-x-auto">
