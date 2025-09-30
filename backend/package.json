@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "node_modules/typescript/bin/tsc",
+    "build": "/Users/antonio/Documents/personal_projects/hot-wheels-manager/backend/node_modules/typescript/bin/tsc",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
