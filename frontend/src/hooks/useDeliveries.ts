@@ -1,0 +1,126 @@
+import { useQuery, useMutation, useQueryClient } from 'react-query'
+import { deliveriesService } from '@/services/deliveries'
+import type { CreateDeliveryDto } from '@shared/types'
+import toast from 'react-hot-toast'
+
+export const useDeliveries = () => {
+  return useQuery('deliveries', deliveriesService.getAll, {
+    staleTime: 2 * 60 * 1000, // 2 minutos
+  })
+}
+
+export const useDelivery = (id: string) => {
+  return useQuery(['deliveries', id], () => deliveriesService.getById(id), {
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+export const useCreateDelivery = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    (data: CreateDeliveryDto) => deliveriesService.create(data),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        toast.success('Entrega creada exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al crear entrega')
+      },
+    }
+  )
+}
+
+export const useUpdateDelivery = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ id, data }: { id: string; data: Partial<CreateDeliveryDto> }) =>
+      deliveriesService.update(id, data),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        queryClient.invalidateQueries('sales') // Invalidar ventas porque se pueden crear automáticamente
+        queryClient.invalidateQueries('inventory') // Invalidar inventario porque se reduce
+        toast.success('Entrega actualizada exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al actualizar entrega')
+      },
+    }
+  )
+}
+
+export const useDeleteDelivery = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    (id: string) => deliveriesService.delete(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        toast.success('Entrega eliminada exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al eliminar entrega')
+      },
+    }
+  )
+}
+
+export const useMarkDeliveryAsCompleted = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    (id: string) => deliveriesService.markAsCompleted(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        queryClient.invalidateQueries('sales') // Invalidar ventas porque se pueden crear automáticamente
+        queryClient.invalidateQueries('inventory') // Invalidar inventario porque se reduce
+        toast.success('Entrega marcada como completada y venta creada')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al completar entrega')
+      },
+    }
+  )
+}
+
+export const useMarkDeliveryAsPrepared = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    (id: string) => deliveriesService.markAsPrepared(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        toast.success('Entrega marcada como preparada')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al marcar entrega como preparada')
+      },
+    }
+  )
+}
+
+export const useMarkDeliveryAsPending = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    (id: string) => deliveriesService.markAsPending(id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        queryClient.invalidateQueries('sales') // Invalidar ventas porque se pueden eliminar
+        queryClient.invalidateQueries('inventory') // Invalidar inventario porque se restaura
+        toast.success('Entrega vuelta a pendiente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al volver entrega a pendiente')
+      },
+    }
+  )
+}
