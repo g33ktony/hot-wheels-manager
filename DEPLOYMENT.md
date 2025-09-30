@@ -31,7 +31,7 @@
    VITE_API_URL=https://your-backend-railway-url.up.railway.app/api
    ```
 
-### Option 2: Vercel (Frontend) + Render (Backend
+### Option 2: Vercel (Frontend) + Render (Backend)
 
 #### Backend on Render:
 1. Go to [Render.com](https://render.com) → "New" → "Web Service"
