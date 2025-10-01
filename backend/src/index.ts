@@ -27,7 +27,7 @@ import notFoundHandler from './middleware/notFoundHandler'
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 3001
+const PORT = parseInt(process.env.PORT || '3001')
 
 // Rate limiting
 const limiter = rateLimit({
@@ -81,30 +81,47 @@ app.use(errorHandler)
 // Database connection
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/hot-wheels-manager'
+    const mongoURI = process.env.MONGODB_URI
     
-    console.log(' Connecting to MongoDB Atlas...')
-    await mongoose.connect(mongoURI)
+    if (!mongoURI) {
+      console.log('⚠️  MONGODB_URI not found - skipping database connection')
+      return false
+    }
+    
+    console.log('🔌 Connecting to MongoDB Atlas...')
+    
+    // Set a connection timeout to prevent hanging
+    await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 10000, // 10 second timeout
+      socketTimeoutMS: 45000,
+      family: 4 // Use IPv4, skip trying IPv6
+    })
+    
     mongoose.set('strictPopulate', false)
     console.log('✅ MongoDB Atlas connected successfully')
+    return true
   } catch (error) {
     console.error('❌ MongoDB connection error:', error)
     console.log('⚠️  Database unavailable - API will work with limited functionality')
-    // Don't exit, let server run without database for testing UI
+    return false
   }
 }
 
 // Start server
 const startServer = async () => {
   try {
-    // Try to connect to database (non-blocking)
-    await connectDB()
+    // Try to connect to database (non-blocking, don't fail if DB unavailable)
+    const dbConnected = await connectDB()
     
-    app.listen(PORT, () => {
+    // Start server regardless of DB connection status
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`)
-      console.log(`📊 Health check: http://localhost:${PORT}/health`)
+      console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`)
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
-      console.log(`🎯 Frontend URL: http://localhost:5173`)
+      console.log(`📊 Database: ${dbConnected ? '✅ Connected' : '❌ Disconnected'}`)
+      if (process.env.FRONTEND_URL) {
+        console.log(`🎯 Frontend URL: ${process.env.FRONTEND_URL}`)
+      }
     })
   } catch (error) {
     console.error('❌ Server startup error:', error)
