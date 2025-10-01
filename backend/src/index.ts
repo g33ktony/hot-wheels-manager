@@ -49,11 +49,23 @@ app.use(limiter) // Rate limiting
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173']
+    console.log('🔍 CORS Check - Origin:', origin, 'Allowed:', allowedOrigins)
+    
     // Allow requests with no origin (like mobile apps or Postman)
     if (!origin) return callback(null, true)
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    
+    // Check if origin matches exactly or is a subdomain of allowed domains
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      return origin === allowedOrigin || 
+             origin === allowedOrigin + '/' ||
+             origin.startsWith(allowedOrigin + '/') ||
+             (allowedOrigin.includes('vercel.app') && origin.includes('vercel.app'))
+    })
+    
+    if (isAllowed) {
       callback(null, true)
     } else {
+      console.error('❌ CORS blocked:', origin)
       callback(new Error('Not allowed by CORS'))
     }
   },
