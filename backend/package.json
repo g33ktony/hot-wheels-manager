@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "prebuild": "mkdir -p src/shared && cp -r ../shared/* src/shared/",
     "build": "tsc",
+    "postbuild": "rm -rf src/shared",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
