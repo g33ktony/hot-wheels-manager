@@ -6,7 +6,10 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "frontend/dist",
-        "buildCommand": "npm run build:production"
+        "buildCommand": "cd frontend && npm run build:production"
+      },
+      "env": {
+        "VITE_API_URL": "https://hot-wheels-manager-production.up.railway.app/api"
       }
     }
   ],
