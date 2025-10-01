@@ -18,7 +18,7 @@
       "./src"
     ],
     "paths": {
-      "@shared/*": ["./src/shared/*"]
+      "@shared/types": ["./src/shared/types.ts"]
     }
   },
   "include": [
