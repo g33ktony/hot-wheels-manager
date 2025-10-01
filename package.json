@@ -25,7 +25,9 @@
   "author": "Antonio",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2",
-    "tsc": "^2.0.4"
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "typescript": "^5.9.3"
   }
 }
