@@ -2,6 +2,9 @@
 nixPkgs = ["nodejs", "npm"]
 
 [phases.install]
+cmds = ["npm install"]
+
+[phases.build]
 cmds = [
   "chmod +x build.sh",
   "./build.sh"
