@@ -1,55 +1,97 @@
 # Railway Deployment Instructions
 
-## Important: Root Directory Setting
+## Important: Workspace Configuration
 
-**Railway MUST be configured to build from the root directory**, not from the backend folder, because the backend needs access to the `../shared` folder.
+This project uses **npm workspaces** to manage the monorepo structure. Railway must install dependencies from the root to set up the workspace correctly.
 
 ## Railway Dashboard Configuration
 
 1. **Root Directory**: Set to `/` (root of repository)
    - In Railway dashboard, go to your service settings
-   - Look for "Root Directory" or "Source Directory"
-   - Set it to `/` or leave it blank (which defaults to root)
+   - Look for "Root Directory" or "Watch Paths"
+   - **Critical**: Set it to `/` or leave blank (defaults to root)
+   - DO NOT set it to `backend` or any subdirectory
 
-2. **Build Command**: `cd backend && npm ci && npm run build`
-   - This is configured in `railway.toml`
+2. **Build Command**: Already configured in `railway.toml`:
+   ```bash
+   npm install && cd backend && npm run build
+   ```
 
-3. **Start Command**: `cd backend && npm start`
-   - This is configured in `railway.toml`
+3. **Start Command**: Already configured in `railway.toml`:
+   ```bash
+   cd backend && npm start
+   ```
 
 4. **Environment Variables**: Add these in Railway dashboard:
    - `MONGODB_URI` - Your MongoDB Atlas connection string
-   - `PORT` - Usually `3000` (Railway will inject this automatically)
+   - `PORT` - Usually `3000` (Railway auto-injects this)
    - `NODE_ENV` - Set to `production`
-   - `CORS_ORIGIN` - Your Vercel frontend URL
+   - `CORS_ORIGIN` - Your Vercel frontend URL (e.g., `https://your-app.vercel.app`)
 
-## Why This Setup?
+## Project Structure
 
-The project structure is:
 ```
 /
-├── backend/          # Backend API
-├── frontend/         # React frontend  
-└── shared/           # Shared TypeScript types
+├── backend/          # Backend API (Express + TypeScript)
+├── frontend/         # React frontend (Vite + TypeScript)
+├── shared/           # Shared TypeScript types (npm workspace)
+├── package.json      # Root package with workspaces config
+└── railway.toml      # Railway configuration
 ```
 
-The backend imports from `@shared/types` which maps to `../shared/*`. If Railway builds from the `backend/` directory, it cannot access the `../shared/` folder. By building from root and using `cd backend`, Railway can access all folders.
+## Why Workspaces?
+
+The backend imports types from `@shared/types`:
+```typescript
+import { HotWheelsCar, InventoryItem } from '@shared/types';
+```
+
+This maps to `../shared/*` via TypeScript path aliases. Using npm workspaces:
+1. Root `npm install` sets up symlinks for all workspaces
+2. Backend can resolve `@shared/types` as a local workspace package
+3. No need to manually copy files or use complex build scripts
 
 ## Troubleshooting
 
-If you get `Cannot find module '@shared/types'` errors:
+### Error: `Cannot find module '@shared/types'`
 
-1. Check that Railway's "Root Directory" is set to `/` (root)
-2. Verify `railway.toml` is in the root directory
-3. Check build logs to ensure it's running `cd backend && npm ci && npm run build`
-4. Ensure `shared/` folder is committed to git (not in `.gitignore`)
+**Cause**: Railway is not building from root directory
+
+**Fix**:
+1. Check Railway dashboard → Service Settings → "Root Directory"
+2. It MUST be `/` or blank (not `backend`)
+3. Verify `railway.toml` exists in repository root
+4. Check build logs - first command should be `npm install` from root
+
+### Build Logs Check
+
+Your Railway build logs should show:
+```bash
+> npm install                          # ← Installing workspace from root
+> cd backend && npm run build          # ← Then building backend
+```
+
+If you see it going straight to `cd backend`, Railway is not using the root directory.
 
 ## Testing Locally
 
-To test that the build works as Railway will run it:
+To test the exact build Railway will execute:
 
 ```bash
 # From repository root:
-cd backend && npm ci && npm run build
-cd backend && npm start
+npm install                    # Sets up workspaces
+cd backend && npm run build    # Builds backend
+cd backend && npm start        # Starts server
 ```
+
+## Manual Railway Setup Steps
+
+1. Connect your GitHub repository to Railway
+2. Create a new service from the repo
+3. In service settings:
+   - **Root Directory**: `/` (or leave empty)
+   - Add environment variables (see above)
+4. Deploy!
+
+Railway will automatically detect `railway.toml` and use those build/start commands.
+
