@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { HotWheelsCarModel } from '../models/HotWheelsCar';
 import { InventoryItemModel } from '../models/InventoryItem';
 import { SaleModel } from '../models/Sale';
@@ -6,24 +7,64 @@ import { SaleModel } from '../models/Sale';
 // Get dashboard metrics
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('🔍 Fetching dashboard metrics...');
+    
+    // Check if database is connected
+    if (mongoose.connection.readyState !== 1) {
+      console.log('⚠️  Database not connected, returning default metrics');
+      res.json({
+        success: true,
+        data: {
+          totalInventoryValue: 0,
+          totalInventoryItems: 0,
+          totalQuantity: 0,
+          totalCatalogCars: 0,
+          uniqueSeries: 0,
+          pendingSales: 0,
+          pendingDeliveries: 0,
+          pendingPurchases: 0,
+          monthlyProfit: 0,
+          totalProfit: 0,
+          totalSales: 0,
+          monthlySales: 0,
+          totalRevenue: 0,
+          monthlyRevenue: 0,
+          recentActivity: [
+            {
+              id: 'activity1',
+              description: 'Sistema iniciado - base de datos desconectada',
+              date: new Date(),
+              type: 'system'
+            }
+          ]
+        },
+        message: 'Database disconnected - showing default values'
+      });
+      return;
+    }
+    
     // Get inventory stats
+    console.log('📊 Getting inventory stats...');
     const totalInventoryItems = await InventoryItemModel.countDocuments();
     const totalQuantity = await InventoryItemModel.aggregate([
       { $group: { _id: null, total: { $sum: '$quantity' } } }
     ]);
     
     // Get catalog stats
+    console.log('📚 Getting catalog stats...');
     const totalCatalogCars = await HotWheelsCarModel.countDocuments();
     
     // Get unique series count
     const uniqueSeries = await HotWheelsCarModel.distinct('series');
     
     // Calculate total value estimate
+    console.log('💰 Calculating inventory value...');
     const inventoryValue = await InventoryItemModel.aggregate([
       { $group: { _id: null, total: { $sum: { $multiply: ['$quantity', '$suggestedPrice'] } } } }
     ]);
 
     // Get sales metrics
+    console.log('📈 Getting sales metrics...');
     const currentMonth = new Date();
     currentMonth.setDate(1);
     currentMonth.setHours(0, 0, 0, 0);
@@ -47,6 +88,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const totalProfit = totalRevenue[0]?.total || 0;
     const monthlyProfit = monthlyRevenue[0]?.total || 0;
 
+    console.log('📋 Compiling dashboard data...');
     // Mock data for missing features (will be implemented later)
     const dashboardData = {
       totalInventoryValue: inventoryValue[0]?.total || 0,
@@ -79,15 +121,17 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       ]
     };
 
+    console.log('✅ Dashboard metrics fetched successfully');
     res.json({
       success: true,
       data: dashboardData
     });
   } catch (error) {
-    console.error('Error getting dashboard metrics:', error);
+    console.error('❌ Error getting dashboard metrics:', error);
     res.status(500).json({ 
       success: false,
-      error: 'Error fetching dashboard metrics' 
+      error: 'Error fetching dashboard metrics',
+      details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };
