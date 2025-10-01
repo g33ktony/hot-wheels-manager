@@ -15,16 +15,14 @@
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "rootDirs": [
-      "./src",
-      "../shared"
+      "./src"
     ],
     "paths": {
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["./src/shared/*"]
     }
   },
   "include": [
-    "src/**/*",
-    "../shared/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
