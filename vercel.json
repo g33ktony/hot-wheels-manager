@@ -6,6 +6,9 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "frontend/dist"
+      },
+      "env": {
+        "VITE_API_URL": "https://hot-wheels-manager-production.up.railway.app/api"
       }
     }
   ],
@@ -18,8 +21,5 @@
       "src": "/(.*)",
       "dest": "frontend/dist/$1"
     }
-  ],
-  "env": {
-    "VITE_API_URL": "https://hot-wheels-manager-production.up.railway.app/api"
-  }
+  ]
 }
