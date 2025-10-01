@@ -16,14 +16,15 @@
     "baseUrl": ".",
     "rootDirs": [
       "./src",
-      "./src/shared"
+      "../shared"
     ],
     "paths": {
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["../shared/*"]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../shared/**/*"
   ],
   "exclude": [
     "node_modules",
