@@ -20,6 +20,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "hot-wheels-manager-production.up.railway.app/api"
+    "VITE_API_URL": "https://hot-wheels-manager-production.up.railway.app/api"
   }
 }

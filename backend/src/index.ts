@@ -29,8 +29,9 @@ dotenv.config()
 const app = express()
 const PORT = parseInt(process.env.PORT || '3001')
 
-// Trust proxy - required when behind Railway/Heroku/Vercel proxy
-app.set('trust proxy', true)
+// Trust proxy - configure for Railway (more secure than 'true')
+// Railway uses specific proxy patterns, this is more secure than trust proxy: true
+app.set('trust proxy', 1)
 
 // Rate limiting
 const limiter = rateLimit({
@@ -46,7 +47,16 @@ app.use(helmet()) // Security headers
 app.use(compression()) // Gzip compression
 app.use(limiter) // Rate limiting
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173']
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   credentials: true,
 }))
 app.use(morgan('combined')) // Logging

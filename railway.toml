@@ -9,4 +9,4 @@ restartPolicyMaxRetries = 10
 
 [variables]
 NODE_ENV = "production"
-CORS_ORIGIN = "https://hot-wheels-manager.vercel.app"
+CORS_ORIGIN = "https://hot-wheels-manager.vercel.app,https://hot-wheels-manager-jfsn91o9q-antonio-martnez-s-projects.vercel.app"
