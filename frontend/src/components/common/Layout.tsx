@@ -32,7 +32,7 @@ export default function Layout({ children }: LayoutProps) {
     const location = useLocation()
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
@@ -81,27 +81,25 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
             {/* Main content */}
-            <div className="lg:pl-64">
-                {/* Top bar */}
-                <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-4 lg:px-6">
-                    <div className="flex items-center justify-between">
-                        <button
-                            className="lg:hidden"
-                            onClick={() => setSidebarOpen(true)}
-                        >
-                            <Menu size={24} />
-                        </button>
+            <div className="flex-1 flex flex-col">
+                {/* Top bar - same height as sidebar header */}
+                <div className="h-16 bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center justify-between">
+                    <button
+                        className="lg:hidden"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        <Menu size={24} />
+                    </button>
 
-                        <div className="flex-1 lg:flex lg:items-center lg:justify-end">
-                            <div className="text-sm text-gray-500">
-                                Bienvenido al gestor de Hot Wheels
-                            </div>
+                    <div className="flex-1 lg:flex lg:items-center lg:justify-end">
+                        <div className="text-sm text-gray-500">
+                            Bienvenido al gestor de Hot Wheels
                         </div>
                     </div>
                 </div>
 
-                {/* Page content */}
-                <main className="p-4 lg:p-6">
+                {/* Page content - starts at same level as sidebar nav */}
+                <main className="flex-1 p-4 lg:p-6 overflow-auto">
                     {children}
                 </main>
             </div>
