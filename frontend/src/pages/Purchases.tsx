@@ -156,6 +156,8 @@ export default function Purchases() {
 
     const handleEditPurchase = (purchase: any) => {
         // Format the purchase data for editing
+        console.log('🔍 Editing purchase:', purchase) // Debug log
+        
         const formattedPurchase = {
             supplierId: purchase.supplierId || purchase.supplier?._id || '',
             items: purchase.items || [],
@@ -166,6 +168,8 @@ export default function Purchases() {
             estimatedDelivery: purchase.estimatedDelivery ? new Date(purchase.estimatedDelivery).toISOString().split('T')[0] : '',
             notes: purchase.notes || ''
         }
+        
+        console.log('🔍 Formatted purchase:', formattedPurchase) // Debug log
         
         setNewPurchase(formattedPurchase)
         setEditingPurchase(purchase)

@@ -182,22 +182,29 @@ export default function Deliveries() {
 
     const handleEditDelivery = (delivery: any) => {
         // Format the delivery data for editing
+        console.log('🔍 Editing delivery:', delivery) // Debug log
+        
         const formattedDelivery = {
             customerId: delivery.customerId || delivery.customer?._id || '',
-            items: delivery.items?.map((item: any) => ({
-                inventoryItemId: item.inventoryItemId?._id || item.inventoryItemId,
-                hotWheelsCarId: item.hotWheelsCarId,
-                carId: item.carId,
-                carName: item.carName,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice
-            })) || [],
+            items: delivery.items?.map((item: any) => {
+                console.log('🔍 Processing item:', item) // Debug log
+                return {
+                    inventoryItemId: item.inventoryItemId?._id || item.inventoryItemId,
+                    hotWheelsCarId: item.hotWheelsCarId,
+                    carId: item.carId,
+                    carName: item.carName,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice
+                }
+            }) || [],
             scheduledDate: new Date(delivery.scheduledDate).toISOString().split('T')[0],
             scheduledTime: delivery.scheduledTime || '09:00',
             location: delivery.location || '',
             totalAmount: delivery.totalAmount || 0,
             notes: delivery.notes || ''
         }
+        
+        console.log('🔍 Formatted delivery:', formattedDelivery) // Debug log
         
         setNewDelivery(formattedDelivery)
         setEditingDelivery(delivery)
@@ -608,18 +615,33 @@ export default function Deliveries() {
                                                     onChange={(e) => updateDeliveryItem(index, 'inventoryItemId', e.target.value)}
                                                 >
                                                     <option value="">Seleccionar pieza del inventario</option>
-                                                    {inventoryItems && inventoryItems.filter(inv => (inv.quantity - (inv.reservedQuantity || 0)) > 0).length > 0
-                                                        ? inventoryItems.filter(inv => (inv.quantity - (inv.reservedQuantity || 0)) > 0).map((inv) => (
-                                                            <option key={inv._id} value={inv._id}>
-                                                                {inv.hotWheelsCar?.model || inv.carId} (Disponible: {inv.quantity - (inv.reservedQuantity || 0)}) - ${inv.suggestedPrice}
-                                                            </option>
-                                                        ))
-                                                        : inventoryItems?.map((inv) => (
-                                                            <option key={inv._id} value={inv._id}>
-                                                                {inv.hotWheelsCar?.model || inv.carId} (Catálogo) - ${inv.suggestedPrice}
-                                                            </option>
-                                                        ))
-                                                    }
+                                                    {inventoryItems && (() => {
+                                                        // Get available items
+                                                        const availableItems = inventoryItems.filter(inv => (inv.quantity - (inv.reservedQuantity || 0)) > 0)
+                                                        
+                                                        // Get items that are already selected in this delivery (for editing)
+                                                        const selectedItemIds = newDelivery.items.map(deliveryItem => deliveryItem.inventoryItemId).filter(Boolean)
+                                                        const selectedItems = inventoryItems.filter(inv => selectedItemIds.includes(inv._id))
+                                                        
+                                                        // Combine available items and selected items (avoid duplicates)
+                                                        const allRelevantItems = [
+                                                            ...availableItems,
+                                                            ...selectedItems.filter(selected => !availableItems.find(available => available._id === selected._id))
+                                                        ]
+                                                        
+                                                        return allRelevantItems.map((inv) => {
+                                                            const isAvailable = (inv.quantity - (inv.reservedQuantity || 0)) > 0
+                                                            const availableText = isAvailable 
+                                                                ? `(Disponible: ${inv.quantity - (inv.reservedQuantity || 0)})` 
+                                                                : '(En entrega actual)'
+                                                            
+                                                            return (
+                                                                <option key={inv._id} value={inv._id}>
+                                                                    {inv.hotWheelsCar?.model || inv.carId} {availableText} - ${inv.suggestedPrice}
+                                                                </option>
+                                                            )
+                                                        })
+                                                    })()}
                                                 </select>
                                             </div>
                                             <div className="w-20">
