@@ -288,6 +288,16 @@ export interface DashboardMetrics {
   totalRevenue: number;
   monthlyRevenue: number;
   recentActivity: ActivityItem[];
+  todaysDeliveries: TodaysDelivery[];
+}
+
+export interface TodaysDelivery {
+  id: string;
+  customerName: string;
+  location: string;
+  scheduledTime: string;
+  totalAmount: number;
+  itemCount: number;
 }
 
 export interface ActivityItem {

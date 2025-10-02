@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { HotWheelsCarModel } from '../models/HotWheelsCar';
 import { InventoryItemModel } from '../models/InventoryItem';
 import { SaleModel } from '../models/Sale';
+import { DeliveryModel } from '../models/Delivery';
+import Purchase from '../models/Purchase';
 
 // Get dashboard metrics
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
@@ -88,8 +90,33 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const totalProfit = totalRevenue[0]?.total || 0;
     const monthlyProfit = monthlyRevenue[0]?.total || 0;
 
+    // Get delivery metrics
+    console.log('� Getting delivery metrics...');
+    const pendingDeliveries = await DeliveryModel.countDocuments({
+      status: { $in: ['scheduled', 'prepared'] }
+    });
+
+    // Get today's deliveries
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+    const todaysDeliveries = await DeliveryModel.find({
+      scheduledDate: { $gte: startOfDay, $lte: endOfDay },
+      status: { $in: ['scheduled', 'prepared'] }
+    })
+    .populate('customerId')
+    .select('customerId location scheduledTime totalAmount items')
+    .limit(5);
+
+    // Get purchase metrics
+    console.log('📦 Getting purchase metrics...');
+    const pendingPurchases = await Purchase.countDocuments({
+      status: { $in: ['pending', 'paid', 'shipped'] }
+    });
+
     console.log('📋 Compiling dashboard data...');
-    // Mock data for missing features (will be implemented later)
+    // Enhanced dashboard data with real metrics
     const dashboardData = {
       totalInventoryValue: inventoryValue[0]?.total || 0,
       totalInventoryItems,
@@ -97,14 +124,22 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       totalCatalogCars,
       uniqueSeries: uniqueSeries.length,
       pendingSales: 0, // TODO: Implement when delivery system is ready
-      pendingDeliveries: 0, // TODO: Implement delivery tracking
-      pendingPurchases: 0, // TODO: Implement purchase tracking
+      pendingDeliveries,
+      pendingPurchases,
       monthlyProfit,
       totalProfit,
       totalSales,
       monthlySales,
       totalRevenue: totalRevenue[0]?.total || 0,
       monthlyRevenue: monthlyRevenue[0]?.total || 0,
+      todaysDeliveries: todaysDeliveries.map(delivery => ({
+        id: delivery._id,
+        customerName: (delivery.customerId as any)?.name || 'Cliente desconocido',
+        location: delivery.location,
+        scheduledTime: delivery.scheduledTime,
+        totalAmount: delivery.totalAmount,
+        itemCount: delivery.items?.length || 0
+      })),
       recentActivity: [
         {
           id: 'activity1',

@@ -3,7 +3,7 @@ import { useQuery } from 'react-query'
 import { dashboardService } from '@/services/dashboard'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
-import { Package, ShoppingCart, Truck, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Package, ShoppingCart, Truck, TrendingUp, AlertTriangle, Calendar, Clock, MapPin } from 'lucide-react'
 
 export default function Dashboard() {
     const { data: metrics, isLoading, error } = useQuery(
@@ -176,6 +176,43 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
+                            {/* Today's Deliveries */}
+                            {metrics.todaysDeliveries && metrics.todaysDeliveries.length > 0 && (
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-center mb-2">
+                                        <Calendar size={16} className="text-blue-600 mr-2" />
+                                        <p className="text-sm font-medium text-blue-800">
+                                            Entregas programadas para hoy ({metrics.todaysDeliveries.length})
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2 ml-6">
+                                        {metrics.todaysDeliveries.map((delivery) => (
+                                            <div key={delivery.id} className="text-xs bg-white p-2 rounded border">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="font-medium text-gray-900">{delivery.customerName}</p>
+                                                        <div className="flex items-center gap-3 text-gray-600 mt-1">
+                                                            <span className="flex items-center gap-1">
+                                                                <Clock size={12} />
+                                                                {delivery.scheduledTime}
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                <MapPin size={12} />
+                                                                {delivery.location}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-semibold text-green-600">${delivery.totalAmount}</p>
+                                                        <p className="text-gray-500">{delivery.itemCount} items</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {metrics.pendingPurchases > 0 && (
                                 <div className="flex items-center p-3 bg-warning-50 border border-warning-200 rounded-lg">
                                     <div className="flex-1">
@@ -196,7 +233,7 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            {metrics.pendingDeliveries > 0 && (
+                            {metrics.pendingDeliveries > 0 && !metrics.todaysDeliveries?.length && (
                                 <div className="flex items-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
                                     <div className="flex-1">
                                         <p className="text-sm font-medium text-purple-800">
