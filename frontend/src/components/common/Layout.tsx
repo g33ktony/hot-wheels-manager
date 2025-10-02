@@ -47,16 +47,17 @@ export default function Layout({ children }: LayoutProps) {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
                 <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-                    <h1 className="text-xl font-bold text-gray-900">🏎️ Hot Wheels Manager</h1>
+                    <h1 className="text-lg lg:text-xl font-bold text-gray-900">🏎️ Hot Wheels Manager</h1>
                     <button
-                        className="lg:hidden"
+                        className="lg:hidden p-2 -mr-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors"
                         onClick={() => setSidebarOpen(false)}
+                        aria-label="Cerrar menú"
                     >
                         <X size={24} />
                     </button>
                 </div>
 
-                <nav className="mt-8 px-4 space-y-2">
+                <nav className="mt-4 px-3 space-y-1 pb-20 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 4rem)' }}>
                     {navigationItems.map((item) => {
                         const isActive = location.pathname === item.href
                         return (
@@ -64,16 +65,17 @@ export default function Layout({ children }: LayoutProps) {
                                 key={item.name}
                                 to={item.href}
                                 className={`
-                  flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                  flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200
+                  min-h-[44px] touch-manipulation
                   ${isActive
-                                        ? 'bg-primary-100 text-primary-700'
-                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                        ? 'bg-primary-100 text-primary-700 shadow-sm'
+                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200'
                                     }
                 `}
                                 onClick={() => setSidebarOpen(false)}
                             >
-                                <item.icon size={20} className="mr-3" />
-                                {item.name}
+                                <item.icon size={22} className="mr-3 flex-shrink-0" />
+                                <span className="flex-1">{item.name}</span>
                             </Link>
                         )
                     })}
@@ -83,24 +85,27 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col">
                 {/* Top bar - same height as sidebar header */}
-                <div className="h-16 bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center justify-between">
+                <div className="h-16 bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30">
                     <button
-                        className="lg:hidden"
+                        className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                         onClick={() => setSidebarOpen(true)}
+                        aria-label="Abrir menú"
                     >
                         <Menu size={24} />
                     </button>
 
                     <div className="flex-1 lg:flex lg:items-center lg:justify-end">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 hidden sm:block">
                             Bienvenido al gestor de Hot Wheels
                         </div>
                     </div>
                 </div>
 
-                {/* Page content - starts at same level as sidebar nav */}
-                <main className="flex-1 p-4 lg:p-6 overflow-auto">
-                    {children}
+                {/* Page content - properly aligned with top bar */}
+                <main className="flex-1 overflow-auto">
+                    <div className="py-4 px-4 lg:py-6 lg:px-6 pb-safe">
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

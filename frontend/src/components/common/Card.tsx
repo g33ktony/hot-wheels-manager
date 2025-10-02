@@ -7,8 +7,8 @@ interface CardProps {
 }
 
 export default function Card({ children, className = '', hover = false }: CardProps) {
-    const baseClasses = 'rounded-lg border border-gray-200 bg-white p-6 shadow-card'
-    const hoverClasses = hover ? 'hover:shadow-card-hover transition-shadow cursor-pointer' : ''
+    const baseClasses = 'rounded-lg border border-gray-200 bg-white p-4 lg:p-6 shadow-card'
+    const hoverClasses = hover ? 'hover:shadow-card-hover transition-shadow cursor-pointer active:scale-[0.98]' : ''
 
     return (
         <div className={`${baseClasses} ${hoverClasses} ${className}`}>
@@ -37,7 +37,7 @@ interface CardTitleProps {
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
     return (
-        <h3 className={`text-lg font-semibold text-gray-900 ${className}`}>
+        <h3 className={`text-base lg:text-lg font-semibold text-gray-900 ${className}`}>
             {children}
         </h3>
     )

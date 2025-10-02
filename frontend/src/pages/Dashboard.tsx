@@ -104,24 +104,24 @@ export default function Dashboard() {
     ]
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-600">Resumen general de tu negocio de Hot Wheels</p>
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
+                <p className="text-sm lg:text-base text-gray-600">Resumen general de tu negocio de Hot Wheels</p>
             </div>
 
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Metrics Grid - 2 columns on mobile, 3 on desktop */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
                 {metricCards.map((metric) => (
-                    <Card key={metric.title}>
-                        <div className="flex items-center">
-                            <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                                {React.createElement(metric.icon, { size: 24, className: metric.color })}
+                    <Card key={metric.title} className="hover:shadow-md transition-shadow duration-200">
+                        <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                            <div className={`p-2 rounded-lg ${metric.bgColor} self-start`}>
+                                {React.createElement(metric.icon, { size: 20, className: metric.color })}
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">{metric.title}</p>
-                                <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+                            <div className="lg:ml-4">
+                                <p className="text-xs lg:text-sm font-medium text-gray-600">{metric.title}</p>
+                                <p className="text-lg lg:text-2xl font-bold text-gray-900 break-words">{metric.value}</p>
                             </div>
                         </div>
                     </Card>

@@ -5,6 +5,20 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    /* Prevent text size adjustment on iOS */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior-y: none;
+  }
+  
+  /* iOS Safe Area support */
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .pb-safe {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
   }
 }
 
@@ -43,5 +57,15 @@
   
   .card-hover {
     @apply card hover:shadow-card-hover transition-shadow;
+  }
+  
+  /* Mobile-friendly table wrapper with horizontal scroll */
+  .table-responsive {
+    @apply overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0;
+  }
+  
+  /* Touch-friendly elements */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
   }
 }

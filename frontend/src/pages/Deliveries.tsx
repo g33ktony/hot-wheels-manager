@@ -314,75 +314,75 @@ export default function Deliveries() {
     const completedDeliveries = deliveries?.filter(d => d.status === 'completed').length || 0
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <div className="space-y-4 lg:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Entregas</h1>
-                    <p className="text-gray-600">Calendario y gestión de entregas</p>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Entregas</h1>
+                    <p className="text-sm lg:text-base text-gray-600">Calendario y gestión de entregas</p>
                 </div>
                 <Button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                     <Plus size={20} />
-                    Nueva Entrega
+                    <span className="sm:inline">Nueva Entrega</span>
                 </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center">
-                        <div className="p-2 rounded-lg bg-blue-100">
-                            <Truck size={24} className="text-blue-600" />
+            {/* Stats Cards - 2 columns on mobile, 4 on desktop */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                        <div className="p-2 rounded-lg bg-blue-100 self-start">
+                            <Truck size={20} className="text-blue-600" />
                         </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">Total Entregas</p>
-                            <p className="text-2xl font-bold text-gray-900">{totalDeliveries}</p>
-                        </div>
-                    </div>
-                </Card>
-
-                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center">
-                        <div className="p-2 rounded-lg bg-yellow-100">
-                            <Clock size={24} className="text-yellow-600" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">Pendientes</p>
-                            <p className="text-2xl font-bold text-gray-900">{pendingDeliveries}</p>
+                        <div className="lg:ml-4">
+                            <p className="text-xs lg:text-sm font-medium text-gray-600">Total Entregas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{totalDeliveries}</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center">
-                        <div className="p-2 rounded-lg bg-orange-100">
-                            <Package size={24} className="text-orange-600" />
+                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                        <div className="p-2 rounded-lg bg-yellow-100 self-start">
+                            <Clock size={20} className="text-yellow-600" />
                         </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">Preparadas</p>
-                            <p className="text-2xl font-bold text-gray-900">{preparedDeliveries}</p>
+                        <div className="lg:ml-4">
+                            <p className="text-xs lg:text-sm font-medium text-gray-600">Pendientes</p>
+                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{pendingDeliveries}</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center">
-                        <div className="p-2 rounded-lg bg-green-100">
-                            <CheckCircle size={24} className="text-green-600" />
+                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                        <div className="p-2 rounded-lg bg-orange-100 self-start">
+                            <Package size={20} className="text-orange-600" />
                         </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-600">Completadas</p>
-                            <p className="text-2xl font-bold text-gray-900">{completedDeliveries}</p>
+                        <div className="lg:ml-4">
+                            <p className="text-xs lg:text-sm font-medium text-gray-600">Preparadas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{preparedDeliveries}</p>
+                        </div>
+                    </div>
+                </Card>
+
+                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
+                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                        <div className="p-2 rounded-lg bg-green-100 self-start">
+                            <CheckCircle size={20} className="text-green-600" />
+                        </div>
+                        <div className="lg:ml-4">
+                            <p className="text-xs lg:text-sm font-medium text-gray-600">Completadas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{completedDeliveries}</p>
                         </div>
                     </div>
                 </Card>
             </div>
 
             {/* Filters */}
-            <Card className="p-6 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4">
+            <Card className="p-4 lg:p-6 shadow-sm">
+                <div className="flex flex-col gap-3 lg:flex-row lg:gap-4">
                     <div className="flex-1">
                         <div className="relative">
                             <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
@@ -395,32 +395,34 @@ export default function Deliveries() {
                             />
                         </div>
                     </div>
-                    <div>
-                        <Input
-                            type="date"
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                            className="w-full md:w-auto"
-                        />
+                    <div className="flex gap-3">
+                        <div className="flex-1 lg:flex-none lg:w-48">
+                            <Input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="w-full"
+                            />
+                        </div>
                     </div>
                 </div>
             </Card>
 
             {/* Deliveries List */}
-            <Card className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900">Lista de Entregas</h2>
+            <Card className="p-4 lg:p-6">
+                <div className="flex items-center justify-between mb-4 lg:mb-6">
+                    <h2 className="text-base lg:text-lg font-semibold text-gray-900">Lista de Entregas</h2>
                 </div>
 
                 {filteredDeliveries && filteredDeliveries.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3 lg:space-y-4">
                         {filteredDeliveries.map((delivery) => (
-                            <div key={delivery._id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-3">
-                                            <h3 className="font-medium text-gray-900">{delivery.customer?.name}</h3>
-                                            <span className={`px-2 py-1 text-xs rounded-full ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            <div key={delivery._id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                                <div className="flex-1 mb-3 lg:mb-0">
+                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-0 mb-2">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                            <h3 className="font-medium text-gray-900 text-sm lg:text-base">{delivery.customer?.name}</h3>
+                                            <span className={`px-2 py-1 text-xs rounded-full self-start ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                 delivery.status === 'prepared' ? 'bg-orange-100 text-orange-800' :
                                                     delivery.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
                                                         delivery.status === 'rescheduled' ? 'bg-yellow-100 text-yellow-800' :
@@ -432,14 +434,14 @@ export default function Deliveries() {
                                                             delivery.status === 'rescheduled' ? 'Reprogramada' : 'Cancelada'}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex flex-wrap items-center gap-2 lg:hidden">
                                             {delivery.status === 'scheduled' && (
                                                 <>
                                                     <Button
                                                         size="sm"
                                                         onClick={() => handleMarkAsPrepared(delivery._id!)}
                                                         disabled={markPreparedMutation.isLoading}
-                                                        className="text-orange-600 hover:text-orange-800"
+                                                        className="text-orange-600 hover:text-orange-800 min-w-[44px] min-h-[44px]"
                                                         title="Marcar como preparada"
                                                     >
                                                         📦
@@ -448,7 +450,7 @@ export default function Deliveries() {
                                                         size="sm"
                                                         onClick={() => handleMarkAsCompleted(delivery._id!)}
                                                         disabled={markCompletedMutation.isLoading}
-                                                        className="text-green-600 hover:text-green-800"
+                                                        className="text-green-600 hover:text-green-800 min-w-[44px] min-h-[44px]"
                                                         title="Marcar como completada"
                                                     >
                                                         <CheckCircle size={16} />
@@ -464,7 +466,7 @@ export default function Deliveries() {
                                                         }
                                                     }}
                                                     disabled={markCompletedMutation.isLoading}
-                                                    className="text-green-600 hover:text-green-800"
+                                                    className="text-green-600 hover:text-green-800 min-w-[44px] min-h-[44px]"
                                                     title="Marcar como completada (eliminará items del inventario)"
                                                 >
                                                     <CheckCircle size={16} />
@@ -478,6 +480,7 @@ export default function Deliveries() {
                                                 variant="secondary"
                                                 onClick={() => handleViewDetails(delivery)}
                                                 title="Ver detalles"
+                                                className="min-w-[44px] min-h-[44px]"
                                             >
                                                 <Eye size={16} />
                                             </Button>
@@ -487,6 +490,7 @@ export default function Deliveries() {
                                                     variant="secondary"
                                                     onClick={() => handleEditDelivery(delivery)}
                                                     title="Editar entrega"
+                                                    className="min-w-[44px] min-h-[44px]"
                                                 >
                                                     <Edit size={16} />
                                                 </Button>
@@ -496,14 +500,15 @@ export default function Deliveries() {
                                                 variant="danger"
                                                 onClick={() => handleDeleteDelivery(delivery._id!)}
                                                 disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
+                                                className="min-w-[44px] min-h-[44px]"
                                                 title={delivery.status === 'completed' ? 'No se puede eliminar entrega completada' : 'Eliminar entrega'}
                                             >
                                                 <Trash2 size={16} />
                                             </Button>
                                         </div>
                                     </div>
-                                    <div className="text-sm text-gray-600 space-y-1">
-                                        <div className="flex items-center gap-4">
+                                    <div className="text-sm lg:text-base text-gray-600 space-y-1">
+                                        <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs lg:text-sm">
                                             <span className="flex items-center gap-1">
                                                 <Calendar size={14} />
                                                 {(() => {
@@ -522,9 +527,79 @@ export default function Deliveries() {
                                                 {delivery.items.length} items
                                             </span>
                                         </div>
-                                        <p>Total: ${delivery.totalAmount.toFixed(2)}</p>
-                                        {delivery.notes && <p>Notas: {delivery.notes}</p>}
+                                        <p className="text-xs lg:text-sm font-medium">Total: ${delivery.totalAmount.toFixed(2)}</p>
+                                        {delivery.notes && <p className="text-xs lg:text-sm">Notas: {delivery.notes}</p>}
                                     </div>
+                                </div>
+                                {/* Desktop actions */}
+                                <div className="hidden lg:flex items-center gap-2">
+                                    {delivery.status === 'scheduled' && (
+                                        <>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleMarkAsPrepared(delivery._id!)}
+                                                disabled={markPreparedMutation.isLoading}
+                                                className="text-orange-600 hover:text-orange-800"
+                                                title="Marcar como preparada"
+                                            >
+                                                📦
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleMarkAsCompleted(delivery._id!)}
+                                                disabled={markCompletedMutation.isLoading}
+                                                className="text-green-600 hover:text-green-800"
+                                                title="Marcar como completada"
+                                            >
+                                                <CheckCircle size={16} />
+                                            </Button>
+                                        </>
+                                    )}
+                                    {delivery.status === 'prepared' && (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario.')) {
+                                                    handleMarkAsCompleted(delivery._id!)
+                                                }
+                                            }}
+                                            disabled={markCompletedMutation.isLoading}
+                                            className="text-green-600 hover:text-green-800"
+                                            title="Marcar como completada (eliminará items del inventario)"
+                                        >
+                                            <CheckCircle size={16} />
+                                        </Button>
+                                    )}
+                                    {delivery.status === 'completed' && (
+                                        <span className="text-xs text-gray-500">No se puede revertir</span>
+                                    )}
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => handleViewDetails(delivery)}
+                                        title="Ver detalles"
+                                    >
+                                        <Eye size={16} />
+                                    </Button>
+                                    {delivery.status !== 'completed' && (
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() => handleEditDelivery(delivery)}
+                                            title="Editar entrega"
+                                        >
+                                            <Edit size={16} />
+                                        </Button>
+                                    )}
+                                    <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => handleDeleteDelivery(delivery._id!)}
+                                        disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
+                                        title={delivery.status === 'completed' ? 'No se puede eliminar entrega completada' : 'Eliminar entrega'}
+                                    >
+                                        <Trash2 size={16} />
+                                    </Button>
                                 </div>
                             </div>
                         ))}
