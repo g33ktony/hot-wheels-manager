@@ -178,6 +178,8 @@ export default function Purchases() {
         }
         console.log('🔍 Supplier ID extracted:', supplierId, 'Type:', typeof supplierId) // Debug log
         console.log('🔍 Available suppliers:', suppliers) // Debug log
+        console.log('🔍 Original purchaseDate:', purchase.purchaseDate) // Debug log
+        console.log('🔍 Original estimatedDelivery:', purchase.estimatedDelivery) // Debug log
         
         const formattedPurchase = {
             supplierId: supplierId,
@@ -185,8 +187,16 @@ export default function Purchases() {
             totalCost: purchase.totalCost || 0,
             shippingCost: purchase.shippingCost || 0,
             trackingNumber: purchase.trackingNumber || '',
-            purchaseDate: purchase.purchaseDate ? new Date(purchase.purchaseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-            estimatedDelivery: purchase.estimatedDelivery ? new Date(purchase.estimatedDelivery).toISOString().split('T')[0] : '',
+            purchaseDate: purchase.purchaseDate ? 
+                new Date(purchase.purchaseDate).getFullYear() + '-' + 
+                String(new Date(purchase.purchaseDate).getMonth() + 1).padStart(2, '0') + '-' + 
+                String(new Date(purchase.purchaseDate).getDate()).padStart(2, '0') 
+                : new Date().toISOString().split('T')[0],
+            estimatedDelivery: purchase.estimatedDelivery ? 
+                new Date(purchase.estimatedDelivery).getFullYear() + '-' + 
+                String(new Date(purchase.estimatedDelivery).getMonth() + 1).padStart(2, '0') + '-' + 
+                String(new Date(purchase.estimatedDelivery).getDate()).padStart(2, '0') 
+                : '',
             notes: purchase.notes || ''
         }
         

@@ -204,6 +204,8 @@ export default function Deliveries() {
         }
         console.log('🔍 Customer ID extracted:', customerId, 'Type:', typeof customerId) // Debug log
         console.log('🔍 Available customers:', customers) // Debug log
+        console.log('🔍 Original scheduledDate:', delivery.scheduledDate) // Debug log
+        console.log('🔍 Original scheduledTime:', delivery.scheduledTime) // Debug log
         
         const formattedDelivery = {
             customerId: customerId,
@@ -228,7 +230,11 @@ export default function Deliveries() {
                     unitPrice: item.unitPrice
                 }
             }) || [],
-            scheduledDate: delivery.scheduledDate ? new Date(delivery.scheduledDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            scheduledDate: delivery.scheduledDate ? 
+                new Date(delivery.scheduledDate).getFullYear() + '-' + 
+                String(new Date(delivery.scheduledDate).getMonth() + 1).padStart(2, '0') + '-' + 
+                String(new Date(delivery.scheduledDate).getDate()).padStart(2, '0') 
+                : new Date().toISOString().split('T')[0],
             scheduledTime: delivery.scheduledTime || '09:00',
             location: delivery.location || '',
             totalAmount: delivery.totalAmount || 0,
