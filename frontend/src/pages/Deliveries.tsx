@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useQueryClient } from 'react-query'
-import { useDeliveries, useCreateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery } from '@/hooks/useDeliveries'
+import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus } from 'lucide-react'
+import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit } from 'lucide-react'
 
 export default function Deliveries() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -15,6 +15,8 @@ export default function Deliveries() {
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false)
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
+    const [editingDelivery, setEditingDelivery] = useState<any>(null)
+    const [isEditMode, setIsEditMode] = useState(false)
     // Función para obtener el inicio de la semana (lunes)
     const getStartOfWeek = () => {
         const today = new Date()
@@ -46,6 +48,7 @@ export default function Deliveries() {
     const { data: customers } = useCustomers()
     const { data: inventoryItems } = useInventory()
     const createDeliveryMutation = useCreateDelivery()
+    const updateDeliveryMutation = useUpdateDelivery()
     const createCustomerMutation = useCreateCustomer()
     const markCompletedMutation = useMarkDeliveryAsCompleted()
     const markPreparedMutation = useMarkDeliveryAsPrepared()
@@ -86,31 +89,39 @@ export default function Deliveries() {
         }
 
         try {
-            await createDeliveryMutation.mutateAsync({
-                customerId: newDelivery.customerId,
-                items: newDelivery.items,
-                scheduledDate: new Date(newDelivery.scheduledDate),
-                location: newDelivery.location,
-                totalAmount: newDelivery.totalAmount,
-                notes: newDelivery.notes || undefined
-            })
+            if (isEditMode && editingDelivery) {
+                // Update existing delivery
+                await updateDeliveryMutation.mutateAsync({
+                    id: editingDelivery._id,
+                    data: {
+                        customerId: newDelivery.customerId,
+                        items: newDelivery.items,
+                        scheduledDate: new Date(newDelivery.scheduledDate),
+                        scheduledTime: newDelivery.scheduledTime,
+                        location: newDelivery.location,
+                        totalAmount: newDelivery.totalAmount,
+                        notes: newDelivery.notes || undefined
+                    }
+                })
+            } else {
+                // Create new delivery
+                await createDeliveryMutation.mutateAsync({
+                    customerId: newDelivery.customerId,
+                    items: newDelivery.items,
+                    scheduledDate: new Date(newDelivery.scheduledDate),
+                    location: newDelivery.location,
+                    totalAmount: newDelivery.totalAmount,
+                    notes: newDelivery.notes || undefined
+                })
+            }
 
             // Reset form and close modal
-            setNewDelivery({
-                customerId: '',
-                items: [],
-                scheduledDate: new Date().toISOString().split('T')[0],
-                scheduledTime: '09:00',
-                location: '',
-                totalAmount: 0,
-                notes: ''
-            })
-            setShowCreateModal(false)
+            handleCloseModal()
         } catch (error) {
-            console.error('Error creating delivery:', error)
+            console.error('Error saving delivery:', error)
             // Refresh inventory data in case items became unavailable
             queryClient.invalidateQueries(['inventory'])
-            alert('Error al crear la entrega. Los items seleccionados pueden ya no estar disponibles.')
+            alert(isEditMode ? 'Error al actualizar la entrega' : 'Error al crear la entrega. Los items seleccionados pueden ya no estar disponibles.')
         }
     }
 
@@ -167,6 +178,47 @@ export default function Deliveries() {
         if (confirm('¿Estás seguro de que quieres eliminar esta entrega?')) {
             await deleteDeliveryMutation.mutateAsync(deliveryId)
         }
+    }
+
+    const handleEditDelivery = (delivery: any) => {
+        // Format the delivery data for editing
+        const formattedDelivery = {
+            customerId: delivery.customerId || delivery.customer?._id || '',
+            items: delivery.items?.map((item: any) => ({
+                inventoryItemId: item.inventoryItemId?._id || item.inventoryItemId,
+                hotWheelsCarId: item.hotWheelsCarId,
+                carId: item.carId,
+                carName: item.carName,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice
+            })) || [],
+            scheduledDate: new Date(delivery.scheduledDate).toISOString().split('T')[0],
+            scheduledTime: delivery.scheduledTime || '09:00',
+            location: delivery.location || '',
+            totalAmount: delivery.totalAmount || 0,
+            notes: delivery.notes || ''
+        }
+        
+        setNewDelivery(formattedDelivery)
+        setEditingDelivery(delivery)
+        setIsEditMode(true)
+        setShowCreateModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setShowCreateModal(false)
+        setIsEditMode(false)
+        setEditingDelivery(null)
+        // Reset form
+        setNewDelivery({
+            customerId: '',
+            items: [],
+            scheduledDate: new Date().toISOString().split('T')[0],
+            scheduledTime: '09:00',
+            location: '',
+            totalAmount: 0,
+            notes: ''
+        })
     }
 
     const addDeliveryItem = () => {
@@ -394,6 +446,16 @@ export default function Deliveries() {
                                             >
                                                 <Eye size={16} />
                                             </Button>
+                                            {delivery.status !== 'completed' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    onClick={() => handleEditDelivery(delivery)}
+                                                    title="Editar entrega"
+                                                >
+                                                    <Edit size={16} />
+                                                </Button>
+                                            )}
                                             <Button
                                                 size="sm"
                                                 variant="danger"
@@ -441,9 +503,11 @@ export default function Deliveries() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-6 border-b">
-                            <h2 className="text-xl font-semibold text-gray-900">Nueva Entrega</h2>
+                            <h2 className="text-xl font-semibold text-gray-900">
+                                {isEditMode ? 'Editar Entrega' : 'Nueva Entrega'}
+                            </h2>
                             <button
-                                onClick={() => setShowCreateModal(false)}
+                                onClick={handleCloseModal}
                                 className="text-gray-400 hover:text-gray-600"
                             >
                                 <X size={24} />
@@ -613,16 +677,19 @@ export default function Deliveries() {
                             <Button
                                 variant="secondary"
                                 className="flex-1"
-                                onClick={() => setShowCreateModal(false)}
+                                onClick={handleCloseModal}
                             >
                                 Cancelar
                             </Button>
                             <Button
                                 className="flex-1"
                                 onClick={handleCreateDelivery}
-                                disabled={createDeliveryMutation.isLoading}
+                                disabled={createDeliveryMutation.isLoading || updateDeliveryMutation.isLoading}
                             >
-                                {createDeliveryMutation.isLoading ? 'Creando...' : 'Crear Entrega'}
+                                {isEditMode 
+                                    ? (updateDeliveryMutation.isLoading ? 'Actualizando...' : 'Actualizar Entrega')
+                                    : (createDeliveryMutation.isLoading ? 'Creando...' : 'Crear Entrega')
+                                }
                             </Button>
                         </div>
                     </div>
