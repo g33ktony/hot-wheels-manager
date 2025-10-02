@@ -159,11 +159,17 @@ export default function Purchases() {
         console.log('🔍 Editing purchase:', purchase) // Debug log
         
         // Check different ways the supplier ID might be stored and convert to string
-        let supplierId = purchase.supplierId || purchase.supplier?._id || purchase.supplier || ''
-        if (typeof supplierId === 'object' && supplierId !== null) {
-            supplierId = supplierId.toString() // Convert ObjectId to string
+        let supplierId = ''
+        if (purchase.supplierId) {
+            supplierId = String(purchase.supplierId)
+        } else if (purchase.supplier) {
+            if (typeof purchase.supplier === 'string') {
+                supplierId = purchase.supplier
+            } else if (purchase.supplier._id) {
+                supplierId = String(purchase.supplier._id)
+            }
         }
-        console.log('🔍 Supplier ID found:', supplierId) // Debug log
+        console.log('🔍 Supplier ID found:', supplierId, 'Type:', typeof supplierId) // Debug log
         console.log('🔍 Available suppliers:', suppliers) // Debug log
         
         const formattedPurchase = {
@@ -172,7 +178,7 @@ export default function Purchases() {
             totalCost: purchase.totalCost || 0,
             shippingCost: purchase.shippingCost || 0,
             trackingNumber: purchase.trackingNumber || '',
-            purchaseDate: new Date(purchase.purchaseDate).toISOString().split('T')[0],
+            purchaseDate: purchase.purchaseDate ? new Date(purchase.purchaseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             estimatedDelivery: purchase.estimatedDelivery ? new Date(purchase.estimatedDelivery).toISOString().split('T')[0] : '',
             notes: purchase.notes || ''
         }

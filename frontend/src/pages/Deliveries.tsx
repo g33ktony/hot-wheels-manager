@@ -185,20 +185,32 @@ export default function Deliveries() {
         console.log('🔍 Editing delivery:', delivery) // Debug log
         
         // Check different ways the customer ID might be stored and convert to string
-        let customerId = delivery.customerId || delivery.customer?._id || delivery.customer || ''
-        if (typeof customerId === 'object' && customerId !== null) {
-            customerId = customerId.toString() // Convert ObjectId to string
+        let customerId = ''
+        if (delivery.customerId) {
+            customerId = String(delivery.customerId)
+        } else if (delivery.customer) {
+            if (typeof delivery.customer === 'string') {
+                customerId = delivery.customer
+            } else if (delivery.customer._id) {
+                customerId = String(delivery.customer._id)
+            }
         }
-        console.log('🔍 Customer ID found:', customerId) // Debug log
+        console.log('🔍 Customer ID found:', customerId, 'Type:', typeof customerId) // Debug log
         console.log('🔍 Available customers:', customers) // Debug log
         
         const formattedDelivery = {
             customerId: customerId,
             items: delivery.items?.map((item: any) => {
                 console.log('🔍 Processing item:', item) // Debug log
-                let inventoryItemId = item.inventoryItemId?._id || item.inventoryItemId
-                if (typeof inventoryItemId === 'object' && inventoryItemId !== null) {
-                    inventoryItemId = inventoryItemId.toString() // Convert ObjectId to string
+                let inventoryItemId = ''
+                if (item.inventoryItemId) {
+                    if (typeof item.inventoryItemId === 'string') {
+                        inventoryItemId = item.inventoryItemId
+                    } else if (item.inventoryItemId._id) {
+                        inventoryItemId = String(item.inventoryItemId._id)
+                    } else {
+                        inventoryItemId = String(item.inventoryItemId)
+                    }
                 }
                 return {
                     inventoryItemId: inventoryItemId,
@@ -209,7 +221,7 @@ export default function Deliveries() {
                     unitPrice: item.unitPrice
                 }
             }) || [],
-            scheduledDate: new Date(delivery.scheduledDate).toISOString().split('T')[0],
+            scheduledDate: delivery.scheduledDate ? new Date(delivery.scheduledDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             scheduledTime: delivery.scheduledTime || '09:00',
             location: delivery.location || '',
             totalAmount: delivery.totalAmount || 0,
