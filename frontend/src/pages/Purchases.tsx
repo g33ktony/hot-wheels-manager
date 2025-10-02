@@ -158,8 +158,13 @@ export default function Purchases() {
         // Format the purchase data for editing
         console.log('🔍 Editing purchase:', purchase) // Debug log
         
+        // Check different ways the supplier ID might be stored
+        const supplierId = purchase.supplierId || purchase.supplier?._id || purchase.supplier || ''
+        console.log('🔍 Supplier ID found:', supplierId) // Debug log
+        console.log('🔍 Available suppliers:', suppliers) // Debug log
+        
         const formattedPurchase = {
-            supplierId: purchase.supplierId || purchase.supplier?._id || '',
+            supplierId: supplierId,
             items: purchase.items || [],
             totalCost: purchase.totalCost || 0,
             shippingCost: purchase.shippingCost || 0,

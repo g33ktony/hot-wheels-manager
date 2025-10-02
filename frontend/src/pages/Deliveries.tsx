@@ -184,8 +184,13 @@ export default function Deliveries() {
         // Format the delivery data for editing
         console.log('🔍 Editing delivery:', delivery) // Debug log
         
+        // Check different ways the customer ID might be stored
+        const customerId = delivery.customerId || delivery.customer?._id || delivery.customer || ''
+        console.log('🔍 Customer ID found:', customerId) // Debug log
+        console.log('🔍 Available customers:', customers) // Debug log
+        
         const formattedDelivery = {
-            customerId: delivery.customerId || delivery.customer?._id || '',
+            customerId: customerId,
             items: delivery.items?.map((item: any) => {
                 console.log('🔍 Processing item:', item) // Debug log
                 return {
