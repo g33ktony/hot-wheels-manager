@@ -20,9 +20,24 @@ export const connectInMemoryDB = async () => {
 // Regular MongoDB connection
 export const connectDB = async (mongoURI?: string) => {
   try {
-    const uri = `${mongoURI}/hot-wheels-manager` || `${process.env.MONGODB_URI}/hot-wheels-manager` || 'mongodb://localhost:27017/hot-wheels-manager'
+    // Get the base URI (remove any existing database name)
+    const baseURI = mongoURI || process.env.MONGODB_URI || 'mongodb://localhost:27017'
+    
+    // Ensure we connect to the correct database name
+    let uri: string
+    if (baseURI.includes('mongodb://localhost') || baseURI.includes('mongodb://127.0.0.1')) {
+      // Local MongoDB
+      uri = 'mongodb://localhost:27017/hot-wheels-manager'
+    } else {
+      // Remote MongoDB (Atlas, etc.) - replace or add database name
+      const uriParts = baseURI.split('/')
+      const baseWithoutDb = uriParts.slice(0, -1).join('/') // Remove last part (database name)
+      uri = `${baseWithoutDb}/hot-wheels-manager`
+    }
+    
+    console.log('🔗 Connecting to database: hot-wheels-manager')
     await mongoose.connect(uri)
-    console.log('✅ MongoDB connected successfully')
+    console.log('✅ MongoDB connected successfully to hot-wheels-manager database')
   } catch (error) {
     console.error('❌ MongoDB connection error:', error)
     
