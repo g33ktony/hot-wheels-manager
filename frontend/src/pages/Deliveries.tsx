@@ -17,17 +17,9 @@ export default function Deliveries() {
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
     const [editingDelivery, setEditingDelivery] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
-    // Función para obtener el inicio de la semana (lunes)
-    const getStartOfWeek = () => {
-        const today = new Date()
-        const dayOfWeek = today.getDay() // 0 = domingo, 1 = lunes, ..., 6 = sábado
-        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Si es domingo, restar 6 días para llegar al lunes
-        const startOfWeek = new Date(today)
-        startOfWeek.setDate(today.getDate() - daysToSubtract)
-        return startOfWeek.toISOString().split('T')[0]
-    }
-
-    const [selectedDate, setSelectedDate] = useState(getStartOfWeek())
+    
+    // Usar la fecha actual por defecto
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
     const [newDelivery, setNewDelivery] = useState({
         customerId: '',
         items: [] as { inventoryItemId?: string; hotWheelsCarId?: string; carId: string; carName: string; quantity: number; unitPrice: number }[],
@@ -338,8 +330,8 @@ export default function Deliveries() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <Card className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
                     <div className="flex items-center">
                         <div className="p-2 rounded-lg bg-blue-100">
                             <Truck size={24} className="text-blue-600" />
@@ -351,7 +343,7 @@ export default function Deliveries() {
                     </div>
                 </Card>
 
-                <Card className="p-6">
+                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
                     <div className="flex items-center">
                         <div className="p-2 rounded-lg bg-yellow-100">
                             <Clock size={24} className="text-yellow-600" />
@@ -363,7 +355,7 @@ export default function Deliveries() {
                     </div>
                 </Card>
 
-                <Card className="p-6">
+                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
                     <div className="flex items-center">
                         <div className="p-2 rounded-lg bg-orange-100">
                             <Package size={24} className="text-orange-600" />
@@ -375,7 +367,7 @@ export default function Deliveries() {
                     </div>
                 </Card>
 
-                <Card className="p-6">
+                <Card className="p-6 hover:shadow-md transition-shadow duration-200">
                     <div className="flex items-center">
                         <div className="p-2 rounded-lg bg-green-100">
                             <CheckCircle size={24} className="text-green-600" />
@@ -389,17 +381,17 @@ export default function Deliveries() {
             </div>
 
             {/* Filters */}
-            <Card className="p-6">
+            <Card className="p-6 shadow-sm">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                         <div className="relative">
-                            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                             <Input
                                 type="text"
                                 placeholder="Buscar por cliente o ubicación..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 focus:ring-2 focus:ring-primary-500"
                             />
                         </div>
                     </div>
