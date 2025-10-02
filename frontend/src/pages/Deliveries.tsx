@@ -184,18 +184,25 @@ export default function Deliveries() {
         // Format the delivery data for editing
         console.log('🔍 Editing delivery:', delivery) // Debug log
         
-        // Check different ways the customer ID might be stored and convert to string
+        // Extract customer ID correctly - handle both populated and non-populated cases
         let customerId = ''
         if (delivery.customerId) {
-            customerId = String(delivery.customerId)
+            // If customerId is an object (populated), extract the _id
+            if (typeof delivery.customerId === 'object' && delivery.customerId._id) {
+                customerId = String(delivery.customerId._id)
+            } else {
+                // If it's already a string ID
+                customerId = String(delivery.customerId)
+            }
         } else if (delivery.customer) {
+            // Fallback: check customer field
             if (typeof delivery.customer === 'string') {
                 customerId = delivery.customer
             } else if (delivery.customer._id) {
                 customerId = String(delivery.customer._id)
             }
         }
-        console.log('🔍 Customer ID found:', customerId, 'Type:', typeof customerId) // Debug log
+        console.log('🔍 Customer ID extracted:', customerId, 'Type:', typeof customerId) // Debug log
         console.log('🔍 Available customers:', customers) // Debug log
         
         const formattedDelivery = {

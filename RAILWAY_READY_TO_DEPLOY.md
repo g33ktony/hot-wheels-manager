@@ -20,7 +20,7 @@ Add these in Railway Dashboard → Your Service → Variables:
 MONGODB_URI = mongodb+srv://your-mongodb-atlas-connection-string
 NODE_ENV = production
 PORT = (auto-injected by Railway, don't set manually)
-CORS_ORIGIN = https://your-vercel-frontend-domain.vercel.app
+CORS_ORIGIN = https://hot-wheels-manager.vercel.app
 ```
 
 ### 3. **Build & Deploy Commands**

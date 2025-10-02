@@ -158,18 +158,25 @@ export default function Purchases() {
         // Format the purchase data for editing
         console.log('🔍 Editing purchase:', purchase) // Debug log
         
-        // Check different ways the supplier ID might be stored and convert to string
+        // Extract supplier ID correctly - handle both populated and non-populated cases
         let supplierId = ''
         if (purchase.supplierId) {
-            supplierId = String(purchase.supplierId)
+            // If supplierId is an object (populated), extract the _id
+            if (typeof purchase.supplierId === 'object' && purchase.supplierId._id) {
+                supplierId = String(purchase.supplierId._id)
+            } else {
+                // If it's already a string ID
+                supplierId = String(purchase.supplierId)
+            }
         } else if (purchase.supplier) {
+            // Fallback: check supplier field
             if (typeof purchase.supplier === 'string') {
                 supplierId = purchase.supplier
             } else if (purchase.supplier._id) {
                 supplierId = String(purchase.supplier._id)
             }
         }
-        console.log('🔍 Supplier ID found:', supplierId, 'Type:', typeof supplierId) // Debug log
+        console.log('🔍 Supplier ID extracted:', supplierId, 'Type:', typeof supplierId) // Debug log
         console.log('🔍 Available suppliers:', suppliers) // Debug log
         
         const formattedPurchase = {
