@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import { usePurchases, useCreatePurchase, useUpdatePurchaseStatus, useDeletePurchase } from '@/hooks/usePurchases'
+import { usePurchases, useCreatePurchase, useUpdatePurchase, useUpdatePurchaseStatus, useDeletePurchase } from '@/hooks/usePurchases'
 import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2 } from 'lucide-react'
+import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit } from 'lucide-react'
 
 export default function Purchases() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [showCreateSupplierModal, setShowCreateSupplierModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [selectedPurchase, setSelectedPurchase] = useState<any>(null)
+    const [editingPurchase, setEditingPurchase] = useState<any>(null)
+    const [isEditMode, setIsEditMode] = useState(false)
     const [newSupplier, setNewSupplier] = useState({
         name: '',
         email: '',
@@ -37,6 +39,7 @@ export default function Purchases() {
     const { data: purchases, isLoading, error } = usePurchases()
     const { data: suppliers } = useSuppliers()
     const createPurchaseMutation = useCreatePurchase()
+    const updatePurchaseMutation = useUpdatePurchase()
     const createSupplierMutation = useCreateSupplier()
     const updateStatusMutation = useUpdatePurchaseStatus()
     const deletePurchaseMutation = useDeletePurchase()
@@ -114,18 +117,67 @@ export default function Purchases() {
             return
         }
 
-        await createPurchaseMutation.mutateAsync({
-            supplierId: newPurchase.supplierId,
-            items: newPurchase.items,
-            totalCost: newPurchase.totalCost,
-            shippingCost: newPurchase.shippingCost,
-            trackingNumber: newPurchase.trackingNumber || undefined,
-            purchaseDate: new Date(newPurchase.purchaseDate),
-            estimatedDelivery: newPurchase.estimatedDelivery ? new Date(newPurchase.estimatedDelivery) : undefined,
-            notes: newPurchase.notes || undefined
-        })
+        try {
+            if (isEditMode && editingPurchase) {
+                // Update existing purchase
+                await updatePurchaseMutation.mutateAsync({
+                    id: editingPurchase._id,
+                    data: {
+                        supplierId: newPurchase.supplierId,
+                        items: newPurchase.items,
+                        totalCost: newPurchase.totalCost,
+                        shippingCost: newPurchase.shippingCost,
+                        trackingNumber: newPurchase.trackingNumber || undefined,
+                        purchaseDate: new Date(newPurchase.purchaseDate),
+                        estimatedDelivery: newPurchase.estimatedDelivery ? new Date(newPurchase.estimatedDelivery) : undefined,
+                        notes: newPurchase.notes || undefined
+                    }
+                })
+            } else {
+                // Create new purchase
+                await createPurchaseMutation.mutateAsync({
+                    supplierId: newPurchase.supplierId,
+                    items: newPurchase.items,
+                    totalCost: newPurchase.totalCost,
+                    shippingCost: newPurchase.shippingCost,
+                    trackingNumber: newPurchase.trackingNumber || undefined,
+                    purchaseDate: new Date(newPurchase.purchaseDate),
+                    estimatedDelivery: newPurchase.estimatedDelivery ? new Date(newPurchase.estimatedDelivery) : undefined,
+                    notes: newPurchase.notes || undefined
+                })
+            }
 
-        // Reset form and close modal
+            // Reset form and close modal
+            handleCloseModal()
+        } catch (error) {
+            console.error('Error saving purchase:', error)
+        }
+    }
+
+    const handleEditPurchase = (purchase: any) => {
+        // Format the purchase data for editing
+        const formattedPurchase = {
+            supplierId: purchase.supplierId || purchase.supplier?._id || '',
+            items: purchase.items || [],
+            totalCost: purchase.totalCost || 0,
+            shippingCost: purchase.shippingCost || 0,
+            trackingNumber: purchase.trackingNumber || '',
+            purchaseDate: new Date(purchase.purchaseDate).toISOString().split('T')[0],
+            estimatedDelivery: purchase.estimatedDelivery ? new Date(purchase.estimatedDelivery).toISOString().split('T')[0] : '',
+            notes: purchase.notes || ''
+        }
+        
+        setNewPurchase(formattedPurchase)
+        setEditingPurchase(purchase)
+        setIsEditMode(true)
+        setShowAddModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setShowAddModal(false)
+        setIsEditMode(false)
+        setEditingPurchase(null)
+        // Reset form
         setNewPurchase({
             supplierId: '',
             totalCost: 0,
@@ -136,7 +188,6 @@ export default function Purchases() {
             notes: '',
             items: []
         })
-        setShowAddModal(false)
     }
 
     const handleStatusChange = async (purchaseId: string, newStatus: 'pending' | 'paid' | 'shipped' | 'received' | 'cancelled') => {
@@ -309,6 +360,17 @@ export default function Purchases() {
                                             >
                                                 Ver Detalles
                                             </Button>
+                                            {purchase.status !== 'received' && purchase.status !== 'cancelled' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    onClick={() => handleEditPurchase(purchase)}
+                                                    title="Editar compra"
+                                                >
+                                                    <Edit size={16} className="mr-1" />
+                                                    Editar
+                                                </Button>
+                                            )}
                                             <Button
                                                 size="sm"
                                                 variant="danger"
@@ -339,9 +401,11 @@ export default function Purchases() {
                     <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-lg font-medium text-gray-900">Nueva Compra</h3>
+                                <h3 className="text-lg font-medium text-gray-900">
+                                    {isEditMode ? 'Editar Compra' : 'Nueva Compra'}
+                                </h3>
                                 <button
-                                    onClick={() => setShowAddModal(false)}
+                                    onClick={handleCloseModal}
                                     className="text-gray-400 hover:text-gray-600"
                                 >
                                     <X size={24} />
@@ -569,7 +633,7 @@ export default function Purchases() {
                                         type="button"
                                         variant="secondary"
                                         className="flex-1"
-                                        onClick={() => setShowAddModal(false)}
+                                        onClick={handleCloseModal}
                                     >
                                         Cancelar
                                     </Button>
@@ -577,9 +641,12 @@ export default function Purchases() {
                                         type="button"
                                         className="flex-1"
                                         onClick={handleAddPurchase}
-                                        disabled={createPurchaseMutation.isLoading}
+                                        disabled={createPurchaseMutation.isLoading || updatePurchaseMutation.isLoading}
                                     >
-                                        {createPurchaseMutation.isLoading ? 'Guardando...' : 'Guardar Compra'}
+                                        {isEditMode 
+                                            ? (updatePurchaseMutation.isLoading ? 'Actualizando...' : 'Actualizar Compra')
+                                            : (createPurchaseMutation.isLoading ? 'Guardando...' : 'Guardar Compra')
+                                        }
                                     </Button>
                                 </div>
                             </div>

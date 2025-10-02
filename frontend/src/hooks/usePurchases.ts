@@ -36,6 +36,25 @@ export const useCreatePurchase = () => {
   )
 }
 
+export const useUpdatePurchase = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ id, data }: { id: string; data: Partial<CreatePurchaseDto> }) =>
+      purchasesService.update(id, data),
+    {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries('purchases')
+        queryClient.invalidateQueries(['purchase', variables.id])
+        toast.success('Compra actualizada exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al actualizar compra')
+      },
+    }
+  )
+}
+
 export const useMarkPurchaseAsReceived = () => {
   const queryClient = useQueryClient()
 
