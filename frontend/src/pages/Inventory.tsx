@@ -19,7 +19,11 @@ export default function Inventory() {
         suggestedPrice: 0,
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         notes: '',
-        photos: [] as string[]
+        photos: [] as string[],
+        // New fields for box support
+        isBox: false,
+        boxSize: 10 as 5 | 8 | 10,
+        pricePerPiece: 0
     })
 
     const { data: inventoryItems, isLoading, error } = useInventory()
@@ -48,11 +52,18 @@ export default function Inventory() {
 
     const handleAddItem = async () => {
         try {
+            // Calculate final prices based on whether it's a box or individual piece
+            const finalPurchasePrice = newItem.isBox 
+                ? newItem.purchasePrice / newItem.boxSize  // Price per piece for boxes
+                : newItem.purchasePrice                    // Direct price for individual pieces
+            
+            const finalSuggestedPrice = newItem.suggestedPrice // This is already per piece
+
             await createItemMutation.mutateAsync({
                 carId: newItem.carId,
                 quantity: newItem.quantity,
-                purchasePrice: newItem.purchasePrice,
-                suggestedPrice: newItem.suggestedPrice,
+                purchasePrice: finalPurchasePrice,
+                suggestedPrice: finalSuggestedPrice,
                 condition: newItem.condition,
                 notes: newItem.notes,
                 photos: newItem.photos
@@ -66,7 +77,10 @@ export default function Inventory() {
                 suggestedPrice: 0,
                 condition: 'mint',
                 notes: '',
-                photos: []
+                photos: [],
+                isBox: false,
+                boxSize: 10,
+                pricePerPiece: 0
             })
             setShowAddModal(false)
         } catch (error) {
@@ -342,9 +356,9 @@ export default function Inventory() {
                         </div>
 
                         <div className="space-y-4">
-                            <div>
+                                                        <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Código/ID del Hot Wheels
+                                    Código de Hot Wheels
                                 </label>
                                 <input
                                     type="text"
@@ -355,25 +369,102 @@ export default function Inventory() {
                                 />
                             </div>
 
+                            {/* New: Type Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Cantidad
+                                    Tipo de Compra
+                                </label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            name="purchaseType"
+                                            checked={!newItem.isBox}
+                                            onChange={() => {
+                                                setNewItem({ 
+                                                    ...newItem, 
+                                                    isBox: false, 
+                                                    quantity: 1,
+                                                    pricePerPiece: 0
+                                                })
+                                            }}
+                                            className="mr-2"
+                                        />
+                                        <span className="text-sm">Pieza Individual</span>
+                                    </label>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            name="purchaseType"
+                                            checked={newItem.isBox}
+                                            onChange={() => {
+                                                setNewItem({ 
+                                                    ...newItem, 
+                                                    isBox: true, 
+                                                    quantity: newItem.boxSize,
+                                                    pricePerPiece: newItem.purchasePrice / newItem.boxSize
+                                                })
+                                            }}
+                                            className="mr-2"
+                                        />
+                                        <span className="text-sm">Caja Completa</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Box Size Selection */}
+                            {newItem.isBox && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Tamaño de Caja
+                                    </label>
+                                    <select
+                                        className="input w-full"
+                                        value={newItem.boxSize}
+                                        onChange={(e) => {
+                                            const boxSize = parseInt(e.target.value) as 5 | 8 | 10
+                                            setNewItem({ 
+                                                ...newItem, 
+                                                boxSize,
+                                                quantity: boxSize,
+                                                pricePerPiece: newItem.purchasePrice / boxSize
+                                            })
+                                        }}
+                                    >
+                                        <option value={5}>5 piezas</option>
+                                        <option value={8}>8 piezas</option>
+                                        <option value={10}>10 piezas</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {newItem.isBox ? 'Total de Piezas (automático)' : 'Cantidad'}
                                 </label>
                                 <input
                                     type="number"
                                     min="1"
                                     className="input w-full"
                                     value={newItem.quantity === 0 ? '' : newItem.quantity}
+                                    disabled={newItem.isBox}
                                     onChange={(e) => {
-                                        const value = e.target.value === '' ? 0 : parseInt(e.target.value)
-                                        setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
+                                        if (!newItem.isBox) {
+                                            const value = e.target.value === '' ? 0 : parseInt(e.target.value)
+                                            setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
+                                        }
                                     }}
                                 />
+                                {newItem.isBox && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Se agregarán {newItem.quantity} piezas del mismo Hot Wheels
+                                    </p>
+                                )}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Precio de Compra
+                                    {newItem.isBox ? 'Precio Total de la Caja' : 'Precio de Compra'}
                                 </label>
                                 <input
                                     type="text"
@@ -383,14 +474,24 @@ export default function Inventory() {
                                     onChange={(e) => {
                                         const value = e.target.value.replace(/[^0-9.]/g, '')
                                         const numValue = value === '' ? 0 : parseFloat(value)
-                                        setNewItem({ ...newItem, purchasePrice: isNaN(numValue) ? 0 : numValue })
+                                        const finalValue = isNaN(numValue) ? 0 : numValue
+                                        setNewItem({ 
+                                            ...newItem, 
+                                            purchasePrice: finalValue,
+                                            pricePerPiece: newItem.isBox ? finalValue / newItem.boxSize : finalValue
+                                        })
                                     }}
                                 />
+                                {newItem.isBox && newItem.purchasePrice > 0 && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        ${(newItem.purchasePrice / newItem.boxSize).toFixed(2)} por pieza
+                                    </p>
+                                )}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Precio Sugerido
+                                    {newItem.isBox ? 'Precio Sugerido por Pieza' : 'Precio Sugerido'}
                                 </label>
                                 <input
                                     type="text"
@@ -403,6 +504,11 @@ export default function Inventory() {
                                         setNewItem({ ...newItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
                                     }}
                                 />
+                                {newItem.isBox && newItem.suggestedPrice > 0 && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Ganancia potencial: ${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)} por caja completa
+                                    </p>
+                                )}
                             </div>
 
                             <div>
@@ -482,6 +588,61 @@ export default function Inventory() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Summary Section */}
+                            {newItem.carId && (newItem.purchasePrice > 0 || newItem.suggestedPrice > 0) && (
+                                <div className="border-t pt-4">
+                                    <h4 className="font-medium text-gray-900 mb-2">Resumen</h4>
+                                    <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                                        <div className="flex justify-between">
+                                            <span>Hot Wheels:</span>
+                                            <span className="font-medium">{newItem.carId}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Tipo:</span>
+                                            <span className="font-medium">
+                                                {newItem.isBox ? `Caja de ${newItem.boxSize} piezas` : 'Pieza individual'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Total de piezas:</span>
+                                            <span className="font-medium">{newItem.quantity}</span>
+                                        </div>
+                                        {newItem.isBox && (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <span>Precio total caja:</span>
+                                                    <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Precio por pieza:</span>
+                                                    <span className="font-medium">${(newItem.purchasePrice / newItem.boxSize).toFixed(2)}</span>
+                                                </div>
+                                            </>
+                                        )}
+                                        {!newItem.isBox && newItem.purchasePrice > 0 && (
+                                            <div className="flex justify-between">
+                                                <span>Precio de compra:</span>
+                                                <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {newItem.suggestedPrice > 0 && (
+                                            <div className="flex justify-between">
+                                                <span>Precio sugerido{newItem.isBox ? ' (por pieza)' : ''}:</span>
+                                                <span className="font-medium text-green-600">${newItem.suggestedPrice.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        {newItem.isBox && newItem.suggestedPrice > 0 && newItem.purchasePrice > 0 && (
+                                            <div className="flex justify-between border-t pt-1 mt-1">
+                                                <span>Ganancia potencial total:</span>
+                                                <span className="font-medium text-green-600">
+                                                    ${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex space-x-3 mt-6">
@@ -497,7 +658,7 @@ export default function Inventory() {
                                 onClick={handleAddItem}
                                 disabled={!newItem.carId}
                             >
-                                Agregar Pieza
+                                {newItem.isBox ? `Agregar ${newItem.quantity} Piezas` : 'Agregar Pieza'}
                             </Button>
                         </div>
                     </div>
