@@ -4,7 +4,8 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Package, Edit, Trash2, X, Upload } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 
 export default function Inventory() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -20,6 +21,7 @@ export default function Inventory() {
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         notes: '',
         photos: [] as string[],
+        location: '', // Ubicación física (caja)
         // Box/Series support
         isBox: false,
         boxSize: 10 as 5 | 8 | 10,
@@ -72,7 +74,8 @@ export default function Inventory() {
                         suggestedPrice: newItem.suggestedPrice,
                         condition: newItem.condition,
                         notes: newItem.notes,
-                        photos: newItem.photos
+                        photos: newItem.photos,
+                        location: newItem.location
                     })
                 }
             } else {
@@ -90,7 +93,8 @@ export default function Inventory() {
                     suggestedPrice: finalSuggestedPrice,
                     condition: newItem.condition,
                     notes: newItem.notes,
-                    photos: newItem.photos
+                    photos: newItem.photos,
+                    location: newItem.location
                 })
             }
 
@@ -103,6 +107,7 @@ export default function Inventory() {
                 condition: 'mint',
                 notes: '',
                 photos: [],
+                location: '',
                 isBox: false,
                 boxSize: 10,
                 pricePerPiece: 0,
@@ -165,30 +170,97 @@ export default function Inventory() {
         }
     }
 
-    // Photo handling functions
-    const handleFileUpload = (files: FileList | null, isEditing: boolean = false) => {
+    // Calcular margen de ganancia sugerido basado en condición
+    const calculateSuggestedMargin = (purchasePrice: number, condition: string): number => {
+        if (purchasePrice === 0) return 0
+        
+        // Márgenes sugeridos según condición:
+        const margins = {
+            'mint': 0.50,    // 50% de ganancia
+            'good': 0.40,    // 40% de ganancia
+            'fair': 0.30,    // 30% de ganancia
+            'poor': 0.20     // 20% de ganancia
+        }
+        
+        const margin = margins[condition as keyof typeof margins] || 0.40
+        return purchasePrice * (1 + margin)
+    }
+
+    // Auto-calcular precio sugerido cuando cambia precio de compra o condición
+    const handlePurchasePriceChange = (value: number) => {
+        setNewItem(prev => ({
+            ...prev,
+            purchasePrice: value,
+            suggestedPrice: calculateSuggestedMargin(value, prev.condition)
+        }))
+    }
+
+    const handleConditionChange = (condition: string) => {
+        setNewItem(prev => ({
+            ...prev,
+            condition: condition as any,
+            suggestedPrice: calculateSuggestedMargin(prev.purchasePrice, condition)
+        }))
+    }
+
+    // Photo handling functions with automatic compression
+    const handleFileUpload = async (files: FileList | null, isEditing: boolean = false) => {
         if (!files) return
 
-        Array.from(files).forEach(file => {
+        const compressionOptions = {
+            maxSizeMB: 0.5, // Máximo 500KB por imagen
+            maxWidthOrHeight: 1024, // Máximo 1024px de ancho/alto
+            useWebWorker: true,
+            fileType: 'image/jpeg', // Convertir a JPEG para mejor compresión
+        }
+
+        for (const file of Array.from(files)) {
             if (file.type.startsWith('image/')) {
-                const reader = new FileReader()
-                reader.onload = (e) => {
-                    const result = e.target?.result as string
-                    if (isEditing && editingItem) {
-                        setEditingItem((prev: any) => ({
-                            ...prev,
-                            photos: [...(prev.photos || []), result]
-                        }))
-                    } else {
-                        setNewItem(prev => ({
-                            ...prev,
-                            photos: [...prev.photos, result]
-                        }))
+                try {
+                    // Comprimir imagen
+                    const compressedFile = await imageCompression(file, compressionOptions)
+                    
+                    // Convertir a base64
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string
+                        if (isEditing && editingItem) {
+                            setEditingItem((prev: any) => ({
+                                ...prev,
+                                photos: [...(prev.photos || []), result]
+                            }))
+                        } else {
+                            setNewItem(prev => ({
+                                ...prev,
+                                photos: [...prev.photos, result]
+                            }))
+                        }
                     }
+                    reader.readAsDataURL(compressedFile)
+                    
+                    console.log(`📸 Imagen comprimida: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
+                } catch (error) {
+                    console.error('Error al comprimir imagen:', error)
+                    // Si falla la compresión, usar la imagen original
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string
+                        if (isEditing && editingItem) {
+                            setEditingItem((prev: any) => ({
+                                ...prev,
+                                photos: [...(prev.photos || []), result]
+                            }))
+                        } else {
+                            setNewItem(prev => ({
+                                ...prev,
+                                photos: [...prev.photos, result]
+                            }))
+                        }
+                    }
+                    reader.readAsDataURL(file)
                 }
-                reader.readAsDataURL(file)
             }
-        })
+        }
     }
 
     const removePhoto = (index: number, isEditing: boolean = false) => {
@@ -330,16 +402,25 @@ export default function Inventory() {
                                 <div className="space-y-1">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Costo:</span>
-                                        <span className="font-medium">${item.purchasePrice}</span>
+                                        <span className="font-medium">${item.purchasePrice.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-gray-600">Sugerido:</span>
-                                        <span className="font-medium text-green-600">${item.suggestedPrice}</span>
+                                        <span className="font-medium text-green-600">${item.suggestedPrice.toFixed(2)}</span>
                                     </div>
-                                    {item.actualPrice && (
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">Actual:</span>
-                                            <span className="font-medium text-blue-600">${item.actualPrice}</span>
+                                    <div className="flex justify-between text-sm border-t pt-1">
+                                        <span className="text-gray-600">Ganancia:</span>
+                                        <span className="font-semibold text-primary-600">
+                                            ${(item.suggestedPrice - item.purchasePrice).toFixed(2)} 
+                                            <span className="text-xs ml-1">
+                                                (+{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%)
+                                            </span>
+                                        </span>
+                                    </div>
+                                    {item.location && (
+                                        <div className="flex items-center gap-1 text-xs text-gray-500 pt-1 border-t">
+                                            <MapPin size={12} />
+                                            <span className="truncate">{item.location}</span>
                                         </div>
                                     )}
                                 </div>
@@ -630,11 +711,14 @@ export default function Inventory() {
                                         const value = e.target.value.replace(/[^0-9.]/g, '')
                                         const numValue = value === '' ? 0 : parseFloat(value)
                                         const finalValue = isNaN(numValue) ? 0 : numValue
-                                        setNewItem({ 
-                                            ...newItem, 
-                                            purchasePrice: finalValue,
-                                            pricePerPiece: newItem.isBox ? finalValue / newItem.boxSize : finalValue
-                                        })
+                                        handlePurchasePriceChange(finalValue)
+                                        
+                                        if (newItem.isBox) {
+                                            setNewItem(prev => ({ 
+                                                ...prev, 
+                                                pricePerPiece: finalValue / newItem.boxSize
+                                            }))
+                                        }
                                     }}
                                 />
                                 {newItem.isBox && newItem.purchasePrice > 0 && (
@@ -645,8 +729,14 @@ export default function Inventory() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                                     {newItem.isBox ? 'Precio Sugerido por Pieza' : 'Precio Sugerido'}
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                                        <TrendingUp size={12} />
+                                        {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ? 
+                                            `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%` 
+                                            : 'Auto'}
+                                    </span>
                                 </label>
                                 <input
                                     type="text"
@@ -659,27 +749,45 @@ export default function Inventory() {
                                         setNewItem({ ...newItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
                                     }}
                                 />
-                                {newItem.isBox && newItem.suggestedPrice > 0 && (
+                                {newItem.purchasePrice > 0 && (
                                     <p className="text-xs text-gray-500 mt-1">
-                                        Ganancia potencial: ${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)} por caja completa
+                                        💡 Sugerido: ${calculateSuggestedMargin(newItem.purchasePrice, newItem.condition).toFixed(2)} 
+                                        {newItem.isBox && ` (Ganancia: $${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)} por caja)`}
                                     </p>
                                 )}
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Condición
+                                    Condición (afecta margen sugerido)
                                 </label>
                                 <select
                                     className="input w-full"
                                     value={newItem.condition}
-                                    onChange={(e) => setNewItem({ ...newItem, condition: e.target.value as any })}
+                                    onChange={(e) => handleConditionChange(e.target.value)}
                                 >
-                                    <option value="mint">Mint</option>
-                                    <option value="good">Bueno</option>
-                                    <option value="fair">Regular</option>
-                                    <option value="poor">Malo</option>
+                                    <option value="mint">Mint (+50% ganancia)</option>
+                                    <option value="good">Bueno (+40% ganancia)</option>
+                                    <option value="fair">Regular (+30% ganancia)</option>
+                                    <option value="poor">Malo (+20% ganancia)</option>
                                 </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                    <MapPin size={16} />
+                                    Ubicación Física (Opcional)
+                                </label>
+                                <input
+                                    type="text"
+                                    className="input w-full"
+                                    placeholder="ej: Caja 1, Estante A, Contenedor azul..."
+                                    value={newItem.location}
+                                    onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    📦 Indica dónde guardas esta pieza para encontrarla fácilmente
+                                </p>
                             </div>
 
                             <div>
