@@ -242,6 +242,7 @@ export default function Deliveries() {
         }
         
         console.log('🔍 Formatted delivery:', formattedDelivery) // Debug log
+        console.log('🔍 Setting newDelivery state with date:', formattedDelivery.scheduledDate, 'and time:', formattedDelivery.scheduledTime) // Debug log
         
         setNewDelivery(formattedDelivery)
         setEditingDelivery(delivery)
@@ -598,9 +599,13 @@ export default function Deliveries() {
                                     <Input
                                         type="date"
                                         value={newDelivery.scheduledDate}
-                                        onChange={(e) => setNewDelivery({ ...newDelivery, scheduledDate: e.target.value })}
+                                        onChange={(e) => {
+                                            console.log('🔍 Date changed to:', e.target.value) // Debug log
+                                            setNewDelivery({ ...newDelivery, scheduledDate: e.target.value })
+                                        }}
                                         required
                                     />
+                                    <small className="text-gray-500">Debug: {newDelivery.scheduledDate}</small>
                                 </div>
 
                                 <div>
@@ -610,8 +615,12 @@ export default function Deliveries() {
                                     <Input
                                         type="time"
                                         value={newDelivery.scheduledTime}
-                                        onChange={(e) => setNewDelivery({ ...newDelivery, scheduledTime: e.target.value })}
+                                        onChange={(e) => {
+                                            console.log('🔍 Time changed to:', e.target.value) // Debug log
+                                            setNewDelivery({ ...newDelivery, scheduledTime: e.target.value })
+                                        }}
                                     />
+                                    <small className="text-gray-500">Debug: {newDelivery.scheduledTime}</small>
                                 </div>
 
                                 <div className="md:col-span-2">
