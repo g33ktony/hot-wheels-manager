@@ -1,10 +1,11 @@
 import axios from 'axios'
 
 // Debug environment variables
-console.log('🔧 Environment Debug:', {
+console.log('🔧 Environment Debug v2:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
   NODE_ENV: import.meta.env.NODE_ENV,
-  MODE: import.meta.env.MODE
+  MODE: import.meta.env.MODE,
+  baseURL_will_be: import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 })
 
 // Configuración base de Axios
