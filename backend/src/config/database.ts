@@ -20,7 +20,7 @@ export const connectInMemoryDB = async () => {
 // Regular MongoDB connection
 export const connectDB = async (mongoURI?: string) => {
   try {
-    const uri = mongoURI || `${process.env.MONGODB_URI}/hot-wheels-manager` || 'mongodb://localhost:27017/hot-wheels-manager'
+    const uri = `${mongoURI}/hot-wheels-manager` || `${process.env.MONGODB_URI}/hot-wheels-manager` || 'mongodb://localhost:27017/hot-wheels-manager'
     await mongoose.connect(uri)
     console.log('✅ MongoDB connected successfully')
   } catch (error) {
