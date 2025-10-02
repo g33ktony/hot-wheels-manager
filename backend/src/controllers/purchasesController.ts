@@ -166,6 +166,74 @@ const addItemsToInventory = async (purchase: any) => {
   }
 }
 
+export const updatePurchase = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const updateData = req.body
+
+    const purchase = await Purchase.findById(id)
+    if (!purchase) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Compra no encontrada'
+      })
+    }
+
+    // Validate supplier exists if supplierId is provided
+    if (updateData.supplierId) {
+      const supplier = await SupplierModel.findById(updateData.supplierId)
+      if (!supplier) {
+        return res.status(404).json({
+          success: false,
+          data: null,
+          message: 'Proveedor no encontrado'
+        })
+      }
+    }
+
+    // Update purchase fields
+    if (updateData.items !== undefined) purchase.items = updateData.items
+    if (updateData.supplierId !== undefined) purchase.supplierId = updateData.supplierId
+    if (updateData.totalCost !== undefined) purchase.totalCost = updateData.totalCost
+    if (updateData.shippingCost !== undefined) purchase.shippingCost = updateData.shippingCost
+    if (updateData.trackingNumber !== undefined) purchase.trackingNumber = updateData.trackingNumber
+    if (updateData.purchaseDate !== undefined) purchase.purchaseDate = updateData.purchaseDate
+    if (updateData.estimatedDelivery !== undefined) purchase.estimatedDelivery = updateData.estimatedDelivery
+    if (updateData.actualDelivery !== undefined) purchase.actualDelivery = updateData.actualDelivery
+    if (updateData.status !== undefined) purchase.status = updateData.status
+    if (updateData.notes !== undefined) purchase.notes = updateData.notes
+
+    // Recalculate total cost if items changed
+    if (updateData.items) {
+      purchase.totalCost = updateData.items.reduce(
+        (sum: number, item: any) => sum + (item.quantity * item.unitPrice),
+        0
+      ) + (purchase.shippingCost || 0)
+    }
+
+    await purchase.save()
+
+    const updatedPurchase = await Purchase.findById(id).populate('supplierId')
+
+    const response: ApiResponse<any> = {
+      success: true,
+      data: updatedPurchase,
+      message: 'Compra actualizada exitosamente'
+    }
+
+    res.json(response)
+  } catch (error: any) {
+    console.error('Update purchase error:', error)
+    const errorResponse: ApiResponse<null> = {
+      success: false,
+      error: error.message,
+      message: 'Error al actualizar la compra'
+    }
+    res.status(500).json(errorResponse)
+  }
+}
+
 export const deletePurchase = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
