@@ -4,7 +4,7 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Package, Edit, Trash2, X } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload } from 'lucide-react'
 
 export default function Inventory() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -18,7 +18,8 @@ export default function Inventory() {
         purchasePrice: 0,
         suggestedPrice: 0,
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
-        notes: ''
+        notes: '',
+        photos: [] as string[]
     })
 
     const { data: inventoryItems, isLoading, error } = useInventory()
@@ -54,7 +55,7 @@ export default function Inventory() {
                 suggestedPrice: newItem.suggestedPrice,
                 condition: newItem.condition,
                 notes: newItem.notes,
-                photos: []
+                photos: newItem.photos
             })
 
             // Reset form and close modal
@@ -64,7 +65,8 @@ export default function Inventory() {
                 purchasePrice: 0,
                 suggestedPrice: 0,
                 condition: 'mint',
-                notes: ''
+                notes: '',
+                photos: []
             })
             setShowAddModal(false)
         } catch (error) {
@@ -80,7 +82,8 @@ export default function Inventory() {
             purchasePrice: item.purchasePrice || 0,
             suggestedPrice: item.suggestedPrice || 0,
             condition: item.condition || 'mint',
-            notes: item.notes || ''
+            notes: item.notes || '',
+            photos: item.photos || []
         })
         setShowEditModal(true)
     }
@@ -118,6 +121,46 @@ export default function Inventory() {
             } catch (error) {
                 console.error('Error deleting item:', error)
             }
+        }
+    }
+
+    // Photo handling functions
+    const handleFileUpload = (files: FileList | null, isEditing: boolean = false) => {
+        if (!files) return
+
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader()
+                reader.onload = (e) => {
+                    const result = e.target?.result as string
+                    if (isEditing && editingItem) {
+                        setEditingItem((prev: any) => ({
+                            ...prev,
+                            photos: [...(prev.photos || []), result]
+                        }))
+                    } else {
+                        setNewItem(prev => ({
+                            ...prev,
+                            photos: [...prev.photos, result]
+                        }))
+                    }
+                }
+                reader.readAsDataURL(file)
+            }
+        })
+    }
+
+    const removePhoto = (index: number, isEditing: boolean = false) => {
+        if (isEditing && editingItem) {
+            setEditingItem((prev: any) => ({
+                ...prev,
+                photos: prev.photos?.filter((_: any, i: number) => i !== index) || []
+            }))
+        } else {
+            setNewItem(prev => ({
+                ...prev,
+                photos: prev.photos.filter((_, i) => i !== index)
+            }))
         }
     }
 
@@ -389,6 +432,56 @@ export default function Inventory() {
                                     onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
                                 />
                             </div>
+
+                            {/* Photos Section */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Fotos
+                                </label>
+                                
+                                {/* Photo Upload */}
+                                <div className="mb-3">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={(e) => handleFileUpload(e.target.files, false)}
+                                        className="hidden"
+                                        id="photo-upload"
+                                    />
+                                    <label
+                                        htmlFor="photo-upload"
+                                        className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    >
+                                        <Upload size={20} className="text-gray-400" />
+                                        <span className="text-sm text-gray-600">
+                                            Subir fotos (múltiples archivos)
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* Photo Preview */}
+                                {newItem.photos.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {newItem.photos.map((photo, index) => (
+                                            <div key={index} className="relative group">
+                                                <img
+                                                    src={photo}
+                                                    alt={`Foto ${index + 1}`}
+                                                    className="w-full h-20 object-cover rounded border"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removePhoto(index, false)}
+                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex space-x-3 mt-6">
@@ -518,6 +611,56 @@ export default function Inventory() {
                                     value={editingItem.notes}
                                     onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
                                 />
+                            </div>
+
+                            {/* Photos Section */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Fotos
+                                </label>
+                                
+                                {/* Photo Upload */}
+                                <div className="mb-3">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={(e) => handleFileUpload(e.target.files, true)}
+                                        className="hidden"
+                                        id="photo-upload-edit"
+                                    />
+                                    <label
+                                        htmlFor="photo-upload-edit"
+                                        className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    >
+                                        <Upload size={20} className="text-gray-400" />
+                                        <span className="text-sm text-gray-600">
+                                            Subir fotos (múltiples archivos)
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* Photo Preview */}
+                                {editingItem.photos && editingItem.photos.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {editingItem.photos.map((photo: string, index: number) => (
+                                            <div key={index} className="relative group">
+                                                <img
+                                                    src={photo}
+                                                    alt={`Foto ${index + 1}`}
+                                                    className="w-full h-20 object-cover rounded border"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removePhoto(index, true)}
+                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
