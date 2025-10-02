@@ -76,7 +76,7 @@ export default function Deliveries() {
             customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
             location.toLowerCase().includes(searchTerm.toLowerCase())
 
-        const deliveryDate = new Date(delivery.scheduledDate).toISOString().split('T')[0]
+        const deliveryDate = delivery.scheduledDate.toString().split('T')[0]
         const matchesDate = !selectedDate || deliveryDate >= selectedDate
 
         return matchesSearch && matchesDate
@@ -514,7 +514,12 @@ export default function Deliveries() {
                                         <div className="flex items-center gap-4">
                                             <span className="flex items-center gap-1">
                                                 <Calendar size={14} />
-                                                {new Date(delivery.scheduledDate).toLocaleDateString()}{delivery.scheduledTime ? ` ${delivery.scheduledTime}` : ''}
+                                                {(() => {
+                                                    // Extract date without timezone issues
+                                                    const dateStr = delivery.scheduledDate.toString().split('T')[0];
+                                                    const [year, month, day] = dateStr.split('-');
+                                                    return `${day}/${month}/${year}`;
+                                                })()}{delivery.scheduledTime ? ` ${delivery.scheduledTime}` : ''}
                                             </span>
                                             <span className="flex items-center gap-1">
                                                 <MapPin size={14} />
