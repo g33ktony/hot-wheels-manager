@@ -188,14 +188,10 @@ export default function Purchases() {
             shippingCost: purchase.shippingCost || 0,
             trackingNumber: purchase.trackingNumber || '',
             purchaseDate: purchase.purchaseDate ? 
-                new Date(purchase.purchaseDate).getFullYear() + '-' + 
-                String(new Date(purchase.purchaseDate).getMonth() + 1).padStart(2, '0') + '-' + 
-                String(new Date(purchase.purchaseDate).getDate()).padStart(2, '0') 
+                purchase.purchaseDate.toString().split('T')[0]
                 : new Date().toISOString().split('T')[0],
             estimatedDelivery: purchase.estimatedDelivery ? 
-                new Date(purchase.estimatedDelivery).getFullYear() + '-' + 
-                String(new Date(purchase.estimatedDelivery).getMonth() + 1).padStart(2, '0') + '-' + 
-                String(new Date(purchase.estimatedDelivery).getDate()).padStart(2, '0') 
+                purchase.estimatedDelivery.toString().split('T')[0]
                 : '',
             notes: purchase.notes || ''
         }
@@ -343,7 +339,11 @@ export default function Purchases() {
                                             </span>
                                         </div>
                                         <div className="text-sm text-gray-600 space-y-1">
-                                            <p>Fecha: {new Date(purchase.purchaseDate).toLocaleDateString()}</p>
+                                            <p>Fecha: {(() => {
+                                                const dateStr = purchase.purchaseDate.toString().split('T')[0];
+                                                const [year, month, day] = dateStr.split('-');
+                                                return `${day}/${month}/${year}`;
+                                            })()}</p>
                                             <p>Items: {purchase.items.length} | Total: ${purchase.totalCost.toFixed(2)}</p>
                                             {purchase.trackingNumber && <p>Tracking: {purchase.trackingNumber}</p>}
                                         </div>
@@ -801,7 +801,11 @@ export default function Purchases() {
                                     <h3 className="text-lg font-semibold mb-3">Información General</h3>
                                     <div className="space-y-2">
                                         <p><span className="font-medium">Proveedor:</span> {typeof selectedPurchase.supplierId === 'object' ? selectedPurchase.supplierId.name : suppliers?.find(s => s._id === selectedPurchase.supplierId)?.name || 'Proveedor desconocido'}</p>
-                                        <p><span className="font-medium">Fecha de Compra:</span> {new Date(selectedPurchase.purchaseDate).toLocaleDateString()}</p>
+                                        <p><span className="font-medium">Fecha de Compra:</span> {(() => {
+                                            const dateStr = selectedPurchase.purchaseDate.toString().split('T')[0];
+                                            const [year, month, day] = dateStr.split('-');
+                                            return `${day}/${month}/${year}`;
+                                        })()}</p>
                                         <p><span className="font-medium">Estado:</span>
                                             <span className={`ml-2 px-2 py-1 text-xs rounded-full ${selectedPurchase.status === 'received' ? 'bg-green-100 text-green-800' :
                                                 selectedPurchase.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
@@ -816,7 +820,11 @@ export default function Purchases() {
                                             </span>
                                         </p>
                                         {selectedPurchase.trackingNumber && <p><span className="font-medium">Número de Tracking:</span> {selectedPurchase.trackingNumber}</p>}
-                                        {selectedPurchase.estimatedDelivery && <p><span className="font-medium">Entrega Estimada:</span> {new Date(selectedPurchase.estimatedDelivery).toLocaleDateString()}</p>}
+                                        {selectedPurchase.estimatedDelivery && <p><span className="font-medium">Entrega Estimada:</span> {(() => {
+                                            const dateStr = selectedPurchase.estimatedDelivery.toString().split('T')[0];
+                                            const [year, month, day] = dateStr.split('-');
+                                            return `${day}/${month}/${year}`;
+                                        })()}</p>}
                                         {selectedPurchase.notes && <p><span className="font-medium">Notas:</span> {selectedPurchase.notes}</p>}
                                     </div>
                                 </div>
