@@ -5,7 +5,7 @@ import { InventoryItemModel } from '../models/InventoryItem';
 import { SaleModel } from '../models/Sale';
 import { DeliveryModel } from '../models/Delivery';
 import Purchase from '../models/Purchase';
-import { RecentActivity } from '../../../shared/types';
+import { RecentActivity } from '../shared/types';
 
 // Helper function to get recent activity data
 async function getRecentActivityData(totalCatalogCars: number, totalSales: number): Promise<RecentActivity[]> {
