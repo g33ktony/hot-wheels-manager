@@ -231,9 +231,7 @@ export default function Deliveries() {
                 }
             }) || [],
             scheduledDate: delivery.scheduledDate ? 
-                new Date(delivery.scheduledDate).getFullYear() + '-' + 
-                String(new Date(delivery.scheduledDate).getMonth() + 1).padStart(2, '0') + '-' + 
-                String(new Date(delivery.scheduledDate).getDate()).padStart(2, '0') 
+                delivery.scheduledDate.toString().split('T')[0]
                 : new Date().toISOString().split('T')[0],
             scheduledTime: delivery.scheduledTime || '09:00',
             location: delivery.location || '',
