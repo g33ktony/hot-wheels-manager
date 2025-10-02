@@ -8,13 +8,6 @@ export interface HotWheelsCar {
   series_num: string;
   photo_url?: string;
   year: string;
-  //export interface UpdateDeliveryDto {
-  status?: 'scheduled' | 'prepared' | 'completed' | 'cancelled' | 'rescheduled';
-  scheduledDate?: Date;
-  scheduledTime?: string;
-  location?: string;
-  notes?: string;
-  completedDate?: Date;
   // Campos adicionales que se pueden agregar
   color?: string;
   tampo?: string;
@@ -22,6 +15,14 @@ export interface HotWheelsCar {
   car_make?: string;
   segment?: string;
   country?: string;
+}
+
+export interface RecentActivity {
+  id: string;
+  type: 'delivery' | 'purchase' | 'inventory' | 'system' | 'sale';
+  description: string;
+  date: Date;
+  amount?: number;
 }
 
 export interface InventoryItem {
@@ -287,7 +288,7 @@ export interface DashboardMetrics {
   monthlySales: number;
   totalRevenue: number;
   monthlyRevenue: number;
-  recentActivity: ActivityItem[];
+  recentActivity: RecentActivity[];
   todaysDeliveries: TodaysDelivery[];
 }
 

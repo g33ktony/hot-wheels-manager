@@ -5,6 +5,78 @@ import { InventoryItemModel } from '../models/InventoryItem';
 import { SaleModel } from '../models/Sale';
 import { DeliveryModel } from '../models/Delivery';
 import Purchase from '../models/Purchase';
+import { RecentActivity } from '../../../shared/types';
+
+// Helper function to get recent activity data
+async function getRecentActivityData(totalCatalogCars: number, totalSales: number): Promise<RecentActivity[]> {
+  console.log('📋 Getting recent activity...');
+  const recentActivity: RecentActivity[] = [];
+
+  // Recent deliveries (completed)
+  const recentDeliveries = await DeliveryModel.find({ status: 'completed' })
+    .populate('customerId')
+    .sort({ updatedAt: -1 })
+    .limit(3)
+    .select('customerId totalAmount completedDate updatedAt');
+
+  recentDeliveries.forEach(delivery => {
+    recentActivity.push({
+      id: `delivery-${delivery._id}`,
+      type: 'delivery',
+      description: `Entrega completada para ${(delivery.customerId as any)?.name || 'cliente'}`,
+      date: delivery.completedDate || delivery.updatedAt,
+      amount: delivery.totalAmount
+    });
+  });
+
+  // Recent purchases
+  const recentPurchases = await Purchase.find()
+    .populate('supplierId')
+    .sort({ purchaseDate: -1 })
+    .limit(3)
+    .select('supplierId totalCost purchaseDate items');
+
+  recentPurchases.forEach(purchase => {
+    recentActivity.push({
+      id: `purchase-${purchase._id}`,
+      type: 'purchase',
+      description: `Compra realizada de ${purchase.items?.length || 0} items`,
+      date: purchase.purchaseDate,
+      amount: purchase.totalCost
+    });
+  });
+
+  // Recent inventory additions
+  const recentInventory = await InventoryItemModel.find()
+    .sort({ dateAdded: -1 })
+    .limit(2)
+    .select('carId quantity dateAdded');
+
+  recentInventory.forEach(item => {
+    recentActivity.push({
+      id: `inventory-${item._id}`,
+      type: 'inventory',
+      description: `${item.quantity} ${item.carId} agregado${item.quantity > 1 ? 's' : ''} al inventario`,
+      date: item.dateAdded
+    });
+  });
+
+  // Sort all activities by date and take the most recent ones
+  recentActivity.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const limitedActivity = recentActivity.slice(0, 5);
+
+  // Add system activity if no other activities exist
+  if (limitedActivity.length === 0) {
+    limitedActivity.push({
+      id: 'system-1',
+      type: 'system',
+      description: `Base de datos cargada con ${totalCatalogCars} Hot Wheels`,
+      date: new Date()
+    });
+  }
+
+  return limitedActivity;
+}
 
 // Get dashboard metrics
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
@@ -140,20 +212,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
         totalAmount: delivery.totalAmount,
         itemCount: delivery.items?.length || 0
       })),
-      recentActivity: [
-        {
-          id: 'activity1',
-          description: `Base de datos cargada con ${totalCatalogCars} Hot Wheels`,
-          date: new Date(),
-          type: 'system'
-        },
-        ...(totalSales > 0 ? [{
-          id: 'activity2',
-          description: `${totalSales} venta${totalSales === 1 ? '' : 's'} registrada${totalSales === 1 ? '' : 's'}`,
-          date: new Date(),
-          type: 'sale'
-        }] : [])
-      ]
+      recentActivity: await getRecentActivityData(totalCatalogCars, totalSales)
     };
 
     console.log('✅ Dashboard metrics fetched successfully');
