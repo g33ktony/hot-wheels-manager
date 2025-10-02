@@ -191,7 +191,7 @@ export const updateDelivery = async (req: Request, res: Response) => {
 
     // Recalculate total if items changed
     if (items) {
-      delivery.totalAmount = items.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
+      delivery.totalAmount = items.reduce((total: number, item: any) => total + (item.unitPrice * item.quantity), 0);
     }
 
     await delivery.save();
