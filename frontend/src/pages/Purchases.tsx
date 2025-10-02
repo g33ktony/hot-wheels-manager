@@ -158,8 +158,11 @@ export default function Purchases() {
         // Format the purchase data for editing
         console.log('🔍 Editing purchase:', purchase) // Debug log
         
-        // Check different ways the supplier ID might be stored
-        const supplierId = purchase.supplierId || purchase.supplier?._id || purchase.supplier || ''
+        // Check different ways the supplier ID might be stored and convert to string
+        let supplierId = purchase.supplierId || purchase.supplier?._id || purchase.supplier || ''
+        if (typeof supplierId === 'object' && supplierId !== null) {
+            supplierId = supplierId.toString() // Convert ObjectId to string
+        }
         console.log('🔍 Supplier ID found:', supplierId) // Debug log
         console.log('🔍 Available suppliers:', suppliers) // Debug log
         

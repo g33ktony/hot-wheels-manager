@@ -184,8 +184,11 @@ export default function Deliveries() {
         // Format the delivery data for editing
         console.log('🔍 Editing delivery:', delivery) // Debug log
         
-        // Check different ways the customer ID might be stored
-        const customerId = delivery.customerId || delivery.customer?._id || delivery.customer || ''
+        // Check different ways the customer ID might be stored and convert to string
+        let customerId = delivery.customerId || delivery.customer?._id || delivery.customer || ''
+        if (typeof customerId === 'object' && customerId !== null) {
+            customerId = customerId.toString() // Convert ObjectId to string
+        }
         console.log('🔍 Customer ID found:', customerId) // Debug log
         console.log('🔍 Available customers:', customers) // Debug log
         
@@ -193,8 +196,12 @@ export default function Deliveries() {
             customerId: customerId,
             items: delivery.items?.map((item: any) => {
                 console.log('🔍 Processing item:', item) // Debug log
+                let inventoryItemId = item.inventoryItemId?._id || item.inventoryItemId
+                if (typeof inventoryItemId === 'object' && inventoryItemId !== null) {
+                    inventoryItemId = inventoryItemId.toString() // Convert ObjectId to string
+                }
                 return {
-                    inventoryItemId: item.inventoryItemId?._id || item.inventoryItemId,
+                    inventoryItemId: inventoryItemId,
                     hotWheelsCarId: item.hotWheelsCarId,
                     carId: item.carId,
                     carName: item.carName,
