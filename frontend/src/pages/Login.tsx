@@ -5,7 +5,7 @@ import Input from '../components/common/Input'
 import Button from '../components/common/Button'
 import { Lock, Mail, Car } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 const Login: React.FC = () => {
   const navigate = useNavigate()
@@ -24,7 +24,7 @@ const Login: React.FC = () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
