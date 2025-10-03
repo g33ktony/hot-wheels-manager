@@ -253,60 +253,61 @@ export default function Purchases() {
     const pendingPurchases = purchases?.filter(p => p.status !== 'received').length || 0
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Compras</h1>
-                    <p className="text-gray-600">Gestiona tus compras de Hot Wheels</p>
+                    <p className="text-sm text-gray-600">Gestiona tus compras de Hot Wheels</p>
                 </div>
                 <Button
                     icon={<Plus size={20} />}
                     onClick={() => setShowAddModal(true)}
+                    className="w-full sm:w-auto min-h-[44px]"
                 >
                     Nueva Compra
                 </Button>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Stats Cards - 2 columns on mobile, 3 on desktop */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
                 <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center">
-                            <div className="p-2 rounded-lg bg-blue-100">
-                                <ShoppingBag size={24} className="text-blue-600" />
+                    <CardContent className="p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="p-2 rounded-lg bg-blue-100 self-start">
+                                <ShoppingBag size={20} className="text-blue-600" />
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">Total Compras</p>
-                                <p className="text-2xl font-bold text-gray-900">{totalItems}</p>
+                            <div>
+                                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Compras</p>
+                                <p className="text-xl lg:text-2xl font-bold text-gray-900">{totalItems}</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center">
-                            <div className="p-2 rounded-lg bg-green-100">
-                                <DollarSign size={24} className="text-green-600" />
+                    <CardContent className="p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="p-2 rounded-lg bg-green-100 self-start">
+                                <DollarSign size={20} className="text-green-600" />
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">Valor Total</p>
-                                <p className="text-2xl font-bold text-gray-900">${totalValue.toFixed(2)}</p>
+                            <div>
+                                <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
+                                <p className="text-xl lg:text-2xl font-bold text-gray-900">${totalValue.toFixed(2)}</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center">
-                            <div className="p-2 rounded-lg bg-orange-100">
-                                <Calendar size={24} className="text-orange-600" />
+                <Card className="col-span-2 lg:col-span-1">
+                    <CardContent className="p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="p-2 rounded-lg bg-orange-100 self-start">
+                                <Calendar size={20} className="text-orange-600" />
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-600">Pendientes</p>
-                                <p className="text-2xl font-bold text-gray-900">{pendingPurchases}</p>
+                            <div>
+                                <p className="text-xs sm:text-sm font-medium text-gray-600">Pendientes</p>
+                                <p className="text-xl lg:text-2xl font-bold text-gray-900">{pendingPurchases}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -320,102 +321,114 @@ export default function Purchases() {
                 </CardHeader>
                 <CardContent>
                     {purchases && purchases.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-3 lg:space-y-4">
                             {purchases.map((purchase) => (
-                                <div key={purchase._id} className="flex items-center justify-between p-4 border rounded-lg">
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h3 className="font-medium text-gray-900">{typeof purchase.supplierId === 'object' ? purchase.supplierId.name : suppliers?.find(s => s._id === purchase.supplierId)?.name || 'Proveedor desconocido'}</h3>
-                                            <span className={`px-2 py-1 text-xs rounded-full ${purchase.status === 'received' ? 'bg-green-100 text-green-800' :
-                                                purchase.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                                                    purchase.status === 'paid' ? 'bg-purple-100 text-purple-800' :
-                                                        purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-red-100 text-red-800'
-                                                }`}>
-                                                {purchase.status === 'received' ? 'Recibido' :
-                                                    purchase.status === 'shipped' ? 'Enviado' :
-                                                        purchase.status === 'paid' ? 'Pagado' :
-                                                            purchase.status === 'pending' ? 'Pendiente' : 'Cancelado'}
-                                            </span>
-                                        </div>
-                                        <div className="text-sm text-gray-600 space-y-1">
-                                            <p>Fecha: {(() => {
-                                                const dateStr = purchase.purchaseDate.toString().split('T')[0];
-                                                const [year, month, day] = dateStr.split('-');
-                                                return `${day}/${month}/${year}`;
-                                            })()}</p>
-                                            <p>Items: {purchase.items.length} | Total: ${purchase.totalCost.toFixed(2)}</p>
-                                            {purchase.trackingNumber && <p>Tracking: {purchase.trackingNumber}</p>}
-                                        </div>
-                                        <div className="flex gap-2 mt-2">
-                                            {purchase.status === 'pending' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleStatusChange(purchase._id!, 'paid')}
-                                                    disabled={updateStatusMutation.isLoading}
-                                                >
-                                                    Marcar Pagado
-                                                </Button>
-                                            )}
-                                            {purchase.status === 'paid' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleStatusChange(purchase._id!, 'shipped')}
-                                                    disabled={updateStatusMutation.isLoading}
-                                                >
-                                                    Marcar Enviado
-                                                </Button>
-                                            )}
-                                            {purchase.status === 'shipped' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleStatusChange(purchase._id!, 'received')}
-                                                    disabled={updateStatusMutation.isLoading}
-                                                >
-                                                    Marcar Recibido
-                                                </Button>
-                                            )}
-                                            {purchase.status !== 'cancelled' && purchase.status !== 'received' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="danger"
-                                                    onClick={() => handleStatusChange(purchase._id!, 'cancelled')}
-                                                    disabled={updateStatusMutation.isLoading}
-                                                >
-                                                    Cancelar
-                                                </Button>
-                                            )}
+                                <div key={purchase._id} className="flex flex-col gap-3 p-3 lg:p-4 border rounded-lg touch-manipulation">
+                                    {/* Header row */}
+                                    <div className="flex items-start justify-between gap-2">
+                                        <h3 className="font-medium text-gray-900 text-sm lg:text-base flex-1 min-w-0">
+                                            {typeof purchase.supplierId === 'object' ? purchase.supplierId.name : suppliers?.find(s => s._id === purchase.supplierId)?.name || 'Proveedor desconocido'}
+                                        </h3>
+                                        <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0 ${purchase.status === 'received' ? 'bg-green-100 text-green-800' :
+                                            purchase.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                                                purchase.status === 'paid' ? 'bg-purple-100 text-purple-800' :
+                                                    purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                        'bg-red-100 text-red-800'
+                                            }`}>
+                                            {purchase.status === 'received' ? 'Recibido' :
+                                                purchase.status === 'shipped' ? 'Enviado' :
+                                                    purchase.status === 'paid' ? 'Pagado' :
+                                                        purchase.status === 'pending' ? 'Pendiente' : 'Cancelado'}
+                                        </span>
+                                    </div>
+
+                                    {/* Info section */}
+                                    <div className="text-xs lg:text-sm text-gray-600 space-y-1">
+                                        <p>Fecha: {(() => {
+                                            const dateStr = purchase.purchaseDate.toString().split('T')[0];
+                                            const [year, month, day] = dateStr.split('-');
+                                            return `${day}/${month}/${year}`;
+                                        })()}</p>
+                                        <p>Items: {purchase.items.length} | Total: ${purchase.totalCost.toFixed(2)}</p>
+                                        {purchase.trackingNumber && <p>Tracking: {purchase.trackingNumber}</p>}
+                                    </div>
+
+                                    {/* Action buttons - responsive layout */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {purchase.status === 'pending' && (
                                             <Button
                                                 size="sm"
                                                 variant="secondary"
-                                                onClick={() => handleViewDetails(purchase)}
+                                                onClick={() => handleStatusChange(purchase._id!, 'paid')}
+                                                disabled={updateStatusMutation.isLoading}
+                                                className="min-h-[44px] text-xs lg:text-sm flex-1 sm:flex-none"
                                             >
-                                                Ver Detalles
+                                                Marcar Pagado
                                             </Button>
-                                            {purchase.status !== 'received' && purchase.status !== 'cancelled' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleEditPurchase(purchase)}
-                                                    title="Editar compra"
-                                                >
-                                                    <Edit size={16} className="mr-1" />
-                                                    Editar
-                                                </Button>
-                                            )}
+                                        )}
+                                        {purchase.status === 'paid' && (
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => handleStatusChange(purchase._id!, 'shipped')}
+                                                disabled={updateStatusMutation.isLoading}
+                                                className="min-h-[44px] text-xs lg:text-sm flex-1 sm:flex-none"
+                                            >
+                                                Marcar Enviado
+                                            </Button>
+                                        )}
+                                        {purchase.status === 'shipped' && (
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => handleStatusChange(purchase._id!, 'received')}
+                                                disabled={updateStatusMutation.isLoading}
+                                                className="min-h-[44px] text-xs lg:text-sm flex-1 sm:flex-none"
+                                            >
+                                                Marcar Recibido
+                                            </Button>
+                                        )}
+                                        {purchase.status !== 'cancelled' && purchase.status !== 'received' && (
                                             <Button
                                                 size="sm"
                                                 variant="danger"
-                                                onClick={() => handleDeletePurchase(purchase._id!)}
-                                                disabled={deletePurchaseMutation.isLoading}
+                                                onClick={() => handleStatusChange(purchase._id!, 'cancelled')}
+                                                disabled={updateStatusMutation.isLoading}
+                                                className="min-h-[44px] text-xs lg:text-sm"
                                             >
-                                                <Trash2 size={16} className="mr-1" />
-                                                Eliminar
+                                                Cancelar
                                             </Button>
-                                        </div>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() => handleViewDetails(purchase)}
+                                            className="min-h-[44px] text-xs lg:text-sm flex-1 sm:flex-none"
+                                        >
+                                            Ver Detalles
+                                        </Button>
+                                        {purchase.status !== 'received' && purchase.status !== 'cancelled' && (
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => handleEditPurchase(purchase)}
+                                                title="Editar compra"
+                                                className="min-h-[44px] text-xs lg:text-sm"
+                                            >
+                                                <Edit size={16} className="mr-1" />
+                                                Editar
+                                            </Button>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant="danger"
+                                            onClick={() => handleDeletePurchase(purchase._id!)}
+                                            disabled={deletePurchaseMutation.isLoading}
+                                            className="min-h-[44px] text-xs lg:text-sm"
+                                        >
+                                            <Trash2 size={16} className="mr-1" />
+                                            Eliminar
+                                        </Button>
                                     </div>
                                 </div>
                             ))}
