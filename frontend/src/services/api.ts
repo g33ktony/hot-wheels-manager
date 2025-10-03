@@ -17,14 +17,14 @@ const api = axios.create({
   },
 })
 
-// Interceptor para requests
+// Interceptor para requests - Agregar token JWT
 api.interceptors.request.use(
   (config) => {
-    // Aquí puedes agregar tokens de autenticación cuando los implementes
-    // const token = localStorage.getItem('token')
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`
-    // }
+    // Agregar token de autenticación
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {
@@ -32,7 +32,7 @@ api.interceptors.request.use(
   }
 )
 
-// Interceptor para responses
+// Interceptor para responses - Manejar errores de autenticación
 api.interceptors.response.use(
   (response) => {
     return response
@@ -40,8 +40,11 @@ api.interceptors.response.use(
   (error) => {
     // Manejo global de errores
     if (error.response?.status === 401) {
-      // Redirect to login when implemented
-      console.log('Unauthorized access')
+      // Token expirado o inválido - limpiar y redirigir a login
+      console.log('Unauthorized access - redirecting to login')
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
     }
     return Promise.reject(error)
   }

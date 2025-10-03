@@ -9,6 +9,7 @@ import dotenv from 'dotenv'
 import path from 'path'
 
 // Import routes
+import authRoutes from './routes/auth.routes'
 import hotWheelsRoutes from './routes/hotWheelsRoutes'
 import inventoryRoutes from './routes/inventoryRoutes'
 import salesRoutes from './routes/salesRoutes'
@@ -20,6 +21,7 @@ import marketPricesRoutes from './routes/marketPricesRoutes'
 import dashboardRoutes from './routes/dashboardRoutes'
 
 // Import middleware
+import { authMiddleware } from './middleware/auth'
 import errorHandler from './middleware/errorHandler'
 import notFoundHandler from './middleware/notFoundHandler'
 
@@ -89,15 +91,19 @@ app.get('/health', (req, res) => {
 })
 
 // API routes
-app.use('/api/hotwheels', hotWheelsRoutes)
-app.use('/api/inventory', inventoryRoutes)
-app.use('/api/sales', salesRoutes)
-app.use('/api/purchases', purchasesRoutes)
-app.use('/api/deliveries', deliveriesRoutes)
-app.use('/api/customers', customersRoutes)
-app.use('/api/suppliers', suppliersRoutes)
-app.use('/api/market-prices', marketPricesRoutes)
-app.use('/api/dashboard', dashboardRoutes)
+// Auth routes (sin protección)
+app.use('/api/auth', authRoutes)
+
+// Rutas protegidas (requieren autenticación)
+app.use('/api/hotwheels', authMiddleware, hotWheelsRoutes)
+app.use('/api/inventory', authMiddleware, inventoryRoutes)
+app.use('/api/sales', authMiddleware, salesRoutes)
+app.use('/api/purchases', authMiddleware, purchasesRoutes)
+app.use('/api/deliveries', authMiddleware, deliveriesRoutes)
+app.use('/api/customers', authMiddleware, customersRoutes)
+app.use('/api/suppliers', authMiddleware, suppliersRoutes)
+app.use('/api/market-prices', authMiddleware, marketPricesRoutes)
+app.use('/api/dashboard', authMiddleware, dashboardRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)

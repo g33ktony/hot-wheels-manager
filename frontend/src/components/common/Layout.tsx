@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
     LayoutDashboard,
     Package,
@@ -9,9 +9,11 @@ import {
     Menu,
     X,
     Users,
-    Building2
+    Building2,
+    LogOut
 } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface LayoutProps {
     children: ReactNode
@@ -30,6 +32,13 @@ const navigationItems = [
 export default function Layout({ children }: LayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
+    const navigate = useNavigate()
+    const { user, logout } = useAuth()
+
+    const handleLogout = () => {
+        logout()
+        navigate('/login')
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
@@ -79,6 +88,15 @@ export default function Layout({ children }: LayoutProps) {
                             </Link>
                         )
                     })}
+
+                    {/* Logout button */}
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation text-red-600 hover:bg-red-50 active:bg-red-100 mt-4"
+                    >
+                        <LogOut size={22} className="mr-3 flex-shrink-0" />
+                        <span className="flex-1">Cerrar sesión</span>
+                    </button>
                 </nav>
             </div>
 
@@ -96,7 +114,7 @@ export default function Layout({ children }: LayoutProps) {
 
                     <div className="flex-1 lg:flex lg:items-center lg:justify-end">
                         <div className="text-sm text-gray-500 hidden sm:block">
-                            Bienvenido al gestor de Hot Wheels
+                            {user?.name || 'Usuario'}
                         </div>
                     </div>
                 </div>
