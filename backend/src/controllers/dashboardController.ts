@@ -149,18 +149,51 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     });
 
     const totalRevenue = await SaleModel.aggregate([
-      { $group: { _id: null, total: { $sum: '$salePrice' } } }
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
 
     const monthlyRevenue = await SaleModel.aggregate([
       { $match: { saleDate: { $gte: currentMonth } } },
-      { $group: { _id: null, total: { $sum: '$salePrice' } } }
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
 
-    // Calculate profit (sale price - purchase price from inventory)
-    // For now, we'll use a simple profit calculation - this could be enhanced later
-    const totalProfit = totalRevenue[0]?.total || 0;
-    const monthlyProfit = monthlyRevenue[0]?.total || 0;
+    // Calculate REAL profit by looking up purchase prices from inventory
+    console.log('💵 Calculating profits...');
+    
+    // Get all sales with their items and populate inventory data
+    const allSales = await SaleModel.find({ status: 'completed' })
+      .populate({
+        path: 'items.inventoryItemId',
+        select: 'purchasePrice'
+      });
+
+    const monthlySalesData = await SaleModel.find({
+      status: 'completed',
+      saleDate: { $gte: currentMonth }
+    }).populate({
+      path: 'items.inventoryItemId',
+      select: 'purchasePrice'
+    });
+
+    // Calculate total profit
+    let totalProfit = 0;
+    allSales.forEach(sale => {
+      sale.items.forEach((item: any) => {
+        const salePrice = item.unitPrice * item.quantity;
+        const purchasePrice = (item.inventoryItemId?.purchasePrice || 0) * item.quantity;
+        totalProfit += (salePrice - purchasePrice);
+      });
+    });
+
+    // Calculate monthly profit
+    let monthlyProfit = 0;
+    monthlySalesData.forEach(sale => {
+      sale.items.forEach((item: any) => {
+        const salePrice = item.unitPrice * item.quantity;
+        const purchasePrice = (item.inventoryItemId?.purchasePrice || 0) * item.quantity;
+        monthlyProfit += (salePrice - purchasePrice);
+      });
+    });
 
     // Get delivery metrics
     console.log('� Getting delivery metrics...');
