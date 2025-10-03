@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
+import { useAuth } from '../contexts/AuthContext'
 import Input from '../components/common/Input'
 import Button from '../components/common/Button'
 import { Lock, Mail, Car } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-
 const Login: React.FC = () => {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -24,25 +24,10 @@ const Login: React.FC = () => {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al iniciar sesión')
-      }
-
-      // Guardar token y usuario en localStorage
-      localStorage.setItem('token', data.data.token)
-      localStorage.setItem('user', JSON.stringify(data.data.user))
-
-      toast.success('¡Bienvenido!')
+      // Usar la función login del AuthContext
+      await login(email, password)
+      
+      // El toast success ya se muestra en AuthContext
       navigate('/dashboard')
     } catch (error) {
       console.error('Login error:', error)
