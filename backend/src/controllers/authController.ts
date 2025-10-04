@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import { UserModel } from '../models/User'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this'
-const JWT_EXPIRES_IN = '30d' // Token válido por 30 días
+const JWT_EXPIRES_IN = '1d' // Token válido por 1 día
 
 // Login
 export const login = async (req: Request, res: Response) => {

@@ -27,8 +27,12 @@ const Login: React.FC = () => {
       // Usar la función login del AuthContext
       await login(email, password)
       
+      // Verificar si hay una ruta guardada para redirigir después del login
+      const redirectPath = localStorage.getItem('redirectAfterLogin')
+      localStorage.removeItem('redirectAfterLogin')
+      
       // El toast success ya se muestra en AuthContext
-      navigate('/dashboard')
+      navigate(redirectPath || '/dashboard')
     } catch (error) {
       console.error('Login error:', error)
       toast.error(error instanceof Error ? error.message : 'Error al iniciar sesión')
