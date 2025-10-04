@@ -288,6 +288,30 @@ export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
     delivery.status = 'completed';
     delivery.completedDate = new Date();
     
+    // Automatically mark as paid when completing the delivery (if not already fully paid)
+    const currentPaidAmount = delivery.paidAmount || 0;
+    if (currentPaidAmount < delivery.totalAmount) {
+      const remainingAmount = delivery.totalAmount - currentPaidAmount;
+      
+      // Initialize payments array if it doesn't exist
+      if (!delivery.payments) {
+        delivery.payments = [];
+      }
+      
+      // Add automatic payment for remaining amount
+      delivery.payments.push({
+        amount: remainingAmount,
+        paymentDate: new Date(),
+        paymentMethod: 'cash',
+        notes: 'Pago automático al completar entrega'
+      } as any);
+      
+      // Update paid amount and status
+      delivery.paidAmount = delivery.totalAmount;
+    }
+    
+    delivery.paymentStatus = 'paid';
+    
     await delivery.save();
     
     // Create sales from delivery items
@@ -296,7 +320,7 @@ export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: delivery,
-      message: 'Entrega marcada como completada y ventas creadas'
+      message: 'Entrega completada y marcada como pagada'
     });
   } catch (error) {
     console.error('Error marking delivery as completed:', error);
@@ -343,6 +367,26 @@ export const markDeliveryAsPending = async (req: Request, res: Response) => {
     // Mark as pending and remove completion date
     delivery.status = 'scheduled';
     delivery.completedDate = undefined;
+    
+    // Reset payment status when reverting to pending
+    // Keep manual payments if any were made before completion
+    // Remove only the automatic payment made during completion
+    if (delivery.payments && delivery.payments.length > 0) {
+      const lastPayment = delivery.payments[delivery.payments.length - 1];
+      if (lastPayment.notes === 'Pago automático al completar entrega') {
+        delivery.payments.pop();
+        delivery.paidAmount = (delivery.paidAmount || 0) - lastPayment.amount;
+      }
+    }
+    
+    // Recalculate payment status
+    if (delivery.paidAmount >= delivery.totalAmount) {
+      delivery.paymentStatus = 'paid';
+    } else if (delivery.paidAmount > 0) {
+      delivery.paymentStatus = 'partial';
+    } else {
+      delivery.paymentStatus = 'pending';
+    }
     
     await delivery.save();
     

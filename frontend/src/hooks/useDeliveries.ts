@@ -80,7 +80,7 @@ export const useMarkDeliveryAsCompleted = () => {
         queryClient.invalidateQueries('deliveries')
         queryClient.invalidateQueries('sales') // Invalidar ventas porque se pueden crear automáticamente
         queryClient.invalidateQueries('inventory') // Invalidar inventario porque se reduce
-        toast.success('Entrega marcada como completada y venta creada')
+        toast.success('Entrega completada, venta creada y marcada como pagada')
       },
       onError: (error: any) => {
         toast.error(error.message || 'Error al completar entrega')

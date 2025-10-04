@@ -524,7 +524,7 @@ export default function Deliveries() {
                                                         onClick={() => handleMarkAsCompleted(delivery._id!)}
                                                         disabled={markCompletedMutation.isLoading}
                                                         className="text-green-600 hover:text-green-800 min-w-[44px] min-h-[44px]"
-                                                        title="Marcar como completada"
+                                                        title="Marcar como completada y pagada"
                                                     >
                                                         <CheckCircle size={16} />
                                                     </Button>
@@ -534,13 +534,13 @@ export default function Deliveries() {
                                                 <Button
                                                     size="sm"
                                                     onClick={() => {
-                                                        if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario.')) {
+                                                        if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
                                                             handleMarkAsCompleted(delivery._id!)
                                                         }
                                                     }}
                                                     disabled={markCompletedMutation.isLoading}
                                                     className="text-green-600 hover:text-green-800 min-w-[44px] min-h-[44px]"
-                                                    title="Marcar como completada (eliminará items del inventario)"
+                                                    title="Marcar como completada y pagada (eliminará items del inventario)"
                                                 >
                                                     <CheckCircle size={16} />
                                                 </Button>
@@ -633,7 +633,7 @@ export default function Deliveries() {
                                                 onClick={() => handleMarkAsCompleted(delivery._id!)}
                                                 disabled={markCompletedMutation.isLoading}
                                                 className="text-green-600 hover:text-green-800"
-                                                title="Marcar como completada"
+                                                title="Marcar como completada y pagada"
                                             >
                                                 <CheckCircle size={16} />
                                             </Button>
@@ -643,13 +643,13 @@ export default function Deliveries() {
                                         <Button
                                             size="sm"
                                             onClick={() => {
-                                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario.')) {
+                                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
                                                     handleMarkAsCompleted(delivery._id!)
                                                 }
                                             }}
                                             disabled={markCompletedMutation.isLoading}
                                             className="text-green-600 hover:text-green-800"
-                                            title="Marcar como completada (eliminará items del inventario)"
+                                            title="Marcar como completada y pagada (eliminará items del inventario)"
                                         >
                                             <CheckCircle size={16} />
                                         </Button>
