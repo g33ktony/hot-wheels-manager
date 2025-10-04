@@ -163,9 +163,22 @@ export interface Delivery {
   scheduledTime?: string;
   location: string;
   totalAmount: number;
+  paidAmount: number;
+  paymentStatus: 'pending' | 'partial' | 'paid';
+  payments: Payment[];
   notes?: string;
   status: 'scheduled' | 'prepared' | 'completed' | 'cancelled' | 'rescheduled';
   completedDate?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Payment {
+  _id?: string;
+  amount: number;
+  paymentDate: Date;
+  paymentMethod?: 'cash' | 'transfer' | 'card' | 'other';
+  notes?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

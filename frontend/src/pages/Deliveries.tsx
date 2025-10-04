@@ -1,22 +1,28 @@
 import { useState } from 'react'
 import { useQueryClient } from 'react-query'
-import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery } from '@/hooks/useDeliveries'
+import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit } from 'lucide-react'
+import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign } from 'lucide-react'
 
 export default function Deliveries() {
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false)
+    const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
     const [editingDelivery, setEditingDelivery] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
+    const [newPayment, setNewPayment] = useState({
+        amount: 0,
+        paymentMethod: 'cash' as 'cash' | 'transfer' | 'card' | 'other',
+        notes: ''
+    })
     
     // Usar la fecha actual por defecto
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -45,6 +51,8 @@ export default function Deliveries() {
     const markCompletedMutation = useMarkDeliveryAsCompleted()
     const markPreparedMutation = useMarkDeliveryAsPrepared()
     const deleteDeliveryMutation = useDeleteDelivery()
+    const addPaymentMutation = useAddPayment()
+    const deletePaymentMutation = useDeletePayment()
     const queryClient = useQueryClient()
 
     if (isLoading) {
@@ -164,6 +172,71 @@ export default function Deliveries() {
     const handleCloseDetails = () => {
         setShowDetailsModal(false)
         setSelectedDelivery(null)
+    }
+
+    const handleOpenPaymentModal = () => {
+        if (selectedDelivery) {
+            const remainingAmount = selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)
+            setNewPayment({
+                amount: remainingAmount,
+                paymentMethod: 'cash',
+                notes: ''
+            })
+            setShowPaymentModal(true)
+        }
+    }
+
+    const handleAddPayment = async () => {
+        if (!selectedDelivery || newPayment.amount <= 0) {
+            alert('El monto debe ser mayor a 0')
+            return
+        }
+
+        try {
+            await addPaymentMutation.mutateAsync({
+                deliveryId: selectedDelivery._id,
+                amount: newPayment.amount,
+                paymentMethod: newPayment.paymentMethod,
+                notes: newPayment.notes || undefined
+            })
+
+            // Refresh the delivery details
+            const updatedDelivery = deliveries?.find(d => d._id === selectedDelivery._id)
+            if (updatedDelivery) {
+                setSelectedDelivery(updatedDelivery)
+            }
+
+            // Reset form and close modal
+            setShowPaymentModal(false)
+            setNewPayment({
+                amount: 0,
+                paymentMethod: 'cash',
+                notes: ''
+            })
+        } catch (error) {
+            console.error('Error adding payment:', error)
+        }
+    }
+
+    const handleDeletePayment = async (paymentId: string) => {
+        if (!selectedDelivery || !confirm('¿Estás seguro de eliminar este pago?')) {
+            return
+        }
+
+        try {
+            await deletePaymentMutation.mutateAsync({
+                deliveryId: selectedDelivery._id,
+                paymentId
+            })
+
+            // Refresh the delivery details
+            const updatedDelivery = deliveries?.find(d => d._id === selectedDelivery._id)
+            if (updatedDelivery) {
+                setSelectedDelivery(updatedDelivery)
+            }
+        } catch (error) {
+            console.error('Error deleting payment:', error)
+        }
     }
 
     const handleDeleteDelivery = async (deliveryId: string) => {
@@ -527,7 +600,18 @@ export default function Deliveries() {
                                                 {delivery.items.length} items
                                             </span>
                                         </div>
-                                        <p className="text-xs lg:text-sm font-medium">Total: ${delivery.totalAmount.toFixed(2)}</p>
+                                        <div className="flex items-center gap-3 flex-wrap">
+                                            <p className="text-xs lg:text-sm font-medium">Total: ${delivery.totalAmount.toFixed(2)}</p>
+                                            <span className={`px-2 py-1 text-xs rounded-full ${
+                                                delivery.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                                                delivery.paymentStatus === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                {delivery.paymentStatus === 'paid' ? '✓ Pagado' :
+                                                delivery.paymentStatus === 'partial' ? `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` :
+                                                'Sin pagar'}
+                                            </span>
+                                        </div>
                                         {delivery.notes && <p className="text-xs lg:text-sm">Notas: {delivery.notes}</p>}
                                     </div>
                                 </div>
@@ -723,11 +807,11 @@ export default function Deliveries() {
 
                                 <div className="space-y-4">
                                     {newDelivery.items.map((item, index) => (
-                                        <div key={index} className="flex items-center gap-4 p-4 border rounded-lg">
+                                        <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
                                             <div className="flex-1">
                                                 <select
-                                                    className="input w-full"
-                                                    value={item.inventoryItemId}
+                                                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
+                                                    value={item.inventoryItemId || ''}
                                                     onChange={(e) => updateDeliveryItem(index, 'inventoryItemId', e.target.value)}
                                                 >
                                                     <option value="">Seleccionar pieza del inventario</option>
@@ -760,33 +844,38 @@ export default function Deliveries() {
                                                     })()}
                                                 </select>
                                             </div>
-                                            <div className="w-20">
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Qty"
-                                                    value={item.quantity}
-                                                    onChange={(e) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                                                    min="1"
-                                                />
+                                            <div className="flex gap-3 sm:gap-4 sm:w-auto">
+                                                <div className="w-20 min-w-[80px]">
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Qty"
+                                                        value={item.quantity}
+                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                        min="1"
+                                                        className="min-h-[44px]"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 sm:w-24 sm:flex-none">
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Precio"
+                                                        value={item.unitPrice}
+                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                        step="0.01"
+                                                        min="0"
+                                                        className="min-h-[44px]"
+                                                    />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="danger"
+                                                    onClick={() => removeDeliveryItem(index)}
+                                                    className="min-h-[44px] min-w-[44px] px-3"
+                                                >
+                                                    ×
+                                                </Button>
                                             </div>
-                                            <div className="w-24">
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Precio"
-                                                    value={item.unitPrice}
-                                                    onChange={(e) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                    step="0.01"
-                                                    min="0"
-                                                />
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="danger"
-                                                onClick={() => removeDeliveryItem(index)}
-                                            >
-                                                ×
-                                            </Button>
                                         </div>
                                     ))}
                                 </div>
@@ -1017,7 +1106,91 @@ export default function Deliveries() {
                                         })()}
                                     </div>
                                 </div>
+
+                                {/* Payment Status */}
+                                <div>
+                                    <h3 className="font-medium text-gray-900 mb-2">Estado de Pago</h3>
+                                    <div className="space-y-2 text-sm">
+                                        <p>
+                                            <span className="font-medium">Total:</span> ${selectedDelivery.totalAmount?.toFixed(2)}
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Pagado:</span> 
+                                            <span className="text-green-600 ml-2">
+                                                ${(selectedDelivery.paidAmount || 0).toFixed(2)}
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Pendiente:</span> 
+                                            <span className="text-orange-600 ml-2">
+                                                ${(selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)).toFixed(2)}
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Estado:</span>
+                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                                selectedDelivery.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                                                selectedDelivery.paymentStatus === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                {selectedDelivery.paymentStatus === 'paid' ? 'Pagado' :
+                                                selectedDelivery.paymentStatus === 'partial' ? 'Parcial' : 'Pendiente'}
+                                            </span>
+                                        </p>
+                                        {selectedDelivery.paymentStatus !== 'paid' && (
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                className="w-full mt-3"
+                                                onClick={handleOpenPaymentModal}
+                                            >
+                                                <DollarSign size={16} className="mr-2" />
+                                                Registrar Pago
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Payment History */}
+                            {selectedDelivery.payments && selectedDelivery.payments.length > 0 && (
+                                <div className="mb-6">
+                                    <h3 className="font-medium text-gray-900 mb-3">Historial de Pagos</h3>
+                                    <div className="space-y-2">
+                                        {selectedDelivery.payments.map((payment: any) => (
+                                            <div key={payment._id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="font-medium text-gray-900">
+                                                            ${payment.amount.toFixed(2)}
+                                                        </span>
+                                                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                                                            {payment.paymentMethod === 'cash' ? 'Efectivo' :
+                                                            payment.paymentMethod === 'transfer' ? 'Transferencia' :
+                                                            payment.paymentMethod === 'card' ? 'Tarjeta' : 'Otro'}
+                                                        </span>
+                                                        <span className="text-sm text-gray-600">
+                                                            {new Date(payment.paymentDate).toLocaleDateString()} {new Date(payment.paymentDate).toLocaleTimeString()}
+                                                        </span>
+                                                    </div>
+                                                    {payment.notes && (
+                                                        <p className="text-xs text-gray-500 mt-1">{payment.notes}</p>
+                                                    )}
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="danger"
+                                                    onClick={() => handleDeletePayment(payment._id)}
+                                                    className="ml-3"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Items List */}
                             <div>
@@ -1072,6 +1245,111 @@ export default function Deliveries() {
                                     <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{selectedDelivery.notes}</p>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Payment Modal */}
+            {showPaymentModal && selectedDelivery && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
+                        <div className="flex items-center justify-between p-6 border-b">
+                            <h2 className="text-xl font-semibold text-gray-900">Registrar Pago</h2>
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="space-y-4">
+                                {/* Amount Info */}
+                                <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Total:</span>
+                                        <span className="font-medium">${selectedDelivery.totalAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-600">Pagado:</span>
+                                        <span className="text-green-600 font-medium">${(selectedDelivery.paidAmount || 0).toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between border-t pt-2">
+                                        <span className="text-gray-900 font-medium">Pendiente:</span>
+                                        <span className="text-orange-600 font-bold">${(selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)).toFixed(2)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Amount Input */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Monto a Pagar *
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={newPayment.amount || ''}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                                            setNewPayment({ ...newPayment, amount: parseFloat(e.target.value) || 0 })
+                                        }
+                                        step="0.01"
+                                        min="0"
+                                        max={selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)}
+                                        className="min-h-[44px]"
+                                    />
+                                </div>
+
+                                {/* Payment Method */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Método de Pago *
+                                    </label>
+                                    <select
+                                        className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
+                                        value={newPayment.paymentMethod}
+                                        onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value as any })}
+                                    >
+                                        <option value="cash">Efectivo</option>
+                                        <option value="transfer">Transferencia</option>
+                                        <option value="card">Tarjeta</option>
+                                        <option value="other">Otro</option>
+                                    </select>
+                                </div>
+
+                                {/* Notes */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Notas (opcional)
+                                    </label>
+                                    <textarea
+                                        className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[80px] touch-manipulation"
+                                        placeholder="Detalles adicionales del pago..."
+                                        value={newPayment.notes}
+                                        onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    className="flex-1"
+                                    onClick={() => setShowPaymentModal(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    className="flex-1"
+                                    onClick={handleAddPayment}
+                                    disabled={addPaymentMutation.isLoading || newPayment.amount <= 0}
+                                >
+                                    {addPaymentMutation.isLoading ? 'Registrando...' : 'Registrar Pago'}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

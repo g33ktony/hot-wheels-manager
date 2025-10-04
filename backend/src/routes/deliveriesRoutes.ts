@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import * as deliveriesController from '../controllers/deliveriesController'
+import * as deliveryPaymentController from '../controllers/deliveryPaymentController'
 
 const router = Router()
 
@@ -26,5 +27,15 @@ router.patch('/:id/pending', deliveriesController.markDeliveryAsPending)
 
 // DELETE /api/deliveries/:id - Delete delivery
 router.delete('/:id', deliveriesController.deleteDelivery)
+
+// Payment routes
+// POST /api/deliveries/:id/payments - Add a payment
+router.post('/:id/payments', deliveryPaymentController.addPayment)
+
+// DELETE /api/deliveries/:id/payments/:paymentId - Delete a payment
+router.delete('/:id/payments/:paymentId', deliveryPaymentController.deletePayment)
+
+// GET /api/deliveries/:id/payments - Get payment history
+router.get('/:id/payments', deliveryPaymentController.getPaymentHistory)
 
 export default router

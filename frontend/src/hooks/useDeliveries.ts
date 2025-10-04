@@ -124,3 +124,43 @@ export const useMarkDeliveryAsPending = () => {
     }
   )
 }
+
+export const useAddPayment = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ deliveryId, amount, paymentMethod, notes }: { 
+      deliveryId: string
+      amount: number
+      paymentMethod?: string
+      notes?: string
+    }) => deliveriesService.addPayment(deliveryId, amount, paymentMethod, notes),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        toast.success('Pago registrado exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al registrar pago')
+      },
+    }
+  )
+}
+
+export const useDeletePayment = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ deliveryId, paymentId }: { deliveryId: string; paymentId: string }) =>
+      deliveriesService.deletePayment(deliveryId, paymentId),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('deliveries')
+        toast.success('Pago eliminado exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al eliminar pago')
+      },
+    }
+  )
+}

@@ -118,5 +118,41 @@ export const deliveriesService = {
   search: async (term: string): Promise<Delivery[]> => {
     const response = await api.get<ApiResponse<Delivery[]>>(`/deliveries/search?q=${encodeURIComponent(term)}`)
     return response.data.data || []
+  },
+
+  // Agregar pago a una entrega
+  addPayment: async (
+    deliveryId: string, 
+    amount: number, 
+    paymentMethod?: string, 
+    notes?: string
+  ): Promise<Delivery> => {
+    const response = await api.post<ApiResponse<Delivery>>(
+      `/deliveries/${deliveryId}/payments`, 
+      { amount, paymentMethod, notes }
+    )
+    if (!response.data.data) {
+      throw new Error('Failed to add payment')
+    }
+    return response.data.data
+  },
+
+  // Eliminar pago de una entrega
+  deletePayment: async (deliveryId: string, paymentId: string): Promise<Delivery> => {
+    const response = await api.delete<ApiResponse<Delivery>>(
+      `/deliveries/${deliveryId}/payments/${paymentId}`
+    )
+    if (!response.data.data) {
+      throw new Error('Failed to delete payment')
+    }
+    return response.data.data
+  },
+
+  // Obtener historial de pagos de una entrega
+  getPaymentHistory: async (deliveryId: string): Promise<any> => {
+    const response = await api.get<ApiResponse<any>>(
+      `/deliveries/${deliveryId}/payments`
+    )
+    return response.data.data
   }
 }

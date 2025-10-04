@@ -9,11 +9,22 @@ export interface IDelivery extends Document {
   scheduledTime?: string; // HH:MM format
   location: string;
   totalAmount: number;
+  paidAmount: number;
+  paymentStatus: 'pending' | 'partial' | 'paid';
+  payments: Payment[];
   notes?: string;
   status: 'scheduled' | 'prepared' | 'completed' | 'cancelled' | 'rescheduled';
   completedDate?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Payment {
+  _id?: mongoose.Types.ObjectId;
+  amount: number;
+  paymentDate: Date;
+  paymentMethod?: 'cash' | 'transfer' | 'card' | 'other';
+  notes?: string;
 }
 
 export interface DeliveryItem {
@@ -56,6 +67,28 @@ const DeliveryItemSchema = new Schema<DeliveryItem>({
   }
 }, { _id: false })
 
+const PaymentSchema = new Schema<Payment>({
+  amount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  paymentDate: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['cash', 'transfer', 'card', 'other'],
+    default: 'cash'
+  },
+  notes: {
+    type: String,
+    trim: true
+  }
+}, { _id: true, timestamps: true })
+
 const DeliverySchema = new Schema<IDelivery>({
   saleId: {
     type: String
@@ -88,6 +121,18 @@ const DeliverySchema = new Schema<IDelivery>({
     required: true,
     min: 0
   },
+  paidAmount: {
+    type: Number,
+    required: true,
+    default: 0,
+    min: 0
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'partial', 'paid'],
+    default: 'pending'
+  },
+  payments: [PaymentSchema],
   notes: {
     type: String,
     trim: true
