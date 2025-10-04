@@ -603,12 +603,12 @@ export default function Deliveries() {
                                         <div className="flex items-center gap-3 flex-wrap">
                                             <p className="text-xs lg:text-sm font-medium">Total: ${delivery.totalAmount.toFixed(2)}</p>
                                             <span className={`px-2 py-1 text-xs rounded-full ${
-                                                delivery.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                                                delivery.paymentStatus === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                (delivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
+                                                (delivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
                                                 'bg-red-100 text-red-800'
                                             }`}>
-                                                {delivery.paymentStatus === 'paid' ? '✓ Pagado' :
-                                                delivery.paymentStatus === 'partial' ? `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` :
+                                                {(delivery.paymentStatus || 'pending') === 'paid' ? '✓ Pagado' :
+                                                (delivery.paymentStatus || 'pending') === 'partial' ? `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` :
                                                 'Sin pagar'}
                                             </span>
                                         </div>
@@ -1129,15 +1129,15 @@ export default function Deliveries() {
                                         <p>
                                             <span className="font-medium">Estado:</span>
                                             <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                                selectedDelivery.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                                                selectedDelivery.paymentStatus === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                (selectedDelivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
+                                                (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
                                                 'bg-red-100 text-red-800'
                                             }`}>
-                                                {selectedDelivery.paymentStatus === 'paid' ? 'Pagado' :
-                                                selectedDelivery.paymentStatus === 'partial' ? 'Parcial' : 'Pendiente'}
+                                                {(selectedDelivery.paymentStatus || 'pending') === 'paid' ? 'Pagado' :
+                                                (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'Parcial' : 'Pendiente'}
                                             </span>
                                         </p>
-                                        {selectedDelivery.paymentStatus !== 'paid' && (
+                                        {(selectedDelivery.paymentStatus || 'pending') !== 'paid' && (
                                             <Button
                                                 type="button"
                                                 size="sm"
