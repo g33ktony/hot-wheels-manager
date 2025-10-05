@@ -385,8 +385,16 @@ export default function Deliveries() {
     // Complete series: add all missing pieces from a series
     const completeSeries = async (seriesId: string, seriesPrice: number, seriesSize: number) => {
         try {
+            console.log('🎁 Completing series:', { seriesId, seriesPrice, seriesSize })
+            
             // Find all items from this series in inventory
             const seriesItems = inventoryItems?.filter(item => item.seriesId === seriesId) || []
+            
+            console.log('📦 Series items found:', seriesItems.length, seriesItems.map(i => ({
+                carId: i.carId,
+                suggestedPrice: i.suggestedPrice,
+                seriesPrice: i.seriesPrice
+            })))
             
             // Check if we have all pieces available
             const unavailableItems = seriesItems.filter(item => (item.quantity - (item.reservedQuantity || 0)) < 1)
@@ -403,6 +411,7 @@ export default function Deliveries() {
 
             // Calculate adjusted price per piece
             const pricePerPiece = seriesPrice / seriesSize
+            console.log('💰 Price calculation:', { seriesPrice, seriesSize, pricePerPiece })
 
             // Add or update all pieces from the series
             const updatedItems = [...newDelivery.items]
@@ -414,6 +423,7 @@ export default function Deliveries() {
                     // Update existing item with series price
                     updatedItems[existingIndex].unitPrice = pricePerPiece
                     updatedItems[existingIndex].isSoldAsSeries = true
+                    console.log('✏️ Updated existing item:', updatedItems[existingIndex].carName, 'to', pricePerPiece)
                 } else {
                     // Add new item with series price
                     updatedItems.push({
@@ -429,6 +439,7 @@ export default function Deliveries() {
                         seriesPrice: seriesItem.seriesPrice,
                         isSoldAsSeries: true
                     })
+                    console.log('➕ Added new item:', seriesItem.carId, 'with price', pricePerPiece)
                 }
             })
 
