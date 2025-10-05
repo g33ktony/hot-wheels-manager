@@ -6,23 +6,42 @@ Esta guía explica cómo configurar builds condicionales para que solo se ejecut
 
 ### ✅ Railway (Backend) - Ya Configurado
 
-Railway usa un **script de verificación** antes del build que cancela el deploy si no hay cambios relevantes.
+Railway usa **watchPatterns** en `railway.toml` para detectar cambios automáticamente.
 
 **Cómo funciona:**
-1. Antes de `npm install`, ejecuta `backend/ignore-deploy-step.sh`
-2. El script verifica si hay cambios en `backend/`, `shared/`, o archivos de configuración
-3. Si NO hay cambios → exit 1 (cancela el build)
-4. Si hay cambios → exit 0 (continúa con npm install)
+```toml
+[build]
+watchPatterns = ["backend/**", "shared/**", "railway.toml", "package.json", "start.sh"]
+```
+
+Railway compara los archivos cambiados en el commit con los patrones definidos. Si ningún archivo coincide, **no hace deploy**.
 
 **Solo hace deploy cuando cambian:**
 - `backend/**`
 - `shared/**`
 - `package.json`
 - `railway.toml`
-- `railway.json`
 - `start.sh`
 
-✨ **No requiere configuración adicional** - Funciona automáticamente con el buildCommand modificado.
+✨ **Funciona automáticamente** - No requiere configuración adicional.
+
+### ✅ Railway - Configuración Requerida
+
+Railway requiere que especifiques el path al archivo de configuración en el Dashboard.
+
+#### Paso 1: Ve a tu servicio en Railway
+1. https://railway.app/dashboard
+2. Selecciona tu servicio backend
+
+#### Paso 2: Configura el Railway Config File
+1. Ve a **Settings → Deploy → Config-as-code**
+2. En **"Railway Config File"**, ingresa:
+   ```
+   railway.toml
+   ```
+3. Click **Save**
+
+Esto le indica a Railway que use el archivo `railway.toml` con los `watchPatterns` configurados.
 
 ---
 
@@ -59,24 +78,16 @@ Railway usa un **script de verificación** antes del build que cancela el deploy
 - `exit 1` = Hacer build ✅
 - `exit 0` = Saltar build ⏭️
 
-### Railway (`backend/ignore-deploy-step.sh`)
+### Railway (`railway.toml` con watchPatterns)
 
-```bash
-# Compara el commit actual con el anterior
-# Si hay cambios en backend/ o shared/ → CONTINUAR (exit 0)
-# Si NO hay cambios → CANCELAR BUILD (exit 1)
-```
-
-**Exit Codes:**
-- `exit 0` = Continuar con deploy ✅
-- `exit 1` = Cancelar deploy (falla el build intencionalmente) ⏭️
-
-**Configuración en `railway.toml`:**
 ```toml
-buildCommand = "bash backend/ignore-deploy-step.sh && npm install"
+[build]
+watchPatterns = ["backend/**", "shared/**", "railway.toml", "package.json", "start.sh"]
 ```
 
-El script se ejecuta ANTES de npm install. Si falla (exit 1), el build completo se cancela.
+Railway verifica si los archivos cambiados en el commit coinciden con algún patrón. Si no hay coincidencias, **no hace deploy**.
+
+**Importante**: Debes configurar el path del archivo en Railway Dashboard (Settings → Deploy → Config-as-code → `railway.toml`)
 
 ---
 
