@@ -726,6 +726,117 @@ export default function Inventory() {
                                         </span>
                                     </div>
 
+                                    {/* Series Checkbox - ONLY shown when adding multiple cars */}
+                                    <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!newItem.seriesId}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setNewItem({
+                                                            ...newItem,
+                                                            seriesId: `SERIES-${Date.now()}`,
+                                                            seriesName: '',
+                                                            seriesSize: 5,
+                                                            seriesPosition: 1,
+                                                            seriesPrice: 0,
+                                                            seriesDefaultPrice: 0
+                                                        })
+                                                    } else {
+                                                        setNewItem({
+                                                            ...newItem,
+                                                            seriesId: '',
+                                                            seriesName: '',
+                                                            seriesSize: 5,
+                                                            seriesPosition: 1,
+                                                            seriesPrice: 0,
+                                                            seriesDefaultPrice: 0
+                                                        })
+                                                    }
+                                                }}
+                                            />
+                                            <span className="font-medium text-purple-900">
+                                                🎁 Estos modelos pertenecen a una serie
+                                            </span>
+                                        </label>
+                                        <p className="text-xs text-purple-700 mt-1 ml-6">
+                                            Marca esto si los carros que vas a agregar son parte de una colección/serie vendible completa
+                                        </p>
+                                    </div>
+
+                                    {/* Series Configuration - ONLY shown when checkbox is marked */}
+                                    {newItem.seriesId && (
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                                            <div className="col-span-2">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    ID de Serie (auto-generado)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="input w-full bg-gray-100"
+                                                    value={newItem.seriesId}
+                                                    readOnly
+                                                />
+                                            </div>
+
+                                            <div className="col-span-2">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Nombre de la Serie *
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    className="input w-full"
+                                                    placeholder="ej: Marvel Series 2024"
+                                                    value={newItem.seriesName}
+                                                    onChange={(e) => setNewItem({ ...newItem, seriesName: e.target.value })}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Total de Piezas en Serie *
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    className="input w-full"
+                                                    min="2"
+                                                    max="20"
+                                                    value={newItem.seriesSize}
+                                                    onChange={(e) => setNewItem({ ...newItem, seriesSize: parseInt(e.target.value) || 5 })}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Precio de Serie Completa (Opcional)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    className="input w-full"
+                                                    placeholder="Auto (85% del total)"
+                                                    value={newItem.seriesPrice || ''}
+                                                    onChange={(e) => {
+                                                        const value = parseFloat(e.target.value) || 0
+                                                        setNewItem({ ...newItem, seriesPrice: value })
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {newItem.suggestedPrice > 0 && newItem.seriesSize > 0 && (
+                                                <div className="col-span-2 text-xs bg-white p-2 rounded border border-purple-200">
+                                                    💡 Precio sugerido: <strong>${(newItem.suggestedPrice * newItem.seriesSize * 0.85).toFixed(2)}</strong>
+                                                    {' '}(85% de ${(newItem.suggestedPrice * newItem.seriesSize).toFixed(2)})
+                                                    {newItem.seriesPrice > 0 && (
+                                                        <span className="ml-2 text-green-600 font-medium">
+                                                            → ${(newItem.seriesPrice / newItem.seriesSize).toFixed(2)}/pieza
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     {/* Add car to list */}
                                     <div className="flex gap-2">
                                         <input
@@ -738,7 +849,7 @@ export default function Inventory() {
                                         <input
                                             type="number"
                                             min="1"
-                                            placeholder="Cantidad"
+                                            placeholder="Cant."
                                             className="input w-24"
                                             value={newItem.quantity === 0 ? '' : newItem.quantity}
                                             onChange={(e) => {
@@ -955,122 +1066,6 @@ export default function Inventory() {
                                 <p className="text-xs text-gray-500 mt-1">
                                     📦 Indica dónde guardas esta pieza para encontrarla fácilmente
                                 </p>
-                            </div>
-
-                            {/* Series Section */}
-                            <div className="col-span-2 border-t pt-4">
-                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!newItem.seriesId}
-                                        onChange={(e) => {
-                                            if (e.target.checked) {
-                                                setNewItem({
-                                                    ...newItem,
-                                                    seriesId: `SERIES-${Date.now()}`,
-                                                    seriesName: '',
-                                                    seriesSize: 5,
-                                                    seriesPosition: 1
-                                                })
-                                            } else {
-                                                setNewItem({
-                                                    ...newItem,
-                                                    seriesId: '',
-                                                    seriesName: '',
-                                                    seriesSize: 5,
-                                                    seriesPosition: 1,
-                                                    seriesPrice: 0,
-                                                    seriesDefaultPrice: 0
-                                                })
-                                            }
-                                        }}
-                                    />
-                                    🎁 Esta pieza pertenece a una serie
-                                </label>
-
-                                {newItem.seriesId && (
-                                    <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
-                                        <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                ID de Serie (auto-generado)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                className="input w-full bg-gray-100"
-                                                value={newItem.seriesId}
-                                                readOnly
-                                            />
-                                        </div>
-
-                                        <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Nombre de la Serie *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                className="input w-full"
-                                                placeholder="ej: Marvel Series 2024"
-                                                value={newItem.seriesName}
-                                                onChange={(e) => setNewItem({ ...newItem, seriesName: e.target.value })}
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Total de Piezas en Serie *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                className="input w-full"
-                                                min="2"
-                                                max="20"
-                                                value={newItem.seriesSize}
-                                                onChange={(e) => setNewItem({ ...newItem, seriesSize: parseInt(e.target.value) || 5 })}
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Posición en Serie *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                className="input w-full"
-                                                min="1"
-                                                max={newItem.seriesSize}
-                                                value={newItem.seriesPosition}
-                                                onChange={(e) => setNewItem({ ...newItem, seriesPosition: parseInt(e.target.value) || 1 })}
-                                            />
-                                        </div>
-
-                                        <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Precio de Serie Completa (Opcional)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                className="input w-full"
-                                                placeholder="Se calculará automáticamente (85% del total)"
-                                                value={newItem.seriesPrice || ''}
-                                                onChange={(e) => {
-                                                    const value = parseFloat(e.target.value) || 0
-                                                    setNewItem({ ...newItem, seriesPrice: value })
-                                                }}
-                                            />
-                                            {newItem.suggestedPrice > 0 && newItem.seriesSize > 0 && (
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    💡 Precio sugerido: ${(newItem.suggestedPrice * newItem.seriesSize * 0.85).toFixed(2)} 
-                                                    {' '}(85% de ${(newItem.suggestedPrice * newItem.seriesSize).toFixed(2)})
-                                                    {newItem.seriesPrice > 0 && (
-                                                        <span className="ml-2 text-green-600 font-medium">
-                                                            → ${(newItem.seriesPrice / newItem.seriesSize).toFixed(2)}/pieza
-                                                        </span>
-                                                    )}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
 
                             <div>
