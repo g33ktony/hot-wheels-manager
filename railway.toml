@@ -7,6 +7,16 @@ startCommand = "./start.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
+# Watch paths - Solo trigger deploy si cambian estas carpetas
+[watchPaths]
+paths = [
+  "backend/**",
+  "shared/**",
+  "package.json",
+  "railway.toml",
+  "start.sh"
+]
+
 [variables]
 NODE_ENV = "production"
 CORS_ORIGIN = "https://hot-wheels-manager.vercel.app,https://hot-wheels-manager-jfsn91o9q-antonio-martnez-s-projects.vercel.app"
