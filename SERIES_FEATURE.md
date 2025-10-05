@@ -97,19 +97,20 @@ interface DeliveryItemState {
 - [x] Endpoint: `GET /api/inventory/series/:seriesId/missing` - Obtener piezas faltantes
 - [x] Agregar rutas en `inventoryRoutes.ts`
 
-### 🔄 Fase 3: Frontend - Inventario
-- [ ] UI: Agregar campos de serie al crear/editar item
-- [ ] UI: Botón "Completar Serie" en edición
-- [ ] Modal: Formulario para agregar piezas faltantes
-- [ ] Validación: Precio base similar entre piezas
+### ✅ Fase 3: Frontend - Inventario (COMPLETADO)
+- [x] UI: Agregar campos de serie al crear/editar item
+- [x] Checkbox para activar modo serie
+- [x] Campos: seriesId, seriesName, seriesSize, seriesPosition, seriesPrice
+- [x] Badge visual en tarjeta de inventario para mostrar serie
 
-### 🔄 Fase 4: Frontend - Entregas
-- [ ] Detectar items con `seriesId` al agregar
-- [ ] Verificar inventario disponible de serie completa
-- [ ] Mostrar botón "🎁 Se vende por serie - $XXX"
-- [ ] Agregar automáticamente todas las piezas
-- [ ] Ajustar precios unitarios al precio de serie
-- [ ] UI: Mostrar items agrupados visualmente
+### ✅ Fase 4: Frontend - Entregas (COMPLETADO) ⭐
+- [x] Detectar items con `seriesId` al agregar a entrega
+- [x] Botón "🎁 Completar Serie" aparece después de agregar primera pieza
+- [x] Verificar inventario disponible completo antes de agregar
+- [x] Agregar automáticamente todas las piezas faltantes
+- [x] Ajustar precios unitarios: `seriesPrice ÷ seriesSize`
+- [x] Badge visual para items vendidos como serie
+- [x] Contador de piezas faltantes en botón
 
 ### 🔄 Fase 5: Validaciones y Edge Cases
 - [ ] Validar inventario suficiente

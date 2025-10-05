@@ -28,7 +28,20 @@ export default function Deliveries() {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
     const [newDelivery, setNewDelivery] = useState({
         customerId: '',
-        items: [] as { inventoryItemId?: string; hotWheelsCarId?: string; carId: string; carName: string; quantity: number; unitPrice: number }[],
+        items: [] as { 
+            inventoryItemId?: string; 
+            hotWheelsCarId?: string; 
+            carId: string; 
+            carName: string; 
+            quantity: number; 
+            unitPrice: number;
+            // Series fields
+            seriesId?: string;
+            seriesName?: string;
+            seriesSize?: number;
+            seriesPrice?: number;
+            isSoldAsSeries?: boolean;
+        }[],
         scheduledDate: new Date().toISOString().split('T')[0],
         scheduledTime: '09:00',
         location: '',
@@ -355,10 +368,75 @@ export default function Deliveries() {
                 updatedItems[index].carId = inventoryItem.carId
                 updatedItems[index].carName = inventoryItem.hotWheelsCar?.model || inventoryItem.carId
                 updatedItems[index].unitPrice = inventoryItem.suggestedPrice
+                
+                // Store series information if this item is part of a series
+                if (inventoryItem.seriesId) {
+                    updatedItems[index].seriesId = inventoryItem.seriesId
+                    updatedItems[index].seriesName = inventoryItem.seriesName
+                    updatedItems[index].seriesSize = inventoryItem.seriesSize
+                    updatedItems[index].seriesPrice = inventoryItem.seriesPrice
+                }
             }
         }
 
         setNewDelivery({ ...newDelivery, items: updatedItems })
+    }
+
+    // Complete series: add all missing pieces from a series
+    const completeSeries = async (seriesId: string, seriesPrice: number, seriesSize: number) => {
+        try {
+            // Find all items from this series in inventory
+            const seriesItems = inventoryItems?.filter(item => item.seriesId === seriesId) || []
+            
+            // Check if we have all pieces available
+            const unavailableItems = seriesItems.filter(item => (item.quantity - (item.reservedQuantity || 0)) < 1)
+            if (unavailableItems.length > 0) {
+                const itemNames = unavailableItems.map(i => i.hotWheelsCar?.model || i.carId).join(', ')
+                alert(`❌ No hay suficiente inventario para completar la serie.\nPiezas faltantes: ${itemNames}`)
+                return
+            }
+
+            if (seriesItems.length !== seriesSize) {
+                alert(`❌ Serie incompleta en inventario (${seriesItems.length}/${seriesSize} piezas)`)
+                return
+            }
+
+            // Calculate adjusted price per piece
+            const pricePerPiece = seriesPrice / seriesSize
+
+            // Add or update all pieces from the series
+            const updatedItems = [...newDelivery.items]
+            
+            seriesItems.forEach(seriesItem => {
+                const existingIndex = updatedItems.findIndex(item => item.inventoryItemId === seriesItem._id)
+                
+                if (existingIndex >= 0) {
+                    // Update existing item with series price
+                    updatedItems[existingIndex].unitPrice = pricePerPiece
+                    updatedItems[existingIndex].isSoldAsSeries = true
+                } else {
+                    // Add new item with series price
+                    updatedItems.push({
+                        inventoryItemId: seriesItem._id,
+                        hotWheelsCarId: undefined,
+                        carId: seriesItem.carId,
+                        carName: seriesItem.hotWheelsCar?.model || seriesItem.carId,
+                        quantity: 1,
+                        unitPrice: pricePerPiece,
+                        seriesId: seriesItem.seriesId,
+                        seriesName: seriesItem.seriesName,
+                        seriesSize: seriesItem.seriesSize,
+                        seriesPrice: seriesItem.seriesPrice,
+                        isSoldAsSeries: true
+                    })
+                }
+            })
+
+            setNewDelivery({ ...newDelivery, items: updatedItems })
+        } catch (error) {
+            console.error('Error completing series:', error)
+            alert('Error al completar la serie')
+        }
     }
 
     const removeDeliveryItem = (index: number) => {
@@ -789,75 +867,106 @@ export default function Deliveries() {
 
                                 <div className="space-y-4">
                                     {newDelivery.items.map((item, index) => (
-                                        <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
-                                            <div className="flex-1">
-                                                <select
-                                                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
-                                                    value={item.inventoryItemId || ''}
-                                                    onChange={(e) => updateDeliveryItem(index, 'inventoryItemId', e.target.value)}
-                                                >
-                                                    <option value="">Seleccionar pieza del inventario</option>
-                                                    {inventoryItems && (() => {
-                                                        // Get available items
-                                                        const availableItems = inventoryItems.filter(inv => (inv.quantity - (inv.reservedQuantity || 0)) > 0)
+                                        <div key={index} className="space-y-2">
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
+                                                <div className="flex-1">
+                                                    <select
+                                                        className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
+                                                        value={item.inventoryItemId || ''}
+                                                        onChange={(e) => updateDeliveryItem(index, 'inventoryItemId', e.target.value)}
+                                                    >
+                                                        <option value="">Seleccionar pieza del inventario</option>
+                                                        {inventoryItems && (() => {
+                                                            // Get available items
+                                                            const availableItems = inventoryItems.filter(inv => (inv.quantity - (inv.reservedQuantity || 0)) > 0)
 
-                                                        // Get items that are already selected in this delivery (for editing)
-                                                        const selectedItemIds = newDelivery.items.map(deliveryItem => deliveryItem.inventoryItemId).filter(Boolean)
-                                                        const selectedItems = inventoryItems.filter(inv => selectedItemIds.includes(inv._id))
+                                                            // Get items that are already selected in this delivery (for editing)
+                                                            const selectedItemIds = newDelivery.items.map(deliveryItem => deliveryItem.inventoryItemId).filter(Boolean)
+                                                            const selectedItems = inventoryItems.filter(inv => selectedItemIds.includes(inv._id))
 
-                                                        // Combine available items and selected items (avoid duplicates)
-                                                        const allRelevantItems = [
-                                                            ...availableItems,
-                                                            ...selectedItems.filter(selected => !availableItems.find(available => available._id === selected._id))
-                                                        ]
+                                                            // Combine available items and selected items (avoid duplicates)
+                                                            const allRelevantItems = [
+                                                                ...availableItems,
+                                                                ...selectedItems.filter(selected => !availableItems.find(available => available._id === selected._id))
+                                                            ]
 
-                                                        return allRelevantItems.map((inv) => {
-                                                            const isAvailable = (inv.quantity - (inv.reservedQuantity || 0)) > 0
-                                                            const availableText = isAvailable
-                                                                ? `(Disponible: ${inv.quantity - (inv.reservedQuantity || 0)})`
-                                                                : '(En entrega actual)'
+                                                            return allRelevantItems.map((inv) => {
+                                                                const isAvailable = (inv.quantity - (inv.reservedQuantity || 0)) > 0
+                                                                const availableText = isAvailable
+                                                                    ? `(Disponible: ${inv.quantity - (inv.reservedQuantity || 0)})`
+                                                                    : '(En entrega actual)'
 
-                                                            return (
-                                                                <option key={inv._id} value={inv._id}>
-                                                                    {inv.hotWheelsCar?.model || inv.carId} {availableText} - ${inv.suggestedPrice}
-                                                                </option>
-                                                            )
-                                                        })
-                                                    })()}
-                                                </select>
-                                            </div>
-                                            <div className="flex gap-3 sm:gap-4 sm:w-auto">
-                                                <div className="w-20 min-w-[80px]">
-                                                    <Input
-                                                        type="number"
-                                                        placeholder="Qty"
-                                                        value={item.quantity}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                                                        min="1"
-                                                        className="min-h-[44px]"
-                                                    />
+                                                                return (
+                                                                    <option key={inv._id} value={inv._id}>
+                                                                        {inv.hotWheelsCar?.model || inv.carId} {availableText} - ${inv.suggestedPrice}
+                                                                    </option>
+                                                                )
+                                                            })
+                                                        })()}
+                                                    </select>
                                                 </div>
-                                                <div className="flex-1 sm:w-24 sm:flex-none">
-                                                    <Input
-                                                        type="number"
-                                                        placeholder="Precio"
-                                                        value={item.unitPrice}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                        step="0.01"
-                                                        min="0"
-                                                        className="min-h-[44px]"
-                                                    />
+                                                <div className="flex gap-3 sm:gap-4 sm:w-auto">
+                                                    <div className="w-20 min-w-[80px]">
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Qty"
+                                                            value={item.quantity}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                            min="1"
+                                                            className="min-h-[44px]"
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 sm:w-24 sm:flex-none">
+                                                        <Input
+                                                            type="number"
+                                                            placeholder="Precio"
+                                                            value={item.unitPrice}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                            step="0.01"
+                                                            min="0"
+                                                            className="min-h-[44px]"
+                                                        />
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="danger"
+                                                        onClick={() => removeDeliveryItem(index)}
+                                                        className="min-h-[44px] min-w-[44px] px-3"
+                                                    >
+                                                        ×
+                                                    </Button>
                                                 </div>
-                                                <Button
-                                                    type="button"
-                                                    size="sm"
-                                                    variant="danger"
-                                                    onClick={() => removeDeliveryItem(index)}
-                                                    className="min-h-[44px] min-w-[44px] px-3"
-                                                >
-                                                    ×
-                                                </Button>
                                             </div>
+
+                                            {/* Complete Series Button */}
+                                            {item.seriesId && !item.isSoldAsSeries && (() => {
+                                                // Count how many pieces from this series are already in the delivery
+                                                const seriesItemsInDelivery = newDelivery.items.filter(i => i.seriesId === item.seriesId).length
+                                                const missingPieces = (item.seriesSize || 0) - seriesItemsInDelivery
+
+                                                if (missingPieces > 0) {
+                                                    return (
+                                                        <Button
+                                                            type="button"
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            onClick={() => completeSeries(item.seriesId!, item.seriesPrice || 0, item.seriesSize || 0)}
+                                                            className="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                                                        >
+                                                            🎁 Completar Serie: {item.seriesName} ({missingPieces} {missingPieces === 1 ? 'pieza faltante' : 'piezas faltantes'}) - ${item.seriesPrice?.toFixed(2)}
+                                                        </Button>
+                                                    )
+                                                }
+                                                return null
+                                            })()}
+
+                                            {/* Series Badge */}
+                                            {item.isSoldAsSeries && (
+                                                <div className="px-3 py-2 bg-purple-100 text-purple-800 rounded text-sm font-medium">
+                                                    ✨ Vendido como parte de serie: {item.seriesName} (${item.unitPrice?.toFixed(2)}/pieza)
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
