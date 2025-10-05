@@ -1,11 +1,24 @@
 import { useState } from 'react'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
+import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+
+// Predefined brands
+const PREDEFINED_BRANDS = [
+    'Hot Wheels',
+    'Kaido House',
+    'Mini GT',
+    'M2 Machines',
+    'Tomica',
+    'Matchbox',
+    'Johnny Lightning',
+    'Greenlight'
+]
 
 export default function Inventory() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -56,9 +69,17 @@ export default function Inventory() {
     })
 
     const { data: inventoryItems, isLoading, error } = useInventory()
+    const { data: customBrands } = useCustomBrands()
     const createItemMutation = useCreateInventoryItem()
     const deleteItemMutation = useDeleteInventoryItem()
     const updateItemMutation = useUpdateInventoryItem()
+    const createCustomBrandMutation = useCreateCustomBrand()
+
+    // Combine predefined and custom brands
+    const allBrands = [
+        ...PREDEFINED_BRANDS,
+        ...(customBrands?.map(b => b.name) || [])
+    ].sort()
 
     if (isLoading) {
         return <Loading text="Cargando inventario..." />
@@ -94,7 +115,12 @@ export default function Inventory() {
                         condition: newItem.condition,
                         notes: newItem.notes,
                         photos: newItem.photos,
-                        location: newItem.location
+                        location: newItem.location,
+                        brand: newItem.brand,
+                        pieceType: newItem.pieceType || undefined,
+                        isTreasureHunt: newItem.isTreasureHunt,
+                        isSuperTreasureHunt: newItem.isSuperTreasureHunt,
+                        isChase: newItem.isChase
                     }
                 })
             } else if (newItem.isMultipleCars && newItem.cars.length > 0) {
@@ -119,6 +145,11 @@ export default function Inventory() {
                         notes: newItem.notes,
                         photos: newItem.photos,
                         location: newItem.location,
+                        brand: newItem.brand,
+                        pieceType: newItem.pieceType || undefined,
+                        isTreasureHunt: newItem.isTreasureHunt,
+                        isSuperTreasureHunt: newItem.isSuperTreasureHunt,
+                        isChase: newItem.isChase,
                         // Include series info if this is a series
                         ...(newItem.seriesId && {
                             seriesId: newItem.seriesId,
@@ -146,6 +177,11 @@ export default function Inventory() {
                     notes: newItem.notes,
                     photos: newItem.photos,
                     location: newItem.location,
+                    brand: newItem.brand,
+                    pieceType: newItem.pieceType || undefined,
+                    isTreasureHunt: newItem.isTreasureHunt,
+                    isSuperTreasureHunt: newItem.isSuperTreasureHunt,
+                    isChase: newItem.isChase,
                     // Include series info if this is a series
                     ...(newItem.seriesId && {
                         seriesId: newItem.seriesId,
@@ -174,6 +210,11 @@ export default function Inventory() {
             notes: '',
             photos: [],
             location: '',
+            brand: '',
+            pieceType: '',
+            isTreasureHunt: false,
+            isSuperTreasureHunt: false,
+            isChase: false,
             isBox: false,
             boxSize: 10,
             pricePerPiece: 0,
@@ -188,6 +229,8 @@ export default function Inventory() {
         })
         setExistingItemToUpdate(null)
         setShowSuggestions(false)
+        setShowCustomBrandInput(false)
+        setCustomBrandInput('')
         setShowAddModal(false)
     }
 
@@ -224,7 +267,12 @@ export default function Inventory() {
                     suggestedPrice: editingItem.suggestedPrice,
                     condition: editingItem.condition,
                     notes: editingItem.notes,
-                    photos: editingItem.photos || []
+                    photos: editingItem.photos || [],
+                    brand: editingItem.brand,
+                    pieceType: editingItem.pieceType || undefined,
+                    isTreasureHunt: editingItem.isTreasureHunt,
+                    isSuperTreasureHunt: editingItem.isSuperTreasureHunt,
+                    isChase: editingItem.isChase
                 }
             })
 
@@ -326,6 +374,11 @@ export default function Inventory() {
             notes: item.notes || '',
             photos: item.photos || [],
             location: item.location || '',
+            brand: item.brand || '',
+            pieceType: item.pieceType || '',
+            isTreasureHunt: item.isTreasureHunt || false,
+            isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+            isChase: item.isChase || false,
             isBox: false,
             boxSize: 10,
             pricePerPiece: 0,
@@ -353,6 +406,29 @@ export default function Inventory() {
             photos: [],
             location: ''
         })
+    }
+
+    const handleBrandChange = async (value: string) => {
+        if (value === 'custom') {
+            setShowCustomBrandInput(true)
+            setNewItem({ ...newItem, brand: '' })
+        } else {
+            setShowCustomBrandInput(false)
+            setNewItem({ ...newItem, brand: value })
+        }
+    }
+
+    const handleSaveCustomBrand = async () => {
+        if (customBrandInput.trim()) {
+            try {
+                const newBrand = await createCustomBrandMutation.mutateAsync(customBrandInput.trim())
+                setNewItem({ ...newItem, brand: newBrand.name })
+                setShowCustomBrandInput(false)
+                setCustomBrandInput('')
+            } catch (error) {
+                console.error('Error saving custom brand:', error)
+            }
+        }
     }
 
     // Calcular margen de ganancia sugerido basado en condición
@@ -1209,6 +1285,133 @@ export default function Inventory() {
                                 </select>
                             </div>
 
+                            {/* Brand Selection */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Marca
+                                </label>
+                                <select
+                                    className="input w-full"
+                                    value={showCustomBrandInput ? 'custom' : newItem.brand}
+                                    onChange={(e) => handleBrandChange(e.target.value)}
+                                >
+                                    <option value="">Seleccionar marca...</option>
+                                    {allBrands.map(brand => (
+                                        <option key={brand} value={brand}>{brand}</option>
+                                    ))}
+                                    <option value="custom">+ Agregar otra marca</option>
+                                </select>
+                                
+                                {showCustomBrandInput && (
+                                    <div className="mt-2 flex gap-2">
+                                        <input
+                                            type="text"
+                                            className="input flex-1"
+                                            placeholder="Nombre de la marca"
+                                            value={customBrandInput}
+                                            onChange={(e) => setCustomBrandInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    handleSaveCustomBrand()
+                                                }
+                                            }}
+                                        />
+                                        <Button
+                                            size="sm"
+                                            onClick={handleSaveCustomBrand}
+                                            disabled={!customBrandInput.trim()}
+                                        >
+                                            Guardar
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setShowCustomBrandInput(false)
+                                                setCustomBrandInput('')
+                                            }}
+                                        >
+                                            Cancelar
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Piece Type */}
+                            {newItem.brand && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Tipo de Pieza
+                                    </label>
+                                    <select
+                                        className="input w-full"
+                                        value={newItem.pieceType}
+                                        onChange={(e) => setNewItem({ ...newItem, pieceType: e.target.value as any })}
+                                    >
+                                        <option value="">Seleccionar tipo...</option>
+                                        <option value="basic">Básico</option>
+                                        <option value="premium">Premium</option>
+                                        <option value="rlc">RLC</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Treasure Hunt (only for Hot Wheels Basic) */}
+                            {newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'basic' && (
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={newItem.isTreasureHunt}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked
+                                                setNewItem({ 
+                                                    ...newItem, 
+                                                    isTreasureHunt: isChecked,
+                                                    isSuperTreasureHunt: isChecked ? newItem.isSuperTreasureHunt : false
+                                                })
+                                            }}
+                                            className="rounded"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">
+                                            🔍 Treasure Hunt (TH)
+                                        </span>
+                                    </label>
+                                    
+                                    {newItem.isTreasureHunt && (
+                                        <label className="flex items-center gap-2 ml-6">
+                                            <input
+                                                type="checkbox"
+                                                checked={newItem.isSuperTreasureHunt}
+                                                onChange={(e) => setNewItem({ ...newItem, isSuperTreasureHunt: e.target.checked })}
+                                                className="rounded"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">
+                                                ⭐ Super Treasure Hunt (STH)
+                                            </span>
+                                        </label>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Chase (only for Mini GT, Kaido House, M2) */}
+                            {newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase()) && (
+                                <div>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={newItem.isChase}
+                                            onChange={(e) => setNewItem({ ...newItem, isChase: e.target.checked })}
+                                            className="rounded"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">
+                                            🌟 Chase
+                                        </span>
+                                    </label>
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                                     <MapPin size={16} />
@@ -1528,6 +1731,97 @@ export default function Inventory() {
                                     <option value="poor">Malo</option>
                                 </select>
                             </div>
+
+                            {/* Brand Selection - Edit Mode */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Marca
+                                </label>
+                                <select
+                                    className="input w-full"
+                                    value={editingItem.brand || ''}
+                                    onChange={(e) => setEditingItem({ ...editingItem, brand: e.target.value })}
+                                >
+                                    <option value="">Sin marca</option>
+                                    {allBrands.map(brand => (
+                                        <option key={brand} value={brand}>{brand}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Piece Type - Edit Mode */}
+                            {editingItem.brand && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Tipo de Pieza
+                                    </label>
+                                    <select
+                                        className="input w-full"
+                                        value={editingItem.pieceType || ''}
+                                        onChange={(e) => setEditingItem({ ...editingItem, pieceType: e.target.value })}
+                                    >
+                                        <option value="">Sin tipo</option>
+                                        <option value="basic">Básico</option>
+                                        <option value="premium">Premium</option>
+                                        <option value="rlc">RLC</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {/* Treasure Hunt - Edit Mode */}
+                            {editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'basic' && (
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={editingItem.isTreasureHunt || false}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked
+                                                setEditingItem({ 
+                                                    ...editingItem, 
+                                                    isTreasureHunt: isChecked,
+                                                    isSuperTreasureHunt: isChecked ? editingItem.isSuperTreasureHunt : false
+                                                })
+                                            }}
+                                            className="rounded"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">
+                                            🔍 Treasure Hunt (TH)
+                                        </span>
+                                    </label>
+                                    
+                                    {editingItem.isTreasureHunt && (
+                                        <label className="flex items-center gap-2 ml-6">
+                                            <input
+                                                type="checkbox"
+                                                checked={editingItem.isSuperTreasureHunt || false}
+                                                onChange={(e) => setEditingItem({ ...editingItem, isSuperTreasureHunt: e.target.checked })}
+                                                className="rounded"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700">
+                                                ⭐ Super Treasure Hunt (STH)
+                                            </span>
+                                        </label>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Chase - Edit Mode */}
+                            {editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase()) && (
+                                <div>
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={editingItem.isChase || false}
+                                            onChange={(e) => setEditingItem({ ...editingItem, isChase: e.target.checked })}
+                                            className="rounded"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">
+                                            🌟 Chase
+                                        </span>
+                                    </label>
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">

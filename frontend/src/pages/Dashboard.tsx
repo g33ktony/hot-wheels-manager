@@ -203,8 +203,8 @@ export default function Dashboard() {
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="font-semibold text-green-600">${delivery.totalAmount}</p>
-                                                        <p className="text-gray-500">{delivery.itemCount} items</p>
+                                                        {/* <p className="font-semibold text-green-600">${delivery.totalAmount}</p> */}
+                                                        {/* <p className="text-gray-500">{delivery.itemCount} items</p> */}
                                                     </div>
                                                 </div>
                                             </div>
