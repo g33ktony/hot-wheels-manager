@@ -90,7 +90,7 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
 export const addInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { 
-      carId, quantity, purchasePrice, suggestedPrice, condition, notes,
+      carId, quantity, purchasePrice, suggestedPrice, condition, notes, photos, location,
       seriesId, seriesName, seriesSize, seriesPosition, seriesPrice,
       brand, pieceType, isTreasureHunt, isSuperTreasureHunt, isChase
     } = req.body;
@@ -124,6 +124,12 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       if (notes) {
         existingItem.notes = notes;
       }
+      if (photos) {
+        existingItem.photos = photos;
+      }
+      if (location) {
+        existingItem.location = location;
+      }
       
       // Update series info if provided
       if (seriesId) {
@@ -150,6 +156,8 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
         suggestedPrice,
         condition: condition || 'mint',
         notes: notes || '',
+        photos: photos || [],
+        location: location || '',
         dateAdded: new Date(),
         // Brand and type fields
         brand,

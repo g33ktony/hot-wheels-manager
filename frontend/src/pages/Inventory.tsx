@@ -681,20 +681,59 @@ export default function Inventory() {
                                 )}
                                 
                                 <div className="space-y-4">
-                                    {/* Car Image Placeholder */}
-                                    <div className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative">
-                                        {item.photos && item.photos.length > 0 ? (
-                                            <img
-                                                src={item.photos[0]}
-                                                alt="Hot Wheels"
-                                                className={`w-full h-full object-cover rounded-lg ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : ''}`}
-                                            />
-                                        ) : (
-                                            <Package size={48} className="text-gray-400" />
+                                {/* Car Image Placeholder */}
+                                <div className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative">
+                                    {item.photos && item.photos.length > 0 ? (
+                                        <img
+                                            src={item.photos[0]}
+                                            alt="Hot Wheels"
+                                            className={`w-full h-full object-cover rounded-lg ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : ''}`}
+                                        />
+                                    ) : (
+                                        <Package size={48} className="text-gray-400" />
+                                    )}
+                                    
+                                    {/* Brand Badge - Top Left */}
+                                    {item.brand && (
+                                        <div className="absolute top-2 left-2 px-2 py-1 bg-gray-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
+                                            {item.brand}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Type and Special Badges - Top Right */}
+                                    <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                        {/* Piece Type Badge */}
+                                        {item.pieceType && (
+                                            <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${
+                                                item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
+                                                item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
+                                                'bg-orange-500 bg-opacity-90 text-white'
+                                            }`}>
+                                                {item.pieceType === 'basic' ? 'BÁSICO' :
+                                                 item.pieceType === 'premium' ? 'PREMIUM' : 'RLC'}
+                                            </span>
+                                        )}
+                                        
+                                        {/* Treasure Hunt Badge */}
+                                        {item.isSuperTreasureHunt && (
+                                            <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded shadow-lg">
+                                                $TH
+                                            </span>
+                                        )}
+                                        {item.isTreasureHunt && !item.isSuperTreasureHunt && (
+                                            <span className="px-2 py-1 text-xs font-bold bg-green-500 bg-opacity-90 text-white rounded shadow-lg">
+                                                TH
+                                            </span>
+                                        )}
+                                        
+                                        {/* Chase Badge */}
+                                        {item.isChase && (
+                                            <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-red-500 to-pink-600 text-white rounded shadow-lg">
+                                                CHASE
+                                            </span>
                                         )}
                                     </div>
-
-                                {/* Car Info */}
+                                </div>                                {/* Car Info */}
                                 <div>
                                     <h3 className="font-semibold text-gray-900 truncate">
                                         {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
