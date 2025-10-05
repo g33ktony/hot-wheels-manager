@@ -4,7 +4,7 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 
 export default function Inventory() {
@@ -13,6 +13,9 @@ export default function Inventory() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [editingItem, setEditingItem] = useState<any>(null)
+    // Bulk delete state
+    const [isSelectionMode, setIsSelectionMode] = useState(false)
+    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
     const [newItem, setNewItem] = useState({
         carId: '',
         quantity: 1,
@@ -206,6 +209,53 @@ export default function Inventory() {
         }
     }
 
+    // Bulk delete functions
+    const toggleSelectionMode = () => {
+        setIsSelectionMode(!isSelectionMode)
+        setSelectedItems(new Set()) // Clear selection when toggling mode
+    }
+
+    const toggleItemSelection = (itemId: string) => {
+        const newSelection = new Set(selectedItems)
+        if (newSelection.has(itemId)) {
+            newSelection.delete(itemId)
+        } else {
+            newSelection.add(itemId)
+        }
+        setSelectedItems(newSelection)
+    }
+
+    const selectAllItems = () => {
+        const allIds = new Set(filteredItems.map(item => item._id).filter(Boolean) as string[])
+        setSelectedItems(allIds)
+    }
+
+    const deselectAllItems = () => {
+        setSelectedItems(new Set())
+    }
+
+    const handleBulkDelete = async () => {
+        if (selectedItems.size === 0) return
+
+        const confirmMessage = `¿Estás seguro de que quieres eliminar ${selectedItems.size} ${selectedItems.size === 1 ? 'pieza' : 'piezas'}?`
+        
+        if (confirm(confirmMessage)) {
+            try {
+                // Delete all selected items
+                await Promise.all(
+                    Array.from(selectedItems).map(id => deleteItemMutation.mutateAsync(id))
+                )
+                
+                // Clear selection and exit selection mode
+                setSelectedItems(new Set())
+                setIsSelectionMode(false)
+            } catch (error) {
+                console.error('Error deleting items:', error)
+                alert('Error al eliminar algunas piezas. Por favor intenta de nuevo.')
+            }
+        }
+    }
+
     // Calcular margen de ganancia sugerido basado en condición
     const calculateSuggestedMargin = (purchasePrice: number, condition: string): number => {
         if (purchasePrice === 0) return 0
@@ -321,12 +371,61 @@ export default function Inventory() {
                     <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
                     <p className="text-gray-600">Gestiona tus piezas de Hot Wheels</p>
                 </div>
-                <Button
-                    icon={<Plus size={20} />}
-                    onClick={() => setShowAddModal(true)}
-                >
-                    Agregar Pieza
-                </Button>
+                <div className="flex gap-2">
+                    {isSelectionMode ? (
+                        <>
+                            <Button
+                                variant="secondary"
+                                onClick={toggleSelectionMode}
+                            >
+                                Cancelar
+                            </Button>
+                            {selectedItems.size > 0 && (
+                                <>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={deselectAllItems}
+                                    >
+                                        Deseleccionar ({selectedItems.size})
+                                    </Button>
+                                    <Button
+                                        variant="danger"
+                                        icon={<Trash2 size={20} />}
+                                        onClick={handleBulkDelete}
+                                    >
+                                        Eliminar ({selectedItems.size})
+                                    </Button>
+                                </>
+                            )}
+                            {selectedItems.size === 0 && filteredItems.length > 0 && (
+                                <Button
+                                    variant="secondary"
+                                    onClick={selectAllItems}
+                                >
+                                    Seleccionar Todo
+                                </Button>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {filteredItems.length > 0 && (
+                                <Button
+                                    variant="secondary"
+                                    icon={<CheckSquare size={20} />}
+                                    onClick={toggleSelectionMode}
+                                >
+                                    Seleccionar
+                                </Button>
+                            )}
+                            <Button
+                                icon={<Plus size={20} />}
+                                onClick={() => setShowAddModal(true)}
+                            >
+                                Agregar Pieza
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Filters */}
@@ -384,20 +483,41 @@ export default function Inventory() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filteredItems.map((item) => (
-                        <Card key={item._id} hover>
-                            <div className="space-y-4">
-                                {/* Car Image Placeholder */}
-                                <div className="bg-gray-200 rounded-lg flex items-center justify-center h-32">
-                                    {item.photos && item.photos.length > 0 ? (
-                                        <img
-                                            src={item.photos[0]}
-                                            alt="Hot Wheels"
-                                            className="w-full h-full object-cover rounded-lg"
+                        <Card 
+                            key={item._id} 
+                            hover={!isSelectionMode}
+                            className={`relative ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''}`}
+                        >
+                            <div 
+                                className={`${isSelectionMode ? 'cursor-pointer' : ''}`}
+                                onClick={() => isSelectionMode && item._id && toggleItemSelection(item._id)}
+                            >
+                                {/* Selection Checkbox */}
+                                {isSelectionMode && (
+                                    <div className="absolute top-3 left-3 z-10">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedItems.has(item._id!)}
+                                            onChange={() => item._id && toggleItemSelection(item._id)}
+                                            className="w-6 h-6 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                                            onClick={(e) => e.stopPropagation()}
                                         />
-                                    ) : (
-                                        <Package size={48} className="text-gray-400" />
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                                
+                                <div className="space-y-4">
+                                    {/* Car Image Placeholder */}
+                                    <div className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative">
+                                        {item.photos && item.photos.length > 0 ? (
+                                            <img
+                                                src={item.photos[0]}
+                                                alt="Hot Wheels"
+                                                className={`w-full h-full object-cover rounded-lg ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : ''}`}
+                                            />
+                                        ) : (
+                                            <Package size={48} className="text-gray-400" />
+                                        )}
+                                    </div>
 
                                 {/* Car Info */}
                                 <div>
@@ -470,23 +590,26 @@ export default function Inventory() {
                                 </div>
 
                                 {/* Actions */}
-                                <div className="flex space-x-2 pt-2">
-                                    <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        className="flex-1"
-                                        onClick={() => handleEditItem(item)}
-                                    >
-                                        <Edit size={16} />
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => item._id && handleDeleteItem(item._id)}
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </div>
+                                {!isSelectionMode && (
+                                    <div className="flex space-x-2 pt-2">
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            className="flex-1"
+                                            onClick={() => handleEditItem(item)}
+                                        >
+                                            <Edit size={16} />
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="danger"
+                                            onClick={() => item._id && handleDeleteItem(item._id)}
+                                        >
+                                            <Trash2 size={16} />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
                             </div>
                         </Card>
                     ))}
