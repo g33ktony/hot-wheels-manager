@@ -1,7 +1,6 @@
 [build]
 builder = "NIXPACKS"
-# Check si hay cambios en backend antes de hacer build
-buildCommand = "bash backend/ignore-deploy-step.sh && npm install"
+buildCommand = "npm install"
 
 [deploy]
 startCommand = "./start.sh"
