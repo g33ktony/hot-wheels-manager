@@ -30,13 +30,16 @@ Al editar una pieza que pertenece a una serie:
 - Abrir modal para agregar las piezas faltantes
 - Validar que todas tengan precio base similar
 
-### 4. **Entregas - Vender por Serie**
-Al agregar item a una entrega:
-- Detectar si tiene `seriesId`
-- Verificar inventario disponible (serie completa)
-- Solo mostrar botón si todas las piezas están disponibles
-- Al hacer clic: agregar automáticamente todas las piezas
-- Ajustar precio unitario para que total = `seriesPrice`
+### 4. **Entregas - Vender por Serie** ⭐ FLUJO MEJORADO
+**Nuevo flujo más intuitivo:**
+1. Usuario agrega UNA pieza de una serie a la entrega (precio normal)
+2. Sistema detecta que tiene `seriesId`
+3. Aparece botón: "🎁 Completar Serie: [Nombre] (X piezas faltantes)"
+4. Al hacer clic:
+   - Valida inventario disponible de todas las piezas faltantes
+   - Si hay stock: agrega automáticamente las otras piezas
+   - Ajusta precio de TODAS las piezas de la serie: `seriesPrice ÷ seriesSize`
+   - Si falta stock: muestra error "❌ No hay suficiente inventario (faltan 2 piezas de 'supra')"
 
 ### 5. **Venta Parcial**
 Si el cliente quiere solo algunas piezas (3 de 5):
@@ -88,10 +91,11 @@ interface DeliveryItemState {
 - [x] Actualizar schema en `backend/src/models/InventoryItem.ts`
 - [x] Agregar índices para `seriesId`
 
-### 🔄 Fase 2: Backend - API Series
-- [ ] Endpoint: `GET /api/inventory/series/:seriesId` - Obtener items de una serie
-- [ ] Endpoint: `POST /api/inventory/complete-series` - Completar serie faltante
-- [ ] Endpoint: `GET /api/inventory/series/:seriesId/available` - Verificar disponibilidad
+### ✅ Fase 2: Backend - API Series (COMPLETADO)
+- [x] Endpoint: `GET /api/inventory/series/:seriesId` - Obtener items de una serie
+- [x] Endpoint: `GET /api/inventory/series/:seriesId/availability` - Verificar disponibilidad completa
+- [x] Endpoint: `GET /api/inventory/series/:seriesId/missing` - Obtener piezas faltantes
+- [x] Agregar rutas en `inventoryRoutes.ts`
 
 ### 🔄 Fase 3: Frontend - Inventario
 - [ ] UI: Agregar campos de serie al crear/editar item

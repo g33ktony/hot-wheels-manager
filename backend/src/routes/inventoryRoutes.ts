@@ -4,6 +4,9 @@ import {
   addInventoryItem,
   updateInventoryItem,
   deleteInventoryItem,
+  getSeriesItems,
+  checkSeriesAvailability,
+  getMissingSeriesPieces,
 } from '../controllers/inventoryController'
 
 const router = Router()
@@ -19,5 +22,16 @@ router.put('/:id', updateInventoryItem)
 
 // DELETE /api/inventory/:id - Delete inventory item
 router.delete('/:id', deleteInventoryItem)
+
+// ========== SERIES ROUTES ==========
+
+// GET /api/inventory/series/:seriesId - Get all items from a series
+router.get('/series/:seriesId', getSeriesItems)
+
+// GET /api/inventory/series/:seriesId/availability - Check if complete series is available
+router.get('/series/:seriesId/availability', checkSeriesAvailability)
+
+// GET /api/inventory/series/:seriesId/missing - Get missing pieces for a series
+router.get('/series/:seriesId/missing', getMissingSeriesPieces)
 
 export default router

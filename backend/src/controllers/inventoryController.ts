@@ -252,3 +252,176 @@ export const searchHotWheelsCatalog = async (req: Request, res: Response): Promi
     res.status(500).json({ error: 'Error searching Hot Wheels catalog' });
   }
 };
+
+// ========== SERIES ENDPOINTS ==========
+
+// Get all items from a series
+export const getSeriesItems = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { seriesId } = req.params;
+
+    const items = await InventoryItemModel.find({ seriesId }).sort({ seriesPosition: 1 });
+
+    if (!items || items.length === 0) {
+      res.status(404).json({ 
+        success: false, 
+        message: `No se encontraron piezas con seriesId: ${seriesId}` 
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        seriesId,
+        seriesName: items[0].seriesName,
+        seriesSize: items[0].seriesSize,
+        seriesPrice: items[0].seriesPrice,
+        items
+      }
+    });
+  } catch (error) {
+    console.error('Error getting series items:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al obtener piezas de la serie' 
+    });
+  }
+};
+
+// Check if a complete series is available in inventory
+export const checkSeriesAvailability = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { seriesId } = req.params;
+
+    const items = await InventoryItemModel.find({ seriesId }).sort({ seriesPosition: 1 });
+
+    if (!items || items.length === 0) {
+      res.json({
+        success: true,
+        data: {
+          available: false,
+          reason: 'series_not_found',
+          message: 'Serie no encontrada'
+        }
+      });
+      return;
+    }
+
+    const seriesSize = items[0].seriesSize || 0;
+    
+    // Check if we have all pieces
+    if (items.length !== seriesSize) {
+      res.json({
+        success: true,
+        data: {
+          available: false,
+          reason: 'incomplete_series',
+          message: `Serie incompleta (${items.length}/${seriesSize} piezas)`,
+          missingCount: seriesSize - items.length,
+          currentItems: items.map(i => ({
+            carId: i.carId,
+            position: i.seriesPosition,
+            quantity: i.quantity
+          }))
+        }
+      });
+      return;
+    }
+
+    // Check if all pieces have enough inventory
+    const unavailableItems = items.filter(item => (item.quantity - item.reservedQuantity) < 1);
+    
+    if (unavailableItems.length > 0) {
+      res.json({
+        success: true,
+        data: {
+          available: false,
+          reason: 'insufficient_stock',
+          message: `No hay suficiente inventario`,
+          unavailableItems: unavailableItems.map(i => ({
+            carId: i.carId,
+            position: i.seriesPosition,
+            available: i.quantity - i.reservedQuantity
+          }))
+        }
+      });
+      return;
+    }
+
+    // Series is complete and available
+    res.json({
+      success: true,
+      data: {
+        available: true,
+        seriesId,
+        seriesName: items[0].seriesName,
+        seriesSize,
+        seriesPrice: items[0].seriesPrice,
+        items: items.map(i => ({
+          _id: i._id,
+          carId: i.carId,
+          position: i.seriesPosition,
+          quantity: i.quantity,
+          reservedQuantity: i.reservedQuantity,
+          available: i.quantity - i.reservedQuantity
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error checking series availability:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al verificar disponibilidad de la serie' 
+    });
+  }
+};
+
+// Get missing pieces for a series (to complete it)
+export const getMissingSeriesPieces = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { seriesId } = req.params;
+
+    const existingItems = await InventoryItemModel.find({ seriesId }).sort({ seriesPosition: 1 });
+
+    if (!existingItems || existingItems.length === 0) {
+      res.status(404).json({ 
+        success: false, 
+        message: `No se encontró la serie: ${seriesId}` 
+      });
+      return;
+    }
+
+    const seriesSize = existingItems[0].seriesSize || 0;
+    const existingPositions = existingItems.map(i => i.seriesPosition);
+    const missingPositions = [];
+
+    for (let i = 1; i <= seriesSize; i++) {
+      if (!existingPositions.includes(i)) {
+        missingPositions.push(i);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        seriesId,
+        seriesName: existingItems[0].seriesName,
+        seriesSize,
+        existingCount: existingItems.length,
+        missingCount: missingPositions.length,
+        missingPositions,
+        existingItems: existingItems.map(i => ({
+          carId: i.carId,
+          position: i.seriesPosition
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting missing pieces:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error al obtener piezas faltantes' 
+    });
+  }
+};

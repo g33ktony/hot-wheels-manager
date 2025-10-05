@@ -43,5 +43,6 @@ inventoryItemSchema.index({ carId: 1 })
 inventoryItemSchema.index({ condition: 1 })
 inventoryItemSchema.index({ quantity: 1 })
 inventoryItemSchema.index({ dateAdded: -1 })
+inventoryItemSchema.index({ seriesId: 1 }) // Para queries de series
 
 export const InventoryItemModel = model<IInventoryItem>('InventoryItem', inventoryItemSchema)
