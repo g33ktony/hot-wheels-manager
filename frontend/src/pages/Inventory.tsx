@@ -351,15 +351,15 @@ export default function Inventory() {
                         <Card key={item._id} hover>
                             <div className="space-y-4">
                                 {/* Car Image Placeholder */}
-                                <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <div className="bg-gray-200 rounded-lg flex items-center justify-center h-32">
                                     {item.photos && item.photos.length > 0 ? (
                                         <img
                                             src={item.photos[0]}
                                             alt="Hot Wheels"
-                                            className="w-full h-32 object-cover rounded-lg"
+                                            className="w-full h-full object-cover rounded-lg"
                                         />
                                     ) : (
-                                        <Package size={32} className="text-gray-400" />
+                                        <Package size={48} className="text-gray-400" />
                                     )}
                                 </div>
 
