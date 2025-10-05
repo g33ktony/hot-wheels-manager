@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install"
+buildCommand = "npm install && npm run build:backend"
 # Watch Patterns - Solo trigger deploy si cambian estos paths
 watchPatterns = ["backend/**", "shared/**", "railway.toml", "package.json", "start.sh"]
 
