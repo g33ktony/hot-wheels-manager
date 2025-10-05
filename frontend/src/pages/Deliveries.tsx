@@ -978,10 +978,31 @@ export default function Deliveries() {
                                             </div>
 
                                             {/* Complete Series Button */}
-                                            {item.seriesId && !item.isSoldAsSeries && (() => {
+                                            {(() => {
+                                                console.log('🔍 Item debug:', {
+                                                    carName: item.carName,
+                                                    seriesId: item.seriesId,
+                                                    seriesName: item.seriesName,
+                                                    seriesSize: item.seriesSize,
+                                                    seriesPrice: item.seriesPrice,
+                                                    isSoldAsSeries: item.isSoldAsSeries,
+                                                    shouldShowButton: !!item.seriesId && !item.isSoldAsSeries
+                                                })
+                                                
+                                                if (!item.seriesId || item.isSoldAsSeries) {
+                                                    return null
+                                                }
+                                                
                                                 // Count how many pieces from this series are already in the delivery
                                                 const seriesItemsInDelivery = newDelivery.items.filter(i => i.seriesId === item.seriesId).length
                                                 const missingPieces = (item.seriesSize || 0) - seriesItemsInDelivery
+
+                                                console.log('🔍 Series calculation:', {
+                                                    seriesId: item.seriesId,
+                                                    seriesItemsInDelivery,
+                                                    seriesSize: item.seriesSize,
+                                                    missingPieces
+                                                })
 
                                                 if (missingPieces > 0) {
                                                     return (
