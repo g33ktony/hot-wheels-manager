@@ -917,9 +917,17 @@ export default function Inventory() {
                                                     setNewItem({ ...newItem, seriesPrice: value })
                                                 }}
                                             />
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                💡 Si no especificas, se calculará como 85% de la suma de precios individuales
-                                            </p>
+                                            {newItem.suggestedPrice > 0 && newItem.seriesSize > 0 && (
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    💡 Precio sugerido: ${(newItem.suggestedPrice * newItem.seriesSize * 0.85).toFixed(2)} 
+                                                    {' '}(85% de ${(newItem.suggestedPrice * newItem.seriesSize).toFixed(2)})
+                                                    {newItem.seriesPrice > 0 && (
+                                                        <span className="ml-2 text-green-600 font-medium">
+                                                            → ${(newItem.seriesPrice / newItem.seriesSize).toFixed(2)}/pieza
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )}

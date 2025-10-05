@@ -112,11 +112,15 @@ interface DeliveryItemState {
 - [x] Badge visual para items vendidos como serie
 - [x] Contador de piezas faltantes en botón
 
-### 🔄 Fase 5: Validaciones y Edge Cases
-- [ ] Validar inventario suficiente
-- [ ] Prevenir agregar serie si ya hay piezas individuales
-- [ ] Calcular precio automático correctamente
-- [ ] Manejar eliminación de items de serie
+### ✅ Fase 5: Validaciones y Edge Cases (COMPLETADO)
+- [x] Calcular precio automático al 85% (backend + frontend)
+- [x] Mostrar precio sugerido calculado en tiempo real
+- [x] Validar inventario suficiente antes de completar serie
+- [x] Manejar eliminación inteligente de items de serie:
+  - Opción de eliminar toda la serie o solo una pieza
+  - Ajustar precios a individual si se rompe la serie
+- [x] Backend: Auto-calcular `seriesDefaultPrice` al crear/actualizar
+- [x] Frontend: Mostrar cálculo en tiempo real ($XXX por pieza)
 
 ---
 

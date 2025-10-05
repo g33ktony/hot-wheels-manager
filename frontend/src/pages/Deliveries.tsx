@@ -440,6 +440,44 @@ export default function Deliveries() {
     }
 
     const removeDeliveryItem = (index: number) => {
+        const itemToRemove = newDelivery.items[index]
+        
+        // Check if this item is part of a series sold as complete
+        if (itemToRemove.isSoldAsSeries && itemToRemove.seriesId) {
+            const confirmRemove = window.confirm(
+                `⚠️ Esta pieza es parte de "${itemToRemove.seriesName}" vendida como serie completa.\n\n` +
+                `¿Deseas eliminar TODA la serie o solo esta pieza?\n\n` +
+                `OK = Eliminar toda la serie\n` +
+                `Cancelar = Eliminar solo esta pieza (precio se ajustará a precio individual)`
+            )
+            
+            if (confirmRemove) {
+                // Remove all items from this series
+                const updatedItems = newDelivery.items.filter(item => item.seriesId !== itemToRemove.seriesId)
+                setNewDelivery({ ...newDelivery, items: updatedItems })
+                return
+            } else {
+                // Remove only this item and reset isSoldAsSeries for remaining items
+                const updatedItems = newDelivery.items
+                    .filter((_, i) => i !== index)
+                    .map(item => {
+                        if (item.seriesId === itemToRemove.seriesId) {
+                            // Reset to individual price
+                            const inventoryItem = inventoryItems?.find(inv => inv._id === item.inventoryItemId)
+                            return {
+                                ...item,
+                                unitPrice: inventoryItem?.suggestedPrice || item.unitPrice,
+                                isSoldAsSeries: false
+                            }
+                        }
+                        return item
+                    })
+                setNewDelivery({ ...newDelivery, items: updatedItems })
+                return
+            }
+        }
+        
+        // Normal removal
         setNewDelivery({
             ...newDelivery,
             items: newDelivery.items.filter((_, i) => i !== index)

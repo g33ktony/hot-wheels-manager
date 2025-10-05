@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { InventoryItemModel } from '../models/InventoryItem';
 import { HotWheelsCarModel } from '../models/HotWheelsCar';
 import { IHotWheelsCar } from '../models/HotWheelsCar';
+import { calculateDefaultSeriesPrice } from '../utils/seriesHelpers';
 
 // Get inventory items
 export const getInventoryItems = async (req: Request, res: Response): Promise<void> => {
@@ -88,7 +89,10 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
 // Add inventory item
 export const addInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { carId, quantity, purchasePrice, suggestedPrice, condition, notes } = req.body;
+    const { 
+      carId, quantity, purchasePrice, suggestedPrice, condition, notes,
+      seriesId, seriesName, seriesSize, seriesPosition, seriesPrice 
+    } = req.body;
 
     // Validate required fields
     if (!carId || quantity === undefined || purchasePrice === undefined || suggestedPrice === undefined) {
@@ -97,6 +101,17 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
         error: 'Missing required fields: carId, quantity, purchasePrice, suggestedPrice' 
       });
       return;
+    }
+
+    // Calculate default series price if this is part of a series
+    let seriesDefaultPrice: number | undefined
+    let finalSeriesPrice: number | undefined
+
+    if (seriesId && seriesSize) {
+      // Calculate 85% of individual total as default
+      seriesDefaultPrice = calculateDefaultSeriesPrice(suggestedPrice, seriesSize)
+      // Use provided seriesPrice or default
+      finalSeriesPrice = seriesPrice || seriesDefaultPrice
     }
 
     // Check if this car is already in inventory
@@ -108,6 +123,17 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       if (notes) {
         existingItem.notes = notes;
       }
+      
+      // Update series info if provided
+      if (seriesId) {
+        existingItem.seriesId = seriesId
+        existingItem.seriesName = seriesName
+        existingItem.seriesSize = seriesSize
+        existingItem.seriesPosition = seriesPosition
+        existingItem.seriesPrice = finalSeriesPrice
+        existingItem.seriesDefaultPrice = seriesDefaultPrice
+      }
+      
       await existingItem.save();
       
       res.json({
@@ -123,7 +149,16 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
         suggestedPrice,
         condition: condition || 'mint',
         notes: notes || '',
-        dateAdded: new Date()
+        dateAdded: new Date(),
+        // Series fields
+        ...(seriesId && {
+          seriesId,
+          seriesName,
+          seriesSize,
+          seriesPosition,
+          seriesPrice: finalSeriesPrice,
+          seriesDefaultPrice
+        })
       });
 
       await inventoryItem.save();
@@ -147,6 +182,17 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
   try {
     const { id } = req.params;
     const updates = req.body;
+
+    // If updating series info, recalculate default price
+    if (updates.seriesId && updates.seriesSize && updates.suggestedPrice) {
+      const seriesDefaultPrice = calculateDefaultSeriesPrice(updates.suggestedPrice, updates.seriesSize)
+      updates.seriesDefaultPrice = seriesDefaultPrice
+      
+      // Use provided seriesPrice or default
+      if (!updates.seriesPrice) {
+        updates.seriesPrice = seriesDefaultPrice
+      }
+    }
 
     const inventoryItem = await InventoryItemModel.findByIdAndUpdate(
       id,
