@@ -376,7 +376,7 @@ export const checkSeriesAvailability = async (req: Request, res: Response): Prom
     }
 
     // Check if all pieces have enough inventory
-    const unavailableItems = items.filter(item => (item.quantity - item.reservedQuantity) < 1);
+    const unavailableItems = items.filter(item => (item.quantity - (item.reservedQuantity ?? 0)) < 1);
     
     if (unavailableItems.length > 0) {
       res.json({
@@ -388,7 +388,7 @@ export const checkSeriesAvailability = async (req: Request, res: Response): Prom
           unavailableItems: unavailableItems.map(i => ({
             carId: i.carId,
             position: i.seriesPosition,
-            available: i.quantity - i.reservedQuantity
+            available: i.quantity - (i.reservedQuantity ?? 0)
           }))
         }
       });
@@ -409,8 +409,8 @@ export const checkSeriesAvailability = async (req: Request, res: Response): Prom
           carId: i.carId,
           position: i.seriesPosition,
           quantity: i.quantity,
-          reservedQuantity: i.reservedQuantity,
-          available: i.quantity - i.reservedQuantity
+          reservedQuantity: i.reservedQuantity ?? 0,
+          available: i.quantity - (i.reservedQuantity ?? 0)
         }))
       }
     });
