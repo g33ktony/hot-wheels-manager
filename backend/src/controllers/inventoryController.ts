@@ -8,7 +8,7 @@ import { calculateDefaultSeriesPrice } from '../utils/seriesHelpers';
 export const getInventoryItems = async (req: Request, res: Response): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 1000; // Increased default limit
     const skip = (page - 1) * limit;
 
     // First check if we have any inventory items
