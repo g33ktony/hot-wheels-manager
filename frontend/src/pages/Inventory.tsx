@@ -82,7 +82,15 @@ export default function Inventory() {
                         condition: newItem.condition,
                         notes: newItem.notes,
                         photos: newItem.photos,
-                        location: newItem.location
+                        location: newItem.location,
+                        // Include series info if this is a series
+                        ...(newItem.seriesId && {
+                            seriesId: newItem.seriesId,
+                            seriesName: newItem.seriesName,
+                            seriesSize: newItem.seriesSize,
+                            seriesPosition: newItem.seriesPosition,
+                            seriesPrice: newItem.seriesPrice
+                        })
                     })
                 }
             } else {
@@ -101,7 +109,15 @@ export default function Inventory() {
                     condition: newItem.condition,
                     notes: newItem.notes,
                     photos: newItem.photos,
-                    location: newItem.location
+                    location: newItem.location,
+                    // Include series info if this is a series
+                    ...(newItem.seriesId && {
+                        seriesId: newItem.seriesId,
+                        seriesName: newItem.seriesName,
+                        seriesSize: newItem.seriesSize,
+                        seriesPosition: newItem.seriesPosition,
+                        seriesPrice: newItem.seriesPrice
+                    })
                 })
             }
 
