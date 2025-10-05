@@ -16,6 +16,9 @@ export default function Inventory() {
     // Bulk delete state
     const [isSelectionMode, setIsSelectionMode] = useState(false)
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+    // Search suggestions state
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
     const [newItem, setNewItem] = useState({
         carId: '',
         quantity: 1,
@@ -70,8 +73,24 @@ export default function Inventory() {
 
     const handleAddItem = async () => {
         try {
-            // Handle multiple cars (series/box with different models)
-            if (newItem.isMultipleCars && newItem.cars.length > 0) {
+            // If updating an existing item
+            if (existingItemToUpdate) {
+                // Update existing item
+                await updateItemMutation.mutateAsync({
+                    id: existingItemToUpdate._id,
+                    data: {
+                        carId: newItem.carId,
+                        quantity: newItem.quantity,
+                        purchasePrice: newItem.purchasePrice,
+                        suggestedPrice: newItem.suggestedPrice,
+                        condition: newItem.condition,
+                        notes: newItem.notes,
+                        photos: newItem.photos,
+                        location: newItem.location
+                    }
+                })
+            } else if (newItem.isMultipleCars && newItem.cars.length > 0) {
+                // Handle multiple cars (series/box with different models)
                 const totalPieces = newItem.cars.reduce((sum, car) => sum + car.quantity, 0)
                 const pricePerPiece = totalPieces > 0 ? newItem.purchasePrice / totalPieces : 0
 
@@ -131,31 +150,37 @@ export default function Inventory() {
             }
 
             // Reset form and close modal
-            setNewItem({
-                carId: '',
-                quantity: 1,
-                purchasePrice: 0,
-                suggestedPrice: 0,
-                condition: 'mint',
-                notes: '',
-                photos: [],
-                location: '',
-                isBox: false,
-                boxSize: 10,
-                pricePerPiece: 0,
-                isMultipleCars: false,
-                cars: [],
-                seriesId: '',
-                seriesName: '',
-                seriesSize: 5,
-                seriesPosition: 1,
-                seriesPrice: 0,
-                seriesDefaultPrice: 0
-            })
-            setShowAddModal(false)
+            resetForm()
         } catch (error) {
-            console.error('Error adding item:', error)
+            console.error('Error adding/updating item:', error)
         }
+    }
+
+    const resetForm = () => {
+        setNewItem({
+            carId: '',
+            quantity: 1,
+            purchasePrice: 0,
+            suggestedPrice: 0,
+            condition: 'mint',
+            notes: '',
+            photos: [],
+            location: '',
+            isBox: false,
+            boxSize: 10,
+            pricePerPiece: 0,
+            isMultipleCars: false,
+            cars: [],
+            seriesId: '',
+            seriesName: '',
+            seriesSize: 5,
+            seriesPosition: 1,
+            seriesPrice: 0,
+            seriesDefaultPrice: 0
+        })
+        setExistingItemToUpdate(null)
+        setShowSuggestions(false)
+        setShowAddModal(false)
     }
 
     const handleEditItem = (item: any) => {
@@ -259,6 +284,67 @@ export default function Inventory() {
                 alert('Error al eliminar algunas piezas. Por favor intenta de nuevo.')
             }
         }
+    }
+
+    // Search and select existing item
+    const handleCarIdChange = (value: string) => {
+        setNewItem({ ...newItem, carId: value })
+        
+        // Show suggestions if there are matching items
+        if (value.length > 0) {
+            setShowSuggestions(true)
+        } else {
+            setShowSuggestions(false)
+            setExistingItemToUpdate(null)
+        }
+    }
+
+    const getMatchingItems = () => {
+        if (!newItem.carId || newItem.carId.length === 0) return []
+        
+        return inventoryItems?.filter(item => 
+            item.carId && item.carId.toLowerCase().includes(newItem.carId.toLowerCase())
+        ) || []
+    }
+
+    const handleSelectExistingItem = (item: any) => {
+        setExistingItemToUpdate(item)
+        setNewItem({
+            carId: item.carId,
+            quantity: item.quantity,
+            purchasePrice: item.purchasePrice,
+            suggestedPrice: item.suggestedPrice,
+            condition: item.condition,
+            notes: item.notes || '',
+            photos: item.photos || [],
+            location: item.location || '',
+            isBox: false,
+            boxSize: 10,
+            pricePerPiece: 0,
+            isMultipleCars: false,
+            cars: [],
+            seriesId: item.seriesId || '',
+            seriesName: item.seriesName || '',
+            seriesSize: item.seriesSize || 5,
+            seriesPosition: item.seriesPosition || 1,
+            seriesPrice: item.seriesPrice || 0,
+            seriesDefaultPrice: item.seriesDefaultPrice || 0
+        })
+        setShowSuggestions(false)
+    }
+
+    const handleCancelUpdate = () => {
+        setExistingItemToUpdate(null)
+        setNewItem({
+            ...newItem,
+            quantity: 1,
+            purchasePrice: 0,
+            suggestedPrice: 0,
+            condition: 'mint',
+            notes: '',
+            photos: [],
+            location: ''
+        })
     }
 
     // Calcular margen de ganancia sugerido basado en condición
@@ -929,17 +1015,59 @@ export default function Inventory() {
 
                             {/* Single Car ID - Only for individual and box (same model) */}
                             {!newItem.isMultipleCars && (
-                                <div>
+                                <div className="relative">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Código de Hot Wheels
                                     </label>
+                                    {existingItemToUpdate && (
+                                        <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-between">
+                                            <span className="text-sm text-yellow-800">
+                                                ✏️ Editando pieza existente
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={handleCancelUpdate}
+                                                className="text-yellow-600 hover:text-yellow-800 text-sm underline"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        </div>
+                                    )}
                                     <input
                                         type="text"
                                         className="input w-full"
                                         placeholder="ej: FHY65"
                                         value={newItem.carId}
-                                        onChange={(e) => setNewItem({ ...newItem, carId: e.target.value })}
+                                        onChange={(e) => handleCarIdChange(e.target.value)}
+                                        onFocus={() => newItem.carId.length > 0 && setShowSuggestions(true)}
                                     />
+                                    
+                                    {/* Dropdown with suggestions */}
+                                    {showSuggestions && !existingItemToUpdate && getMatchingItems().length > 0 && (
+                                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                            <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
+                                                {getMatchingItems().length} pieza{getMatchingItems().length !== 1 ? 's' : ''} encontrada{getMatchingItems().length !== 1 ? 's' : ''}
+                                            </div>
+                                            {getMatchingItems().map((item) => (
+                                                <button
+                                                    key={item._id}
+                                                    type="button"
+                                                    className="w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-b-0 transition-colors"
+                                                    onClick={() => handleSelectExistingItem(item)}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <div className="font-medium text-sm">{item.carId}</div>
+                                                            <div className="text-xs text-gray-600">
+                                                                {item.quantity} disponible{item.quantity !== 1 ? 's' : ''} • {item.condition} • ${item.suggestedPrice}
+                                                            </div>
+                                                        </div>
+                                                        <Edit size={14} className="text-blue-500" />
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -1271,7 +1399,9 @@ export default function Inventory() {
                             <Button
                                 variant="secondary"
                                 className="flex-1"
-                                onClick={() => setShowAddModal(false)}
+                                onClick={() => {
+                                    resetForm()
+                                }}
                             >
                                 Cancelar
                             </Button>
@@ -1280,11 +1410,13 @@ export default function Inventory() {
                                 onClick={handleAddItem}
                                 disabled={newItem.isMultipleCars ? newItem.cars.length === 0 : !newItem.carId}
                             >
-                                {newItem.isMultipleCars
-                                    ? `Agregar ${newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} Piezas (${newItem.cars.length} modelos)`
-                                    : newItem.isBox
-                                        ? `Agregar ${newItem.quantity} Piezas`
-                                        : 'Agregar Pieza'
+                                {existingItemToUpdate
+                                    ? '✏️ Actualizar Pieza'
+                                    : newItem.isMultipleCars
+                                        ? `Agregar ${newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} Piezas (${newItem.cars.length} modelos)`
+                                        : newItem.isBox
+                                            ? `Agregar ${newItem.quantity} Piezas`
+                                            : 'Agregar Pieza'
                                 }
                             </Button>
                         </div>
