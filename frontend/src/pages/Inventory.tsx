@@ -990,11 +990,8 @@ export default function Inventory() {
                                         const numValue = value === '' ? 0 : parseFloat(value)
                                         const finalValue = isNaN(numValue) ? 0 : numValue
                                         
-                                        // For multiple cars, divide by total pieces to get cost per piece
+                                        // For multiple cars, don't auto-calculate suggested price
                                         if (newItem.isMultipleCars && newItem.cars.length > 0) {
-                                            const totalPieces = newItem.cars.reduce((sum, car) => sum + car.quantity, 0)
-                                            const costPerPiece = totalPieces > 0 ? finalValue / totalPieces : 0
-                                            // Don't auto-calculate suggested price for multiple cars with series
                                             setNewItem(prev => ({
                                                 ...prev,
                                                 purchasePrice: finalValue
