@@ -39,6 +39,13 @@ export interface InventoryItem {
   notes?: string;
   dateAdded: Date;
   lastUpdated: Date;
+  // Series fields for selling items as a complete series
+  seriesId?: string; // Unique identifier (e.g., "MARVEL-2024-001")
+  seriesName?: string; // Display name (e.g., "Marvel Series 2024")
+  seriesSize?: number; // Total pieces in series (e.g., 5)
+  seriesPosition?: number; // Position in series (1-5)
+  seriesPrice?: number; // Price for complete series (editable)
+  seriesDefaultPrice?: number; // Auto-calculated (85% of individual total)
   // Relación poblada con el Hot Wheels
   hotWheelsCar?: HotWheelsCar;
 }

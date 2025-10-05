@@ -20,7 +20,14 @@ const inventoryItemSchema = new Schema<IInventoryItem>({
   location: { type: String },
   notes: { type: String },
   dateAdded: { type: Date, default: Date.now },
-  lastUpdated: { type: Date, default: Date.now }
+  lastUpdated: { type: Date, default: Date.now },
+  // Series fields
+  seriesId: { type: String }, // Unique identifier for the series (e.g., "MARVEL-2024-001")
+  seriesName: { type: String }, // Display name (e.g., "Marvel Series 2024")
+  seriesSize: { type: Number, min: 1 }, // Total pieces in series (e.g., 5)
+  seriesPosition: { type: Number, min: 1 }, // Position in series (1-5)
+  seriesPrice: { type: Number, min: 0 }, // Price for complete series (editable)
+  seriesDefaultPrice: { type: Number, min: 0 } // Auto-calculated price (85% of individual total)
 }, {
   timestamps: true,
 })
