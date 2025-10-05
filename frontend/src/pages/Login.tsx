@@ -26,11 +26,11 @@ const Login: React.FC = () => {
     try {
       // Usar la función login del AuthContext
       await login(email, password)
-      
+
       // Verificar si hay una ruta guardada para redirigir después del login
       const redirectPath = localStorage.getItem('redirectAfterLogin')
       localStorage.removeItem('redirectAfterLogin')
-      
+
       // El toast success ya se muestra en AuthContext
       navigate(redirectPath || '/dashboard')
     } catch (error) {

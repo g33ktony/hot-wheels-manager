@@ -80,10 +80,10 @@ export default function Inventory() {
                 }
             } else {
                 // Handle single car or box with same model
-                const finalPurchasePrice = newItem.isBox 
-                    ? newItem.purchasePrice / newItem.boxSize  
+                const finalPurchasePrice = newItem.isBox
+                    ? newItem.purchasePrice / newItem.boxSize
                     : newItem.purchasePrice
-                
+
                 const finalSuggestedPrice = newItem.suggestedPrice
 
                 await createItemMutation.mutateAsync({
@@ -173,7 +173,7 @@ export default function Inventory() {
     // Calcular margen de ganancia sugerido basado en condición
     const calculateSuggestedMargin = (purchasePrice: number, condition: string): number => {
         if (purchasePrice === 0) return 0
-        
+
         // Márgenes sugeridos según condición:
         const margins = {
             'mint': 0.50,    // 50% de ganancia
@@ -181,7 +181,7 @@ export default function Inventory() {
             'fair': 0.30,    // 30% de ganancia
             'poor': 0.20     // 20% de ganancia
         }
-        
+
         const margin = margins[condition as keyof typeof margins] || 0.40
         return purchasePrice * (1 + margin)
     }
@@ -219,7 +219,7 @@ export default function Inventory() {
                 try {
                     // Comprimir imagen
                     const compressedFile = await imageCompression(file, compressionOptions)
-                    
+
                     // Convertir a base64
                     const reader = new FileReader()
                     reader.onload = (e) => {
@@ -237,7 +237,7 @@ export default function Inventory() {
                         }
                     }
                     reader.readAsDataURL(compressedFile)
-                    
+
                     console.log(`📸 Imagen comprimida: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
                 } catch (error) {
                     console.error('Error al comprimir imagen:', error)
@@ -411,7 +411,7 @@ export default function Inventory() {
                                     <div className="flex justify-between text-sm border-t pt-1">
                                         <span className="text-gray-600">Ganancia:</span>
                                         <span className="font-semibold text-primary-600">
-                                            ${(item.suggestedPrice - item.purchasePrice).toFixed(2)} 
+                                            ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
                                             <span className="text-xs ml-1">
                                                 (+{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%)
                                             </span>
@@ -464,7 +464,7 @@ export default function Inventory() {
                         </div>
 
                         <div className="space-y-4">
-                                                        <div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Código de Hot Wheels
                                 </label>
@@ -489,8 +489,8 @@ export default function Inventory() {
                                             name="purchaseType"
                                             checked={!newItem.isBox && !newItem.isMultipleCars}
                                             onChange={() => {
-                                                setNewItem({ 
-                                                    ...newItem, 
+                                                setNewItem({
+                                                    ...newItem,
                                                     isBox: false,
                                                     isMultipleCars: false,
                                                     quantity: 1,
@@ -508,8 +508,8 @@ export default function Inventory() {
                                             name="purchaseType"
                                             checked={newItem.isBox && !newItem.isMultipleCars}
                                             onChange={() => {
-                                                setNewItem({ 
-                                                    ...newItem, 
+                                                setNewItem({
+                                                    ...newItem,
                                                     isBox: true,
                                                     isMultipleCars: false,
                                                     quantity: newItem.boxSize,
@@ -527,8 +527,8 @@ export default function Inventory() {
                                             name="purchaseType"
                                             checked={newItem.isMultipleCars}
                                             onChange={() => {
-                                                setNewItem({ 
-                                                    ...newItem, 
+                                                setNewItem({
+                                                    ...newItem,
                                                     isBox: false,
                                                     isMultipleCars: true,
                                                     carId: '',
@@ -642,8 +642,8 @@ export default function Inventory() {
                                         value={newItem.boxSize}
                                         onChange={(e) => {
                                             const boxSize = parseInt(e.target.value) as 5 | 8 | 10
-                                            setNewItem({ 
-                                                ...newItem, 
+                                            setNewItem({
+                                                ...newItem,
                                                 boxSize,
                                                 quantity: boxSize,
                                                 pricePerPiece: newItem.purchasePrice / boxSize
@@ -712,10 +712,10 @@ export default function Inventory() {
                                         const numValue = value === '' ? 0 : parseFloat(value)
                                         const finalValue = isNaN(numValue) ? 0 : numValue
                                         handlePurchasePriceChange(finalValue)
-                                        
+
                                         if (newItem.isBox) {
-                                            setNewItem(prev => ({ 
-                                                ...prev, 
+                                            setNewItem(prev => ({
+                                                ...prev,
                                                 pricePerPiece: finalValue / newItem.boxSize
                                             }))
                                         }
@@ -733,8 +733,8 @@ export default function Inventory() {
                                     {newItem.isBox ? 'Precio Sugerido por Pieza' : 'Precio Sugerido'}
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
                                         <TrendingUp size={12} />
-                                        {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ? 
-                                            `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%` 
+                                        {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ?
+                                            `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%`
                                             : 'Auto'}
                                     </span>
                                 </label>
@@ -751,7 +751,7 @@ export default function Inventory() {
                                 />
                                 {newItem.purchasePrice > 0 && (
                                     <p className="text-xs text-gray-500 mt-1">
-                                        💡 Sugerido: ${calculateSuggestedMargin(newItem.purchasePrice, newItem.condition).toFixed(2)} 
+                                        💡 Sugerido: ${calculateSuggestedMargin(newItem.purchasePrice, newItem.condition).toFixed(2)}
                                         {newItem.isBox && ` (Ganancia: $${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)} por caja)`}
                                     </p>
                                 )}
@@ -807,7 +807,7 @@ export default function Inventory() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Fotos
                                 </label>
-                                
+
                                 {/* Photo Upload */}
                                 <div className="mb-3">
                                     <input
@@ -978,10 +978,10 @@ export default function Inventory() {
                                 onClick={handleAddItem}
                                 disabled={newItem.isMultipleCars ? newItem.cars.length === 0 : !newItem.carId}
                             >
-                                {newItem.isMultipleCars 
+                                {newItem.isMultipleCars
                                     ? `Agregar ${newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} Piezas (${newItem.cars.length} modelos)`
-                                    : newItem.isBox 
-                                        ? `Agregar ${newItem.quantity} Piezas` 
+                                    : newItem.isBox
+                                        ? `Agregar ${newItem.quantity} Piezas`
                                         : 'Agregar Pieza'
                                 }
                             </Button>
@@ -1104,7 +1104,7 @@ export default function Inventory() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Fotos
                                 </label>
-                                
+
                                 {/* Photo Upload */}
                                 <div className="mb-3">
                                     <input

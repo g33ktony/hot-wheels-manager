@@ -23,7 +23,7 @@ export default function Deliveries() {
         paymentMethod: 'cash' as 'cash' | 'transfer' | 'card' | 'other',
         notes: ''
     })
-    
+
     // Usar la fecha actual por defecto
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
     const [newDelivery, setNewDelivery] = useState({
@@ -247,7 +247,7 @@ export default function Deliveries() {
 
     const handleEditDelivery = (delivery: any) => {
         // Format the delivery data for editing
-        
+
         // Extract customer ID correctly - handle both populated and non-populated cases
         let customerId = ''
         if (delivery.customerId) {
@@ -266,7 +266,7 @@ export default function Deliveries() {
                 customerId = String(delivery.customer._id)
             }
         }
-        
+
         const formattedDelivery = {
             customerId: customerId,
             items: delivery.items?.map((item: any) => {
@@ -289,7 +289,7 @@ export default function Deliveries() {
                     unitPrice: item.unitPrice
                 }
             }) || [],
-            scheduledDate: delivery.scheduledDate ? 
+            scheduledDate: delivery.scheduledDate ?
                 delivery.scheduledDate.toString().split('T')[0]
                 : new Date().toISOString().split('T')[0],
             scheduledTime: delivery.scheduledTime || '09:00',
@@ -297,7 +297,7 @@ export default function Deliveries() {
             totalAmount: delivery.totalAmount || 0,
             notes: delivery.notes || ''
         }
-        
+
         setNewDelivery(formattedDelivery)
         setEditingDelivery(delivery)
         setIsEditMode(true)
@@ -593,14 +593,13 @@ export default function Deliveries() {
                                         </div>
                                         <div className="flex items-center gap-3 flex-wrap">
                                             <p className="text-xs lg:text-sm font-medium">Total: ${delivery.totalAmount.toFixed(2)}</p>
-                                            <span className={`px-2 py-1 text-xs rounded-full ${
-                                                (delivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
-                                                (delivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
-                                                'bg-red-100 text-red-800'
-                                            }`}>
+                                            <span className={`px-2 py-1 text-xs rounded-full ${(delivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
+                                                    (delivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                        'bg-red-100 text-red-800'
+                                                }`}>
                                                 {(delivery.paymentStatus || 'pending') === 'paid' ? '✓ Pagado' :
-                                                (delivery.paymentStatus || 'pending') === 'partial' ? `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` :
-                                                'Sin pagar'}
+                                                    (delivery.paymentStatus || 'pending') === 'partial' ? `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` :
+                                                        'Sin pagar'}
                                             </span>
                                         </div>
                                         {delivery.notes && <p className="text-xs lg:text-sm">Notas: {delivery.notes}</p>}
@@ -801,23 +800,23 @@ export default function Deliveries() {
                                                     {inventoryItems && (() => {
                                                         // Get available items
                                                         const availableItems = inventoryItems.filter(inv => (inv.quantity - (inv.reservedQuantity || 0)) > 0)
-                                                        
+
                                                         // Get items that are already selected in this delivery (for editing)
                                                         const selectedItemIds = newDelivery.items.map(deliveryItem => deliveryItem.inventoryItemId).filter(Boolean)
                                                         const selectedItems = inventoryItems.filter(inv => selectedItemIds.includes(inv._id))
-                                                        
+
                                                         // Combine available items and selected items (avoid duplicates)
                                                         const allRelevantItems = [
                                                             ...availableItems,
                                                             ...selectedItems.filter(selected => !availableItems.find(available => available._id === selected._id))
                                                         ]
-                                                        
+
                                                         return allRelevantItems.map((inv) => {
                                                             const isAvailable = (inv.quantity - (inv.reservedQuantity || 0)) > 0
-                                                            const availableText = isAvailable 
-                                                                ? `(Disponible: ${inv.quantity - (inv.reservedQuantity || 0)})` 
+                                                            const availableText = isAvailable
+                                                                ? `(Disponible: ${inv.quantity - (inv.reservedQuantity || 0)})`
                                                                 : '(En entrega actual)'
-                                                            
+
                                                             return (
                                                                 <option key={inv._id} value={inv._id}>
                                                                     {inv.hotWheelsCar?.model || inv.carId} {availableText} - ${inv.suggestedPrice}
@@ -896,7 +895,7 @@ export default function Deliveries() {
                                 onClick={handleCreateDelivery}
                                 disabled={createDeliveryMutation.isLoading || updateDeliveryMutation.isLoading}
                             >
-                                {isEditMode 
+                                {isEditMode
                                     ? (updateDeliveryMutation.isLoading ? 'Actualizando...' : 'Actualizar Entrega')
                                     : (createDeliveryMutation.isLoading ? 'Creando...' : 'Crear Entrega')
                                 }
@@ -1098,26 +1097,25 @@ export default function Deliveries() {
                                             <span className="font-medium">Total:</span> ${selectedDelivery.totalAmount?.toFixed(2)}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Pagado:</span> 
+                                            <span className="font-medium">Pagado:</span>
                                             <span className="text-green-600 ml-2">
                                                 ${(selectedDelivery.paidAmount || 0).toFixed(2)}
                                             </span>
                                         </p>
                                         <p>
-                                            <span className="font-medium">Pendiente:</span> 
+                                            <span className="font-medium">Pendiente:</span>
                                             <span className="text-orange-600 ml-2">
                                                 ${(selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)).toFixed(2)}
                                             </span>
                                         </p>
                                         <p>
                                             <span className="font-medium">Estado:</span>
-                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                                (selectedDelivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
-                                                (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
-                                                'bg-red-100 text-red-800'
-                                            }`}>
+                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${(selectedDelivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
+                                                    (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                        'bg-red-100 text-red-800'
+                                                }`}>
                                                 {(selectedDelivery.paymentStatus || 'pending') === 'paid' ? 'Pagado' :
-                                                (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'Parcial' : 'Pendiente'}
+                                                    (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'Parcial' : 'Pendiente'}
                                             </span>
                                         </p>
                                         {(selectedDelivery.paymentStatus || 'pending') !== 'paid' && (
@@ -1149,8 +1147,8 @@ export default function Deliveries() {
                                                         </span>
                                                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
                                                             {payment.paymentMethod === 'cash' ? 'Efectivo' :
-                                                            payment.paymentMethod === 'transfer' ? 'Transferencia' :
-                                                            payment.paymentMethod === 'card' ? 'Tarjeta' : 'Otro'}
+                                                                payment.paymentMethod === 'transfer' ? 'Transferencia' :
+                                                                    payment.paymentMethod === 'card' ? 'Tarjeta' : 'Otro'}
                                                         </span>
                                                         <span className="text-sm text-gray-600">
                                                             {new Date(payment.paymentDate).toLocaleDateString()} {new Date(payment.paymentDate).toLocaleTimeString()}
@@ -1274,7 +1272,7 @@ export default function Deliveries() {
                                         type="number"
                                         placeholder="0.00"
                                         value={newPayment.amount || ''}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                             setNewPayment({ ...newPayment, amount: parseFloat(e.target.value) || 0 })
                                         }
                                         step="0.01"

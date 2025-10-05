@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (storedToken && storedUser) {
         setToken(storedToken)
         setUser(JSON.parse(storedUser))
-        
+
         // Verificar si el token aún es válido
         const isValid = await verifyTokenAPI(storedToken)
         if (!isValid) {
@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Guardar token y usuario
       localStorage.setItem('token', data.data.token)
       localStorage.setItem('user', JSON.stringify(data.data.user))
-      
+
       setToken(data.data.token)
       setUser(data.data.user)
 

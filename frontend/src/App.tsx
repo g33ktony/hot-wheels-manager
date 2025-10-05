@@ -11,6 +11,7 @@ import Deliveries from './pages/Deliveries'
 import Customers from './pages/Customers'
 import Suppliers from './pages/Suppliers'
 
+// Test: Deployment optimization - only frontend changes
 function App() {
     return (
         <AuthProvider>

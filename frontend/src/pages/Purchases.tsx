@@ -156,7 +156,7 @@ export default function Purchases() {
 
     const handleEditPurchase = (purchase: any) => {
         // Format the purchase data for editing
-        
+
         // Extract supplier ID correctly - handle both populated and non-populated cases
         let supplierId = ''
         if (purchase.supplierId) {
@@ -175,22 +175,22 @@ export default function Purchases() {
                 supplierId = String(purchase.supplier._id)
             }
         }
-        
+
         const formattedPurchase = {
             supplierId: supplierId,
             items: purchase.items || [],
             totalCost: purchase.totalCost || 0,
             shippingCost: purchase.shippingCost || 0,
             trackingNumber: purchase.trackingNumber || '',
-            purchaseDate: purchase.purchaseDate ? 
+            purchaseDate: purchase.purchaseDate ?
                 purchase.purchaseDate.toString().split('T')[0]
                 : new Date().toISOString().split('T')[0],
-            estimatedDelivery: purchase.estimatedDelivery ? 
+            estimatedDelivery: purchase.estimatedDelivery ?
                 purchase.estimatedDelivery.toString().split('T')[0]
                 : '',
             notes: purchase.notes || ''
         }
-        
+
         setNewPurchase(formattedPurchase)
         setEditingPurchase(purchase)
         setIsEditMode(true)
@@ -684,7 +684,7 @@ export default function Purchases() {
                                         onClick={handleAddPurchase}
                                         disabled={createPurchaseMutation.isLoading || updatePurchaseMutation.isLoading}
                                     >
-                                        {isEditMode 
+                                        {isEditMode
                                             ? (updatePurchaseMutation.isLoading ? 'Actualizando...' : 'Actualizar Compra')
                                             : (createPurchaseMutation.isLoading ? 'Guardando...' : 'Guardar Compra')
                                         }
