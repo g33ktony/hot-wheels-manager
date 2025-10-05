@@ -31,7 +31,14 @@ export default function Inventory() {
         cars: [] as Array<{
             carId: string;
             quantity: number;
-        }>
+        }>,
+        // Series fields
+        seriesId: '',
+        seriesName: '',
+        seriesSize: 5,
+        seriesPosition: 1,
+        seriesPrice: 0,
+        seriesDefaultPrice: 0
     })
 
     const { data: inventoryItems, isLoading, error } = useInventory()
@@ -112,7 +119,13 @@ export default function Inventory() {
                 boxSize: 10,
                 pricePerPiece: 0,
                 isMultipleCars: false,
-                cars: []
+                cars: [],
+                seriesId: '',
+                seriesName: '',
+                seriesSize: 5,
+                seriesPosition: 1,
+                seriesPrice: 0,
+                seriesDefaultPrice: 0
             })
             setShowAddModal(false)
         } catch (error) {
@@ -129,7 +142,13 @@ export default function Inventory() {
             suggestedPrice: item.suggestedPrice || 0,
             condition: item.condition || 'mint',
             notes: item.notes || '',
-            photos: item.photos || []
+            photos: item.photos || [],
+            seriesId: item.seriesId || '',
+            seriesName: item.seriesName || '',
+            seriesSize: item.seriesSize || 5,
+            seriesPosition: item.seriesPosition || 1,
+            seriesPrice: item.seriesPrice || 0,
+            seriesDefaultPrice: item.seriesDefaultPrice || 0
         })
         setShowEditModal(true)
     }
@@ -374,6 +393,14 @@ export default function Inventory() {
                                     <p className="text-xs text-gray-400">
                                         {item.hotWheelsCar?.toy_num || item.carId}
                                     </p>
+                                    
+                                    {/* Series Badge */}
+                                    {item.seriesId && (
+                                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                                            🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})
+                                        </div>
+                                    )}
+                                    
                                     <div className="flex items-center justify-between mt-2">
                                         <span className={`
                       px-2 py-1 text-xs font-medium rounded-full
@@ -788,6 +815,114 @@ export default function Inventory() {
                                 <p className="text-xs text-gray-500 mt-1">
                                     📦 Indica dónde guardas esta pieza para encontrarla fácilmente
                                 </p>
+                            </div>
+
+                            {/* Series Section */}
+                            <div className="col-span-2 border-t pt-4">
+                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!newItem.seriesId}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setNewItem({
+                                                    ...newItem,
+                                                    seriesId: `SERIES-${Date.now()}`,
+                                                    seriesName: '',
+                                                    seriesSize: 5,
+                                                    seriesPosition: 1
+                                                })
+                                            } else {
+                                                setNewItem({
+                                                    ...newItem,
+                                                    seriesId: '',
+                                                    seriesName: '',
+                                                    seriesSize: 5,
+                                                    seriesPosition: 1,
+                                                    seriesPrice: 0,
+                                                    seriesDefaultPrice: 0
+                                                })
+                                            }
+                                        }}
+                                    />
+                                    🎁 Esta pieza pertenece a una serie
+                                </label>
+
+                                {newItem.seriesId && (
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg">
+                                        <div className="col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                ID de Serie (auto-generado)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="input w-full bg-gray-100"
+                                                value={newItem.seriesId}
+                                                readOnly
+                                            />
+                                        </div>
+
+                                        <div className="col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Nombre de la Serie *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="input w-full"
+                                                placeholder="ej: Marvel Series 2024"
+                                                value={newItem.seriesName}
+                                                onChange={(e) => setNewItem({ ...newItem, seriesName: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Total de Piezas en Serie *
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="input w-full"
+                                                min="2"
+                                                max="20"
+                                                value={newItem.seriesSize}
+                                                onChange={(e) => setNewItem({ ...newItem, seriesSize: parseInt(e.target.value) || 5 })}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Posición en Serie *
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="input w-full"
+                                                min="1"
+                                                max={newItem.seriesSize}
+                                                value={newItem.seriesPosition}
+                                                onChange={(e) => setNewItem({ ...newItem, seriesPosition: parseInt(e.target.value) || 1 })}
+                                            />
+                                        </div>
+
+                                        <div className="col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Precio de Serie Completa (Opcional)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="input w-full"
+                                                placeholder="Se calculará automáticamente (85% del total)"
+                                                value={newItem.seriesPrice || ''}
+                                                onChange={(e) => {
+                                                    const value = parseFloat(e.target.value) || 0
+                                                    setNewItem({ ...newItem, seriesPrice: value })
+                                                }}
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                💡 Si no especificas, se calculará como 85% de la suma de precios individuales
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div>
