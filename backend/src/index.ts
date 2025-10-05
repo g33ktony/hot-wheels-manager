@@ -28,6 +28,8 @@ import notFoundHandler from './middleware/notFoundHandler'
 // Load environment variables
 dotenv.config()
 
+// Force Railway redeploy - Updated: 2025-10-05
+
 const app = express()
 const PORT = parseInt(process.env.PORT || '3001')
 
