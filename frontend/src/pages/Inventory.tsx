@@ -978,7 +978,7 @@ export default function Inventory() {
                                 </div>
                             )}                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {newItem.isBox ? 'Precio Total de la Caja' : 'Precio de Compra'}
+                                    {newItem.isMultipleCars || newItem.isBox ? 'Precio Total de la Caja/Serie' : 'Precio de Compra'}
                                 </label>
                                 <input
                                     type="text"
@@ -989,16 +989,33 @@ export default function Inventory() {
                                         const value = e.target.value.replace(/[^0-9.]/g, '')
                                         const numValue = value === '' ? 0 : parseFloat(value)
                                         const finalValue = isNaN(numValue) ? 0 : numValue
-                                        handlePurchasePriceChange(finalValue)
-
-                                        if (newItem.isBox) {
+                                        
+                                        // For multiple cars, divide by total pieces to get cost per piece
+                                        if (newItem.isMultipleCars && newItem.cars.length > 0) {
+                                            const totalPieces = newItem.cars.reduce((sum, car) => sum + car.quantity, 0)
+                                            const costPerPiece = totalPieces > 0 ? finalValue / totalPieces : 0
+                                            // Don't auto-calculate suggested price for multiple cars with series
                                             setNewItem(prev => ({
                                                 ...prev,
-                                                pricePerPiece: finalValue / newItem.boxSize
+                                                purchasePrice: finalValue
                                             }))
+                                        } else {
+                                            handlePurchasePriceChange(finalValue)
+
+                                            if (newItem.isBox) {
+                                                setNewItem(prev => ({
+                                                    ...prev,
+                                                    pricePerPiece: finalValue / newItem.boxSize
+                                                }))
+                                            }
                                         }
                                     }}
                                 />
+                                {newItem.isMultipleCars && newItem.cars.length > 0 && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        💡 {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas total = ${newItem.purchasePrice > 0 ? (newItem.purchasePrice / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2) : '0.00'} por pieza
+                                    </p>
+                                )}
                                 {newItem.isBox && newItem.purchasePrice > 0 && (
                                     <p className="text-xs text-gray-500 mt-1">
                                         ${(newItem.purchasePrice / newItem.boxSize).toFixed(2)} por pieza
@@ -1008,13 +1025,15 @@ export default function Inventory() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                                    {newItem.isBox ? 'Precio Sugerido por Pieza' : 'Precio Sugerido'}
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
-                                        <TrendingUp size={12} />
-                                        {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ?
-                                            `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%`
-                                            : 'Auto'}
-                                    </span>
+                                    {newItem.isMultipleCars || newItem.isBox ? 'Precio de Venta por Pieza' : 'Precio Sugerido'}
+                                    {!newItem.isMultipleCars && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                                            <TrendingUp size={12} />
+                                            {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ?
+                                                `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%`
+                                                : 'Auto'}
+                                        </span>
+                                    )}
                                 </label>
                                 <input
                                     type="text"
@@ -1027,7 +1046,12 @@ export default function Inventory() {
                                         setNewItem({ ...newItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
                                     }}
                                 />
-                                {newItem.purchasePrice > 0 && (
+                                {newItem.isMultipleCars && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        💰 Si vendes todas por separado: ${(newItem.suggestedPrice * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)} total
+                                    </p>
+                                )}
+                                {!newItem.isMultipleCars && newItem.purchasePrice > 0 && (
                                     <p className="text-xs text-gray-500 mt-1">
                                         💡 Sugerido: ${calculateSuggestedMargin(newItem.purchasePrice, newItem.condition).toFixed(2)}
                                         {newItem.isBox && ` (Ganancia: $${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)} por caja)`}
