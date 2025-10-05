@@ -39,6 +39,12 @@ export interface InventoryItem {
   notes?: string;
   dateAdded: Date;
   lastUpdated: Date;
+  // Brand and type fields
+  brand?: string; // Hot Wheels, Kaido House, Mini GT, M2, etc.
+  pieceType?: 'basic' | 'premium' | 'rlc'; // Basic, Premium, RLC
+  isTreasureHunt?: boolean; // Only for Hot Wheels basic
+  isSuperTreasureHunt?: boolean; // Only for Hot Wheels basic
+  isChase?: boolean; // Only for Mini GT, Kaido House, M2
   // Series fields for selling items as a complete series
   seriesId?: string; // Unique identifier (e.g., "MARVEL-2024-001")
   seriesName?: string; // Display name (e.g., "Marvel Series 2024")
@@ -219,6 +225,12 @@ export interface CreateInventoryItemDto {
   photos: string[];
   location?: string;
   notes?: string;
+  // Brand and type fields
+  brand?: string;
+  pieceType?: 'basic' | 'premium' | 'rlc';
+  isTreasureHunt?: boolean;
+  isSuperTreasureHunt?: boolean;
+  isChase?: boolean;
   // Series fields
   seriesId?: string;
   seriesName?: string;
@@ -323,8 +335,14 @@ export interface TodaysDelivery {
   customerName: string;
   location: string;
   scheduledTime: string;
-  totalAmount: number;
-  itemCount: number;
+}
+
+// Custom brands saved by users
+export interface CustomBrand {
+  _id?: string;
+  name: string;
+  createdAt?: Date;
+  userId?: string; // In case we implement multi-user in the future
 }
 
 export interface ActivityItem {

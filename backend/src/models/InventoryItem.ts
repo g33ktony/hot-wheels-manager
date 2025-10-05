@@ -21,6 +21,12 @@ const inventoryItemSchema = new Schema<IInventoryItem>({
   notes: { type: String },
   dateAdded: { type: Date, default: Date.now },
   lastUpdated: { type: Date, default: Date.now },
+  // Brand and type fields
+  brand: { type: String }, // Hot Wheels, Kaido House, Mini GT, M2, etc.
+  pieceType: { type: String, enum: ['basic', 'premium', 'rlc'] }, // Basic, Premium, RLC
+  isTreasureHunt: { type: Boolean, default: false }, // Only for Hot Wheels basic
+  isSuperTreasureHunt: { type: Boolean, default: false }, // Only for Hot Wheels basic
+  isChase: { type: Boolean, default: false }, // Only for Mini GT, Kaido House, M2
   // Series fields
   seriesId: { type: String }, // Unique identifier for the series (e.g., "MARVEL-2024-001")
   seriesName: { type: String }, // Display name (e.g., "Marvel Series 2024")

@@ -19,6 +19,8 @@ export default function Inventory() {
     // Search suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
+    const [customBrandInput, setCustomBrandInput] = useState('')
+    const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
     const [newItem, setNewItem] = useState({
         carId: '',
         quantity: 1,
@@ -28,6 +30,12 @@ export default function Inventory() {
         notes: '',
         photos: [] as string[],
         location: '', // Ubicación física (caja)
+        // Brand and type fields
+        brand: '' as string,
+        pieceType: '' as 'basic' | 'premium' | 'rlc' | '',
+        isTreasureHunt: false,
+        isSuperTreasureHunt: false,
+        isChase: false,
         // Box/Series support
         isBox: false,
         boxSize: 10 as 5 | 8 | 10,

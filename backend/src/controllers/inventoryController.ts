@@ -91,7 +91,8 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
   try {
     const { 
       carId, quantity, purchasePrice, suggestedPrice, condition, notes,
-      seriesId, seriesName, seriesSize, seriesPosition, seriesPrice 
+      seriesId, seriesName, seriesSize, seriesPosition, seriesPrice,
+      brand, pieceType, isTreasureHunt, isSuperTreasureHunt, isChase
     } = req.body;
 
     // Validate required fields
@@ -150,6 +151,12 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
         condition: condition || 'mint',
         notes: notes || '',
         dateAdded: new Date(),
+        // Brand and type fields
+        brand,
+        pieceType,
+        isTreasureHunt: isTreasureHunt || false,
+        isSuperTreasureHunt: isSuperTreasureHunt || false,
+        isChase: isChase || false,
         // Series fields
         ...(seriesId && {
           seriesId,

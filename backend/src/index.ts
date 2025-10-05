@@ -19,6 +19,7 @@ import customersRoutes from './routes/customersRoutes'
 import suppliersRoutes from './routes/suppliersRoutes'
 import marketPricesRoutes from './routes/marketPricesRoutes'
 import dashboardRoutes from './routes/dashboardRoutes'
+import customBrandRoutes from './routes/customBrandRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -106,6 +107,7 @@ app.use('/api/customers', authMiddleware, customersRoutes)
 app.use('/api/suppliers', authMiddleware, suppliersRoutes)
 app.use('/api/market-prices', authMiddleware, marketPricesRoutes)
 app.use('/api/dashboard', authMiddleware, dashboardRoutes)
+app.use('/api/custom-brands', authMiddleware, customBrandRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)
