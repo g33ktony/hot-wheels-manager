@@ -73,6 +73,7 @@ export default function Inventory() {
                 const pricePerPiece = totalPieces > 0 ? newItem.purchasePrice / totalPieces : 0
 
                 // Create inventory item for each car
+                let position = 1
                 for (const car of newItem.cars) {
                     await createItemMutation.mutateAsync({
                         carId: car.carId,
@@ -88,7 +89,7 @@ export default function Inventory() {
                             seriesId: newItem.seriesId,
                             seriesName: newItem.seriesName,
                             seriesSize: newItem.seriesSize,
-                            seriesPosition: newItem.seriesPosition,
+                            seriesPosition: position++, // Increment position for each piece
                             seriesPrice: newItem.seriesPrice
                         })
                     })

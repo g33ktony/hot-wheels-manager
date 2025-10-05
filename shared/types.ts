@@ -219,6 +219,12 @@ export interface CreateInventoryItemDto {
   photos: string[];
   location?: string;
   notes?: string;
+  // Series fields
+  seriesId?: string;
+  seriesName?: string;
+  seriesSize?: number;
+  seriesPosition?: number;
+  seriesPrice?: number;
 }
 
 export interface CreatePurchaseDto {
