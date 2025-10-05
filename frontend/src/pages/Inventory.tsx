@@ -75,6 +75,11 @@ export default function Inventory() {
                 const totalPieces = newItem.cars.reduce((sum, car) => sum + car.quantity, 0)
                 const pricePerPiece = totalPieces > 0 ? newItem.purchasePrice / totalPieces : 0
 
+                // Calculate suggested price based on whether it's a series or not
+                const suggestedPricePerPiece = newItem.seriesId && newItem.seriesPrice > 0
+                    ? newItem.seriesPrice / totalPieces // For series, divide series price by total pieces
+                    : newItem.suggestedPrice // For non-series, use the entered price per piece
+
                 // Create inventory item for each car
                 let position = 1
                 for (const car of newItem.cars) {
@@ -82,7 +87,7 @@ export default function Inventory() {
                         carId: car.carId,
                         quantity: car.quantity,
                         purchasePrice: pricePerPiece,
-                        suggestedPrice: newItem.suggestedPrice,
+                        suggestedPrice: suggestedPricePerPiece,
                         condition: newItem.condition,
                         notes: newItem.notes,
                         photos: newItem.photos,
@@ -1022,7 +1027,11 @@ export default function Inventory() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                                    {newItem.isMultipleCars || newItem.isBox ? 'Precio de Venta por Pieza' : 'Precio Sugerido'}
+                                    {newItem.isMultipleCars && newItem.seriesId 
+                                        ? 'Precio Individual por Pieza (si se vende por separado)' 
+                                        : newItem.isMultipleCars || newItem.isBox 
+                                            ? 'Precio de Venta por Pieza' 
+                                            : 'Precio Sugerido'}
                                     {!newItem.isMultipleCars && (
                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
                                             <TrendingUp size={12} />
@@ -1043,7 +1052,12 @@ export default function Inventory() {
                                         setNewItem({ ...newItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
                                     }}
                                 />
-                                {newItem.isMultipleCars && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
+                                {newItem.isMultipleCars && newItem.seriesId && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
+                                    <p className="text-xs text-yellow-600 mt-1">
+                                        ⚠️ Este es el precio si vendes cada pieza POR SEPARADO. El precio de serie completa se configura abajo.
+                                    </p>
+                                )}
+                                {newItem.isMultipleCars && !newItem.seriesId && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
                                     <p className="text-xs text-gray-500 mt-1">
                                         💰 Si vendes todas por separado: ${(newItem.suggestedPrice * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)} total
                                     </p>
