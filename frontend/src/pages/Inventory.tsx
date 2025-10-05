@@ -636,20 +636,7 @@ export default function Inventory() {
                         </div>
 
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Código de Hot Wheels
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="ej: FHY65"
-                                    value={newItem.carId}
-                                    onChange={(e) => setNewItem({ ...newItem, carId: e.target.value })}
-                                />
-                            </div>
-
-                            {/* New: Type Selection */}
+                            {/* Type Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Tipo de Compra
