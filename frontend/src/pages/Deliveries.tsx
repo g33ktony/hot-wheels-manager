@@ -247,7 +247,6 @@ export default function Deliveries() {
 
     const handleEditDelivery = (delivery: any) => {
         // Format the delivery data for editing
-        console.log('🔍 Editing delivery:', delivery) // Debug log
         
         // Extract customer ID correctly - handle both populated and non-populated cases
         let customerId = ''
@@ -267,15 +266,10 @@ export default function Deliveries() {
                 customerId = String(delivery.customer._id)
             }
         }
-        console.log('🔍 Customer ID extracted:', customerId, 'Type:', typeof customerId) // Debug log
-        console.log('🔍 Available customers:', customers) // Debug log
-        console.log('🔍 Original scheduledDate:', delivery.scheduledDate) // Debug log
-        console.log('🔍 Original scheduledTime:', delivery.scheduledTime) // Debug log
         
         const formattedDelivery = {
             customerId: customerId,
             items: delivery.items?.map((item: any) => {
-                console.log('🔍 Processing item:', item) // Debug log
                 let inventoryItemId = ''
                 if (item.inventoryItemId) {
                     if (typeof item.inventoryItemId === 'string') {
@@ -303,9 +297,6 @@ export default function Deliveries() {
             totalAmount: delivery.totalAmount || 0,
             notes: delivery.notes || ''
         }
-        
-        console.log('🔍 Formatted delivery:', formattedDelivery) // Debug log
-        console.log('🔍 Setting newDelivery state with date:', formattedDelivery.scheduledDate, 'and time:', formattedDelivery.scheduledTime) // Debug log
         
         setNewDelivery(formattedDelivery)
         setEditingDelivery(delivery)
@@ -753,13 +744,9 @@ export default function Deliveries() {
                                     <Input
                                         type="date"
                                         value={newDelivery.scheduledDate}
-                                        onChange={(e) => {
-                                            console.log('🔍 Date changed to:', e.target.value) // Debug log
-                                            setNewDelivery({ ...newDelivery, scheduledDate: e.target.value })
-                                        }}
+                                        onChange={(e) => setNewDelivery({ ...newDelivery, scheduledDate: e.target.value })}
                                         required
                                     />
-                                    <small className="text-gray-500">Debug: {newDelivery.scheduledDate}</small>
                                 </div>
 
                                 <div>
@@ -769,12 +756,8 @@ export default function Deliveries() {
                                     <Input
                                         type="time"
                                         value={newDelivery.scheduledTime}
-                                        onChange={(e) => {
-                                            console.log('🔍 Time changed to:', e.target.value) // Debug log
-                                            setNewDelivery({ ...newDelivery, scheduledTime: e.target.value })
-                                        }}
+                                        onChange={(e) => setNewDelivery({ ...newDelivery, scheduledTime: e.target.value })}
                                     />
-                                    <small className="text-gray-500">Debug: {newDelivery.scheduledTime}</small>
                                 </div>
 
                                 <div className="md:col-span-2">

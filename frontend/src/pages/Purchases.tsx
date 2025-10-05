@@ -156,7 +156,6 @@ export default function Purchases() {
 
     const handleEditPurchase = (purchase: any) => {
         // Format the purchase data for editing
-        console.log('🔍 Editing purchase:', purchase) // Debug log
         
         // Extract supplier ID correctly - handle both populated and non-populated cases
         let supplierId = ''
@@ -176,10 +175,6 @@ export default function Purchases() {
                 supplierId = String(purchase.supplier._id)
             }
         }
-        console.log('🔍 Supplier ID extracted:', supplierId, 'Type:', typeof supplierId) // Debug log
-        console.log('🔍 Available suppliers:', suppliers) // Debug log
-        console.log('🔍 Original purchaseDate:', purchase.purchaseDate) // Debug log
-        console.log('🔍 Original estimatedDelivery:', purchase.estimatedDelivery) // Debug log
         
         const formattedPurchase = {
             supplierId: supplierId,
@@ -195,8 +190,6 @@ export default function Purchases() {
                 : '',
             notes: purchase.notes || ''
         }
-        
-        console.log('🔍 Formatted purchase:', formattedPurchase) // Debug log
         
         setNewPurchase(formattedPurchase)
         setEditingPurchase(purchase)
