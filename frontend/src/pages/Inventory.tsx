@@ -896,12 +896,14 @@ export default function Inventory() {
                                                     <>
                                                         <div className="flex justify-between">
                                                             <span>Precio sugerido (por pieza):</span>
-                                                            <span className="font-medium text-green-600">${newItem.suggestedPrice.toFixed(2)}</span>
+                                                            <span className="font-medium text-green-600">
+                                                                ${(newItem.suggestedPrice / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)}
+                                                            </span>
                                                         </div>
                                                         <div className="flex justify-between border-t pt-1 mt-1">
                                                             <span>Ganancia potencial total:</span>
                                                             <span className="font-medium text-green-600">
-                                                                ${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.cars.reduce((sum, car) => sum + car.quantity, 0))) * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)}
+                                                                ${(newItem.suggestedPrice - newItem.purchasePrice).toFixed(2)}
                                                             </span>
                                                         </div>
                                                     </>
