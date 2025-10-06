@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from 'react-query'
 import axios from 'axios'
-import { InventoryItem } from '@shared/types'
+import type { InventoryItem } from '../../../shared/types'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 // Configure axios defaults
 axios.defaults.baseURL = API_URL
@@ -98,7 +98,7 @@ export const useRegisterBoxPieces = () => {
       )
       return response.data
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate boxes list
       queryClient.invalidateQueries({ queryKey: ['boxes'] })
       // Invalidate specific box
@@ -143,7 +143,7 @@ export const useDeleteBoxPiece = () => {
       )
       return response.data
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate specific box
       queryClient.invalidateQueries({ queryKey: ['boxes', variables.boxId] })
       // Invalidate boxes list
@@ -167,7 +167,7 @@ export const useUpdateBox = () => {
       )
       return response.data
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate specific box
       queryClient.invalidateQueries({ queryKey: ['boxes', variables.boxId] })
       // Invalidate boxes list

@@ -496,7 +496,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleCompleteIncomplete}
-                                            disabled={completeBoxMutation.isPending}
+                                            disabled={completeBoxMutation.isLoading}
                                             className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                                         >
                                             Confirmar y Completar
@@ -518,7 +518,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                 <div className="bg-gray-50 px-6 py-4 border-t flex gap-3">
                     <button
                         onClick={handleSaveAndAddAnother}
-                        disabled={registerPiecesMutation.isPending}
+                        disabled={registerPiecesMutation.isLoading}
                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         <Save size={18} />
@@ -526,7 +526,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                     </button>
                     <button
                         onClick={handleSaveAndClose}
-                        disabled={registerPiecesMutation.isPending}
+                        disabled={registerPiecesMutation.isLoading}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         <CheckCircle size={18} />
