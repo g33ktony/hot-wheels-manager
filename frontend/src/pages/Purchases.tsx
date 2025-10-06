@@ -305,19 +305,20 @@ export default function Purchases() {
                 quantity: item.quantity,
                 unitPrice: item.unitPrice,
                 condition: item.condition,
-                pieceType: (item.pieceType === '' || !item.pieceType) ? undefined : item.pieceType as 'basic' | 'premium' | 'rlc',
-                brand: item.brand || undefined,
+                // Only send pieceType and brand if they have actual values
+                ...(item.pieceType && { pieceType: item.pieceType }),
+                ...(item.brand && item.brand.trim() !== '' && { brand: item.brand }),
                 isTreasureHunt: item.isTreasureHunt || false,
                 isSuperTreasureHunt: item.isSuperTreasureHunt || false,
                 isChase: item.isChase || false,
-                seriesId: item.seriesId || undefined,
-                seriesName: item.seriesName || undefined,
-                seriesSize: item.seriesSize || undefined,
-                seriesPosition: item.seriesPosition || undefined,
-                seriesPrice: item.seriesPrice || undefined,
-                photos: item.photos || undefined,
-                location: item.location || undefined,
-                notes: item.notes || undefined
+                ...(item.seriesId && item.seriesId.trim() !== '' && { seriesId: item.seriesId }),
+                ...(item.seriesName && item.seriesName.trim() !== '' && { seriesName: item.seriesName }),
+                ...(item.seriesSize && { seriesSize: item.seriesSize }),
+                ...(item.seriesPosition && { seriesPosition: item.seriesPosition }),
+                ...(item.seriesPrice && { seriesPrice: item.seriesPrice }),
+                ...(item.photos && item.photos.length > 0 && { photos: item.photos }),
+                ...(item.location && item.location.trim() !== '' && { location: item.location }),
+                ...(item.notes && item.notes.trim() !== '' && { notes: item.notes })
             }))
 
             if (isEditMode && editingPurchase) {
