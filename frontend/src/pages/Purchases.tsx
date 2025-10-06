@@ -1,26 +1,24 @@
 import { useState } from 'react'
 import { usePurchases, useCreatePurchase, useUpdatePurchase, useUpdatePurchaseStatus, useDeletePurchase } from '@/hooks/usePurchases'
 import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers'
-// import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands' // Will be used when UI is implemented
+import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit } from 'lucide-react'
-// Package, User, Edit2, Eye will be used when UI is implemented
-// import imageCompression from 'browser-image-compression' // Will be used when UI is implemented
+import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upload, MapPin, Package } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 
-// Will be used when UI is implemented per PURCHASES_UI_TODO.md
-// const PREDEFINED_BRANDS = [
-//     'Hot Wheels',
-//     'Kaido House',
-//     'Mini GT',
-//     'M2 Machines',
-//     'Tomica',
-//     'Matchbox',
-//     'Johnny Lightning',
-//     'Greenlight'
-// ]
+const PREDEFINED_BRANDS = [
+    'Hot Wheels',
+    'Kaido House',
+    'Mini GT',
+    'M2 Machines',
+    'Tomica',
+    'Matchbox',
+    'Johnny Lightning',
+    'Greenlight'
+]
 
 export default function Purchases() {
     const [showAddModal, setShowAddModal] = useState(false)
@@ -29,9 +27,8 @@ export default function Purchases() {
     const [selectedPurchase, setSelectedPurchase] = useState<any>(null)
     const [editingPurchase, setEditingPurchase] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
-    // Custom brand support (will be used in UI implementation)
-    // const [customBrandInput, setCustomBrandInput] = useState('')
-    // const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
+    const [customBrandInput, setCustomBrandInput] = useState('')
+    const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
     const [newSupplier, setNewSupplier] = useState({
         name: '',
         email: '',
@@ -75,19 +72,19 @@ export default function Purchases() {
 
     const { data: purchases, isLoading, error } = usePurchases()
     const { data: suppliers } = useSuppliers()
-    // const { data: customBrands } = useCustomBrands() // Will be used when UI is implemented
+    const { data: customBrands } = useCustomBrands()
     const createPurchaseMutation = useCreatePurchase()
     const updatePurchaseMutation = useUpdatePurchase()
     const createSupplierMutation = useCreateSupplier()
     const updateStatusMutation = useUpdatePurchaseStatus()
     const deletePurchaseMutation = useDeletePurchase()
-    // const createCustomBrandMutation = useCreateCustomBrand() // Will be used when UI is implemented
+    const createCustomBrandMutation = useCreateCustomBrand()
 
-    // Combine predefined and custom brands (will be used in UI implementation)
-    // const allBrands = [
-    //     ...PREDEFINED_BRANDS,
-    //     ...(customBrands?.map(b => b.name) || [])
-    // ].sort()
+    // Combine predefined and custom brands
+    const allBrands = [
+        ...PREDEFINED_BRANDS,
+        ...(customBrands?.map(b => b.name) || [])
+    ].sort()
 
     if (isLoading) {
         return <Loading text="Cargando compras..." />
@@ -295,12 +292,6 @@ export default function Purchases() {
         })
     }
 
-    /* 
-    // ====================================================================
-    // Helper functions below will be connected when UI is implemented
-    // See PURCHASES_UI_TODO.md for complete implementation guide
-    // ====================================================================
-
     // Brand handling
     const handleBrandChange = (index: number, value: string) => {
         if (value === 'custom') {
@@ -365,7 +356,6 @@ export default function Purchases() {
         const currentPhotos = newPurchase.items[itemIndex].photos || []
         handleItemChange(itemIndex, 'photos', currentPhotos.filter((_, i) => i !== photoIndex))
     }
-    */
 
     const handleStatusChange = async (purchaseId: string, newStatus: 'pending' | 'paid' | 'shipped' | 'received' | 'cancelled') => {
         try {
@@ -813,6 +803,279 @@ export default function Purchases() {
                                                                 <option value="poor">Poor</option>
                                                             </select>
                                                         </div>
+                                                    </div>
+
+                                                    {/* Brand Section */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                Marca
+                                                            </label>
+                                                            <select
+                                                                value={item.brand || ''}
+                                                                onChange={(e) => handleBrandChange(index, e.target.value)}
+                                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            >
+                                                                <option value="">Seleccionar marca...</option>
+                                                                {allBrands.map((brand) => (
+                                                                    <option key={brand} value={brand}>{brand}</option>
+                                                                ))}
+                                                                <option value="custom">➕ Agregar nueva marca...</option>
+                                                            </select>
+
+                                                            {showCustomBrandInput && (
+                                                                <div className="mt-2 flex gap-2">
+                                                                    <Input
+                                                                        type="text"
+                                                                        value={customBrandInput}
+                                                                        onChange={(e) => setCustomBrandInput(e.target.value)}
+                                                                        placeholder="Nueva marca..."
+                                                                        className="flex-1"
+                                                                    />
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="sm"
+                                                                        onClick={() => handleSaveCustomBrand(index)}
+                                                                    >
+                                                                        Guardar
+                                                                    </Button>
+                                                                    <Button
+                                                                        type="button"
+                                                                        size="sm"
+                                                                        variant="secondary"
+                                                                        onClick={() => {
+                                                                            setShowCustomBrandInput(false)
+                                                                            setCustomBrandInput('')
+                                                                        }}
+                                                                    >
+                                                                        Cancelar
+                                                                    </Button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                Tipo de Pieza
+                                                            </label>
+                                                            <select
+                                                                value={item.pieceType || ''}
+                                                                onChange={(e) => handleItemChange(index, 'pieceType', e.target.value)}
+                                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                            >
+                                                                <option value="">Seleccionar...</option>
+                                                                <option value="basic">Básico</option>
+                                                                <option value="premium">Premium</option>
+                                                                <option value="rlc">RLC</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* TH/STH/Chase Section - Conditional */}
+                                                    {(item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'basic') && (
+                                                        <div className="grid grid-cols-2 gap-4 mt-4">
+                                                            <div className="flex items-center space-x-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`th-${index}`}
+                                                                    checked={item.isTreasureHunt || false}
+                                                                    onChange={(e) => {
+                                                                        handleItemChange(index, 'isTreasureHunt', e.target.checked)
+                                                                        if (e.target.checked) {
+                                                                            handleItemChange(index, 'isSuperTreasureHunt', false)
+                                                                        }
+                                                                    }}
+                                                                    disabled={item.isSuperTreasureHunt}
+                                                                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:opacity-50"
+                                                                />
+                                                                <label htmlFor={`th-${index}`} className="text-sm font-medium text-gray-700">
+                                                                    Treasure Hunt (TH)
+                                                                </label>
+                                                            </div>
+                                                            <div className="flex items-center space-x-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`sth-${index}`}
+                                                                    checked={item.isSuperTreasureHunt || false}
+                                                                    onChange={(e) => {
+                                                                        handleItemChange(index, 'isSuperTreasureHunt', e.target.checked)
+                                                                        if (e.target.checked) {
+                                                                            handleItemChange(index, 'isTreasureHunt', false)
+                                                                        }
+                                                                    }}
+                                                                    disabled={item.isTreasureHunt}
+                                                                    className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded disabled:opacity-50"
+                                                                />
+                                                                <label htmlFor={`sth-${index}`} className="text-sm font-medium text-gray-700">
+                                                                    Super Treasure Hunt ($TH)
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Chase Checkbox - Conditional */}
+                                                    {((item.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(item.brand.toLowerCase())) || 
+                                                      (item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'premium')) && (
+                                                        <div className="mt-4">
+                                                            <div className="flex items-center space-x-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`chase-${index}`}
+                                                                    checked={item.isChase || false}
+                                                                    onChange={(e) => handleItemChange(index, 'isChase', e.target.checked)}
+                                                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                                                />
+                                                                <label htmlFor={`chase-${index}`} className="text-sm font-medium text-gray-700">
+                                                                    Chase
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Series Section */}
+                                                    <div className="mt-4">
+                                                        <h6 className="text-sm font-medium text-gray-700 mb-2">Información de Serie (Opcional)</h6>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="md:col-span-2">
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Nombre de la Serie
+                                                                </label>
+                                                                <Input
+                                                                    type="text"
+                                                                    value={item.seriesName || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'seriesName', e.target.value)}
+                                                                    placeholder="Ej: Fast & Furious, Mainline 2024..."
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Tamaño de Serie
+                                                                </label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={item.seriesSize || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'seriesSize', parseInt(e.target.value) || undefined)}
+                                                                    placeholder="Ej: 5, 10, 8..."
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Posición en Serie
+                                                                </label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={item.seriesPosition || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'seriesPosition', parseInt(e.target.value) || undefined)}
+                                                                    placeholder="Ej: 1, 2, 3..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Location */}
+                                                    <div className="mt-4">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            <MapPin size={16} className="inline mr-1" />
+                                                            Ubicación Física
+                                                        </label>
+                                                        <Input
+                                                            type="text"
+                                                            value={item.location || ''}
+                                                            onChange={(e) => handleItemChange(index, 'location', e.target.value)}
+                                                            placeholder="Ej: Caja A, Estante 3, Vitrina..."
+                                                        />
+                                                    </div>
+
+                                                    {/* Photos Section */}
+                                                    <div className="mt-4">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            <Upload size={16} className="inline mr-1" />
+                                                            Fotos del Item
+                                                        </label>
+                                                        <div className="space-y-2">
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                multiple
+                                                                onChange={(e) => handleFileUpload(index, e.target.files)}
+                                                                className="block w-full text-sm text-gray-500
+                                                                    file:mr-4 file:py-2 file:px-4
+                                                                    file:rounded-md file:border-0
+                                                                    file:text-sm file:font-semibold
+                                                                    file:bg-blue-50 file:text-blue-700
+                                                                    hover:file:bg-blue-100"
+                                                            />
+                                                            {item.photos && item.photos.length > 0 && (
+                                                                <div className="grid grid-cols-4 gap-2 mt-2">
+                                                                    {item.photos.map((photo, photoIndex) => (
+                                                                        <div key={photoIndex} className="relative group">
+                                                                            <img 
+                                                                                src={photo} 
+                                                                                alt={`Preview ${photoIndex + 1}`}
+                                                                                className="w-full h-20 object-cover rounded border"
+                                                                            />
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => removePhoto(index, photoIndex)}
+                                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                            >
+                                                                                <X size={14} />
+                                                                            </button>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Box Option */}
+                                                    <div className="mt-4">
+                                                        <div className="flex items-center space-x-4">
+                                                            <div className="flex items-center space-x-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`isBox-${index}`}
+                                                                    checked={item.isBox || false}
+                                                                    onChange={(e) => handleItemChange(index, 'isBox', e.target.checked)}
+                                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                                />
+                                                                <label htmlFor={`isBox-${index}`} className="text-sm font-medium text-gray-700">
+                                                                    <Package size={16} className="inline mr-1" />
+                                                                    Es una caja/serie completa
+                                                                </label>
+                                                            </div>
+
+                                                            {item.isBox && (
+                                                                <div className="flex items-center space-x-2">
+                                                                    <label className="text-sm font-medium text-gray-700">Tamaño:</label>
+                                                                    <select
+                                                                        value={item.boxSize || 5}
+                                                                        onChange={(e) => handleItemChange(index, 'boxSize', parseInt(e.target.value) as 5 | 8 | 10)}
+                                                                        className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    >
+                                                                        <option value={5}>5 piezas</option>
+                                                                        <option value={8}>8 piezas</option>
+                                                                        <option value={10}>10 piezas</option>
+                                                                    </select>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Notes */}
+                                                    <div className="mt-4">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                            Notas del Item
+                                                        </label>
+                                                        <textarea
+                                                            value={item.notes || ''}
+                                                            onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
+                                                            placeholder="Observaciones, defectos, detalles especiales..."
+                                                            rows={2}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        />
                                                     </div>
 
                                                     <div className="mt-2 text-sm text-gray-600">
