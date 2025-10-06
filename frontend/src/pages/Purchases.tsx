@@ -29,6 +29,28 @@ export default function Purchases() {
     const [isEditMode, setIsEditMode] = useState(false)
     const [customBrandInput, setCustomBrandInput] = useState('')
     const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
+    
+    // Series management
+    const [showSeriesModal, setShowSeriesModal] = useState(false)
+    const [seriesData, setSeriesData] = useState({
+        seriesName: '',
+        seriesSize: 5,
+        brand: '',
+        pieceType: '' as 'basic' | 'premium' | 'rlc' | '',
+        condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
+        location: '',
+        unitPrice: 0,
+        pieces: [] as Array<{
+            carId: string;
+            position: number;
+            isTreasureHunt?: boolean;
+            isSuperTreasureHunt?: boolean;
+            isChase?: boolean;
+            photos?: string[];
+            notes?: string;
+        }>
+    })
+    
     const [newSupplier, setNewSupplier] = useState({
         name: '',
         email: '',
@@ -113,8 +135,8 @@ export default function Purchases() {
                 isChase: false,
                 seriesId: '',
                 seriesName: '',
-                seriesSize: 5,
-                seriesPosition: 1,
+                seriesSize: undefined,
+                seriesPosition: undefined,
                 seriesPrice: 0,
                 photos: [],
                 location: '',
@@ -123,6 +145,108 @@ export default function Purchases() {
                 boxSize: 10
             }]
         })
+    }
+
+    const handleAddCompleteSeries = () => {
+        // Reset series data and open modal
+        setSeriesData({
+            seriesName: '',
+            seriesSize: 5,
+            brand: '',
+            pieceType: '',
+            condition: 'mint',
+            location: '',
+            unitPrice: 0,
+            pieces: Array.from({ length: 5 }, (_, i) => ({
+                carId: '',
+                position: i + 1,
+                isTreasureHunt: false,
+                isSuperTreasureHunt: false,
+                isChase: false,
+                photos: [],
+                notes: ''
+            }))
+        })
+        setShowSeriesModal(true)
+    }
+
+    const handleSeriesDataChange = (field: string, value: any) => {
+        setSeriesData(prev => {
+            const updated = { ...prev, [field]: value }
+            
+            // If seriesSize changes, adjust pieces array
+            if (field === 'seriesSize') {
+                const currentSize = prev.pieces.length
+                if (value > currentSize) {
+                    // Add more pieces
+                    updated.pieces = [
+                        ...prev.pieces,
+                        ...Array.from({ length: value - currentSize }, (_, i) => ({
+                            carId: '',
+                            position: currentSize + i + 1,
+                            isTreasureHunt: false,
+                            isSuperTreasureHunt: false,
+                            isChase: false,
+                            photos: [],
+                            notes: ''
+                        }))
+                    ]
+                } else if (value < currentSize) {
+                    // Remove excess pieces
+                    updated.pieces = prev.pieces.slice(0, value)
+                }
+            }
+            
+            return updated
+        })
+    }
+
+    const handleSeriesPieceChange = (index: number, field: string, value: any) => {
+        setSeriesData(prev => ({
+            ...prev,
+            pieces: prev.pieces.map((piece, i) => 
+                i === index ? { ...piece, [field]: value } : piece
+            )
+        }))
+    }
+
+    const handleSaveCompleteSeries = () => {
+        // Validate that all pieces have carId
+        const invalidPieces = seriesData.pieces.filter(p => !p.carId.trim())
+        if (invalidPieces.length > 0) {
+            alert('Por favor completa el ID de todos los autos de la serie')
+            return
+        }
+
+        // Add all pieces as individual items
+        const newItems = seriesData.pieces.map((piece) => ({
+            carId: piece.carId,
+            quantity: 1,
+            unitPrice: seriesData.unitPrice,
+            condition: seriesData.condition,
+            brand: seriesData.brand,
+            pieceType: seriesData.pieceType,
+            isTreasureHunt: piece.isTreasureHunt || false,
+            isSuperTreasureHunt: piece.isSuperTreasureHunt || false,
+            isChase: piece.isChase || false,
+            seriesId: '', // Could generate a UUID here
+            seriesName: seriesData.seriesName,
+            seriesSize: seriesData.seriesSize,
+            seriesPosition: piece.position,
+            seriesPrice: seriesData.unitPrice * seriesData.seriesSize,
+            photos: piece.photos || [],
+            location: seriesData.location,
+            notes: piece.notes || `Pieza ${piece.position} de ${seriesData.seriesSize} - ${seriesData.seriesName}`,
+            isBox: false,
+            boxSize: 10 as 5 | 8 | 10
+        }))
+
+        setNewPurchase(prev => ({
+            ...prev,
+            items: [...prev.items, ...newItems]
+        }))
+
+        setShowSeriesModal(false)
     }
 
     const handleRemoveItem = (index: number) => {
@@ -355,6 +479,43 @@ export default function Purchases() {
     const removePhoto = (itemIndex: number, photoIndex: number) => {
         const currentPhotos = newPurchase.items[itemIndex].photos || []
         handleItemChange(itemIndex, 'photos', currentPhotos.filter((_, i) => i !== photoIndex))
+    }
+
+    // Photo handling for series modal
+    const handleSeriesPhotoUpload = async (pieceIndex: number, files: FileList | null) => {
+        if (!files) return
+
+        const compressionOptions = {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1024,
+            useWebWorker: true,
+            fileType: 'image/jpeg',
+        }
+
+        for (const file of Array.from(files)) {
+            if (file.type.startsWith('image/')) {
+                try {
+                    const compressedFile = await imageCompression(file, compressionOptions)
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string
+                        const currentPhotos = seriesData.pieces[pieceIndex].photos || []
+                        handleSeriesPieceChange(pieceIndex, 'photos', [...currentPhotos, result])
+                    }
+                    reader.readAsDataURL(compressedFile)
+                    console.log(`📸 Imagen comprimida (Serie): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
+                } catch (error) {
+                    console.error('Error al comprimir imagen:', error)
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string
+                        const currentPhotos = seriesData.pieces[pieceIndex].photos || []
+                        handleSeriesPieceChange(pieceIndex, 'photos', [...currentPhotos, result])
+                    }
+                    reader.readAsDataURL(file)
+                }
+            }
+        }
     }
 
     const handleStatusChange = async (purchaseId: string, newStatus: 'pending' | 'paid' | 'shipped' | 'received' | 'cancelled') => {
@@ -719,21 +880,30 @@ export default function Purchases() {
                                 <div>
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="text-md font-medium text-gray-900">Items de la Compra</h4>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="secondary"
-                                            onClick={handleAddItem}
-                                        >
-                                            Agregar Item
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={handleAddItem}
+                                            >
+                                                + Item Individual
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                onClick={handleAddCompleteSeries}
+                                            >
+                                                + Serie Completa
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     {newPurchase.items.length === 0 ? (
                                         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                                             <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
                                             <p className="text-gray-600">No hay items agregados</p>
-                                            <p className="text-sm text-gray-500">Haz clic en "Agregar Item" para comenzar</p>
+                                            <p className="text-sm text-gray-500">Agrega items individuales o series completas</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
@@ -1315,6 +1485,309 @@ export default function Purchases() {
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Complete Series Modal */}
+            {showSeriesModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                    <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-2xl font-bold text-gray-900">Agregar Serie Completa</h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSeriesModal(false)}
+                                    className="text-gray-500 hover:text-gray-700"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            {/* Series Information */}
+                            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+                                <h4 className="font-medium text-gray-900 mb-4">Información de la Serie</h4>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Nombre de la Serie *
+                                        </label>
+                                        <Input
+                                            type="text"
+                                            value={seriesData.seriesName}
+                                            onChange={(e) => handleSeriesDataChange('seriesName', e.target.value)}
+                                            placeholder="Ej: Fast & Furious, Mainline 2024..."
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Cantidad de Piezas *
+                                        </label>
+                                        <select
+                                            value={seriesData.seriesSize}
+                                            onChange={(e) => handleSeriesDataChange('seriesSize', parseInt(e.target.value))}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value={5}>5 piezas</option>
+                                            <option value={8}>8 piezas</option>
+                                            <option value={10}>10 piezas</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Marca *
+                                        </label>
+                                        <select
+                                            value={seriesData.brand}
+                                            onChange={(e) => handleSeriesDataChange('brand', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="">Seleccionar marca...</option>
+                                            {allBrands.map((brand) => (
+                                                <option key={brand} value={brand}>{brand}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Tipo de Pieza *
+                                        </label>
+                                        <select
+                                            value={seriesData.pieceType}
+                                            onChange={(e) => handleSeriesDataChange('pieceType', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="">Seleccionar...</option>
+                                            <option value="basic">Básico</option>
+                                            <option value="premium">Premium</option>
+                                            <option value="rlc">RLC</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Condición
+                                        </label>
+                                        <select
+                                            value={seriesData.condition}
+                                            onChange={(e) => handleSeriesDataChange('condition', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="mint">Mint</option>
+                                            <option value="good">Good</option>
+                                            <option value="fair">Fair</option>
+                                            <option value="poor">Poor</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            <MapPin size={16} className="inline mr-1" />
+                                            Ubicación Física
+                                        </label>
+                                        <Input
+                                            type="text"
+                                            value={seriesData.location}
+                                            onChange={(e) => handleSeriesDataChange('location', e.target.value)}
+                                            placeholder="Ej: Caja A, Estante 3..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Precio por Pieza *
+                                        </label>
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            value={seriesData.unitPrice || ''}
+                                            onChange={(e) => handleSeriesDataChange('unitPrice', parseFloat(e.target.value) || 0)}
+                                            placeholder="0.00"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 p-3 bg-white rounded border border-blue-200">
+                                    <div className="text-sm text-gray-600">
+                                        <strong>Total de la serie:</strong> ${(seriesData.unitPrice * seriesData.seriesSize).toFixed(2)} 
+                                        <span className="ml-2">({seriesData.seriesSize} piezas × ${seriesData.unitPrice.toFixed(2)})</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Individual Pieces */}
+                            <div>
+                                <h4 className="font-medium text-gray-900 mb-4">Piezas de la Serie</h4>
+                                <div className="space-y-4">
+                                    {seriesData.pieces.map((piece, index) => (
+                                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                                            <h5 className="font-medium text-gray-900 mb-3">
+                                                Pieza {piece.position} de {seriesData.seriesSize}
+                                            </h5>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        ID del Auto *
+                                                    </label>
+                                                    <Input
+                                                        type="text"
+                                                        value={piece.carId}
+                                                        onChange={(e) => handleSeriesPieceChange(index, 'carId', e.target.value)}
+                                                        placeholder="ID del Hot Wheels"
+                                                        required
+                                                    />
+                                                </div>
+
+                                                {/* TH/STH/Chase - Conditional */}
+                                                {seriesData.brand?.toLowerCase() === 'hot wheels' && seriesData.pieceType === 'basic' && (
+                                                    <div className="md:col-span-2 flex gap-4">
+                                                        <div className="flex items-center space-x-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`th-series-${index}`}
+                                                                checked={piece.isTreasureHunt || false}
+                                                                onChange={(e) => {
+                                                                    handleSeriesPieceChange(index, 'isTreasureHunt', e.target.checked)
+                                                                    if (e.target.checked) {
+                                                                        handleSeriesPieceChange(index, 'isSuperTreasureHunt', false)
+                                                                    }
+                                                                }}
+                                                                disabled={piece.isSuperTreasureHunt}
+                                                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                                            />
+                                                            <label htmlFor={`th-series-${index}`} className="text-sm font-medium text-gray-700">
+                                                                Treasure Hunt (TH)
+                                                            </label>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`sth-series-${index}`}
+                                                                checked={piece.isSuperTreasureHunt || false}
+                                                                onChange={(e) => {
+                                                                    handleSeriesPieceChange(index, 'isSuperTreasureHunt', e.target.checked)
+                                                                    if (e.target.checked) {
+                                                                        handleSeriesPieceChange(index, 'isTreasureHunt', false)
+                                                                    }
+                                                                }}
+                                                                disabled={piece.isTreasureHunt}
+                                                                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                                                            />
+                                                            <label htmlFor={`sth-series-${index}`} className="text-sm font-medium text-gray-700">
+                                                                Super Treasure Hunt ($TH)
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Chase - Conditional */}
+                                                {((seriesData.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(seriesData.brand.toLowerCase())) || 
+                                                  (seriesData.brand?.toLowerCase() === 'hot wheels' && seriesData.pieceType === 'premium')) && (
+                                                    <div className="md:col-span-2">
+                                                        <div className="flex items-center space-x-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`chase-series-${index}`}
+                                                                checked={piece.isChase || false}
+                                                                onChange={(e) => handleSeriesPieceChange(index, 'isChase', e.target.checked)}
+                                                                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                                            />
+                                                            <label htmlFor={`chase-series-${index}`} className="text-sm font-medium text-gray-700">
+                                                                Chase
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Photos */}
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                        <Upload size={16} className="inline mr-1" />
+                                                        Fotos de esta pieza
+                                                    </label>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        multiple
+                                                        onChange={(e) => handleSeriesPhotoUpload(index, e.target.files)}
+                                                        className="block w-full text-sm text-gray-500
+                                                            file:mr-4 file:py-2 file:px-4
+                                                            file:rounded-md file:border-0
+                                                            file:text-sm file:font-semibold
+                                                            file:bg-blue-50 file:text-blue-700
+                                                            hover:file:bg-blue-100"
+                                                    />
+                                                    {piece.photos && piece.photos.length > 0 && (
+                                                        <div className="grid grid-cols-4 gap-2 mt-2">
+                                                            {piece.photos.map((photo, photoIndex) => (
+                                                                <div key={photoIndex} className="relative group">
+                                                                    <img 
+                                                                        src={photo} 
+                                                                        alt={`Preview ${photoIndex + 1}`}
+                                                                        className="w-full h-20 object-cover rounded border"
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const newPhotos = piece.photos?.filter((_, i) => i !== photoIndex) || []
+                                                                            handleSeriesPieceChange(index, 'photos', newPhotos)
+                                                                        }}
+                                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    >
+                                                                        <X size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Notes */}
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Notas de esta pieza
+                                                    </label>
+                                                    <textarea
+                                                        value={piece.notes || ''}
+                                                        onChange={(e) => handleSeriesPieceChange(index, 'notes', e.target.value)}
+                                                        placeholder="Observaciones específicas de esta pieza..."
+                                                        rows={2}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex space-x-3 pt-6 border-t mt-6">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    className="flex-1"
+                                    onClick={() => setShowSeriesModal(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    className="flex-1"
+                                    onClick={handleSaveCompleteSeries}
+                                >
+                                    Agregar {seriesData.seriesSize} Piezas
+                                </Button>
                             </div>
                         </div>
                     </div>
