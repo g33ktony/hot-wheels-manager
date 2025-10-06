@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { boxesService } from '@/services/boxes'
-import type { InventoryItem } from '../../../shared/types'
 
 interface RegisterPiecesPayload {
   boxId: string
@@ -93,14 +92,14 @@ export const useDeleteBoxPiece = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ boxId, pieceId }: { boxId: string; pieceId: string }) => {
+    mutationFn: async ({ boxId }: { boxId: string; pieceId: string }) => {
       // Note: This endpoint might not exist yet in boxesService
       // We'll need to add it if needed
       throw new Error('Delete piece endpoint not implemented yet')
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data, { boxId }) => {
       // Invalidate specific box
-      queryClient.invalidateQueries({ queryKey: ['boxes', variables.boxId] })
+      queryClient.invalidateQueries({ queryKey: ['boxes', boxId] })
       // Invalidate boxes list
       queryClient.invalidateQueries({ queryKey: ['boxes'] })
       // Invalidate inventory
