@@ -1,25 +1,26 @@
 import { useState } from 'react'
 import { usePurchases, useCreatePurchase, useUpdatePurchase, useUpdatePurchaseStatus, useDeletePurchase } from '@/hooks/usePurchases'
 import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers'
-import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
+// import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands' // Will be used when UI is implemented
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upload, MapPin } from 'lucide-react'
-import imageCompression from 'browser-image-compression'
+import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit } from 'lucide-react'
+// Package, User, Edit2, Eye will be used when UI is implemented
+// import imageCompression from 'browser-image-compression' // Will be used when UI is implemented
 
-// Predefined brands
-const PREDEFINED_BRANDS = [
-    'Hot Wheels',
-    'Kaido House',
-    'Mini GT',
-    'M2 Machines',
-    'Tomica',
-    'Matchbox',
-    'Johnny Lightning',
-    'Greenlight'
-]
+// Will be used when UI is implemented per PURCHASES_UI_TODO.md
+// const PREDEFINED_BRANDS = [
+//     'Hot Wheels',
+//     'Kaido House',
+//     'Mini GT',
+//     'M2 Machines',
+//     'Tomica',
+//     'Matchbox',
+//     'Johnny Lightning',
+//     'Greenlight'
+// ]
 
 export default function Purchases() {
     const [showAddModal, setShowAddModal] = useState(false)
@@ -28,8 +29,9 @@ export default function Purchases() {
     const [selectedPurchase, setSelectedPurchase] = useState<any>(null)
     const [editingPurchase, setEditingPurchase] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
-    const [customBrandInput, setCustomBrandInput] = useState('')
-    const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
+    // Custom brand support (will be used in UI implementation)
+    // const [customBrandInput, setCustomBrandInput] = useState('')
+    // const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
     const [newSupplier, setNewSupplier] = useState({
         name: '',
         email: '',
@@ -73,19 +75,19 @@ export default function Purchases() {
 
     const { data: purchases, isLoading, error } = usePurchases()
     const { data: suppliers } = useSuppliers()
-    const { data: customBrands } = useCustomBrands()
+    // const { data: customBrands } = useCustomBrands() // Will be used when UI is implemented
     const createPurchaseMutation = useCreatePurchase()
     const updatePurchaseMutation = useUpdatePurchase()
     const createSupplierMutation = useCreateSupplier()
     const updateStatusMutation = useUpdatePurchaseStatus()
     const deletePurchaseMutation = useDeletePurchase()
-    const createCustomBrandMutation = useCreateCustomBrand()
+    // const createCustomBrandMutation = useCreateCustomBrand() // Will be used when UI is implemented
 
-    // Combine predefined and custom brands
-    const allBrands = [
-        ...PREDEFINED_BRANDS,
-        ...(customBrands?.map(b => b.name) || [])
-    ].sort()
+    // Combine predefined and custom brands (will be used in UI implementation)
+    // const allBrands = [
+    //     ...PREDEFINED_BRANDS,
+    //     ...(customBrands?.map(b => b.name) || [])
+    // ].sort()
 
     if (isLoading) {
         return <Loading text="Cargando compras..." />
@@ -293,6 +295,12 @@ export default function Purchases() {
         })
     }
 
+    /* 
+    // ====================================================================
+    // Helper functions below will be connected when UI is implemented
+    // See PURCHASES_UI_TODO.md for complete implementation guide
+    // ====================================================================
+
     // Brand handling
     const handleBrandChange = (index: number, value: string) => {
         if (value === 'custom') {
@@ -357,12 +365,41 @@ export default function Purchases() {
         const currentPhotos = newPurchase.items[itemIndex].photos || []
         handleItemChange(itemIndex, 'photos', currentPhotos.filter((_, i) => i !== photoIndex))
     }
+    */
 
     const handleStatusChange = async (purchaseId: string, newStatus: 'pending' | 'paid' | 'shipped' | 'received' | 'cancelled') => {
         try {
+            // Special confirmation for "received" status
+            if (newStatus === 'received') {
+                const purchase = purchases?.find(p => p._id === purchaseId)
+                const itemCount = purchase?.items?.length || 0
+                const totalQuantity = purchase?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
+                
+                const confirmReceive = window.confirm(
+                    `¿Confirmar que la compra fue recibida?\n\n` +
+                    `📦 Esto agregará automáticamente ${totalQuantity} pieza${totalQuantity !== 1 ? 's' : ''} (${itemCount} item${itemCount !== 1 ? 's' : ''}) al inventario con toda la información:\n\n` +
+                    `✓ Marca y tipo de pieza\n` +
+                    `✓ TH/STH/Chase (si aplica)\n` +
+                    `✓ Serie completa\n` +
+                    `✓ Fotos y ubicación\n` +
+                    `✓ Todas las notas\n\n` +
+                    `Las piezas estarán disponibles inmediatamente en el inventario.`
+                )
+                
+                if (!confirmReceive) {
+                    return
+                }
+            }
+            
             await updateStatusMutation.mutateAsync({ id: purchaseId, status: newStatus })
+            
+            // Show success message for received status
+            if (newStatus === 'received') {
+                alert('✅ Compra recibida exitosamente!\n\nTodos los items fueron agregados al inventario.')
+            }
         } catch (error) {
             console.error('Error updating purchase status:', error)
+            alert('❌ Error al actualizar el estado de la compra. Por favor intenta de nuevo.')
         }
     }
 

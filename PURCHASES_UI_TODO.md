@@ -1,5 +1,36 @@
 # TODO: Actualizar UI de Compras con Funcionalidades de Inventario
 
+## ⚡ IMPORTANTE: Sistema de Sincronización Automática
+
+**Cuando una compra se marca como "Recibida", todos los items se agregan AUTOMÁTICAMENTE al inventario.**
+
+### Flujo Automático:
+1. ✅ Usuario crea compra con TODOS los detalles (marca, tipo, TH/STH, Chase, series, fotos, ubicación)
+2. ✅ Cuando la compra llega físicamente, marca como "Received"
+3. ✅ **Backend automáticamente crea/actualiza items en inventario**
+4. ✅ Usuario NO tiene que volver a ingresar información
+
+### Campos que se Transfieren Automáticamente:
+- ✅ carId, quantity, unitPrice (→ purchasePrice)
+- ✅ condition
+- ✅ brand, pieceType
+- ✅ isTreasureHunt, isSuperTreasureHunt, isChase
+- ✅ seriesId, seriesName, seriesSize, seriesPosition, seriesPrice
+- ✅ photos[] (se agregan sin duplicar)
+- ✅ location
+- ✅ notes (se concatenan)
+
+### Lógica de Actualización:
+- Si el item YA existe en inventario (mismo carId + condition + brand):
+  - Suma la cantidad
+  - Actualiza precio de compra
+  - Merge fotos sin duplicar
+  - Concatena notas
+- Si el item NO existe:
+  - Crea nuevo item con TODA la información
+
+---
+
 ## Estado Actual ✅
 - ✅ Tipos actualizados en `shared/types.ts`
 - ✅ Backend compilado exitosamente

@@ -134,34 +134,91 @@ export const createPurchase = async (req: Request, res: Response) => {
 const addItemsToInventory = async (purchase: any) => {
   try {
     for (const item of purchase.items) {
-      // Check if inventory item already exists
+      // Check if inventory item already exists with same carId, condition, and brand
       let inventoryItem = await InventoryItemModel.findOne({
         carId: item.carId,
-        condition: item.condition
+        condition: item.condition,
+        brand: item.brand || { $exists: false }
       })
 
       if (inventoryItem) {
-        // Update existing inventory item
+        // Update existing inventory item - add quantity and update price
         inventoryItem.quantity += item.quantity
         inventoryItem.purchasePrice = item.unitPrice // Update to latest purchase price
+        
+        // Update fields if they don't exist yet or are different
+        if (item.brand && !inventoryItem.brand) inventoryItem.brand = item.brand
+        if (item.pieceType && !inventoryItem.pieceType) inventoryItem.pieceType = item.pieceType
+        if (item.isTreasureHunt) inventoryItem.isTreasureHunt = item.isTreasureHunt
+        if (item.isSuperTreasureHunt) inventoryItem.isSuperTreasureHunt = item.isSuperTreasureHunt
+        if (item.isChase) inventoryItem.isChase = item.isChase
+        
+        // Update series info if provided
+        if (item.seriesId && !inventoryItem.seriesId) {
+          inventoryItem.seriesId = item.seriesId
+          inventoryItem.seriesName = item.seriesName
+          inventoryItem.seriesSize = item.seriesSize
+          inventoryItem.seriesPosition = item.seriesPosition
+          inventoryItem.seriesPrice = item.seriesPrice
+        }
+        
+        // Merge photos without duplicates
+        if (item.photos && item.photos.length > 0) {
+          const existingPhotos = inventoryItem.photos || []
+          const newPhotos = item.photos.filter((photo: string) => !existingPhotos.includes(photo))
+          inventoryItem.photos = [...existingPhotos, ...newPhotos]
+        }
+        
+        // Update location if provided and not already set
+        if (item.location && !inventoryItem.location) {
+          inventoryItem.location = item.location
+        }
+        
+        // Append notes
+        if (item.notes) {
+          const existingNotes = inventoryItem.notes || ''
+          inventoryItem.notes = existingNotes 
+            ? `${existingNotes}\n[Compra ${purchase._id}]: ${item.notes}`
+            : `[Compra ${purchase._id}]: ${item.notes}`
+        }
+        
         await inventoryItem.save()
       } else {
-        // Create new inventory item
+        // Create new inventory item with all fields from purchase
         const newInventoryItem = new InventoryItemModel({
           carId: item.carId,
           quantity: item.quantity,
           purchasePrice: item.unitPrice,
-          suggestedPrice: item.unitPrice * 2, // Default markup
+          suggestedPrice: item.unitPrice * 2, // Default markup of 100%
           condition: item.condition,
-          notes: `Agregado desde compra ${purchase._id}`
+          // Brand and type fields
+          brand: item.brand,
+          pieceType: item.pieceType,
+          isTreasureHunt: item.isTreasureHunt || false,
+          isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+          isChase: item.isChase || false,
+          // Series fields
+          seriesId: item.seriesId,
+          seriesName: item.seriesName,
+          seriesSize: item.seriesSize,
+          seriesPosition: item.seriesPosition,
+          seriesPrice: item.seriesPrice,
+          // Photos and location
+          photos: item.photos || [],
+          location: item.location,
+          // Notes
+          notes: item.notes 
+            ? `Agregado desde compra ${purchase._id}\n${item.notes}`
+            : `Agregado desde compra ${purchase._id}`,
+          dateAdded: new Date()
         })
         await newInventoryItem.save()
       }
     }
 
-    console.log(`Added ${purchase.items.length} items to inventory from purchase ${purchase._id}`)
+    console.log(`✅ Added ${purchase.items.length} items to inventory from purchase ${purchase._id}`)
   } catch (error) {
-    console.error('Error adding items to inventory:', error)
+    console.error('❌ Error adding items to inventory:', error)
     throw error
   }
 }
