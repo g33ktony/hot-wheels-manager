@@ -904,6 +904,22 @@ export default function Inventory() {
                                         </div>
                                     )}
                                     
+                                    {/* Box Badge - If this IS a sealed box */}
+                                    {item.isBox && (
+                                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                                            📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas
+                                            {item.boxStatus === 'sealed' && ' 🔒'}
+                                            {item.boxStatus === 'unpacking' && ' ⏳'}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Source Box Badge - If this piece came from a box */}
+                                    {item.sourceBox && !item.isBox && (
+                                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                                            📦 De: {item.sourceBox}
+                                        </div>
+                                    )}
+                                    
                                     <div className="flex items-center justify-between mt-2">
                                         <span className={`
                       px-2 py-1 text-xs font-medium rounded-full
