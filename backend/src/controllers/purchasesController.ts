@@ -4,6 +4,7 @@ import Purchase from '../models/Purchase'
 import { InventoryItemModel } from '../models/InventoryItem'
 import { SupplierModel } from '../models/Supplier'
 import { DeliveryModel } from '../models/Delivery'
+import { SaleModel } from '../models/Sale'
 
 export const getPurchases = async (req: Request, res: Response) => {
   try {
@@ -337,13 +338,25 @@ export const deletePurchase = async (req: Request, res: Response) => {
       })
     }
 
-    // If the purchase was received, we need to:
-    // 1. Remove the items from inventory
-    // 2. Delete any associated deliveries
+    // If the purchase was received, we need to validate before deletion
     if (purchase.status === 'received') {
+      console.log(`🔍 Validating deletion of received purchase ${id}...`)
+      
+      // Validate that items can be safely removed
+      const validation = await validatePurchaseDeletion(purchase)
+      
+      if (!validation.canDelete) {
+        return res.status(400).json({
+          success: false,
+          data: null,
+          message: validation.message,
+          error: validation.details
+        })
+      }
+      
       console.log(`🗑️  Deleting received purchase ${id} - reverting inventory and deliveries...`)
       
-      // Remove items from inventory
+      // Remove items from inventory (now with box support)
       await removeItemsFromInventory(purchase)
       
       // Delete associated deliveries
@@ -373,31 +386,121 @@ export const deletePurchase = async (req: Request, res: Response) => {
   }
 }
 
-// Helper function to remove items from inventory when purchase is deleted
-const removeItemsFromInventory = async (purchase: any) => {
-  try {
-    for (const item of purchase.items) {
-      // Find the inventory item (consistent with addItemsToInventory logic)
+// Helper function to validate if a purchase can be safely deleted
+const validatePurchaseDeletion = async (purchase: any) => {
+  const issues: string[] = []
+  
+  for (const item of purchase.items) {
+    // Handle boxes
+    if (item.isBox) {
+      const boxItem = await InventoryItemModel.findOne({
+        carId: item.carId,
+        isBox: true,
+        boxName: item.boxName
+      })
+      
+      if (boxItem) {
+        // Check if box is being unpacked or already unpacked
+        if (boxItem.boxStatus === 'unpacking') {
+          issues.push(`❌ La caja "${item.boxName}" está siendo desempacada (${boxItem.registeredPieces}/${boxItem.boxSize} piezas registradas)`)
+        } else if (boxItem.boxStatus === 'completed') {
+          issues.push(`❌ La caja "${item.boxName}" ya fue desempacada completamente`)
+        }
+        
+        // Check if any pieces from this box were sold
+        const soldPieces = await InventoryItemModel.find({
+          sourceBoxId: boxItem._id.toString(),
+          quantity: 0 // Sold items have quantity 0
+        })
+        
+        if (soldPieces.length > 0) {
+          issues.push(`❌ ${soldPieces.length} pieza(s) de la caja "${item.boxName}" ya fueron vendidas`)
+        }
+      }
+    } else {
+      // Handle regular items
       const inventoryItem = await InventoryItemModel.findOne({
         carId: item.carId,
         condition: item.condition,
         brand: item.brand || { $exists: false }
       })
-
+      
       if (inventoryItem) {
-        // Reduce quantity or remove item if quantity becomes 0
-        inventoryItem.quantity -= item.quantity
-        if (inventoryItem.quantity <= 0) {
-          await InventoryItemModel.findByIdAndDelete(inventoryItem._id)
-          console.log(`  ✓ Removed item ${item.carId} from inventory (quantity reached 0)`)
-        } else {
-          await inventoryItem.save()
-          console.log(`  ✓ Reduced quantity for ${item.carId}: ${inventoryItem.quantity + item.quantity} → ${inventoryItem.quantity}`)
+        // Check if item was sold (quantity is less than purchased)
+        const currentQuantity = inventoryItem.quantity
+        const purchasedQuantity = item.quantity
+        
+        if (currentQuantity < purchasedQuantity) {
+          const soldQuantity = purchasedQuantity - currentQuantity
+          issues.push(`❌ ${soldQuantity} de ${purchasedQuantity} unidad(es) de "${item.carId}" ya fueron vendidas`)
+        }
+        
+        // Check if item is in any active sale
+        const activeSales = await SaleModel.find({
+          'items.carId': item.carId,
+          status: { $nin: ['cancelled', 'completed'] }
+        })
+        
+        if (activeSales.length > 0) {
+          issues.push(`❌ "${item.carId}" está en ${activeSales.length} venta(s) activa(s)`)
+        }
+      }
+    }
+  }
+  
+  return {
+    canDelete: issues.length === 0,
+    message: issues.length > 0 
+      ? 'No se puede eliminar esta compra porque tiene items que ya fueron procesados'
+      : 'La compra puede eliminarse de forma segura',
+    details: issues.join('\n')
+  }
+}
+
+// Helper function to remove items from inventory when purchase is deleted
+const removeItemsFromInventory = async (purchase: any) => {
+  try {
+    for (const item of purchase.items) {
+      // Handle boxes
+      if (item.isBox) {
+        const boxItem = await InventoryItemModel.findOne({
+          carId: item.carId,
+          isBox: true,
+          boxName: item.boxName
+        })
+        
+        if (boxItem) {
+          // Only delete if still sealed (validation should have caught other cases)
+          if (boxItem.boxStatus === 'sealed') {
+            await InventoryItemModel.findByIdAndDelete(boxItem._id)
+            console.log(`  ✓ Removed sealed box "${item.boxName}" from inventory`)
+          } else {
+            console.warn(`  ⚠️  Skipping box "${item.boxName}" - status: ${boxItem.boxStatus}`)
+          }
+        }
+      } else {
+        // Handle regular items (consistent with addItemsToInventory logic)
+        const inventoryItem = await InventoryItemModel.findOne({
+          carId: item.carId,
+          condition: item.condition,
+          brand: item.brand || { $exists: false }
+        })
+
+        if (inventoryItem) {
+          // Reduce quantity or remove item if quantity becomes 0
+          inventoryItem.quantity -= item.quantity
+          if (inventoryItem.quantity <= 0) {
+            await InventoryItemModel.findByIdAndDelete(inventoryItem._id)
+            console.log(`  ✓ Removed item ${item.carId} from inventory (quantity reached 0)`)
+          } else {
+            await inventoryItem.save()
+            console.log(`  ✓ Reduced quantity for ${item.carId}: ${inventoryItem.quantity + item.quantity} → ${inventoryItem.quantity}`)
+          }
         }
       }
     }
 
-    console.log(`✅ Removed ${purchase.items.length} items from inventory for deleted purchase ${purchase._id}`)
+    console.log(`✅ Removed ${purchase.items.length} item(s) from inventory for deleted purchase ${purchase._id}`)
   } catch (error) {
     console.error('❌ Error removing items from inventory:', error)
     throw error
