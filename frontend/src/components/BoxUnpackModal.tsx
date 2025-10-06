@@ -66,7 +66,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
     const handlePieceChange = (index: number, field: keyof NewPiece, value: any) => {
         const updated = [...newPieces]
         updated[index] = { ...updated[index], [field]: value }
-        
+
         // TH/STH mutual exclusion for Hot Wheels Basic
         if (box.brand?.toLowerCase() === 'hot wheels' && box.pieceType === 'basic') {
             if (field === 'isTreasureHunt' && value) {
@@ -75,7 +75,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                 updated[index].isTreasureHunt = false
             }
         }
-        
+
         setNewPieces(updated)
     }
 
@@ -90,7 +90,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
             }
             const compressedFile = await imageCompression(file, options)
             const reader = new FileReader()
-            
+
             reader.onloadend = () => {
                 const base64String = reader.result as string
                 const updated = [...newPieces]
@@ -98,7 +98,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                 setNewPieces(updated)
                 setUploadingPhoto(false)
             }
-            
+
             reader.readAsDataURL(compressedFile)
         } catch (error) {
             console.error('Error uploading photo:', error)
@@ -115,7 +115,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
 
     const handleSaveAndAddAnother = async () => {
         const validPieces = newPieces.filter(p => p.carId.trim() !== '')
-        
+
         if (validPieces.length === 0) {
             alert('Ingresa al menos un Car ID')
             return
@@ -126,7 +126,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                 boxId: box._id || '',
                 pieces: validPieces
             })
-            
+
             // Reset form with one empty piece
             setNewPieces([{
                 carId: '',
@@ -147,7 +147,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
 
     const handleSaveAndClose = async () => {
         const validPieces = newPieces.filter(p => p.carId.trim() !== '')
-        
+
         if (validPieces.length > 0) {
             try {
                 await registerPiecesMutation.mutateAsync({
@@ -160,7 +160,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                 return
             }
         }
-        
+
         onClose()
     }
 

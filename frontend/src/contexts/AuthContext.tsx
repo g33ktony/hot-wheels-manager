@@ -114,7 +114,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.success('¡Bienvenido!')
     } catch (error) {
       console.error('Login error:', error)
-      
+
       // Provide more specific error messages
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           throw new Error('No se puede conectar con el servidor. Por favor verifica tu conexión.')
         }
       }
-      
+
       throw error
     }
   }

@@ -30,7 +30,7 @@ export default function Boxes() {
     // Filter boxes
     const filteredBoxes = boxes?.filter((box: any) => {
         const matchesSearch = box.boxName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            box.carId?.toLowerCase().includes(searchTerm.toLowerCase())
+            box.carId?.toLowerCase().includes(searchTerm.toLowerCase())
         const matchesBrand = filterBrand === 'all' || box.brand === filterBrand
         const matchesStatus = filterStatus === 'all' || box.boxStatus === filterStatus
         return matchesSearch && matchesBrand && matchesStatus
@@ -167,11 +167,10 @@ function BoxCard({ box, onOpenUnpack }: BoxCardProps) {
                         </h3>
                         <p className="text-sm text-gray-500 mt-1">{box.carId}</p>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        box.boxStatus === 'sealed'
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${box.boxStatus === 'sealed'
                             ? 'bg-blue-100 text-blue-800'
                             : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                        }`}>
                         {box.boxStatus === 'sealed' ? '🔒 Sellada' : '📦 En proceso'}
                     </div>
                 </div>

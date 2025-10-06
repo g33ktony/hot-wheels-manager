@@ -249,7 +249,7 @@ export default function Dashboard() {
 
                             {/* Pending Items Widget */}
                             {pendingItemsStats && pendingItemsStats.totalCount > 0 && (
-                                <div 
+                                <div
                                     className="flex items-start p-4 bg-orange-50 border-2 border-orange-300 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
                                     onClick={() => navigate('/pending-items')}
                                 >

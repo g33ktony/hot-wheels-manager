@@ -28,12 +28,12 @@ export default function Deliveries() {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
     const [newDelivery, setNewDelivery] = useState({
         customerId: '',
-        items: [] as { 
-            inventoryItemId?: string; 
-            hotWheelsCarId?: string; 
-            carId: string; 
-            carName: string; 
-            quantity: number; 
+        items: [] as {
+            inventoryItemId?: string;
+            hotWheelsCarId?: string;
+            carId: string;
+            carName: string;
+            quantity: number;
             unitPrice: number;
             // Series fields
             seriesId?: string;
@@ -368,7 +368,7 @@ export default function Deliveries() {
                 updatedItems[index].carId = inventoryItem.carId
                 updatedItems[index].carName = inventoryItem.hotWheelsCar?.model || inventoryItem.carId
                 updatedItems[index].unitPrice = inventoryItem.suggestedPrice
-                
+
                 // Store series information if this item is part of a series
                 if (inventoryItem.seriesId) {
                     updatedItems[index].seriesId = inventoryItem.seriesId
@@ -386,16 +386,16 @@ export default function Deliveries() {
     const completeSeries = async (seriesId: string, seriesPrice: number, seriesSize: number) => {
         try {
             console.log('🎁 Completing series:', { seriesId, seriesPrice, seriesSize })
-            
+
             // Find all items from this series in inventory
             const seriesItems = inventoryItems?.filter(item => item.seriesId === seriesId) || []
-            
+
             console.log('📦 Series items found:', seriesItems.length, seriesItems.map(i => ({
                 carId: i.carId,
                 suggestedPrice: i.suggestedPrice,
                 seriesPrice: i.seriesPrice
             })))
-            
+
             // Check if we have all pieces available
             const unavailableItems = seriesItems.filter(item => (item.quantity - (item.reservedQuantity || 0)) < 1)
             if (unavailableItems.length > 0) {
@@ -415,10 +415,10 @@ export default function Deliveries() {
 
             // Add or update all pieces from the series
             const updatedItems = [...newDelivery.items]
-            
+
             seriesItems.forEach(seriesItem => {
                 const existingIndex = updatedItems.findIndex(item => item.inventoryItemId === seriesItem._id)
-                
+
                 if (existingIndex >= 0) {
                     // Update existing item with series price
                     updatedItems[existingIndex].unitPrice = pricePerPiece
@@ -452,7 +452,7 @@ export default function Deliveries() {
 
     const removeDeliveryItem = (index: number) => {
         const itemToRemove = newDelivery.items[index]
-        
+
         // Check if this item is part of a series sold as complete
         if (itemToRemove.isSoldAsSeries && itemToRemove.seriesId) {
             const confirmRemove = window.confirm(
@@ -461,7 +461,7 @@ export default function Deliveries() {
                 `OK = Eliminar toda la serie\n` +
                 `Cancelar = Eliminar solo esta pieza (precio se ajustará a precio individual)`
             )
-            
+
             if (confirmRemove) {
                 // Remove all items from this series
                 const updatedItems = newDelivery.items.filter(item => item.seriesId !== itemToRemove.seriesId)
@@ -487,7 +487,7 @@ export default function Deliveries() {
                 return
             }
         }
-        
+
         // Normal removal
         setNewDelivery({
             ...newDelivery,
@@ -721,8 +721,8 @@ export default function Deliveries() {
                                         <div className="flex items-center gap-3 flex-wrap">
                                             <p className="text-xs lg:text-sm font-medium">Total: ${delivery.totalAmount.toFixed(2)}</p>
                                             <span className={`px-2 py-1 text-xs rounded-full ${(delivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
-                                                    (delivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
-                                                        'bg-red-100 text-red-800'
+                                                (delivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                    'bg-red-100 text-red-800'
                                                 }`}>
                                                 {(delivery.paymentStatus || 'pending') === 'paid' ? '✓ Pagado' :
                                                     (delivery.paymentStatus || 'pending') === 'partial' ? `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` :
@@ -999,11 +999,11 @@ export default function Deliveries() {
                                                     isSoldAsSeries: item.isSoldAsSeries,
                                                     shouldShowButton: !!item.seriesId && !item.isSoldAsSeries
                                                 })
-                                                
+
                                                 if (!item.seriesId || item.isSoldAsSeries) {
                                                     return null
                                                 }
-                                                
+
                                                 // Count how many pieces from this series are already in the delivery
                                                 const seriesItemsInDelivery = newDelivery.items.filter(i => i.seriesId === item.seriesId).length
                                                 const missingPieces = (item.seriesSize || 0) - seriesItemsInDelivery
@@ -1290,8 +1290,8 @@ export default function Deliveries() {
                                         <p>
                                             <span className="font-medium">Estado:</span>
                                             <span className={`ml-2 px-2 py-1 text-xs rounded-full ${(selectedDelivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
-                                                    (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
-                                                        'bg-red-100 text-red-800'
+                                                (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
+                                                    'bg-red-100 text-red-800'
                                                 }`}>
                                                 {(selectedDelivery.paymentStatus || 'pending') === 'paid' ? 'Pagado' :
                                                     (selectedDelivery.paymentStatus || 'pending') === 'partial' ? 'Parcial' : 'Pendiente'}

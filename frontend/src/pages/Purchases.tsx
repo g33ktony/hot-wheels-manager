@@ -34,7 +34,7 @@ export default function Purchases() {
     const [isEditMode, setIsEditMode] = useState(false)
     const [customBrandInput, setCustomBrandInput] = useState('')
     const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
-    
+
     // Series management
     const [showSeriesModal, setShowSeriesModal] = useState(false)
     const [seriesData, setSeriesData] = useState({
@@ -55,7 +55,7 @@ export default function Purchases() {
             notes?: string;
         }>
     })
-    
+
     const [newSupplier, setNewSupplier] = useState({
         name: '',
         email: '',
@@ -182,7 +182,7 @@ export default function Purchases() {
     const handleSeriesDataChange = (field: string, value: any) => {
         setSeriesData(prev => {
             const updated = { ...prev, [field]: value }
-            
+
             // If seriesSize changes, adjust pieces array
             if (field === 'seriesSize') {
                 const currentSize = prev.pieces.length
@@ -205,7 +205,7 @@ export default function Purchases() {
                     updated.pieces = prev.pieces.slice(0, value)
                 }
             }
-            
+
             return updated
         })
     }
@@ -213,7 +213,7 @@ export default function Purchases() {
     const handleSeriesPieceChange = (index: number, field: string, value: any) => {
         setSeriesData(prev => ({
             ...prev,
-            pieces: prev.pieces.map((piece, i) => 
+            pieces: prev.pieces.map((piece, i) =>
                 i === index ? { ...piece, [field]: value } : piece
             )
         }))
@@ -553,7 +553,7 @@ export default function Purchases() {
                 }
                 return
             }
-            
+
             await updateStatusMutation.mutateAsync({ id: purchaseId, status: newStatus })
         } catch (error) {
             console.error('Error updating purchase status:', error)
@@ -563,18 +563,18 @@ export default function Purchases() {
 
     const handleConfirmReceive = async () => {
         if (!purchaseToReceive?._id) return
-        
+
         try {
             // The modal already handled creating pending items and updating quantities
             // Just close the modal and refresh the list
             setShowReceiveModal(false)
             setPurchaseToReceive(null)
-            
+
             // Invalidate queries to refresh data
             queryClient.invalidateQueries(['purchases'])
             queryClient.invalidateQueries(['pending-items'])
             queryClient.invalidateQueries(['pending-items-stats'])
-            
+
             alert('✅ Compra recibida exitosamente!\n\nLos items recibidos fueron agregados al inventario.')
         } catch (error) {
             console.error('Error marking purchase as received:', error)
@@ -1123,23 +1123,23 @@ export default function Purchases() {
                                                     )}
 
                                                     {/* Chase Checkbox - Conditional */}
-                                                    {((item.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(item.brand.toLowerCase())) || 
-                                                      (item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'premium')) && (
-                                                        <div className="mt-4">
-                                                            <div className="flex items-center space-x-2">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    id={`chase-${index}`}
-                                                                    checked={item.isChase || false}
-                                                                    onChange={(e) => handleItemChange(index, 'isChase', e.target.checked)}
-                                                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                                                />
-                                                                <label htmlFor={`chase-${index}`} className="text-sm font-medium text-gray-700">
-                                                                    Chase
-                                                                </label>
+                                                    {((item.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(item.brand.toLowerCase())) ||
+                                                        (item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'premium')) && (
+                                                            <div className="mt-4">
+                                                                <div className="flex items-center space-x-2">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        id={`chase-${index}`}
+                                                                        checked={item.isChase || false}
+                                                                        onChange={(e) => handleItemChange(index, 'isChase', e.target.checked)}
+                                                                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                                                    />
+                                                                    <label htmlFor={`chase-${index}`} className="text-sm font-medium text-gray-700">
+                                                                        Chase
+                                                                    </label>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        )}
 
                                                     {/* Series Section */}
                                                     <div className="mt-4">
@@ -1220,8 +1220,8 @@ export default function Purchases() {
                                                                 <div className="grid grid-cols-4 gap-2 mt-2">
                                                                     {item.photos.map((photo, photoIndex) => (
                                                                         <div key={photoIndex} className="relative group">
-                                                                            <img 
-                                                                                src={photo} 
+                                                                            <img
+                                                                                src={photo}
                                                                                 alt={`Preview ${photoIndex + 1}`}
                                                                                 className="w-full h-20 object-cover rounded border"
                                                                             />
@@ -1262,7 +1262,7 @@ export default function Purchases() {
                                                                 <div className="text-sm font-medium text-purple-800 mb-2">
                                                                     📦 Configuración de Caja
                                                                 </div>
-                                                                
+
                                                                 <div className="grid grid-cols-2 gap-3">
                                                                     <div>
                                                                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1599,7 +1599,7 @@ export default function Purchases() {
                             {/* Series Information */}
                             <div className="mb-6 p-4 bg-blue-50 rounded-lg">
                                 <h4 className="font-medium text-gray-900 mb-4">Información de la Serie</h4>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="md:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1707,7 +1707,7 @@ export default function Purchases() {
 
                                 <div className="mt-4 p-3 bg-white rounded border border-blue-200">
                                     <div className="text-sm text-gray-600">
-                                        <strong>Total de la serie:</strong> ${(seriesData.unitPrice * seriesData.seriesSize).toFixed(2)} 
+                                        <strong>Total de la serie:</strong> ${(seriesData.unitPrice * seriesData.seriesSize).toFixed(2)}
                                         <span className="ml-2">({seriesData.seriesSize} piezas × ${seriesData.unitPrice.toFixed(2)})</span>
                                     </div>
                                 </div>
@@ -1722,7 +1722,7 @@ export default function Purchases() {
                                             <h5 className="font-medium text-gray-900 mb-3">
                                                 Pieza {piece.position} de {seriesData.seriesSize}
                                             </h5>
-                                            
+
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="md:col-span-2">
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1780,23 +1780,23 @@ export default function Purchases() {
                                                 )}
 
                                                 {/* Chase - Conditional */}
-                                                {((seriesData.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(seriesData.brand.toLowerCase())) || 
-                                                  (seriesData.brand?.toLowerCase() === 'hot wheels' && seriesData.pieceType === 'premium')) && (
-                                                    <div className="md:col-span-2">
-                                                        <div className="flex items-center space-x-2">
-                                                            <input
-                                                                type="checkbox"
-                                                                id={`chase-series-${index}`}
-                                                                checked={piece.isChase || false}
-                                                                onChange={(e) => handleSeriesPieceChange(index, 'isChase', e.target.checked)}
-                                                                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                                            />
-                                                            <label htmlFor={`chase-series-${index}`} className="text-sm font-medium text-gray-700">
-                                                                Chase
-                                                            </label>
+                                                {((seriesData.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(seriesData.brand.toLowerCase())) ||
+                                                    (seriesData.brand?.toLowerCase() === 'hot wheels' && seriesData.pieceType === 'premium')) && (
+                                                        <div className="md:col-span-2">
+                                                            <div className="flex items-center space-x-2">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`chase-series-${index}`}
+                                                                    checked={piece.isChase || false}
+                                                                    onChange={(e) => handleSeriesPieceChange(index, 'isChase', e.target.checked)}
+                                                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                                                />
+                                                                <label htmlFor={`chase-series-${index}`} className="text-sm font-medium text-gray-700">
+                                                                    Chase
+                                                                </label>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    )}
 
                                                 {/* Photos */}
                                                 <div className="md:col-span-2">
@@ -1820,8 +1820,8 @@ export default function Purchases() {
                                                         <div className="grid grid-cols-4 gap-2 mt-2">
                                                             {piece.photos.map((photo, photoIndex) => (
                                                                 <div key={photoIndex} className="relative group">
-                                                                    <img 
-                                                                        src={photo} 
+                                                                    <img
+                                                                        src={photo}
                                                                         alt={`Preview ${photoIndex + 1}`}
                                                                         className="w-full h-20 object-cover rounded border"
                                                                     />
