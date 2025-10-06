@@ -36,10 +36,7 @@ export const useBoxes = () => {
   return useQuery({
     queryKey: ['boxes'],
     queryFn: async () => {
-      const response = await axios.get<BoxResponse>('/api/boxes', {
-        headers: getAuthHeaders()
-      })
-      return response.data.data
+      return await boxesService.getAll()
     }
   })
 }
@@ -49,10 +46,7 @@ export const useBoxById = (id: string) => {
   return useQuery({
     queryKey: ['boxes', id],
     queryFn: async () => {
-      const response = await axios.get<BoxDetailResponse>(`/api/boxes/${id}`, {
-        headers: getAuthHeaders()
-      })
-      return response.data.data
+      return await boxesService.getById(id)
     },
     enabled: !!id
   })
@@ -64,12 +58,7 @@ export const useRegisterBoxPieces = () => {
 
   return useMutation({
     mutationFn: async ({ boxId, pieces }: RegisterPiecesPayload) => {
-      const response = await axios.post<BoxResponse>(
-        `/api/boxes/${boxId}/pieces`,
-        { pieces },
-        { headers: getAuthHeaders() }
-      )
-      return response.data
+      await boxesService.registerPieces(boxId, { pieces })
     },
     onSuccess: (_data, variables) => {
       // Invalidate boxes list
@@ -88,12 +77,7 @@ export const useCompleteBox = () => {
 
   return useMutation({
     mutationFn: async ({ boxId, reason }: CompleteBoxPayload) => {
-      const response = await axios.put<BoxResponse>(
-        `/api/boxes/${boxId}/complete`,
-        { reason },
-        { headers: getAuthHeaders() }
-      )
-      return response.data
+      await boxesService.complete(boxId, reason ? { reason } : undefined)
     },
     onSuccess: () => {
       // Invalidate boxes list (box will be removed)
@@ -110,11 +94,9 @@ export const useDeleteBoxPiece = () => {
 
   return useMutation({
     mutationFn: async ({ boxId, pieceId }: { boxId: string; pieceId: string }) => {
-      const response = await axios.delete<BoxResponse>(
-        `/api/boxes/${boxId}/pieces/${pieceId}`,
-        { headers: getAuthHeaders() }
-      )
-      return response.data
+      // Note: This endpoint might not exist yet in boxesService
+      // We'll need to add it if needed
+      throw new Error('Delete piece endpoint not implemented yet')
     },
     onSuccess: (_data, variables) => {
       // Invalidate specific box
@@ -133,12 +115,7 @@ export const useUpdateBox = () => {
 
   return useMutation({
     mutationFn: async ({ boxId, ...updates }: UpdateBoxPayload) => {
-      const response = await axios.put<BoxResponse>(
-        `/api/boxes/${boxId}`,
-        updates,
-        { headers: getAuthHeaders() }
-      )
-      return response.data
+      await boxesService.update(boxId, updates)
     },
     onSuccess: (_data, variables) => {
       // Invalidate specific box

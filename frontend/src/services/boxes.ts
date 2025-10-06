@@ -1,12 +1,6 @@
 import api from './api'
 import type { InventoryItem, ApiResponse } from '@shared/types'
 
-interface BoxResponse {
-  success: boolean
-  data: any
-  message: string
-}
-
 interface BoxDetailResponse {
   box: InventoryItem
   registeredPieces: InventoryItem[]
