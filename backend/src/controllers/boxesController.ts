@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { InventoryItemModel } from '../models/InventoryItem'
+import { ApiResponse } from '@shared/types'
 
 // GET /api/boxes - Get all boxes (sealed or unpacking)
 export const getBoxes = async (req: Request, res: Response) => {
