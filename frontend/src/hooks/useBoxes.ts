@@ -1,33 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import axios from 'axios'
+import { boxesService } from '@/services/boxes'
 import type { InventoryItem } from '../../../shared/types'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-
-// Configure axios defaults
-axios.defaults.baseURL = API_URL
-axios.defaults.withCredentials = true
-
-// Get auth token from localStorage
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-interface BoxResponse {
-  success: boolean
-  data: any
-  message: string
-}
-
-interface BoxDetailResponse {
-  success: boolean
-  data: {
-    box: InventoryItem
-    registeredPieces: InventoryItem[]
-  }
-  message: string
-}
 
 interface RegisterPiecesPayload {
   boxId: string
