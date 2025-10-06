@@ -40,19 +40,23 @@ const PORT = parseInt(process.env.PORT || '3001')
 // Railway uses specific proxy patterns, this is more secure than trust proxy: true
 app.set('trust proxy', 1)
 
-// Rate limiting
+// Rate limiting - más permisivo en desarrollo
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP to 100 requests per windowMs
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes (or from .env)
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'), // limit each IP (or from .env)
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for auth routes
+  skip: (req) => {
+    return req.path.startsWith('/api/auth') || req.path === '/health'
+  }
 })
 
 // Middleware
 app.use(helmet()) // Security headers
 app.use(compression()) // Gzip compression
-app.use(limiter) // Rate limiting
+app.use(limiter) // Rate limiting (skips auth routes)
 app.use(cors({
   origin: (origin, callback) => {
     const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173']
