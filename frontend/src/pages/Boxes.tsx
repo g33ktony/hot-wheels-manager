@@ -12,9 +12,6 @@ export default function Boxes() {
     const [filterBrand, setFilterBrand] = useState<string>('all')
     const [filterStatus, setFilterStatus] = useState<string>('all')
 
-    // Debug: Log boxes data
-    console.log('🔍 Boxes Debug:', { boxes, isLoading, error })
-
     const handleOpenUnpack = (box: InventoryItem) => {
         setSelectedBox(box)
         setShowUnpackModal(true)
