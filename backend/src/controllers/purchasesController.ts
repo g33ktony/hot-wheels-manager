@@ -84,6 +84,75 @@ export const updatePurchaseStatus = async (req: Request, res: Response) => {
   }
 }
 
+// New endpoint for receiving purchase with verified quantities
+export const receivePurchaseWithVerification = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const { receivedQuantities } = req.body // Array of { index: number, quantity: number }
+
+    const purchase = await Purchase.findById(id)
+    if (!purchase) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Compra no encontrada'
+      })
+    }
+
+    if (purchase.status === 'received') {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Esta compra ya fue marcada como recibida'
+      })
+    }
+
+    // Update quantities with what was actually received
+    receivedQuantities.forEach((received: { index: number; quantity: number }) => {
+      if (purchase.items[received.index]) {
+        purchase.items[received.index].quantity = received.quantity
+      }
+    })
+
+    // Remove items with 0 quantity (completely not received)
+    purchase.items = purchase.items.filter(item => item.quantity > 0)
+
+    // Recalculate total cost based on received items
+    purchase.totalCost = purchase.items.reduce(
+      (sum, item) => sum + (item.quantity * item.unitPrice),
+      0
+    ) + (purchase.shippingCost || 0)
+
+    // Mark as received and add to inventory
+    purchase.status = 'received'
+    purchase.receivedDate = new Date()
+    purchase.isReceived = true
+    
+    await purchase.save()
+
+    // Add received items to inventory
+    await addItemsToInventory(purchase)
+
+    const updatedPurchase = await Purchase.findById(id).populate('supplierId')
+
+    const response: ApiResponse<any> = {
+      success: true,
+      data: updatedPurchase,
+      message: 'Compra recibida y agregada al inventario exitosamente'
+    }
+
+    res.json(response)
+  } catch (error: any) {
+    console.error('Receive purchase with verification error:', error)
+    const errorResponse: ApiResponse<null> = {
+      success: false,
+      error: error.message,
+      message: 'Error al recibir la compra'
+    }
+    res.status(500).json(errorResponse)
+  }
+}
+
 export const createPurchase = async (req: Request, res: Response) => {
   try {
     const purchaseData = req.body

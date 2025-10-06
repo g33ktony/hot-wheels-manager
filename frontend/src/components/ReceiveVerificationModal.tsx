@@ -54,14 +54,8 @@ export default function ReceiveVerificationModal({
         !status.received || status.quantity < purchase.items[idx].quantity
     )
 
-    if (missingItems.length === 0) {
-      // All items received, just mark as received
-      onConfirm()
-      return
-    }
-
-    // Create pending items for missing/partial items
     try {
+      // Step 1: Create pending items for what's missing
       for (const status of missingItems) {
         const originalItem = purchase.items[status.index]
         
@@ -87,11 +81,28 @@ export default function ReceiveVerificationModal({
         }
       }
 
-      // All pending items created, now mark as received
+      // Step 2: Update purchase with received quantities and mark as received
+      // This will add only the received items to inventory
+      const receivedQuantities = itemsStatus.map((status, index) => ({
+        index,
+        quantity: status.received ? status.quantity : 0
+      }))
+
+      // Call the new endpoint to update quantities and mark as received
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/purchases/${purchase._id}/receive`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ receivedQuantities })
+      })
+
+      // All done!
       onConfirm()
     } catch (error: any) {
       alert(
-        `❌ Error: ${error.response?.data?.message || 'No se pudieron crear los items pendientes'}`
+        `❌ Error: ${error.response?.data?.message || error.message || 'No se pudo completar la recepción'}`
       )
     }
   }

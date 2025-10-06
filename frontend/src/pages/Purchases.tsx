@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQueryClient } from 'react-query'
 import { usePurchases, useCreatePurchase, useUpdatePurchase, useUpdatePurchaseStatus, useDeletePurchase } from '@/hooks/usePurchases'
 import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
@@ -22,6 +23,7 @@ const PREDEFINED_BRANDS = [
 ]
 
 export default function Purchases() {
+    const queryClient = useQueryClient()
     const [showAddModal, setShowAddModal] = useState(false)
     const [showCreateSupplierModal, setShowCreateSupplierModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
@@ -563,13 +565,17 @@ export default function Purchases() {
         if (!purchaseToReceive?._id) return
         
         try {
-            await updateStatusMutation.mutateAsync({ 
-                id: purchaseToReceive._id, 
-                status: 'received' 
-            })
+            // The modal already handled creating pending items and updating quantities
+            // Just close the modal and refresh the list
             setShowReceiveModal(false)
             setPurchaseToReceive(null)
-            alert('✅ Compra recibida exitosamente!\n\nTodos los items fueron agregados al inventario.')
+            
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries(['purchases'])
+            queryClient.invalidateQueries(['pending-items'])
+            queryClient.invalidateQueries(['pending-items-stats'])
+            
+            alert('✅ Compra recibida exitosamente!\n\nLos items recibidos fueron agregados al inventario.')
         } catch (error) {
             console.error('Error marking purchase as received:', error)
             alert('❌ Error al marcar la compra como recibida. Por favor intenta de nuevo.')
