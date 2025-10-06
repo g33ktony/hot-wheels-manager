@@ -78,6 +78,22 @@ export interface PurchaseItem {
   quantity: number;
   unitPrice: number;
   condition: 'mint' | 'good' | 'fair' | 'poor';
+  // Brand and type fields
+  brand?: string;
+  pieceType?: 'basic' | 'premium' | 'rlc';
+  isTreasureHunt?: boolean;
+  isSuperTreasureHunt?: boolean;
+  isChase?: boolean;
+  // Series fields
+  seriesId?: string;
+  seriesName?: string;
+  seriesSize?: number;
+  seriesPosition?: number;
+  seriesPrice?: number;
+  // Photos and location
+  photos?: string[];
+  location?: string;
+  notes?: string;
 }
 
 export interface Customer {

@@ -1,11 +1,25 @@
 import { useState } from 'react'
 import { usePurchases, useCreatePurchase, useUpdatePurchase, useUpdatePurchaseStatus, useDeletePurchase } from '@/hooks/usePurchases'
 import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers'
+import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit } from 'lucide-react'
+import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upload, MapPin } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
+
+// Predefined brands
+const PREDEFINED_BRANDS = [
+    'Hot Wheels',
+    'Kaido House',
+    'Mini GT',
+    'M2 Machines',
+    'Tomica',
+    'Matchbox',
+    'Johnny Lightning',
+    'Greenlight'
+]
 
 export default function Purchases() {
     const [showAddModal, setShowAddModal] = useState(false)
@@ -14,6 +28,8 @@ export default function Purchases() {
     const [selectedPurchase, setSelectedPurchase] = useState<any>(null)
     const [editingPurchase, setEditingPurchase] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
+    const [customBrandInput, setCustomBrandInput] = useState('')
+    const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
     const [newSupplier, setNewSupplier] = useState({
         name: '',
         email: '',
@@ -33,16 +49,43 @@ export default function Purchases() {
             quantity: number;
             unitPrice: number;
             condition: 'mint' | 'good' | 'fair' | 'poor';
+            // Brand and type fields
+            brand?: string;
+            pieceType?: 'basic' | 'premium' | 'rlc' | '';
+            isTreasureHunt?: boolean;
+            isSuperTreasureHunt?: boolean;
+            isChase?: boolean;
+            // Series fields
+            seriesId?: string;
+            seriesName?: string;
+            seriesSize?: number;
+            seriesPosition?: number;
+            seriesPrice?: number;
+            // Photos and location
+            photos?: string[];
+            location?: string;
+            notes?: string;
+            // Box/Series support
+            isBox?: boolean;
+            boxSize?: 5 | 8 | 10;
         }>
     })
 
     const { data: purchases, isLoading, error } = usePurchases()
     const { data: suppliers } = useSuppliers()
+    const { data: customBrands } = useCustomBrands()
     const createPurchaseMutation = useCreatePurchase()
     const updatePurchaseMutation = useUpdatePurchase()
     const createSupplierMutation = useCreateSupplier()
     const updateStatusMutation = useUpdatePurchaseStatus()
     const deletePurchaseMutation = useDeletePurchase()
+    const createCustomBrandMutation = useCreateCustomBrand()
+
+    // Combine predefined and custom brands
+    const allBrands = [
+        ...PREDEFINED_BRANDS,
+        ...(customBrands?.map(b => b.name) || [])
+    ].sort()
 
     if (isLoading) {
         return <Loading text="Cargando compras..." />
@@ -63,7 +106,22 @@ export default function Purchases() {
                 carId: '',
                 quantity: 1,
                 unitPrice: 0,
-                condition: 'mint'
+                condition: 'mint',
+                brand: '',
+                pieceType: '',
+                isTreasureHunt: false,
+                isSuperTreasureHunt: false,
+                isChase: false,
+                seriesId: '',
+                seriesName: '',
+                seriesSize: 5,
+                seriesPosition: 1,
+                seriesPrice: 0,
+                photos: [],
+                location: '',
+                notes: '',
+                isBox: false,
+                boxSize: 10
             }]
         })
     }
@@ -118,13 +176,34 @@ export default function Purchases() {
         }
 
         try {
+            // Clean items: convert empty strings to undefined for optional fields
+            const cleanedItems = newPurchase.items.map(item => ({
+                carId: item.carId,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                condition: item.condition,
+                pieceType: (item.pieceType === '' || !item.pieceType) ? undefined : item.pieceType as 'basic' | 'premium' | 'rlc',
+                brand: item.brand || undefined,
+                isTreasureHunt: item.isTreasureHunt || false,
+                isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+                isChase: item.isChase || false,
+                seriesId: item.seriesId || undefined,
+                seriesName: item.seriesName || undefined,
+                seriesSize: item.seriesSize || undefined,
+                seriesPosition: item.seriesPosition || undefined,
+                seriesPrice: item.seriesPrice || undefined,
+                photos: item.photos || undefined,
+                location: item.location || undefined,
+                notes: item.notes || undefined
+            }))
+
             if (isEditMode && editingPurchase) {
                 // Update existing purchase
                 await updatePurchaseMutation.mutateAsync({
                     id: editingPurchase._id,
                     data: {
                         supplierId: newPurchase.supplierId,
-                        items: newPurchase.items,
+                        items: cleanedItems,
                         totalCost: newPurchase.totalCost,
                         shippingCost: newPurchase.shippingCost,
                         trackingNumber: newPurchase.trackingNumber || undefined,
@@ -137,7 +216,7 @@ export default function Purchases() {
                 // Create new purchase
                 await createPurchaseMutation.mutateAsync({
                     supplierId: newPurchase.supplierId,
-                    items: newPurchase.items,
+                    items: cleanedItems,
                     totalCost: newPurchase.totalCost,
                     shippingCost: newPurchase.shippingCost,
                     trackingNumber: newPurchase.trackingNumber || undefined,
@@ -212,6 +291,71 @@ export default function Purchases() {
             notes: '',
             items: []
         })
+    }
+
+    // Brand handling
+    const handleBrandChange = (index: number, value: string) => {
+        if (value === 'custom') {
+            setShowCustomBrandInput(true)
+        } else {
+            handleItemChange(index, 'brand', value)
+            setShowCustomBrandInput(false)
+        }
+    }
+
+    const handleSaveCustomBrand = async (index: number) => {
+        if (customBrandInput.trim()) {
+            try {
+                const newBrand = await createCustomBrandMutation.mutateAsync(customBrandInput.trim())
+                handleItemChange(index, 'brand', newBrand.name)
+                setShowCustomBrandInput(false)
+                setCustomBrandInput('')
+            } catch (error) {
+                console.error('Error saving custom brand:', error)
+            }
+        }
+    }
+
+    // Photo handling with compression
+    const handleFileUpload = async (index: number, files: FileList | null) => {
+        if (!files) return
+
+        const compressionOptions = {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1024,
+            useWebWorker: true,
+            fileType: 'image/jpeg',
+        }
+
+        for (const file of Array.from(files)) {
+            if (file.type.startsWith('image/')) {
+                try {
+                    const compressedFile = await imageCompression(file, compressionOptions)
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string
+                        const currentPhotos = newPurchase.items[index].photos || []
+                        handleItemChange(index, 'photos', [...currentPhotos, result])
+                    }
+                    reader.readAsDataURL(compressedFile)
+                    console.log(`📸 Imagen comprimida: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
+                } catch (error) {
+                    console.error('Error al comprimir imagen:', error)
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string
+                        const currentPhotos = newPurchase.items[index].photos || []
+                        handleItemChange(index, 'photos', [...currentPhotos, result])
+                    }
+                    reader.readAsDataURL(file)
+                }
+            }
+        }
+    }
+
+    const removePhoto = (itemIndex: number, photoIndex: number) => {
+        const currentPhotos = newPurchase.items[itemIndex].photos || []
+        handleItemChange(itemIndex, 'photos', currentPhotos.filter((_, i) => i !== photoIndex))
     }
 
     const handleStatusChange = async (purchaseId: string, newStatus: 'pending' | 'paid' | 'shipped' | 'received' | 'cancelled') => {
