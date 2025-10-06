@@ -97,9 +97,9 @@ export const useDeleteBoxPiece = () => {
       // We'll need to add it if needed
       throw new Error('Delete piece endpoint not implemented yet')
     },
-    onSuccess: (_data, { boxId }) => {
+    onSuccess: (_data, variables) => {
       // Invalidate specific box
-      queryClient.invalidateQueries({ queryKey: ['boxes', boxId] })
+      queryClient.invalidateQueries({ queryKey: ['boxes', variables.boxId] })
       // Invalidate boxes list
       queryClient.invalidateQueries({ queryKey: ['boxes'] })
       // Invalidate inventory
