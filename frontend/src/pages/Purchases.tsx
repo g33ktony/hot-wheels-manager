@@ -88,7 +88,9 @@ export default function Purchases() {
             notes?: string;
             // Box/Series support
             isBox?: boolean;
-            boxSize?: 5 | 8 | 10;
+            boxName?: string;
+            boxSize?: number;
+            boxPrice?: number;
         }>
     })
 
@@ -142,7 +144,9 @@ export default function Purchases() {
                 location: '',
                 notes: '',
                 isBox: false,
-                boxSize: 10
+                boxName: '',
+                boxSize: 72,
+                boxPrice: 0
             }]
         })
     }
@@ -300,26 +304,40 @@ export default function Purchases() {
 
         try {
             // Clean items: convert empty strings to undefined for optional fields
-            const cleanedItems = newPurchase.items.map(item => ({
-                carId: item.carId,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                condition: item.condition,
-                // Only send pieceType and brand if they have actual values
-                ...(item.pieceType && { pieceType: item.pieceType }),
-                ...(item.brand && item.brand.trim() !== '' && { brand: item.brand }),
-                isTreasureHunt: item.isTreasureHunt || false,
-                isSuperTreasureHunt: item.isSuperTreasureHunt || false,
-                isChase: item.isChase || false,
-                ...(item.seriesId && item.seriesId.trim() !== '' && { seriesId: item.seriesId }),
-                ...(item.seriesName && item.seriesName.trim() !== '' && { seriesName: item.seriesName }),
-                ...(item.seriesSize && { seriesSize: item.seriesSize }),
-                ...(item.seriesPosition && { seriesPosition: item.seriesPosition }),
-                ...(item.seriesPrice && { seriesPrice: item.seriesPrice }),
-                ...(item.photos && item.photos.length > 0 && { photos: item.photos }),
-                ...(item.location && item.location.trim() !== '' && { location: item.location }),
-                ...(item.notes && item.notes.trim() !== '' && { notes: item.notes })
-            }))
+            const cleanedItems = newPurchase.items.map(item => {
+                // Generate carId for boxes if not provided
+                if (item.isBox && !item.carId) {
+                    const boxPrefix = item.boxName?.toUpperCase().replace(/\s+/g, '-') || 'BOX'
+                    const timestamp = Date.now()
+                    item.carId = `${boxPrefix}-${timestamp}`
+                }
+
+                return {
+                    carId: item.carId,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    condition: item.condition,
+                    // Only send pieceType and brand if they have actual values
+                    ...(item.pieceType && { pieceType: item.pieceType }),
+                    ...(item.brand && item.brand.trim() !== '' && { brand: item.brand }),
+                    isTreasureHunt: item.isTreasureHunt || false,
+                    isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+                    isChase: item.isChase || false,
+                    ...(item.seriesId && item.seriesId.trim() !== '' && { seriesId: item.seriesId }),
+                    ...(item.seriesName && item.seriesName.trim() !== '' && { seriesName: item.seriesName }),
+                    ...(item.seriesSize && { seriesSize: item.seriesSize }),
+                    ...(item.seriesPosition && { seriesPosition: item.seriesPosition }),
+                    ...(item.seriesPrice && { seriesPrice: item.seriesPrice }),
+                    // Box fields
+                    isBox: item.isBox || false,
+                    ...(item.isBox && item.boxName && item.boxName.trim() !== '' && { boxName: item.boxName }),
+                    ...(item.isBox && item.boxSize && { boxSize: item.boxSize }),
+                    ...(item.isBox && item.boxPrice && { boxPrice: item.boxPrice }),
+                    ...(item.photos && item.photos.length > 0 && { photos: item.photos }),
+                    ...(item.location && item.location.trim() !== '' && { location: item.location }),
+                    ...(item.notes && item.notes.trim() !== '' && { notes: item.notes })
+                }
+            })
 
             if (isEditMode && editingPurchase) {
                 // Update existing purchase
@@ -1214,25 +1232,75 @@ export default function Purchases() {
                                                                 />
                                                                 <label htmlFor={`isBox-${index}`} className="text-sm font-medium text-gray-700">
                                                                     <Package size={16} className="inline mr-1" />
-                                                                    Es una caja/serie completa
+                                                                    Es una caja sellada (72, 24 piezas, etc.)
                                                                 </label>
                                                             </div>
-
-                                                            {item.isBox && (
-                                                                <div className="flex items-center space-x-2">
-                                                                    <label className="text-sm font-medium text-gray-700">Tamaño:</label>
-                                                                    <select
-                                                                        value={item.boxSize || 5}
-                                                                        onChange={(e) => handleItemChange(index, 'boxSize', parseInt(e.target.value) as 5 | 8 | 10)}
-                                                                        className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                    >
-                                                                        <option value={5}>5 piezas</option>
-                                                                        <option value={8}>8 piezas</option>
-                                                                        <option value={10}>10 piezas</option>
-                                                                    </select>
-                                                                </div>
-                                                            )}
                                                         </div>
+
+                                                        {item.isBox && (
+                                                            <div className="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg space-y-3">
+                                                                <div className="text-sm font-medium text-purple-800 mb-2">
+                                                                    📦 Configuración de Caja
+                                                                </div>
+                                                                
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Nombre de la Caja *
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={item.boxName || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'boxName', e.target.value)}
+                                                                            placeholder="Ej: Caja P, Caja J, Caja Q"
+                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                                        />
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Cantidad de Piezas *
+                                                                        </label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={item.boxSize || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'boxSize', parseInt(e.target.value) || 0)}
+                                                                            placeholder="72"
+                                                                            min="1"
+                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                                        />
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Precio Total de la Caja *
+                                                                        </label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={item.boxPrice || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'boxPrice', parseFloat(e.target.value) || 0)}
+                                                                            placeholder="2200"
+                                                                            min="0"
+                                                                            step="0.01"
+                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                                        />
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Costo por Pieza
+                                                                        </label>
+                                                                        <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600">
+                                                                            ${item.boxSize && item.boxPrice ? (item.boxPrice / item.boxSize).toFixed(2) : '0.00'}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="text-xs text-gray-500 mt-2">
+                                                                    💡 El Car ID será generado automáticamente (ej: BOX-P-2025)
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     {/* Notes */}
