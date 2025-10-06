@@ -23,6 +23,11 @@ const PurchaseItemSchema = new Schema<PurchaseItem>({
   seriesSize: { type: Number },
   seriesPosition: { type: Number },
   seriesPrice: { type: Number },
+  // Box fields (for purchasing sealed boxes)
+  isBox: { type: Boolean, default: false },
+  boxName: { type: String },
+  boxSize: { type: Number },
+  boxPrice: { type: Number },
   // Photos and location
   photos: [{ type: String }],
   location: { type: String },

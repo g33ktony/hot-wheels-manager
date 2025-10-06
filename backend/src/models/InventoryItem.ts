@@ -33,7 +33,21 @@ const inventoryItemSchema = new Schema<IInventoryItem>({
   seriesSize: { type: Number, min: 1 }, // Total pieces in series (e.g., 5)
   seriesPosition: { type: Number, min: 1 }, // Position in series (1-5)
   seriesPrice: { type: Number, min: 0 }, // Price for complete series (editable)
-  seriesDefaultPrice: { type: Number, min: 0 } // Auto-calculated price (85% of individual total)
+  seriesDefaultPrice: { type: Number, min: 0 }, // Auto-calculated price (85% of individual total)
+  // Box fields (for sealed boxes like 72-piece cases)
+  isBox: { type: Boolean, default: false }, // true if this is a sealed box
+  boxName: { type: String }, // Display name (e.g., "Caja P", "Caja J")
+  boxSize: { type: Number, min: 1 }, // Total pieces in box (e.g., 24, 72)
+  boxPrice: { type: Number, min: 0 }, // Total price paid for the box
+  boxStatus: { 
+    type: String, 
+    enum: ['sealed', 'unpacking', 'completed'],
+    default: 'sealed'
+  }, // Box unpacking status
+  registeredPieces: { type: Number, default: 0, min: 0 }, // Number of pieces already registered
+  // Source box tracking (for pieces that came from a box)
+  sourceBox: { type: String }, // Name of source box (e.g., "Caja P")
+  sourceBoxId: { type: String } // ID of source box for tracking
 }, {
   timestamps: true,
 })

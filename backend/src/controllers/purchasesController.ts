@@ -135,6 +135,36 @@ export const createPurchase = async (req: Request, res: Response) => {
 const addItemsToInventory = async (purchase: any) => {
   try {
     for (const item of purchase.items) {
+      // Special handling for boxes
+      if (item.isBox) {
+        // Create a sealed box item in inventory
+        const boxItem = new InventoryItemModel({
+          carId: item.carId,
+          quantity: 1, // The box itself as a unit
+          purchasePrice: item.boxPrice || item.unitPrice,
+          suggestedPrice: item.boxPrice || item.unitPrice, // Box can be sold as-is
+          condition: item.condition,
+          brand: item.brand,
+          pieceType: item.pieceType,
+          // Box-specific fields
+          isBox: true,
+          boxName: item.boxName,
+          boxSize: item.boxSize,
+          boxPrice: item.boxPrice || item.unitPrice,
+          boxStatus: 'sealed',
+          registeredPieces: 0,
+          photos: item.photos || [],
+          location: item.location,
+          notes: item.notes 
+            ? `📦 Caja sellada - Agregada desde compra ${purchase._id}\n${item.notes}`
+            : `📦 Caja sellada - Agregada desde compra ${purchase._id}`,
+          dateAdded: new Date()
+        })
+        await boxItem.save()
+        continue // Skip normal item processing for boxes
+      }
+
+      // Normal item processing (non-box items)
       // Check if inventory item already exists with same carId, condition, and brand
       let inventoryItem = await InventoryItemModel.findOne({
         carId: item.carId,

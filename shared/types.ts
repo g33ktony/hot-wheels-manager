@@ -52,6 +52,16 @@ export interface InventoryItem {
   seriesPosition?: number; // Position in series (1-5)
   seriesPrice?: number; // Price for complete series (editable)
   seriesDefaultPrice?: number; // Auto-calculated (85% of individual total)
+  // Box fields (for sealed boxes like 72-piece cases)
+  isBox?: boolean; // true if this is a sealed box
+  boxName?: string; // Display name (e.g., "Caja P", "Caja J")
+  boxSize?: number; // Total pieces in box (e.g., 24, 72)
+  boxPrice?: number; // Total price paid for the box
+  boxStatus?: 'sealed' | 'unpacking' | 'completed'; // Box unpacking status
+  registeredPieces?: number; // Number of pieces already registered (0 at start)
+  // Source box tracking (for pieces that came from a box)
+  sourceBox?: string; // Name of source box (e.g., "Caja P")
+  sourceBoxId?: string; // ID of source box for tracking
   // Relación poblada con el Hot Wheels
   hotWheelsCar?: HotWheelsCar;
 }
@@ -90,6 +100,11 @@ export interface PurchaseItem {
   seriesSize?: number;
   seriesPosition?: number;
   seriesPrice?: number;
+  // Box fields (for purchasing sealed boxes)
+  isBox?: boolean; // true if this purchase item is a sealed box
+  boxName?: string; // Display name (e.g., "Caja P", "Caja J")
+  boxSize?: number; // Total pieces in box (e.g., 24, 72)
+  boxPrice?: number; // Total price for the box
   // Photos and location
   photos?: string[];
   location?: string;
