@@ -1403,34 +1403,35 @@ export default function Inventory() {
                                         <input
                                             type="checkbox"
                                             checked={newItem.isTreasureHunt}
-                                            onChange={(e) => {
-                                                const isChecked = e.target.checked
-                                                setNewItem({ 
-                                                    ...newItem, 
-                                                    isTreasureHunt: isChecked,
-                                                    isSuperTreasureHunt: isChecked ? newItem.isSuperTreasureHunt : false
-                                                })
-                                            }}
-                                            className="rounded"
+                                            disabled={newItem.isSuperTreasureHunt}
+                                            onChange={(e) => setNewItem({ 
+                                                ...newItem, 
+                                                isTreasureHunt: e.target.checked,
+                                                isSuperTreasureHunt: false
+                                            })}
+                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <span className={`text-sm font-medium ${newItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
                                             🔍 Treasure Hunt (TH)
                                         </span>
                                     </label>
                                     
-                                    {newItem.isTreasureHunt && (
-                                        <label className="flex items-center gap-2 ml-6">
-                                            <input
-                                                type="checkbox"
-                                                checked={newItem.isSuperTreasureHunt}
-                                                onChange={(e) => setNewItem({ ...newItem, isSuperTreasureHunt: e.target.checked })}
-                                                className="rounded"
-                                            />
-                                            <span className="text-sm font-medium text-gray-700">
-                                                ⭐ Super Treasure Hunt (STH)
-                                            </span>
-                                        </label>
-                                    )}
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={newItem.isSuperTreasureHunt}
+                                            disabled={newItem.isTreasureHunt}
+                                            onChange={(e) => setNewItem({ 
+                                                ...newItem, 
+                                                isSuperTreasureHunt: e.target.checked,
+                                                isTreasureHunt: false
+                                            })}
+                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                        />
+                                        <span className={`text-sm font-medium ${newItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                            ⭐ Super Treasure Hunt (STH)
+                                        </span>
+                                    </label>
                                 </div>
                             )}
 
@@ -1814,34 +1815,35 @@ export default function Inventory() {
                                         <input
                                             type="checkbox"
                                             checked={editingItem.isTreasureHunt || false}
-                                            onChange={(e) => {
-                                                const isChecked = e.target.checked
-                                                setEditingItem({ 
-                                                    ...editingItem, 
-                                                    isTreasureHunt: isChecked,
-                                                    isSuperTreasureHunt: isChecked ? editingItem.isSuperTreasureHunt : false
-                                                })
-                                            }}
-                                            className="rounded"
+                                            disabled={editingItem.isSuperTreasureHunt}
+                                            onChange={(e) => setEditingItem({ 
+                                                ...editingItem, 
+                                                isTreasureHunt: e.target.checked,
+                                                isSuperTreasureHunt: false
+                                            })}
+                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <span className={`text-sm font-medium ${editingItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
                                             🔍 Treasure Hunt (TH)
                                         </span>
                                     </label>
                                     
-                                    {editingItem.isTreasureHunt && (
-                                        <label className="flex items-center gap-2 ml-6">
-                                            <input
-                                                type="checkbox"
-                                                checked={editingItem.isSuperTreasureHunt || false}
-                                                onChange={(e) => setEditingItem({ ...editingItem, isSuperTreasureHunt: e.target.checked })}
-                                                className="rounded"
-                                            />
-                                            <span className="text-sm font-medium text-gray-700">
-                                                ⭐ Super Treasure Hunt (STH)
-                                            </span>
-                                        </label>
-                                    )}
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={editingItem.isSuperTreasureHunt || false}
+                                            disabled={editingItem.isTreasureHunt}
+                                            onChange={(e) => setEditingItem({ 
+                                                ...editingItem, 
+                                                isSuperTreasureHunt: e.target.checked,
+                                                isTreasureHunt: false
+                                            })}
+                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                        />
+                                        <span className={`text-sm font-medium ${editingItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                            ⭐ Super Treasure Hunt (STH)
+                                        </span>
+                                    </label>
                                 </div>
                             )}
 
