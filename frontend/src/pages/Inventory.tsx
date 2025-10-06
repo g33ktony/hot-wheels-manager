@@ -23,6 +23,10 @@ const PREDEFINED_BRANDS = [
 export default function Inventory() {
     const [searchTerm, setSearchTerm] = useState('')
     const [filterCondition, setFilterCondition] = useState('')
+    const [filterBrand, setFilterBrand] = useState('')
+    const [filterPieceType, setFilterPieceType] = useState('')
+    const [filterTreasureHunt, setFilterTreasureHunt] = useState<'all' | 'th' | 'sth'>('all')
+    const [filterChase, setFilterChase] = useState(false)
     const [showAddModal, setShowAddModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [editingItem, setEditingItem] = useState<any>(null)
@@ -95,9 +99,17 @@ export default function Inventory() {
 
     const filteredItems = inventoryItems?.filter(item => {
         const matchesSearch = !searchTerm ||
-            (item.carId && item.carId.toLowerCase().includes(searchTerm.toLowerCase()))
+            (item.carId && item.carId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (item.hotWheelsCar?.model && item.hotWheelsCar.model.toLowerCase().includes(searchTerm.toLowerCase()))
         const matchesCondition = !filterCondition || item.condition === filterCondition
-        return matchesSearch && matchesCondition
+        const matchesBrand = !filterBrand || item.brand?.toLowerCase() === filterBrand.toLowerCase()
+        const matchesPieceType = !filterPieceType || item.pieceType === filterPieceType
+        const matchesTreasureHunt = filterTreasureHunt === 'all' || 
+            (filterTreasureHunt === 'th' && item.isTreasureHunt) ||
+            (filterTreasureHunt === 'sth' && item.isSuperTreasureHunt)
+        const matchesChase = !filterChase || item.isChase
+        
+        return matchesSearch && matchesCondition && matchesBrand && matchesPieceType && matchesTreasureHunt && matchesChase
     }) || []
 
     const handleAddItem = async () => {
@@ -605,34 +617,127 @@ export default function Inventory() {
 
             {/* Filters */}
             <Card>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="relative">
-                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input
-                            placeholder="Buscar por nombre o código..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10"
-                        />
+                <div className="space-y-4">
+                    {/* First row: Search and Condition */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="relative">
+                            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Input
+                                placeholder="Buscar por nombre o código..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10"
+                            />
+                        </div>
+
+                        <select
+                            value={filterCondition}
+                            onChange={(e) => setFilterCondition(e.target.value)}
+                            className="input"
+                        >
+                            <option value="">Todas las condiciones</option>
+                            <option value="mint">Mint</option>
+                            <option value="good">Bueno</option>
+                            <option value="fair">Regular</option>
+                            <option value="poor">Malo</option>
+                        </select>
+
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">
+                                {filteredItems.length} pieza{filteredItems.length !== 1 ? 's' : ''} encontrada{filteredItems.length !== 1 ? 's' : ''}
+                            </span>
+                        </div>
                     </div>
 
-                    <select
-                        value={filterCondition}
-                        onChange={(e) => setFilterCondition(e.target.value)}
-                        className="input"
-                    >
-                        <option value="">Todas las condiciones</option>
-                        <option value="mint">Mint</option>
-                        <option value="good">Bueno</option>
-                        <option value="fair">Regular</option>
-                        <option value="poor">Malo</option>
-                    </select>
+                    {/* Second row: Brand and Type filters */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <select
+                            value={filterBrand}
+                            onChange={(e) => {
+                                setFilterBrand(e.target.value)
+                                // Reset type-specific filters when brand changes
+                                if (e.target.value === '') {
+                                    setFilterPieceType('')
+                                    setFilterTreasureHunt('all')
+                                    setFilterChase(false)
+                                }
+                            }}
+                            className="input"
+                        >
+                            <option value="">Todas las marcas</option>
+                            {allBrands.map(brand => (
+                                <option key={brand} value={brand}>{brand}</option>
+                            ))}
+                        </select>
 
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
-                            {filteredItems.length} pieza{filteredItems.length !== 1 ? 's' : ''} encontrada{filteredItems.length !== 1 ? 's' : ''}
-                        </span>
+                        {/* Piece Type filter - only show if brand is selected */}
+                        {filterBrand && (
+                            <select
+                                value={filterPieceType}
+                                onChange={(e) => {
+                                    setFilterPieceType(e.target.value)
+                                    // Reset special edition filters when type changes
+                                    setFilterTreasureHunt('all')
+                                    setFilterChase(false)
+                                }}
+                                className="input"
+                            >
+                                <option value="">Todos los tipos</option>
+                                <option value="basic">Básico</option>
+                                <option value="premium">Premium</option>
+                                <option value="rlc">RLC</option>
+                            </select>
+                        )}
+
+                        {/* TH/STH filter - only for Hot Wheels Basic */}
+                        {filterBrand?.toLowerCase() === 'hot wheels' && filterPieceType === 'basic' && (
+                            <select
+                                value={filterTreasureHunt}
+                                onChange={(e) => setFilterTreasureHunt(e.target.value as 'all' | 'th' | 'sth')}
+                                className="input"
+                            >
+                                <option value="all">Todos (TH/STH)</option>
+                                <option value="th">Solo TH</option>
+                                <option value="sth">Solo STH</option>
+                            </select>
+                        )}
+
+                        {/* Chase filter - for Mini GT, Kaido, M2, or Hot Wheels Premium */}
+                        {((filterBrand && ['mini gt', 'kaido house', 'm2 machines'].includes(filterBrand.toLowerCase())) ||
+                          (filterBrand?.toLowerCase() === 'hot wheels' && filterPieceType === 'premium')) && (
+                            <label className="flex items-center gap-2 input cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={filterChase}
+                                    onChange={(e) => setFilterChase(e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Solo Chase 🌟
+                                </span>
+                            </label>
+                        )}
                     </div>
+
+                    {/* Clear filters button */}
+                    {(searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase) && (
+                        <div className="flex justify-end">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                    setSearchTerm('')
+                                    setFilterCondition('')
+                                    setFilterBrand('')
+                                    setFilterPieceType('')
+                                    setFilterTreasureHunt('all')
+                                    setFilterChase(false)
+                                }}
+                            >
+                                Limpiar filtros
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </Card>
 
@@ -643,13 +748,13 @@ export default function Inventory() {
                         <Package size={48} className="mx-auto text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No hay piezas en el inventario</h3>
                         <p className="text-gray-500 mb-4">
-                            {searchTerm || filterCondition
+                            {searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase
                                 ? 'No se encontraron piezas con los filtros aplicados'
                                 : 'Comienza agregando tu primera pieza al inventario'
                             }
                         </p>
-                        {!searchTerm && !filterCondition && (
-                            <Button icon={<Plus size={20} />}>
+                        {!searchTerm && !filterCondition && !filterBrand && !filterPieceType && filterTreasureHunt === 'all' && !filterChase && (
+                            <Button icon={<Plus size={20} />} onClick={() => setShowAddModal(true)}>
                                 Agregar Primera Pieza
                             </Button>
                         )}
@@ -1435,8 +1540,9 @@ export default function Inventory() {
                                 </div>
                             )}
 
-                            {/* Chase (only for Mini GT, Kaido House, M2) */}
-                            {newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase()) && (
+                            {/* Chase (only for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
+                            {(newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) || 
+                             (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium') ? (
                                 <div>
                                     <label className="flex items-center gap-2">
                                         <input
@@ -1450,7 +1556,7 @@ export default function Inventory() {
                                         </span>
                                     </label>
                                 </div>
-                            )}
+                            ) : null}
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
@@ -1847,8 +1953,9 @@ export default function Inventory() {
                                 </div>
                             )}
 
-                            {/* Chase - Edit Mode */}
-                            {editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase()) && (
+                            {/* Chase - Edit Mode (for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
+                            {(editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase())) || 
+                             (editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'premium') ? (
                                 <div>
                                     <label className="flex items-center gap-2">
                                         <input
@@ -1862,7 +1969,7 @@ export default function Inventory() {
                                         </span>
                                     </label>
                                 </div>
-                            )}
+                            ) : null}
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
