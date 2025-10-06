@@ -11,6 +11,7 @@ import Deliveries from './pages/Deliveries'
 import Customers from './pages/Customers'
 import Suppliers from './pages/Suppliers'
 import Boxes from './pages/Boxes'
+import PendingItemsPage from './pages/PendingItemsPage'
 
 // Test: Deployment optimization - only frontend changes
 function App() {
@@ -32,6 +33,7 @@ function App() {
                                     <Route path="/inventory" element={<Inventory />} />
                                     <Route path="/sales" element={<Sales />} />
                                     <Route path="/purchases" element={<Purchases />} />
+                                    <Route path="/pending-items" element={<PendingItemsPage />} />
                                     <Route path="/deliveries" element={<Deliveries />} />
                                     <Route path="/customers" element={<Customers />} />
                                     <Route path="/suppliers" element={<Suppliers />} />
