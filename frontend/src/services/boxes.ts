@@ -71,6 +71,11 @@ export const boxesService = {
   delete: async (boxId: string): Promise<void> => {
     await api.delete(`/boxes/${boxId}`)
   },
+
+  // Update quantity of a registered piece
+  updatePieceQuantity: async (boxId: string, pieceId: string, quantity: number): Promise<void> => {
+    await api.put(`/boxes/${boxId}/pieces/${pieceId}/quantity`, { quantity })
+  },
 }
 
 export default boxesService

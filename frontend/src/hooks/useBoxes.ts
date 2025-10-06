@@ -108,6 +108,25 @@ export const useDeleteBoxPiece = () => {
   })
 }
 
+// Update quantity of a registered piece
+export const useUpdateBoxPieceQuantity = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ boxId, pieceId, quantity }: { boxId: string; pieceId: string; quantity: number }) => {
+      await boxesService.updatePieceQuantity(boxId, pieceId, quantity)
+    },
+    onSuccess: (_data, variables) => {
+      // Invalidate specific box
+      queryClient.invalidateQueries({ queryKey: ['boxes', variables.boxId] })
+      // Invalidate boxes list
+      queryClient.invalidateQueries({ queryKey: ['boxes'] })
+      // Invalidate inventory
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+    }
+  })
+}
+
 // Update box information
 export const useUpdateBox = () => {
   const queryClient = useQueryClient()

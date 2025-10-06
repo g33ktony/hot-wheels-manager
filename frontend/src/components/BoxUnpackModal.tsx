@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { X, Plus, Trash2, Camera, Save, CheckCircle, AlertTriangle } from 'lucide-react'
+import { X, Plus, Trash2, Camera, Save, CheckCircle, AlertTriangle, Edit2 } from 'lucide-react'
 import { InventoryItem } from '../../../shared/types'
-import { useBoxById, useRegisterBoxPieces, useCompleteBox, useDeleteBoxPiece } from '../hooks/useBoxes'
+import { useBoxById, useRegisterBoxPieces, useCompleteBox, useDeleteBoxPiece, useUpdateBoxPieceQuantity } from '../hooks/useBoxes'
 import imageCompression from 'browser-image-compression'
 
 interface BoxUnpackModalProps {
@@ -12,6 +12,7 @@ interface BoxUnpackModalProps {
 
 interface NewPiece {
     carId: string
+    quantity: number  // NEW: quantity field
     condition: 'mint' | 'good' | 'fair' | 'poor'
     isTreasureHunt: boolean
     isSuperTreasureHunt: boolean
@@ -27,11 +28,14 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
     const registerPiecesMutation = useRegisterBoxPieces()
     const completeBoxMutation = useCompleteBox()
     const deletePieceMutation = useDeleteBoxPiece()
+    const updateQuantityMutation = useUpdateBoxPieceQuantity()
 
     const [newPieces, setNewPieces] = useState<NewPiece[]>([])
     const [showCompleteConfirm, setShowCompleteConfirm] = useState(false)
     const [completeReason, setCompleteReason] = useState('')
     const [uploadingPhoto, setUploadingPhoto] = useState(false)
+    const [editingPieceId, setEditingPieceId] = useState<string | null>(null)
+    const [editingQuantity, setEditingQuantity] = useState<number>(1)
 
     const costPerPiece = (box.boxPrice || 0) / (box.boxSize || 1)
     const registeredCount = boxDetail?.box.registeredPieces || 0
@@ -48,6 +52,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
     const handleAddPiece = () => {
         setNewPieces([...newPieces, {
             carId: '',
+            quantity: 1,  // Default quantity is 1
             condition: 'mint',
             isTreasureHunt: false,
             isSuperTreasureHunt: false,
@@ -130,6 +135,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
             // Reset form with one empty piece
             setNewPieces([{
                 carId: '',
+                quantity: 1,
                 condition: 'mint',
                 isTreasureHunt: false,
                 isSuperTreasureHunt: false,
@@ -198,6 +204,35 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
         }
     }
 
+    const handleStartEditQuantity = (pieceId: string, currentQuantity: number) => {
+        setEditingPieceId(pieceId)
+        setEditingQuantity(currentQuantity)
+    }
+
+    const handleCancelEdit = () => {
+        setEditingPieceId(null)
+        setEditingQuantity(1)
+    }
+
+    const handleSaveQuantity = async (pieceId: string) => {
+        if (editingQuantity < 1) {
+            alert('La cantidad debe ser al menos 1')
+            return
+        }
+
+        try {
+            await updateQuantityMutation.mutateAsync({
+                boxId: box._id || '',
+                pieceId,
+                quantity: editingQuantity
+            })
+            setEditingPieceId(null)
+        } catch (error) {
+            console.error('Error updating quantity:', error)
+            alert('Error al actualizar la cantidad')
+        }
+    }
+
     if (!isOpen) return null
 
     return (
@@ -248,10 +283,10 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto">
                                         {boxDetail.registeredPieces.map((piece: any) => (
                                             <div key={piece._id} className="bg-white border border-green-300 rounded-lg p-3 relative">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-sm text-gray-900">{piece.carId}</p>
-                                                        <div className="flex gap-1 mt-1">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium text-sm text-gray-900 truncate">{piece.carId}</p>
+                                                        <div className="flex gap-1 mt-1 flex-wrap">
                                                             {piece.isTreasureHunt && (
                                                                 <span className="text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">TH</span>
                                                             )}
@@ -262,11 +297,49 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                                                                 <span className="text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Chase</span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-gray-500 mt-1">Qty: {piece.quantity}</p>
+                                                        
+                                                        {/* Quantity - Editable */}
+                                                        {editingPieceId === piece._id ? (
+                                                            <div className="flex items-center gap-1 mt-2">
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={editingQuantity}
+                                                                    onChange={(e) => setEditingQuantity(parseInt(e.target.value) || 1)}
+                                                                    className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+                                                                    autoFocus
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleSaveQuantity(piece._id)}
+                                                                    className="text-green-600 hover:text-green-800 p-1"
+                                                                    title="Guardar"
+                                                                >
+                                                                    <CheckCircle size={16} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={handleCancelEdit}
+                                                                    className="text-gray-500 hover:text-gray-700 p-1"
+                                                                    title="Cancelar"
+                                                                >
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                <p className="text-xs text-gray-600">Qty: {piece.quantity}</p>
+                                                                <button
+                                                                    onClick={() => handleStartEditQuantity(piece._id, piece.quantity)}
+                                                                    className="text-blue-500 hover:text-blue-700 p-0.5"
+                                                                    title="Editar cantidad"
+                                                                >
+                                                                    <Edit2 size={14} />
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <button
                                                         onClick={() => handleDeletePiece(piece._id)}
-                                                        className="text-red-500 hover:text-red-700 p-1"
+                                                        className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
                                                         title="Eliminar pieza"
                                                     >
                                                         <Trash2 size={16} />
@@ -315,6 +388,20 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                                                     />
                                                 </div>
 
+                                                {/* Quantity - NEW FIELD */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Cantidad
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={piece.quantity}
+                                                        onChange={(e) => handlePieceChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                    />
+                                                </div>
+
                                                 {/* Condition */}
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -330,6 +417,20 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                                                         <option value="fair">Fair</option>
                                                         <option value="poor">Poor</option>
                                                     </select>
+                                                </div>
+
+                                                {/* Suggested Price */}
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Precio Sugerido
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={piece.suggestedPrice}
+                                                        onChange={(e) => handlePieceChange(index, 'suggestedPrice', parseFloat(e.target.value) || 0)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                    />
                                                 </div>
 
                                                 {/* TH/STH/Chase */}

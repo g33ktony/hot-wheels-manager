@@ -5,6 +5,7 @@ import {
   registerBoxPieces,
   completeBox,
   deleteBoxPiece,
+  updateBoxPieceQuantity,
   updateBox
 } from '../controllers/boxesController'
 
@@ -21,6 +22,9 @@ router.post('/:id/pieces', registerBoxPieces)
 
 // Mark box as complete (even if incomplete)
 router.put('/:id/complete', completeBox)
+
+// Update quantity of a registered piece
+router.put('/:id/pieces/:pieceId/quantity', updateBoxPieceQuantity)
 
 // Delete a registered piece from a box
 router.delete('/:id/pieces/:pieceId', deleteBoxPiece)

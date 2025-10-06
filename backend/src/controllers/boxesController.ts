@@ -288,6 +288,94 @@ export const deleteBoxPiece = async (req: Request, res: Response) => {
     box.registeredPieces = Math.max(0, (box.registeredPieces || 0) - 1)
     await box.save()
 
+    const response: ApiResponse<null> = {
+      success: true,
+      data: null,
+      message: 'Pieza eliminada exitosamente'
+    }
+
+    res.json(response)
+  } catch (error: any) {
+    console.error('Delete box piece error:', error)
+    const errorResponse: ApiResponse<null> = {
+      success: false,
+      error: error.message,
+      message: 'Error al eliminar la pieza'
+    }
+    res.status(500).json(errorResponse)
+  }
+}
+
+// Update quantity of a registered piece
+export const updateBoxPieceQuantity = async (req: Request, res: Response) => {
+  try {
+    const { id, pieceId } = req.params
+    const { quantity } = req.body
+
+    if (!quantity || quantity < 1) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'La cantidad debe ser al menos 1'
+      })
+    }
+
+    const box = await InventoryItemModel.findById(id)
+    if (!box || !box.isBox) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Caja no encontrada'
+      })
+    }
+
+    const piece = await InventoryItemModel.findById(pieceId)
+    if (!piece) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Pieza no encontrada'
+      })
+    }
+
+    // Verify the piece belongs to this box
+    if (piece.sourceBoxId !== id) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Esta pieza no pertenece a esta caja'
+      })
+    }
+
+    const oldQuantity = piece.quantity
+    const quantityDiff = quantity - oldQuantity
+
+    // Update piece quantity
+    piece.quantity = quantity
+    await piece.save()
+
+    // Update box registered pieces count
+    box.registeredPieces = Math.max(0, (box.registeredPieces || 0) + quantityDiff)
+    await box.save()
+
+    const response: ApiResponse<any> = {
+      success: true,
+      data: piece,
+      message: 'Cantidad actualizada exitosamente'
+    }
+
+    res.json(response)
+  } catch (error: any) {
+    console.error('Update box piece quantity error:', error)
+    const errorResponse: ApiResponse<null> = {
+      success: false,
+      error: error.message,
+      message: 'Error al actualizar la cantidad'
+    }
+    res.status(500).json(errorResponse)
+  }
+}
+
     res.json({
       success: true,
       data: {
