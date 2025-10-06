@@ -92,7 +92,7 @@ export const useDeleteBoxPiece = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ boxId }: { boxId: string; pieceId: string }) => {
+    mutationFn: async (_params: { boxId: string; pieceId: string }) => {
       // Note: This endpoint might not exist yet in boxesService
       // We'll need to add it if needed
       throw new Error('Delete piece endpoint not implemented yet')
