@@ -393,7 +393,7 @@ const validatePurchaseDeletion = async (purchase: any) => {
   for (const item of purchase.items) {
     // Handle boxes
     if (item.isBox) {
-      const boxItem = await InventoryItemModel.findOne({
+      const boxItem: any = await InventoryItemModel.findOne({
         carId: item.carId,
         isBox: true,
         boxName: item.boxName
@@ -463,7 +463,7 @@ const removeItemsFromInventory = async (purchase: any) => {
     for (const item of purchase.items) {
       // Handle boxes
       if (item.isBox) {
-        const boxItem = await InventoryItemModel.findOne({
+        const boxItem: any = await InventoryItemModel.findOne({
           carId: item.carId,
           isBox: true,
           boxName: item.boxName
