@@ -56,7 +56,10 @@ const PurchaseSchema = new Schema<Purchase & Document>({
   },
   notes: { type: String },
   isReceived: { type: Boolean, default: false },
-  receivedDate: { type: Date }
+  receivedDate: { type: Date },
+  // Pending items tracking
+  hasPendingItems: { type: Boolean, default: false },
+  pendingItemsCount: { type: Number, default: 0, min: 0 }
 }, {
   timestamps: true,
   collection: 'purchases'

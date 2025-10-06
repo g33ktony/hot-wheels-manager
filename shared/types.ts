@@ -81,6 +81,9 @@ export interface Purchase {
   notes?: string;
   isReceived: boolean;
   receivedDate?: Date;
+  // Pending items tracking
+  hasPendingItems?: boolean;
+  pendingItemsCount?: number;
 }
 
 export interface PurchaseItem {
@@ -109,6 +112,41 @@ export interface PurchaseItem {
   photos?: string[];
   location?: string;
   notes?: string;
+}
+
+export interface PendingItem {
+  _id?: string;
+  originalPurchaseId: string;
+  originalPurchase?: Purchase;
+  
+  // Detalles del item
+  carId: string;
+  quantity: number;
+  unitPrice: number;
+  condition: 'mint' | 'good' | 'fair' | 'poor';
+  brand?: string;
+  pieceType?: 'basic' | 'premium' | 'rlc';
+  isTreasureHunt?: boolean;
+  isSuperTreasureHunt?: boolean;
+  isChase?: boolean;
+  photos?: string[];
+  
+  // Tracking
+  status: 'pending-reshipment' | 'requesting-refund' | 'refunded' | 'cancelled';
+  reportedDate: Date;
+  notes?: string;
+  
+  // Reenvío
+  linkedToPurchaseId?: string;
+  linkedToPurchase?: Purchase;
+  
+  // Reembolso
+  refundAmount?: number;
+  refundDate?: Date;
+  refundMethod?: string;
+  
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Customer {

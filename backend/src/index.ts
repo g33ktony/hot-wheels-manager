@@ -21,6 +21,7 @@ import marketPricesRoutes from './routes/marketPricesRoutes'
 import dashboardRoutes from './routes/dashboardRoutes'
 import customBrandRoutes from './routes/customBrandRoutes'
 import boxesRoutes from './routes/boxes'
+import pendingItemsRoutes from './routes/pendingItemsRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -110,6 +111,7 @@ app.use('/api/market-prices', authMiddleware, marketPricesRoutes)
 app.use('/api/dashboard', authMiddleware, dashboardRoutes)
 app.use('/api/custom-brands', authMiddleware, customBrandRoutes)
 app.use('/api/boxes', authMiddleware, boxesRoutes)
+app.use('/api/pending-items', authMiddleware, pendingItemsRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)
