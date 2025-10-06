@@ -6,8 +6,9 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Ca
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upload, MapPin, Package } from 'lucide-react'
+import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upload, MapPin, Package, AlertCircle } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import ReceiveVerificationModal from '@/components/ReceiveVerificationModal'
 
 const PREDEFINED_BRANDS = [
     'Hot Wheels',
@@ -24,6 +25,8 @@ export default function Purchases() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [showCreateSupplierModal, setShowCreateSupplierModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
+    const [showReceiveModal, setShowReceiveModal] = useState(false)
+    const [purchaseToReceive, setPurchaseToReceive] = useState<any>(null)
     const [selectedPurchase, setSelectedPurchase] = useState<any>(null)
     const [editingPurchase, setEditingPurchase] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
@@ -539,37 +542,37 @@ export default function Purchases() {
 
     const handleStatusChange = async (purchaseId: string, newStatus: 'pending' | 'paid' | 'shipped' | 'received' | 'cancelled') => {
         try {
-            // Special confirmation for "received" status
+            // Special handling for "received" status - show verification modal
             if (newStatus === 'received') {
                 const purchase = purchases?.find(p => p._id === purchaseId)
-                const itemCount = purchase?.items?.length || 0
-                const totalQuantity = purchase?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
-                
-                const confirmReceive = window.confirm(
-                    `¿Confirmar que la compra fue recibida?\n\n` +
-                    `📦 Esto agregará automáticamente ${totalQuantity} pieza${totalQuantity !== 1 ? 's' : ''} (${itemCount} item${itemCount !== 1 ? 's' : ''}) al inventario con toda la información:\n\n` +
-                    `✓ Marca y tipo de pieza\n` +
-                    `✓ TH/STH/Chase (si aplica)\n` +
-                    `✓ Serie completa\n` +
-                    `✓ Fotos y ubicación\n` +
-                    `✓ Todas las notas\n\n` +
-                    `Las piezas estarán disponibles inmediatamente en el inventario.`
-                )
-                
-                if (!confirmReceive) {
-                    return
+                if (purchase) {
+                    setPurchaseToReceive(purchase)
+                    setShowReceiveModal(true)
                 }
+                return
             }
             
             await updateStatusMutation.mutateAsync({ id: purchaseId, status: newStatus })
-            
-            // Show success message for received status
-            if (newStatus === 'received') {
-                alert('✅ Compra recibida exitosamente!\n\nTodos los items fueron agregados al inventario.')
-            }
         } catch (error) {
             console.error('Error updating purchase status:', error)
             alert('❌ Error al actualizar el estado de la compra. Por favor intenta de nuevo.')
+        }
+    }
+
+    const handleConfirmReceive = async () => {
+        if (!purchaseToReceive?._id) return
+        
+        try {
+            await updateStatusMutation.mutateAsync({ 
+                id: purchaseToReceive._id, 
+                status: 'received' 
+            })
+            setShowReceiveModal(false)
+            setPurchaseToReceive(null)
+            alert('✅ Compra recibida exitosamente!\n\nTodos los items fueron agregados al inventario.')
+        } catch (error) {
+            console.error('Error marking purchase as received:', error)
+            alert('❌ Error al marcar la compra como recibida. Por favor intenta de nuevo.')
         }
     }
 
@@ -670,9 +673,19 @@ export default function Purchases() {
                                 <div key={purchase._id} className="flex flex-col gap-3 p-3 lg:p-4 border rounded-lg touch-manipulation">
                                     {/* Header row */}
                                     <div className="flex items-start justify-between gap-2">
-                                        <h3 className="font-medium text-gray-900 text-sm lg:text-base flex-1 min-w-0">
-                                            {typeof purchase.supplierId === 'object' ? purchase.supplierId.name : suppliers?.find(s => s._id === purchase.supplierId)?.name || 'Proveedor desconocido'}
-                                        </h3>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-medium text-gray-900 text-sm lg:text-base">
+                                                {typeof purchase.supplierId === 'object' ? purchase.supplierId.name : suppliers?.find(s => s._id === purchase.supplierId)?.name || 'Proveedor desconocido'}
+                                            </h3>
+                                            {purchase.hasPendingItems && purchase.pendingItemsCount && purchase.pendingItemsCount > 0 && (
+                                                <div className="flex items-center gap-1 mt-1 text-orange-600">
+                                                    <AlertCircle size={14} />
+                                                    <span className="text-xs font-medium">
+                                                        {purchase.pendingItemsCount} item{purchase.pendingItemsCount > 1 ? 's' : ''} pendiente{purchase.pendingItemsCount > 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                         <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0 ${purchase.status === 'received' ? 'bg-green-100 text-green-800' :
                                             purchase.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
                                                 purchase.status === 'paid' ? 'bg-purple-100 text-purple-800' :
@@ -727,9 +740,10 @@ export default function Purchases() {
                                                 variant="secondary"
                                                 onClick={() => handleStatusChange(purchase._id!, 'received')}
                                                 disabled={updateStatusMutation.isLoading}
-                                                className="min-h-[44px] text-xs lg:text-sm flex-1 sm:flex-none"
+                                                className="min-h-[44px] text-xs lg:text-sm flex-1 sm:flex-none bg-orange-500 hover:bg-orange-600 text-white border-orange-500"
                                             >
-                                                Marcar Recibido
+                                                <Package size={16} className="mr-1" />
+                                                Verificar y Recibir
                                             </Button>
                                         )}
                                         {purchase.status !== 'cancelled' && purchase.status !== 'received' && (
@@ -1861,6 +1875,18 @@ export default function Purchases() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Receive Verification Modal */}
+            {showReceiveModal && purchaseToReceive && (
+                <ReceiveVerificationModal
+                    purchase={purchaseToReceive}
+                    onConfirm={handleConfirmReceive}
+                    onClose={() => {
+                        setShowReceiveModal(false)
+                        setPurchaseToReceive(null)
+                    }}
+                />
             )}
         </div>
     )

@@ -11,31 +11,42 @@ import {
     Users,
     Building2,
     LogOut,
-    PackageOpen
+    PackageOpen,
+    AlertCircle
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { usePendingItemsStats } from '@/hooks/usePendingItems'
 
 interface LayoutProps {
     children: ReactNode
 }
-
-const navigationItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Inventario', href: '/inventory', icon: Package },
-    { name: 'Ventas', href: '/sales', icon: ShoppingCart },
-    { name: 'Compras', href: '/purchases', icon: ShoppingBag },
-    { name: 'Cajas', href: '/boxes', icon: PackageOpen },
-    { name: 'Entregas', href: '/deliveries', icon: Truck },
-    { name: 'Clientes', href: '/customers', icon: Users },
-    { name: 'Proveedores', href: '/suppliers', icon: Building2 },
-]
 
 export default function Layout({ children }: LayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const location = useLocation()
     const navigate = useNavigate()
     const { user, logout } = useAuth()
+    const { data: pendingItemsStats } = usePendingItemsStats()
+
+    const navigationItems = [
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'Inventario', href: '/inventory', icon: Package },
+        { name: 'Ventas', href: '/sales', icon: ShoppingCart },
+        { name: 'Compras', href: '/purchases', icon: ShoppingBag },
+        // Conditional: Only show if there are pending items
+        ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
+            name: 'Items Pendientes',
+            href: '/pending-items',
+            icon: AlertCircle,
+            badge: pendingItemsStats.totalCount,
+            highlight: true
+        }] : []),
+        { name: 'Cajas', href: '/boxes', icon: PackageOpen },
+        { name: 'Entregas', href: '/deliveries', icon: Truck },
+        { name: 'Clientes', href: '/customers', icon: Users },
+        { name: 'Proveedores', href: '/suppliers', icon: Building2 },
+    ]
 
     const handleLogout = () => {
         logout()
@@ -69,7 +80,7 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
 
                 <nav className="mt-4 px-3 space-y-1 pb-20 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 4rem)' }}>
-                    {navigationItems.map((item) => {
+                    {navigationItems.map((item: any) => {
                         const isActive = location.pathname === item.href
                         return (
                             <Link
@@ -77,16 +88,31 @@ export default function Layout({ children }: LayoutProps) {
                                 to={item.href}
                                 className={`
                   flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200
-                  min-h-[44px] touch-manipulation
+                  min-h-[44px] touch-manipulation relative
                   ${isActive
-                                        ? 'bg-primary-100 text-primary-700 shadow-sm'
-                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200'
+                                        ? item.highlight
+                                            ? 'bg-orange-100 text-orange-700 shadow-sm'
+                                            : 'bg-primary-100 text-primary-700 shadow-sm'
+                                        : item.highlight
+                                            ? 'text-orange-600 hover:bg-orange-50 hover:text-orange-700 active:bg-orange-100 border-2 border-orange-300'
+                                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200'
                                     }
                 `}
                                 onClick={() => setSidebarOpen(false)}
                             >
                                 <item.icon size={22} className="mr-3 flex-shrink-0" />
                                 <span className="flex-1">{item.name}</span>
+                                {item.badge && item.badge > 0 && (
+                                    <span className={`
+                    px-2 py-0.5 text-xs font-semibold rounded-full
+                    ${isActive
+                                            ? 'bg-orange-200 text-orange-900'
+                                            : 'bg-orange-500 text-white'
+                                        }
+                  `}>
+                                        {item.badge}
+                                    </span>
+                                )}
                             </Link>
                         )
                     })}

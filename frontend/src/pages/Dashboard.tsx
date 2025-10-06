@@ -1,11 +1,14 @@
 import React from 'react'
 import { useQuery } from 'react-query'
 import { dashboardService } from '@/services/dashboard'
+import { usePendingItemsStats } from '@/hooks/usePendingItems'
+import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
-import { Package, ShoppingCart, Truck, TrendingUp, AlertTriangle, Calendar, Clock, MapPin } from 'lucide-react'
+import { Package, ShoppingCart, Truck, TrendingUp, AlertTriangle, Calendar, Clock, MapPin, AlertCircle } from 'lucide-react'
 
 export default function Dashboard() {
+    const navigate = useNavigate()
     const { data: metrics, isLoading, error } = useQuery(
         'dashboard-metrics',
         dashboardService.getMetrics,
@@ -13,6 +16,7 @@ export default function Dashboard() {
             refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
         }
     )
+    const { data: pendingItemsStats } = usePendingItemsStats()
 
     if (isLoading) {
         return <Loading text="Cargando dashboard..." />
@@ -243,7 +247,33 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            {metrics.pendingPurchases === 0 && metrics.pendingSales === 0 && metrics.pendingDeliveries === 0 && (
+                            {/* Pending Items Widget */}
+                            {pendingItemsStats && pendingItemsStats.totalCount > 0 && (
+                                <div 
+                                    className="flex items-start p-4 bg-orange-50 border-2 border-orange-300 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
+                                    onClick={() => navigate('/pending-items')}
+                                >
+                                    <AlertCircle className="text-orange-600 mt-0.5 mr-3 flex-shrink-0" size={20} />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-orange-900 mb-1">
+                                            🟠 {pendingItemsStats.totalCount} Item{pendingItemsStats.totalCount > 1 ? 's' : ''} Pendiente{pendingItemsStats.totalCount > 1 ? 's' : ''}
+                                        </p>
+                                        <p className="text-xs text-orange-800">
+                                            Valor total: ${pendingItemsStats.totalValue.toFixed(2)}
+                                        </p>
+                                        {pendingItemsStats.overdueCount > 0 && (
+                                            <p className="text-xs text-red-600 font-medium mt-1">
+                                                ⚠️ {pendingItemsStats.overdueCount} vencido{pendingItemsStats.overdueCount > 1 ? 's' : ''} (+15 días)
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-orange-700 mt-2">
+                                            Click para gestionar →
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {metrics.pendingPurchases === 0 && metrics.pendingSales === 0 && metrics.pendingDeliveries === 0 && (!pendingItemsStats || pendingItemsStats.totalCount === 0) && (
                                 <p className="text-gray-500 text-center py-4">No hay alertas pendientes</p>
                             )}
                         </div>
