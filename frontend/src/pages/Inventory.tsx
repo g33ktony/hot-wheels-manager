@@ -5,7 +5,7 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 
 // Predefined brands
@@ -30,6 +30,11 @@ export default function Inventory() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [editingItem, setEditingItem] = useState<any>(null)
+    // Image viewer modal
+    const [showImageModal, setShowImageModal] = useState(false)
+    const [selectedImage, setSelectedImage] = useState<string>('')
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+    const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
     // Bulk delete state
     const [isSelectionMode, setIsSelectionMode] = useState(false)
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
@@ -443,6 +448,35 @@ export default function Inventory() {
         }
     }
 
+    // Image modal handlers
+    const handleImageClick = (photos: string[], index: number = 0) => {
+        if (photos && photos.length > 0) {
+            setAllImagesForModal(photos)
+            setSelectedImageIndex(index)
+            setSelectedImage(photos[index])
+            setShowImageModal(true)
+        }
+    }
+
+    const handleNextImage = () => {
+        const nextIndex = (selectedImageIndex + 1) % allImagesForModal.length
+        setSelectedImageIndex(nextIndex)
+        setSelectedImage(allImagesForModal[nextIndex])
+    }
+
+    const handlePrevImage = () => {
+        const prevIndex = (selectedImageIndex - 1 + allImagesForModal.length) % allImagesForModal.length
+        setSelectedImageIndex(prevIndex)
+        setSelectedImage(allImagesForModal[prevIndex])
+    }
+
+    const handleCloseImageModal = () => {
+        setShowImageModal(false)
+        setSelectedImage('')
+        setSelectedImageIndex(0)
+        setAllImagesForModal([])
+    }
+
     // Calcular margen de ganancia sugerido basado en condición
     const calculateSuggestedMargin = (purchasePrice: number, condition: string): number => {
         if (purchasePrice === 0) return 0
@@ -787,13 +821,26 @@ export default function Inventory() {
                                 
                                 <div className="space-y-4">
                                 {/* Car Image Placeholder */}
-                                <div className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative">
+                                <div 
+                                    className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
+                                    onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
+                                >
                                     {item.photos && item.photos.length > 0 ? (
-                                        <img
-                                            src={item.photos[0]}
-                                            alt="Hot Wheels"
-                                            className={`w-full h-full object-cover rounded-lg ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : ''}`}
-                                        />
+                                        <>
+                                            <img
+                                                src={item.photos[0]}
+                                                alt="Hot Wheels"
+                                                className={`w-full h-full object-cover rounded-lg transition-all ${
+                                                    isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
+                                                }`}
+                                            />
+                                            {/* Zoom indicator */}
+                                            {!isSelectionMode && (
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20 rounded-lg">
+                                                    <Maximize2 size={32} className="text-white drop-shadow-lg" />
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
                                         <Package size={48} className="text-gray-400" />
                                     )}
@@ -2053,6 +2100,69 @@ export default function Inventory() {
                                 Actualizar Pieza
                             </Button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Viewer Modal */}
+            {showImageModal && (
+                <div 
+                    className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60]"
+                    onClick={handleCloseImageModal}
+                >
+                    <div className="relative w-full h-full flex items-center justify-center p-4">
+                        {/* Close Button */}
+                        <button
+                            onClick={handleCloseImageModal}
+                            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+                        >
+                            <X size={32} />
+                        </button>
+
+                        {/* Previous Button */}
+                        {allImagesForModal.length > 1 && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handlePrevImage()
+                                }}
+                                className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
+                            >
+                                <ChevronLeft size={32} />
+                            </button>
+                        )}
+
+                        {/* Image */}
+                        <div 
+                            className="max-w-7xl max-h-full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img
+                                src={selectedImage}
+                                alt="Hot Wheels - Vista Completa"
+                                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                            />
+                        </div>
+
+                        {/* Next Button */}
+                        {allImagesForModal.length > 1 && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleNextImage()
+                                }}
+                                className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-2"
+                            >
+                                <ChevronRight size={32} />
+                            </button>
+                        )}
+
+                        {/* Image Counter */}
+                        {allImagesForModal.length > 1 && (
+                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-4 py-2 rounded-full text-sm">
+                                {selectedImageIndex + 1} / {allImagesForModal.length}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
