@@ -3,6 +3,7 @@ import { ApiResponse } from '@shared/types'
 import Purchase from '../models/Purchase'
 import { InventoryItemModel } from '../models/InventoryItem'
 import { SupplierModel } from '../models/Supplier'
+import { DeliveryModel } from '../models/Delivery'
 
 export const getPurchases = async (req: Request, res: Response) => {
   try {
@@ -146,20 +147,22 @@ const addItemsToInventory = async (purchase: any) => {
         inventoryItem.quantity += item.quantity
         inventoryItem.purchasePrice = item.unitPrice // Update to latest purchase price
         
-        // Update fields if they don't exist yet or are different
-        if (item.brand && !inventoryItem.brand) inventoryItem.brand = item.brand
-        if (item.pieceType && !inventoryItem.pieceType) inventoryItem.pieceType = item.pieceType
+        // Always update brand and pieceType if provided (not just if missing)
+        if (item.brand) inventoryItem.brand = item.brand
+        if (item.pieceType) inventoryItem.pieceType = item.pieceType
+        
+        // Update special edition flags if true
         if (item.isTreasureHunt) inventoryItem.isTreasureHunt = item.isTreasureHunt
         if (item.isSuperTreasureHunt) inventoryItem.isSuperTreasureHunt = item.isSuperTreasureHunt
         if (item.isChase) inventoryItem.isChase = item.isChase
         
         // Update series info if provided
-        if (item.seriesId && !inventoryItem.seriesId) {
-          inventoryItem.seriesId = item.seriesId
+        if (item.seriesName) {
+          inventoryItem.seriesId = item.seriesId || inventoryItem.seriesId
           inventoryItem.seriesName = item.seriesName
-          inventoryItem.seriesSize = item.seriesSize
-          inventoryItem.seriesPosition = item.seriesPosition
-          inventoryItem.seriesPrice = item.seriesPrice
+          inventoryItem.seriesSize = item.seriesSize || inventoryItem.seriesSize
+          inventoryItem.seriesPosition = item.seriesPosition || inventoryItem.seriesPosition
+          inventoryItem.seriesPrice = item.seriesPrice || inventoryItem.seriesPrice
         }
         
         // Merge photos without duplicates
@@ -304,9 +307,20 @@ export const deletePurchase = async (req: Request, res: Response) => {
       })
     }
 
-    // If the purchase was received, we need to remove the items from inventory
+    // If the purchase was received, we need to:
+    // 1. Remove the items from inventory
+    // 2. Delete any associated deliveries
     if (purchase.status === 'received') {
+      console.log(`🗑️  Deleting received purchase ${id} - reverting inventory and deliveries...`)
+      
+      // Remove items from inventory
       await removeItemsFromInventory(purchase)
+      
+      // Delete associated deliveries
+      const deletedDeliveries = await DeliveryModel.deleteMany({ purchaseId: id })
+      if (deletedDeliveries.deletedCount > 0) {
+        console.log(`✅ Deleted ${deletedDeliveries.deletedCount} delivery(ies) associated with purchase ${id}`)
+      }
     }
 
     await Purchase.findByIdAndDelete(id)
@@ -333,10 +347,11 @@ export const deletePurchase = async (req: Request, res: Response) => {
 const removeItemsFromInventory = async (purchase: any) => {
   try {
     for (const item of purchase.items) {
-      // Find the inventory item
+      // Find the inventory item (consistent with addItemsToInventory logic)
       const inventoryItem = await InventoryItemModel.findOne({
         carId: item.carId,
-        condition: item.condition
+        condition: item.condition,
+        brand: item.brand || { $exists: false }
       })
 
       if (inventoryItem) {
@@ -344,15 +359,17 @@ const removeItemsFromInventory = async (purchase: any) => {
         inventoryItem.quantity -= item.quantity
         if (inventoryItem.quantity <= 0) {
           await InventoryItemModel.findByIdAndDelete(inventoryItem._id)
+          console.log(`  ✓ Removed item ${item.carId} from inventory (quantity reached 0)`)
         } else {
           await inventoryItem.save()
+          console.log(`  ✓ Reduced quantity for ${item.carId}: ${inventoryItem.quantity + item.quantity} → ${inventoryItem.quantity}`)
         }
       }
     }
 
-    console.log(`Removed ${purchase.items.length} items from inventory for deleted purchase ${purchase._id}`)
+    console.log(`✅ Removed ${purchase.items.length} items from inventory for deleted purchase ${purchase._id}`)
   } catch (error) {
-    console.error('Error removing items from inventory:', error)
+    console.error('❌ Error removing items from inventory:', error)
     throw error
   }
 }
