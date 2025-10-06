@@ -64,8 +64,15 @@ export default function ReceiveVerificationModal({
     try {
       for (const status of missingItems) {
         const originalItem = purchase.items[status.index]
-        const missingQuantity = originalItem.quantity - status.quantity
+        
+        // Calculate missing quantity:
+        // - If not received at all: full quantity is missing
+        // - If partial: difference between original and received
+        const missingQuantity = !status.received 
+          ? originalItem.quantity 
+          : originalItem.quantity - status.quantity
 
+        // Only create pending item if there's something missing
         if (missingQuantity > 0) {
           await createPendingItem.mutateAsync({
             originalPurchaseId: purchase._id!,
