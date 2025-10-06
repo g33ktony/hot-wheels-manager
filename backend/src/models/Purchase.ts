@@ -10,7 +10,23 @@ const PurchaseItemSchema = new Schema<PurchaseItem>({
     required: true,
     enum: ['mint', 'good', 'fair', 'poor'],
     default: 'mint'
-  }
+  },
+  // Brand and type fields
+  brand: { type: String },
+  pieceType: { type: String, enum: ['basic', 'premium', 'rlc'] },
+  isTreasureHunt: { type: Boolean, default: false },
+  isSuperTreasureHunt: { type: Boolean, default: false },
+  isChase: { type: Boolean, default: false },
+  // Series fields
+  seriesId: { type: String },
+  seriesName: { type: String },
+  seriesSize: { type: Number },
+  seriesPosition: { type: Number },
+  seriesPrice: { type: Number },
+  // Photos and location
+  photos: [{ type: String }],
+  location: { type: String },
+  notes: { type: String }
 }, { _id: false })
 
 const PurchaseSchema = new Schema<Purchase & Document>({
