@@ -10,7 +10,8 @@ import {
     X,
     Users,
     Building2,
-    LogOut
+    LogOut,
+    PackageOpen
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -24,6 +25,7 @@ const navigationItems = [
     { name: 'Inventario', href: '/inventory', icon: Package },
     { name: 'Ventas', href: '/sales', icon: ShoppingCart },
     { name: 'Compras', href: '/purchases', icon: ShoppingBag },
+    { name: 'Cajas', href: '/boxes', icon: PackageOpen },
     { name: 'Entregas', href: '/deliveries', icon: Truck },
     { name: 'Clientes', href: '/customers', icon: Users },
     { name: 'Proveedores', href: '/suppliers', icon: Building2 },

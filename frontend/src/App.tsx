@@ -10,6 +10,7 @@ import Purchases from './pages/Purchases'
 import Deliveries from './pages/Deliveries'
 import Customers from './pages/Customers'
 import Suppliers from './pages/Suppliers'
+import Boxes from './pages/Boxes'
 
 // Test: Deployment optimization - only frontend changes
 function App() {
@@ -34,6 +35,7 @@ function App() {
                                     <Route path="/deliveries" element={<Deliveries />} />
                                     <Route path="/customers" element={<Customers />} />
                                     <Route path="/suppliers" element={<Suppliers />} />
+                                    <Route path="/boxes" element={<Boxes />} />
                                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                 </Routes>
                             </Layout>
