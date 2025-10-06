@@ -376,24 +376,6 @@ export const updateBoxPieceQuantity = async (req: Request, res: Response) => {
   }
 }
 
-    res.json({
-      success: true,
-      data: {
-        box,
-        deletedPiece: piece
-      },
-      message: 'Pieza eliminada exitosamente'
-    })
-  } catch (error) {
-    console.error('Error deleting box piece:', error)
-    res.status(500).json({
-      success: false,
-      data: null,
-      message: 'Error al eliminar la pieza'
-    })
-  }
-}
-
 // PUT /api/boxes/:id - Update box information (like adjusting boxSize)
 export const updateBox = async (req: Request, res: Response) => {
   try {

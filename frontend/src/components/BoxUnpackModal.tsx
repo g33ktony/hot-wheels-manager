@@ -419,16 +419,16 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                                                     </select>
                                                 </div>
 
-                                                {/* Suggested Price */}
+                                                {/* Location */}
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Precio Sugerido
+                                                        Ubicación
                                                     </label>
                                                     <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        value={piece.suggestedPrice}
-                                                        onChange={(e) => handlePieceChange(index, 'suggestedPrice', parseFloat(e.target.value) || 0)}
+                                                        type="text"
+                                                        value={piece.location}
+                                                        onChange={(e) => handlePieceChange(index, 'location', e.target.value)}
+                                                        placeholder="Estante 1, Caja A"
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                                                     />
                                                 </div>
