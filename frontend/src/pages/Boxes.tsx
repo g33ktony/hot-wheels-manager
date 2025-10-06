@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Package, ChevronRight, Filter, Search } from 'lucide-react'
 import { useBoxes } from '../hooks/useBoxes'
 import BoxUnpackModal from '../components/BoxUnpackModal'
-import { InventoryItem } from '@shared/types'
+import { InventoryItem } from '../../../shared/types'
 
 export default function Boxes() {
     const { data: boxes, isLoading, error } = useBoxes()

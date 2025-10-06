@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Plus, Trash2, Camera, Save, CheckCircle, AlertTriangle } from 'lucide-react'
-import { InventoryItem } from '@shared/types'
+import { InventoryItem } from '../../../shared/types'
 import { useBoxById, useRegisterBoxPieces, useCompleteBox, useDeleteBoxPiece } from '../hooks/useBoxes'
 import imageCompression from 'browser-image-compression'
 
