@@ -27,6 +27,7 @@ import pendingItemsRoutes from './routes/pendingItemsRoutes'
 import { authMiddleware } from './middleware/auth'
 import errorHandler from './middleware/errorHandler'
 import notFoundHandler from './middleware/notFoundHandler'
+import { performanceLogger, responseSizeLogger } from './middleware/performance'
 
 // Load environment variables
 dotenv.config()
@@ -58,7 +59,19 @@ const limiter = rateLimit({
 
 // Middleware
 app.use(helmet()) // Security headers
-app.use(compression()) // Gzip compression
+app.use(compression({
+  filter: (req, res) => {
+    // Don't compress if client doesn't accept encoding
+    if (req.headers['x-no-compression']) {
+      return false
+    }
+    return compression.filter(req, res)
+  },
+  level: 6, // Balance between compression and CPU (0-9, 6 is default)
+  threshold: 1024 // Only compress responses > 1KB
+})) // Gzip compression
+app.use(performanceLogger) // Performance monitoring
+app.use(responseSizeLogger) // Response size tracking
 app.use(limiter) // Rate limiting (skips auth routes)
 app.use(cors({
   origin: (origin, callback) => {

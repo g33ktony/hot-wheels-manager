@@ -61,11 +61,50 @@ inventoryItemSchema.pre('save', function(next) {
   next()
 })
 
-// Índices
+// Índices para performance
+// Índice simple para queries básicas
 inventoryItemSchema.index({ carId: 1 })
 inventoryItemSchema.index({ condition: 1 })
 inventoryItemSchema.index({ quantity: 1 })
 inventoryItemSchema.index({ dateAdded: -1 })
-inventoryItemSchema.index({ seriesId: 1 }) // Para queries de series
+inventoryItemSchema.index({ seriesId: 1 })
+
+// Índice compuesto para filtros múltiples (NUEVO - Performance Boost)
+inventoryItemSchema.index({ 
+  brand: 1, 
+  condition: 1, 
+  pieceType: 1,
+  dateAdded: -1 
+})
+
+// Índice para búsqueda de texto (NUEVO - Performance Boost)
+inventoryItemSchema.index({ 
+  carId: 'text', 
+  notes: 'text' 
+}, {
+  weights: {
+    carId: 10,  // Mayor peso a carId
+    notes: 5
+  },
+  name: 'inventory_text_search'
+})
+
+// Índice para boxes (NUEVO - Performance Boost)
+inventoryItemSchema.index({ 
+  isBox: 1, 
+  boxStatus: 1,
+  dateAdded: -1
+})
+
+// Índice para source tracking
+inventoryItemSchema.index({ sourceBoxId: 1 })
+
+// Índice para treasure hunts y chase
+inventoryItemSchema.index({ 
+  brand: 1, 
+  isTreasureHunt: 1, 
+  isSuperTreasureHunt: 1,
+  isChase: 1
+})
 
 export const InventoryItemModel = model<IInventoryItem>('InventoryItem', inventoryItemSchema)

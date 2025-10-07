@@ -80,8 +80,10 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Get filtered inventory items
+    // Get filtered inventory items with optimization
     const inventoryItems = await InventoryItemModel.find(query)
+      .select('-__v -updatedAt') // Excluir campos innecesarios para reducir payload
+      .lean() // Retorna objetos planos JS (30-40% más rápido que documentos Mongoose)
       .limit(limit)
       .skip(skip)
       .sort({ dateAdded: -1 });
