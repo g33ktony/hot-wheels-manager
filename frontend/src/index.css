@@ -19,9 +19,6 @@
     -moz-osx-font-smoothing: grayscale;
     /* Base font size - responsive */
     font-size: 16px;
-    /* Prevent horizontal scroll */
-    overflow-x: hidden;
-    width: 100%;
   }
   
   body {
@@ -35,16 +32,11 @@
     /* Ensure proper sizing */
     min-height: 100vh;
     min-height: -webkit-fill-available;
-    /* Prevent horizontal scroll */
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
+    margin: 0;
   }
   
   #root {
     width: 100%;
-    max-width: 100vw;
-    overflow-x: hidden;
   }
   
   /* iOS Safe Area support */

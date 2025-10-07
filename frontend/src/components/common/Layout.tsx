@@ -168,8 +168,10 @@ export default function Layout({ children }: LayoutProps) {
 
                 {/* Page content - properly aligned with top bar */}
                 <main className="flex-1 overflow-auto">
-                    <div className="py-4 px-4 lg:py-6 lg:px-6 pb-safe">
-                        {children}
+                    <div className="py-4 px-4 lg:py-6 lg:px-6 pb-safe w-full max-w-full">
+                        <div className="w-full max-w-full">
+                            {children}
+                        </div>
                     </div>
                 </main>
             </div>

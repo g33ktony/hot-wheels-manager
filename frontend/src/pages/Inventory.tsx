@@ -743,7 +743,7 @@ export default function Inventory() {
     }
 
     return (
-        <div className="space-y-6 w-full max-w-full overflow-x-hidden">
+        <div className="space-y-6 w-full max-w-full">
             {/* Ref para scroll automático */}
             <div ref={topRef} />
 
@@ -818,10 +818,10 @@ export default function Inventory() {
 
             {/* Filters */}
             <Card>
-                <div className="space-y-4">
+                <div className="space-y-4 w-full">
                     {/* First row: Search and Condition */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="relative">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+                        <div className="relative w-full">
                             <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                             <Input
                                 placeholder="Buscar por nombre o código..."
@@ -834,7 +834,7 @@ export default function Inventory() {
                         <select
                             value={filterCondition}
                             onChange={(e) => handleFilterChange('condition', e.target.value)}
-                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
                             style={{
                                 fontSize: '16px',
                                 WebkitAppearance: 'none',
@@ -856,7 +856,7 @@ export default function Inventory() {
                     </div>
 
                     {/* Second row: Brand and Type filters */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 w-full">
                         <select
                             value={filterBrand}
                             onChange={(e) => {
@@ -868,7 +868,7 @@ export default function Inventory() {
                                     handleFilterChange('chase', false)
                                 }
                             }}
-                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
                             style={{
                                 fontSize: '16px',
                                 WebkitAppearance: 'none',
@@ -891,7 +891,7 @@ export default function Inventory() {
                                     handleFilterChange('treasureHunt', 'all')
                                     handleFilterChange('chase', false)
                                 }}
-                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
                                 style={{
                                     fontSize: '16px',
                                     WebkitAppearance: 'none',
@@ -910,7 +910,7 @@ export default function Inventory() {
                             <select
                                 value={filterTreasureHunt}
                                 onChange={(e) => handleFilterChange('treasureHunt', e.target.value as 'all' | 'th' | 'sth')}
-                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
                                 style={{
                                     fontSize: '16px',
                                     WebkitAppearance: 'none',
@@ -986,7 +986,7 @@ export default function Inventory() {
                     </div>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 w-full max-w-full">
                     {filteredItems.map((item) => (
                         <Card
                             key={item._id}
