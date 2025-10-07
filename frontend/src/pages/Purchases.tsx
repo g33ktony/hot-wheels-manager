@@ -7,9 +7,10 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Ca
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upload, MapPin, Package, AlertCircle } from 'lucide-react'
+import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upload, MapPin, Package, AlertCircle, Car, Box } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import ReceiveVerificationModal from '@/components/ReceiveVerificationModal'
+import AutocompleteCarId from '@/components/AutocompleteCarId'
 
 const PREDEFINED_BRANDS = [
     'Hot Wheels',
@@ -71,6 +72,7 @@ export default function Purchases() {
         estimatedDelivery: '',
         notes: '',
         items: [] as Array<{
+            itemType?: 'individual' | 'box' | 'series'; // Tipo de item para renderizado condicional
             carId: string;
             quantity: number;
             unitPrice: number;
@@ -131,6 +133,7 @@ export default function Purchases() {
         setNewPurchase({
             ...newPurchase,
             items: [...newPurchase.items, {
+                itemType: 'individual', // Por defecto es item individual
                 carId: '',
                 quantity: 1,
                 unitPrice: 0,
