@@ -743,22 +743,23 @@ export default function Inventory() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 w-full max-w-full overflow-x-hidden">
             {/* Ref para scroll automático */}
             <div ref={topRef} />
 
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
                     <p className="text-gray-600">Gestiona tus piezas de Hot Wheels</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     {isSelectionMode ? (
                         <>
                             <Button
                                 variant="secondary"
                                 onClick={toggleSelectionMode}
+                                size="sm"
                             >
                                 Cancelar
                             </Button>
@@ -767,13 +768,15 @@ export default function Inventory() {
                                     <Button
                                         variant="secondary"
                                         onClick={deselectAllItems}
+                                        size="sm"
                                     >
                                         Deseleccionar ({selectedItems.size})
                                     </Button>
                                     <Button
                                         variant="danger"
-                                        icon={<Trash2 size={20} />}
+                                        icon={<Trash2 size={18} />}
                                         onClick={handleBulkDelete}
+                                        size="sm"
                                     >
                                         Eliminar ({selectedItems.size})
                                     </Button>
@@ -783,6 +786,7 @@ export default function Inventory() {
                                 <Button
                                     variant="secondary"
                                     onClick={selectAllItems}
+                                    size="sm"
                                 >
                                     Seleccionar Todo
                                 </Button>
@@ -793,15 +797,17 @@ export default function Inventory() {
                             {filteredItems.length > 0 && (
                                 <Button
                                     variant="secondary"
-                                    icon={<CheckSquare size={20} />}
+                                    icon={<CheckSquare size={18} />}
                                     onClick={toggleSelectionMode}
+                                    size="sm"
                                 >
                                     Seleccionar
                                 </Button>
                             )}
                             <Button
-                                icon={<Plus size={20} />}
+                                icon={<Plus size={18} />}
                                 onClick={() => setShowAddModal(true)}
+                                size="sm"
                             >
                                 Agregar Pieza
                             </Button>
@@ -980,7 +986,7 @@ export default function Inventory() {
                     </div>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
                     {filteredItems.map((item) => (
                         <Card
                             key={item._id}
