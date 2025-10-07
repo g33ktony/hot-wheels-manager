@@ -328,14 +328,14 @@ export default function Purchases() {
         try {
             // Expandir y limpiar items
             const expandedItems: any[] = []
-            
+
             newPurchase.items.forEach(item => {
                 // CASO 1: Caja de Serie - Expandir en items individuales
                 if (item.itemType === 'series' && item.seriesPieces && item.seriesPieces.length > 0) {
                     // Generar un ID único para la serie
                     const seriesId = `SERIES-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
                     const seriesPrice = (item.seriesSize || 0) * item.unitPrice
-                    
+
                     item.seriesPieces.forEach((piece, index) => {
                         // Crear UN solo item con la cantidad especificada (no repetir)
                         expandedItems.push({
@@ -367,7 +367,7 @@ export default function Purchases() {
                         const timestamp = Date.now()
                         item.carId = `${boxPrefix}-${timestamp}`
                     }
-                    
+
                     expandedItems.push({
                         carId: item.carId,
                         quantity: item.quantity,
@@ -1045,18 +1045,17 @@ export default function Purchases() {
                                                                 onClick={() => {
                                                                     console.log('🔵 Click en Individual')
                                                                     const updatedItems = [...newPurchase.items]
-                                                                    updatedItems[index] = { 
-                                                                        ...updatedItems[index], 
+                                                                    updatedItems[index] = {
+                                                                        ...updatedItems[index],
                                                                         itemType: 'individual',
                                                                         isBox: false
                                                                     }
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
-                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${
-                                                                    (item.itemType === 'individual' || !item.itemType) && !item.isBox
+                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${(item.itemType === 'individual' || !item.itemType) && !item.isBox
                                                                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                                                                         : 'border-gray-300 hover:border-gray-400'
-                                                                }`}
+                                                                    }`}
                                                                 style={{
                                                                     WebkitTapHighlightColor: 'transparent',
                                                                     WebkitTouchCallout: 'none',
@@ -1070,19 +1069,18 @@ export default function Purchases() {
                                                                 onClick={() => {
                                                                     console.log('🟣 Click en Caja Sellada')
                                                                     const updatedItems = [...newPurchase.items]
-                                                                    updatedItems[index] = { 
-                                                                        ...updatedItems[index], 
+                                                                    updatedItems[index] = {
+                                                                        ...updatedItems[index],
                                                                         itemType: 'box',
                                                                         isBox: true,
                                                                         carId: '' // Limpiar carId, se genera automático
                                                                     }
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
-                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${
-                                                                    item.itemType === 'box' || item.isBox
+                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'box' || item.isBox
                                                                         ? 'border-purple-500 bg-purple-50 text-purple-700'
                                                                         : 'border-gray-300 hover:border-gray-400'
-                                                                }`}
+                                                                    }`}
                                                                 style={{
                                                                     WebkitTapHighlightColor: 'transparent',
                                                                     WebkitTouchCallout: 'none',
@@ -1097,18 +1095,17 @@ export default function Purchases() {
                                                                 onClick={() => {
                                                                     console.log('🟢 Click en Caja de Serie')
                                                                     const updatedItems = [...newPurchase.items]
-                                                                    updatedItems[index] = { 
-                                                                        ...updatedItems[index], 
+                                                                    updatedItems[index] = {
+                                                                        ...updatedItems[index],
                                                                         itemType: 'series',
                                                                         isBox: false
                                                                     }
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
-                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${
-                                                                    item.itemType === 'series'
+                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'series'
                                                                         ? 'border-green-500 bg-green-50 text-green-700'
                                                                         : 'border-gray-300 hover:border-gray-400'
-                                                                }`}
+                                                                    }`}
                                                                 style={{
                                                                     WebkitTapHighlightColor: 'transparent',
                                                                     WebkitTouchCallout: 'none',
@@ -1294,8 +1291,8 @@ export default function Purchases() {
                                                                             onChange={(e) => {
                                                                                 const newSize = parseInt(e.target.value) || 0
                                                                                 const updatedItems = [...newPurchase.items]
-                                                                                updatedItems[index] = { 
-                                                                                    ...updatedItems[index], 
+                                                                                updatedItems[index] = {
+                                                                                    ...updatedItems[index],
                                                                                     seriesSize: newSize,
                                                                                     seriesPieces: [] // Reset pieces cuando cambia el total
                                                                                 }
@@ -1411,11 +1408,10 @@ export default function Purchases() {
                                                                         {(() => {
                                                                             const registeredCount = (item.seriesPieces || []).reduce((sum, p) => sum + (p.quantity || 0), 0)
                                                                             const remaining = (item.seriesSize || 0) - registeredCount
-                                                                            
+
                                                                             return (
-                                                                                <div className={`border rounded-lg p-3 ${
-                                                                                    remaining === 0 ? 'bg-green-100 border-green-300' : 'bg-yellow-50 border-yellow-300'
-                                                                                }`}>
+                                                                                <div className={`border rounded-lg p-3 ${remaining === 0 ? 'bg-green-100 border-green-300' : 'bg-yellow-50 border-yellow-300'
+                                                                                    }`}>
                                                                                     <div className="text-sm font-medium mb-2">
                                                                                         📊 Progreso de Registro
                                                                                     </div>
@@ -1466,7 +1462,7 @@ export default function Purchases() {
                                                                                 const currentPieces = updatedItems[index].seriesPieces || []
                                                                                 const registeredCount = currentPieces.reduce((sum, p) => sum + (p.quantity || 0), 0)
                                                                                 const remaining = (updatedItems[index].seriesSize || 0) - registeredCount
-                                                                                
+
                                                                                 if (remaining > 0) {
                                                                                     updatedItems[index] = {
                                                                                         ...updatedItems[index],
@@ -1495,12 +1491,12 @@ export default function Purchases() {
                                                                             + Agregar Pieza
                                                                         </Button>
                                                                     </div>
-                                                                    
+
                                                                     <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                                                                         {(item.seriesPieces || []).map((piece: any, pieceIndex: number) => {
                                                                             const registeredCount = (item.seriesPieces || []).reduce((sum, p) => sum + (p.quantity || 0), 0)
                                                                             const remaining = (item.seriesSize || 0) - registeredCount + (piece.quantity || 0) // Incluir la cantidad actual
-                                                                            
+
                                                                             return (
                                                                                 <div key={pieceIndex} className="border rounded-lg p-3 bg-white relative">
                                                                                     <button
@@ -1549,8 +1545,8 @@ export default function Purchases() {
                                                                                                         // Auto-llenar flags TH/STH/Chase desde el inventario
                                                                                                         const updatedItems = [...newPurchase.items]
                                                                                                         const pieces = [...(updatedItems[index].seriesPieces || [])]
-                                                                                                        pieces[pieceIndex] = { 
-                                                                                                            ...pieces[pieceIndex], 
+                                                                                                        pieces[pieceIndex] = {
+                                                                                                            ...pieces[pieceIndex],
                                                                                                             carId: selectedItem.carId,
                                                                                                             isTreasureHunt: selectedItem.isTreasureHunt || false,
                                                                                                             isSuperTreasureHunt: selectedItem.isSuperTreasureHunt || false,
@@ -1699,366 +1695,366 @@ export default function Purchases() {
                                                         /* ========== FORMULARIO PARA ITEM INDIVIDUAL ========== */
                                                         <div className="space-y-4">
 
-                                                    {/* Subtotal destacado */}
-                                                    {item.unitPrice > 0 && (
-                                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex justify-between items-center">
-                                                            <span className="text-sm font-medium text-blue-700">Subtotal de este item:</span>
-                                                            <span className="text-lg font-bold text-blue-900">
-                                                                ${((item.unitPrice || 0) * item.quantity).toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                    )}
+                                                            {/* Subtotal destacado */}
+                                                            {item.unitPrice > 0 && (
+                                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex justify-between items-center">
+                                                                    <span className="text-sm font-medium text-blue-700">Subtotal de este item:</span>
+                                                                    <span className="text-lg font-bold text-blue-900">
+                                                                        ${((item.unitPrice || 0) * item.quantity).toFixed(2)}
+                                                                    </span>
+                                                                </div>
+                                                            )}
 
-                                                    {/* Información Básica */}
-                                                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                                        <h6 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                                            <Car size={16} />
-                                                            Información Básica
-                                                        </h6>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="md:col-span-2">
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    ID del Auto *
-                                                                    {!item.carId && <span className="text-red-500 text-xs ml-2">(Requerido)</span>}
-                                                                </label>
-                                                                <AutocompleteCarId
-                                                                    value={item.carId}
-                                                                    onChange={(value) => handleItemChange(index, 'carId', value)}
-                                                                    onSelect={(selectedItem) => {
-                                                                        // Auto-llenar campos cuando se selecciona un item del inventario
-                                                                        const updatedItems = [...newPurchase.items]
-                                                                        updatedItems[index] = {
-                                                                            ...updatedItems[index],
-                                                                            carId: selectedItem.carId,
-                                                                            brand: selectedItem.brand || updatedItems[index].brand,
-                                                                            pieceType: selectedItem.pieceType || updatedItems[index].pieceType,
-                                                                            condition: selectedItem.condition || updatedItems[index].condition,
-                                                                            isTreasureHunt: selectedItem.isTreasureHunt || false,
-                                                                            isSuperTreasureHunt: selectedItem.isSuperTreasureHunt || false,
-                                                                            isChase: selectedItem.isChase || false,
-                                                                            unitPrice: selectedItem.purchasePrice || updatedItems[index].unitPrice,
-                                                                            photos: selectedItem.photos || updatedItems[index].photos,
-                                                                            location: selectedItem.location || updatedItems[index].location,
-                                                                        }
-                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
-                                                                    }}
-                                                                    placeholder="Buscar por ID, nombre o marca..."
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Cantidad *
-                                                                    {item.quantity < 1 && <span className="text-red-500 text-xs ml-2">(Mínimo 1)</span>}
-                                                                </label>
-                                                                <Input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    value={item.quantity}
-                                                                    onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
-                                                                    className={item.quantity < 1 ? 'border-red-300 focus:ring-red-500' : ''}
-                                                                    required
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Precio Unitario *
-                                                                    {item.unitPrice <= 0 && <span className="text-red-500 text-xs ml-2">(Requerido)</span>}
-                                                                </label>
-                                                                <Input
-                                                                    type="number"
-                                                                    step="0.01"
-                                                                    value={item.unitPrice || ''}
-                                                                    onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                                    placeholder="0.00"
-                                                                    className={item.unitPrice <= 0 ? 'border-red-300 focus:ring-red-500' : ''}
-                                                                    required
-                                                                />
-                                                            </div>
-                                                            <div className="md:col-span-2">
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Condición
-                                                                </label>
-                                                                <select
-                                                                    value={item.condition}
-                                                                    onChange={(e) => handleItemChange(index, 'condition', e.target.value)}
-                                                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
-                                                                    style={{
-                                                                        fontSize: '16px',
-                                                                        WebkitAppearance: 'none',
-                                                                        WebkitTapHighlightColor: 'transparent',
-                                                                    }}
-                                                                >
-                                                                    <option value="mint">Mint (Perfecto)</option>
-                                                                    <option value="good">Good (Buen estado)</option>
-                                                                    <option value="fair">Fair (Estado regular)</option>
-                                                                    <option value="poor">Poor (Mal estado)</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Marca y Tipo de Pieza */}
-                                                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                                        <h6 className="text-sm font-semibold text-gray-700 mb-3">
-                                                            Clasificación
-                                                        </h6>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Marca
-                                                                </label>
-                                                                <select
-                                                                    value={item.brand || ''}
-                                                                    onChange={(e) => handleBrandChange(index, e.target.value)}
-                                                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
-                                                                    style={{
-                                                                        fontSize: '16px',
-                                                                        WebkitAppearance: 'none',
-                                                                        WebkitTapHighlightColor: 'transparent',
-                                                                    }}
-                                                                >
-                                                                    <option value="">Seleccionar marca...</option>
-                                                                    {allBrands.map((brand) => (
-                                                                        <option key={brand} value={brand}>{brand}</option>
-                                                                    ))}
-                                                                    <option value="custom">➕ Agregar nueva marca...</option>
-                                                                </select>
-
-                                                                {showCustomBrandInput && (
-                                                                    <div className="mt-2 flex gap-2">
-                                                                        <Input
-                                                                            type="text"
-                                                                            value={customBrandInput}
-                                                                            onChange={(e) => setCustomBrandInput(e.target.value)}
-                                                                            placeholder="Nueva marca..."
-                                                                            className="flex-1"
+                                                            {/* Información Básica */}
+                                                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                                <h6 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                                                    <Car size={16} />
+                                                                    Información Básica
+                                                                </h6>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div className="md:col-span-2">
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            ID del Auto *
+                                                                            {!item.carId && <span className="text-red-500 text-xs ml-2">(Requerido)</span>}
+                                                                        </label>
+                                                                        <AutocompleteCarId
+                                                                            value={item.carId}
+                                                                            onChange={(value) => handleItemChange(index, 'carId', value)}
+                                                                            onSelect={(selectedItem) => {
+                                                                                // Auto-llenar campos cuando se selecciona un item del inventario
+                                                                                const updatedItems = [...newPurchase.items]
+                                                                                updatedItems[index] = {
+                                                                                    ...updatedItems[index],
+                                                                                    carId: selectedItem.carId,
+                                                                                    brand: selectedItem.brand || updatedItems[index].brand,
+                                                                                    pieceType: selectedItem.pieceType || updatedItems[index].pieceType,
+                                                                                    condition: selectedItem.condition || updatedItems[index].condition,
+                                                                                    isTreasureHunt: selectedItem.isTreasureHunt || false,
+                                                                                    isSuperTreasureHunt: selectedItem.isSuperTreasureHunt || false,
+                                                                                    isChase: selectedItem.isChase || false,
+                                                                                    unitPrice: selectedItem.purchasePrice || updatedItems[index].unitPrice,
+                                                                                    photos: selectedItem.photos || updatedItems[index].photos,
+                                                                                    location: selectedItem.location || updatedItems[index].location,
+                                                                                }
+                                                                                setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                            }}
+                                                                            placeholder="Buscar por ID, nombre o marca..."
                                                                         />
-                                                                        <Button
-                                                                            type="button"
-                                                                            size="sm"
-                                                                            onClick={() => handleSaveCustomBrand(index)}
-                                                                        >
-                                                                            Guardar
-                                                                        </Button>
-                                                                        <Button
-                                                                            type="button"
-                                                                            size="sm"
-                                                                            variant="secondary"
-                                                                            onClick={() => {
-                                                                                setShowCustomBrandInput(false)
-                                                                                setCustomBrandInput('')
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Cantidad *
+                                                                            {item.quantity < 1 && <span className="text-red-500 text-xs ml-2">(Mínimo 1)</span>}
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            value={item.quantity}
+                                                                            onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                                            className={item.quantity < 1 ? 'border-red-300 focus:ring-red-500' : ''}
+                                                                            required
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Precio Unitario *
+                                                                            {item.unitPrice <= 0 && <span className="text-red-500 text-xs ml-2">(Requerido)</span>}
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            step="0.01"
+                                                                            value={item.unitPrice || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                                            placeholder="0.00"
+                                                                            className={item.unitPrice <= 0 ? 'border-red-300 focus:ring-red-500' : ''}
+                                                                            required
+                                                                        />
+                                                                    </div>
+                                                                    <div className="md:col-span-2">
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Condición
+                                                                        </label>
+                                                                        <select
+                                                                            value={item.condition}
+                                                                            onChange={(e) => handleItemChange(index, 'condition', e.target.value)}
+                                                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                            style={{
+                                                                                fontSize: '16px',
+                                                                                WebkitAppearance: 'none',
+                                                                                WebkitTapHighlightColor: 'transparent',
                                                                             }}
                                                                         >
-                                                                            Cancelar
-                                                                        </Button>
+                                                                            <option value="mint">Mint (Perfecto)</option>
+                                                                            <option value="good">Good (Buen estado)</option>
+                                                                            <option value="fair">Fair (Estado regular)</option>
+                                                                            <option value="poor">Poor (Mal estado)</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Marca y Tipo de Pieza */}
+                                                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                                <h6 className="text-sm font-semibold text-gray-700 mb-3">
+                                                                    Clasificación
+                                                                </h6>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Marca
+                                                                        </label>
+                                                                        <select
+                                                                            value={item.brand || ''}
+                                                                            onChange={(e) => handleBrandChange(index, e.target.value)}
+                                                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                            style={{
+                                                                                fontSize: '16px',
+                                                                                WebkitAppearance: 'none',
+                                                                                WebkitTapHighlightColor: 'transparent',
+                                                                            }}
+                                                                        >
+                                                                            <option value="">Seleccionar marca...</option>
+                                                                            {allBrands.map((brand) => (
+                                                                                <option key={brand} value={brand}>{brand}</option>
+                                                                            ))}
+                                                                            <option value="custom">➕ Agregar nueva marca...</option>
+                                                                        </select>
+
+                                                                        {showCustomBrandInput && (
+                                                                            <div className="mt-2 flex gap-2">
+                                                                                <Input
+                                                                                    type="text"
+                                                                                    value={customBrandInput}
+                                                                                    onChange={(e) => setCustomBrandInput(e.target.value)}
+                                                                                    placeholder="Nueva marca..."
+                                                                                    className="flex-1"
+                                                                                />
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    size="sm"
+                                                                                    onClick={() => handleSaveCustomBrand(index)}
+                                                                                >
+                                                                                    Guardar
+                                                                                </Button>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    size="sm"
+                                                                                    variant="secondary"
+                                                                                    onClick={() => {
+                                                                                        setShowCustomBrandInput(false)
+                                                                                        setCustomBrandInput('')
+                                                                                    }}
+                                                                                >
+                                                                                    Cancelar
+                                                                                </Button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Tipo de Pieza
+                                                                        </label>
+                                                                        <select
+                                                                            value={item.pieceType || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'pieceType', e.target.value)}
+                                                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                            style={{
+                                                                                fontSize: '16px',
+                                                                                WebkitAppearance: 'none',
+                                                                                WebkitTapHighlightColor: 'transparent',
+                                                                            }}
+                                                                        >
+                                                                            <option value="">Seleccionar...</option>
+                                                                            <option value="basic">Básico</option>
+                                                                            <option value="premium">Premium</option>
+                                                                            <option value="rlc">RLC</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* TH/STH/Chase Section - Condicional según marca */}
+                                                            {(item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'basic') && (
+                                                                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                                                                    <h6 className="text-sm font-semibold text-gray-700 mb-3">
+                                                                        ⭐ Treasure Hunt
+                                                                    </h6>
+                                                                    <div className="grid grid-cols-2 gap-4">
+                                                                        <div className="flex items-center space-x-2">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                id={`th-${index}`}
+                                                                                checked={item.isTreasureHunt || false}
+                                                                                onChange={(e) => {
+                                                                                    handleItemChange(index, 'isTreasureHunt', e.target.checked)
+                                                                                    if (e.target.checked) {
+                                                                                        handleItemChange(index, 'isSuperTreasureHunt', false)
+                                                                                    }
+                                                                                }}
+                                                                                disabled={item.isSuperTreasureHunt}
+                                                                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:opacity-50"
+                                                                            />
+                                                                            <label htmlFor={`th-${index}`} className="text-sm font-medium text-gray-700">
+                                                                                Treasure Hunt (TH)
+                                                                            </label>
+                                                                        </div>
+                                                                        <div className="flex items-center space-x-2">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                id={`sth-${index}`}
+                                                                                checked={item.isSuperTreasureHunt || false}
+                                                                                onChange={(e) => {
+                                                                                    handleItemChange(index, 'isSuperTreasureHunt', e.target.checked)
+                                                                                    if (e.target.checked) {
+                                                                                        handleItemChange(index, 'isTreasureHunt', false)
+                                                                                    }
+                                                                                }}
+                                                                                disabled={item.isTreasureHunt}
+                                                                                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded disabled:opacity-50"
+                                                                            />
+                                                                            <label htmlFor={`sth-${index}`} className="text-sm font-medium text-gray-700">
+                                                                                Super Treasure Hunt ($TH)
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Chase Checkbox - Condicional según marca */}
+                                                            {((item.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(item.brand.toLowerCase())) ||
+                                                                (item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'premium')) && (
+                                                                    <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+                                                                        <div className="flex items-center space-x-2">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                id={`chase-${index}`}
+                                                                                checked={item.isChase || false}
+                                                                                onChange={(e) => handleItemChange(index, 'isChase', e.target.checked)}
+                                                                                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                                                            />
+                                                                            <label htmlFor={`chase-${index}`} className="text-sm font-medium text-gray-700">
+                                                                                🔥 Chase (Pieza especial de edición limitada)
+                                                                            </label>
+                                                                        </div>
                                                                     </div>
                                                                 )}
-                                                            </div>
 
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Tipo de Pieza
-                                                                </label>
-                                                                <select
-                                                                    value={item.pieceType || ''}
-                                                                    onChange={(e) => handleItemChange(index, 'pieceType', e.target.value)}
-                                                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
-                                                                    style={{
-                                                                        fontSize: '16px',
-                                                                        WebkitAppearance: 'none',
-                                                                        WebkitTapHighlightColor: 'transparent',
-                                                                    }}
-                                                                >
-                                                                    <option value="">Seleccionar...</option>
-                                                                    <option value="basic">Básico</option>
-                                                                    <option value="premium">Premium</option>
-                                                                    <option value="rlc">RLC</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* TH/STH/Chase Section - Condicional según marca */}
-                                                    {(item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'basic') && (
-                                                        <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                                                            <h6 className="text-sm font-semibold text-gray-700 mb-3">
-                                                                ⭐ Treasure Hunt
-                                                            </h6>
-                                                            <div className="grid grid-cols-2 gap-4">
-                                                                <div className="flex items-center space-x-2">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        id={`th-${index}`}
-                                                                        checked={item.isTreasureHunt || false}
-                                                                        onChange={(e) => {
-                                                                            handleItemChange(index, 'isTreasureHunt', e.target.checked)
-                                                                            if (e.target.checked) {
-                                                                                handleItemChange(index, 'isSuperTreasureHunt', false)
-                                                                            }
-                                                                        }}
-                                                                        disabled={item.isSuperTreasureHunt}
-                                                                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:opacity-50"
-                                                                    />
-                                                                    <label htmlFor={`th-${index}`} className="text-sm font-medium text-gray-700">
-                                                                        Treasure Hunt (TH)
-                                                                    </label>
-                                                                </div>
-                                                                <div className="flex items-center space-x-2">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        id={`sth-${index}`}
-                                                                        checked={item.isSuperTreasureHunt || false}
-                                                                        onChange={(e) => {
-                                                                            handleItemChange(index, 'isSuperTreasureHunt', e.target.checked)
-                                                                            if (e.target.checked) {
-                                                                                handleItemChange(index, 'isTreasureHunt', false)
-                                                                            }
-                                                                        }}
-                                                                        disabled={item.isTreasureHunt}
-                                                                        className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded disabled:opacity-50"
-                                                                    />
-                                                                    <label htmlFor={`sth-${index}`} className="text-sm font-medium text-gray-700">
-                                                                        Super Treasure Hunt ($TH)
-                                                                    </label>
+                                                            {/* Series Section */}
+                                                            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                                <h6 className="text-sm font-semibold text-gray-700 mb-3">
+                                                                    Información de Serie (Opcional)
+                                                                </h6>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div className="md:col-span-2">
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Nombre de la Serie
+                                                                        </label>
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={item.seriesName || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'seriesName', e.target.value)}
+                                                                            placeholder="Ej: Fast & Furious, Mainline 2024..."
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Tamaño de Serie
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            value={item.seriesSize || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'seriesSize', parseInt(e.target.value) || undefined)}
+                                                                            placeholder="Ej: 5, 10, 8..."
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Posición en Serie
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            value={item.seriesPosition || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'seriesPosition', parseInt(e.target.value) || undefined)}
+                                                                            placeholder="Ej: 1, 2, 3..."
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    )}
 
-                                                    {/* Chase Checkbox - Condicional según marca */}
-                                                    {((item.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(item.brand.toLowerCase())) ||
-                                                        (item.brand?.toLowerCase() === 'hot wheels' && item.pieceType === 'premium')) && (
-                                                            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-                                                                <div className="flex items-center space-x-2">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        id={`chase-${index}`}
-                                                                        checked={item.isChase || false}
-                                                                        onChange={(e) => handleItemChange(index, 'isChase', e.target.checked)}
-                                                                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                                                                    />
-                                                                    <label htmlFor={`chase-${index}`} className="text-sm font-medium text-gray-700">
-                                                                        🔥 Chase (Pieza especial de edición limitada)
+                                                            {/* Ubicación y Notas */}
+                                                            <div className="space-y-3">
+                                                                <div>
+                                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                        <MapPin size={16} className="inline mr-1" />
+                                                                        Ubicación Física
                                                                     </label>
+                                                                    <Input
+                                                                        type="text"
+                                                                        value={item.location || ''}
+                                                                        onChange={(e) => handleItemChange(index, 'location', e.target.value)}
+                                                                        placeholder="Ej: Caja A, Estante 3, Vitrina..."
+                                                                    />
                                                                 </div>
                                                             </div>
-                                                        )}
 
-                                                    {/* Series Section */}
-                                                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                                        <h6 className="text-sm font-semibold text-gray-700 mb-3">
-                                                            Información de Serie (Opcional)
-                                                        </h6>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="md:col-span-2">
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Nombre de la Serie
+                                                            {/* Photos Section */}
+                                                            <div className="mt-4">
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    <Upload size={16} className="inline mr-1" />
+                                                                    Fotos del Item
                                                                 </label>
-                                                                <Input
-                                                                    type="text"
-                                                                    value={item.seriesName || ''}
-                                                                    onChange={(e) => handleItemChange(index, 'seriesName', e.target.value)}
-                                                                    placeholder="Ej: Fast & Furious, Mainline 2024..."
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Tamaño de Serie
-                                                                </label>
-                                                                <Input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    value={item.seriesSize || ''}
-                                                                    onChange={(e) => handleItemChange(index, 'seriesSize', parseInt(e.target.value) || undefined)}
-                                                                    placeholder="Ej: 5, 10, 8..."
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                    Posición en Serie
-                                                                </label>
-                                                                <Input
-                                                                    type="number"
-                                                                    min="1"
-                                                                    value={item.seriesPosition || ''}
-                                                                    onChange={(e) => handleItemChange(index, 'seriesPosition', parseInt(e.target.value) || undefined)}
-                                                                    placeholder="Ej: 1, 2, 3..."
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Ubicación y Notas */}
-                                                    <div className="space-y-3">
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                <MapPin size={16} className="inline mr-1" />
-                                                                Ubicación Física
-                                                            </label>
-                                                            <Input
-                                                                type="text"
-                                                                value={item.location || ''}
-                                                                onChange={(e) => handleItemChange(index, 'location', e.target.value)}
-                                                                placeholder="Ej: Caja A, Estante 3, Vitrina..."
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Photos Section */}
-                                                    <div className="mt-4">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                            <Upload size={16} className="inline mr-1" />
-                                                            Fotos del Item
-                                                        </label>
-                                                        <div className="space-y-2">
-                                                            <input
-                                                                type="file"
-                                                                accept="image/*"
-                                                                multiple
-                                                                onChange={(e) => handleFileUpload(index, e.target.files)}
-                                                                className="block w-full text-sm text-gray-500
+                                                                <div className="space-y-2">
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        multiple
+                                                                        onChange={(e) => handleFileUpload(index, e.target.files)}
+                                                                        className="block w-full text-sm text-gray-500
                                                                     file:mr-4 file:py-2 file:px-4
                                                                     file:rounded-md file:border-0
                                                                     file:text-sm file:font-semibold
                                                                     file:bg-blue-50 file:text-blue-700
                                                                     hover:file:bg-blue-100"
-                                                            />
-                                                            {item.photos && item.photos.length > 0 && (
-                                                                <div className="grid grid-cols-4 gap-2 mt-2">
-                                                                    {item.photos.map((photo, photoIndex) => (
-                                                                        <div key={photoIndex} className="relative group">
-                                                                            <img
-                                                                                src={photo}
-                                                                                alt={`Preview ${photoIndex + 1}`}
-                                                                                className="w-full h-20 object-cover rounded border"
-                                                                            />
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => removePhoto(index, photoIndex)}
-                                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                            >
-                                                                                <X size={14} />
-                                                                            </button>
+                                                                    />
+                                                                    {item.photos && item.photos.length > 0 && (
+                                                                        <div className="grid grid-cols-4 gap-2 mt-2">
+                                                                            {item.photos.map((photo, photoIndex) => (
+                                                                                <div key={photoIndex} className="relative group">
+                                                                                    <img
+                                                                                        src={photo}
+                                                                                        alt={`Preview ${photoIndex + 1}`}
+                                                                                        className="w-full h-20 object-cover rounded border"
+                                                                                    />
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => removePhoto(index, photoIndex)}
+                                                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                    >
+                                                                                        <X size={14} />
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))}
                                                                         </div>
-                                                                    ))}
+                                                                    )}
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                            </div>
 
-                                                    {/* Notes */}
-                                                    <div className="mt-4">
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                            Notas del Item
-                                                        </label>
-                                                        <textarea
-                                                            value={item.notes || ''}
-                                                            onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
-                                                            placeholder="Observaciones, defectos, detalles especiales..."
-                                                            rows={2}
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        />
-                                                    </div>
+                                                            {/* Notes */}
+                                                            <div className="mt-4">
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Notas del Item
+                                                                </label>
+                                                                <textarea
+                                                                    value={item.notes || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
+                                                                    placeholder="Observaciones, defectos, detalles especiales..."
+                                                                    rows={2}
+                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                />
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -2073,7 +2069,7 @@ export default function Purchases() {
                                                 <span className="text-2xl">💰</span>
                                                 Resumen de Compra
                                             </h5>
-                                            
+
                                             {/* Desglose por item */}
                                             <div className="space-y-2 mb-4">
                                                 <div className="flex justify-between items-center text-sm">
@@ -2150,7 +2146,7 @@ export default function Purchases() {
                                                             }
                                                             return sum + (item.quantity * item.unitPrice)
                                                         }, 0) + newPurchase.shippingCost
-                                                        
+
                                                         const totalPieces = newPurchase.items.reduce((sum, item) => {
                                                             if (item.itemType === 'series' && item.seriesPieces && item.seriesPieces.length > 0) {
                                                                 return sum + item.seriesPieces.reduce((pieceSum, piece) => pieceSum + (piece.quantity || 0), 0)
@@ -2160,7 +2156,7 @@ export default function Purchases() {
                                                             }
                                                             return sum + item.quantity
                                                         }, 0)
-                                                        
+
                                                         return totalPieces > 0 ? (totalCost / totalPieces).toFixed(2) : '0.00'
                                                     })()}
                                                 </div>

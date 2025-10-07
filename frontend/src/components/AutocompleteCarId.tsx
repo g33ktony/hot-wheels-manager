@@ -16,9 +16,9 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
     const suggestionsRef = useRef<HTMLDivElement>(null)
 
     // Fetch inventory items for suggestions (limit to prevent performance issues)
-    const { data: inventoryData } = useInventory({ 
+    const { data: inventoryData } = useInventory({
         search: searchTerm,
-        limit: 10 
+        limit: 10
     })
 
     const suggestions = inventoryData?.items || []
@@ -30,7 +30,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (
-                inputRef.current && 
+                inputRef.current &&
                 suggestionsRef.current &&
                 !inputRef.current.contains(event.target as Node) &&
                 !suggestionsRef.current.contains(event.target as Node)
@@ -53,11 +53,11 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
     const handleSelectSuggestion = (item: any) => {
         // Cerrar el dropdown primero
         setShowSuggestions(false)
-        
+
         // Actualizar valores
         onChange(item.carId)
         setSearchTerm(item.carId)
-        
+
         // Llamar al callback onSelect si está definido, pasando el item completo
         if (onSelect) {
             // Usar setTimeout para evitar conflictos de estado
@@ -65,7 +65,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                 onSelect(item)
             }, 0)
         }
-        
+
         // Focus al input después de seleccionar
         setTimeout(() => {
             inputRef.current?.blur()
@@ -91,7 +91,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
             />
 
             {showSuggestions && suggestions.length > 0 && (
-                <div 
+                <div
                     ref={suggestionsRef}
                     className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
                     style={{
@@ -128,8 +128,8 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                                     )}
                                 </div>
                                 {item.photos && item.photos.length > 0 && (
-                                    <img 
-                                        src={item.photos[0]} 
+                                    <img
+                                        src={item.photos[0]}
                                         alt={item.carId}
                                         className="w-14 h-14 object-cover rounded flex-shrink-0"
                                         style={{
@@ -145,7 +145,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
             )}
 
             {showSuggestions && searchTerm.length > 0 && suggestions.length === 0 && (
-                <div 
+                <div
                     ref={suggestionsRef}
                     className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-4"
                     style={{

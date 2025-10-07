@@ -228,8 +228,8 @@ export default function Inventory() {
                                         key={pageNum}
                                         onClick={() => handlePageChange(pageNum, position === 'bottom')}
                                         className={`px-3 py-1 rounded text-sm font-medium transition-colors ${currentPage === pageNum
-                                                ? 'bg-primary-500 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-primary-500 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {pageNum}
@@ -816,7 +816,7 @@ export default function Inventory() {
                     {/* First row: Search and Condition */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="relative">
-                            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                             <Input
                                 placeholder="Buscar por nombre o código..."
                                 value={searchTerm}
@@ -828,7 +828,12 @@ export default function Inventory() {
                         <select
                             value={filterCondition}
                             onChange={(e) => handleFilterChange('condition', e.target.value)}
-                            className="input"
+                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                            style={{
+                                fontSize: '16px',
+                                WebkitAppearance: 'none',
+                                WebkitTapHighlightColor: 'transparent',
+                            }}
                         >
                             <option value="">Todas las condiciones</option>
                             <option value="mint">Mint</option>
@@ -838,7 +843,7 @@ export default function Inventory() {
                         </select>
 
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-gray-600 select-none">
                                 {filteredItems.length} pieza{filteredItems.length !== 1 ? 's' : ''} encontrada{filteredItems.length !== 1 ? 's' : ''}
                             </span>
                         </div>
@@ -857,7 +862,12 @@ export default function Inventory() {
                                     handleFilterChange('chase', false)
                                 }
                             }}
-                            className="input"
+                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                            style={{
+                                fontSize: '16px',
+                                WebkitAppearance: 'none',
+                                WebkitTapHighlightColor: 'transparent',
+                            }}
                         >
                             <option value="">Todas las marcas</option>
                             {allBrands.map(brand => (
@@ -875,7 +885,12 @@ export default function Inventory() {
                                     handleFilterChange('treasureHunt', 'all')
                                     handleFilterChange('chase', false)
                                 }}
-                                className="input"
+                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                                style={{
+                                    fontSize: '16px',
+                                    WebkitAppearance: 'none',
+                                    WebkitTapHighlightColor: 'transparent',
+                                }}
                             >
                                 <option value="">Todos los tipos</option>
                                 <option value="basic">Básico</option>
@@ -889,7 +904,12 @@ export default function Inventory() {
                             <select
                                 value={filterTreasureHunt}
                                 onChange={(e) => handleFilterChange('treasureHunt', e.target.value as 'all' | 'th' | 'sth')}
-                                className="input"
+                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg"
+                                style={{
+                                    fontSize: '16px',
+                                    WebkitAppearance: 'none',
+                                    WebkitTapHighlightColor: 'transparent',
+                                }}
                             >
                                 <option value="all">Todos (TH/STH)</option>
                                 <option value="th">Solo TH</option>

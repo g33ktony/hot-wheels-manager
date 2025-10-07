@@ -12,6 +12,8 @@
     /* Improve text rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Base font size - responsive */
+    font-size: 16px;
   }
   
   body {
@@ -22,6 +24,9 @@
     /* Support for notch/home indicator */
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    /* Ensure proper sizing */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
   }
   
   /* iOS Safe Area support */
