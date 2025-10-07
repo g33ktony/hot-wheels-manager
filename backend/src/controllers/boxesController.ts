@@ -1,6 +1,24 @@
 import { Request, Response } from 'express'
-import { InventoryItemModel } from '../models/InventoryItem'
+import { InventoryItemModel, IInventoryItem } from '../models/InventoryItem'
 import { ApiResponse } from '@shared/types'
+
+// Note: TypeScript tiene problemas reconociendo campos opcionales de mongoose para box fields
+// Los campos están definidos en el schema pero no en la interfaz inferida por Document
+// @ts-nocheck en funciones específicas o casting manual donde sea necesario
+
+type BoxItem = IInventoryItem & { 
+  isBox: boolean;
+  boxName?: string;
+  boxSize?: number;
+  boxPrice?: number;
+  boxStatus?: 'sealed' | 'unpacking' | 'completed';
+  registeredPieces?: number;
+  sourceBox?: string;
+  sourceBoxId?: string;
+}
+
+// Helper to cast InventoryItem to BoxItem
+const asBox = (item: any): BoxItem => item as BoxItem
 
 // GET /api/boxes - Get all boxes (sealed or unpacking)
 export const getBoxes = async (req: Request, res: Response) => {
@@ -8,7 +26,7 @@ export const getBoxes = async (req: Request, res: Response) => {
     const boxes = await InventoryItemModel.find({
       isBox: true,
       boxStatus: { $in: ['sealed', 'unpacking'] }
-    }).sort({ dateAdded: -1 })
+    }).sort({ dateAdded: -1 }).lean() as unknown as BoxItem[]
 
     res.json({
       success: true,
@@ -30,7 +48,7 @@ export const getBoxById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     
-    const box = await InventoryItemModel.findById(id)
+    const box = asBox(await InventoryItemModel.findById(id))
     if (!box || !box.isBox) {
       return res.status(404).json({
         success: false,
@@ -77,7 +95,7 @@ export const registerBoxPieces = async (req: Request, res: Response) => {
     }
 
     // Find the box
-    const box = await InventoryItemModel.findById(id)
+    const box = asBox(await InventoryItemModel.findById(id))
     if (!box || !box.isBox) {
       return res.status(404).json({
         success: false,
@@ -93,11 +111,11 @@ export const registerBoxPieces = async (req: Request, res: Response) => {
     const registeredPieces = []
     for (const piece of pieces) {
       // Check if item with same carId already exists
-      let inventoryItem = await InventoryItemModel.findOne({
+      let inventoryItem = asBox(await InventoryItemModel.findOne({
         carId: piece.carId,
         condition: piece.condition || 'mint',
         brand: box.brand || { $exists: false }
-      })
+      }))
 
       if (inventoryItem) {
         // Update existing item
@@ -208,7 +226,7 @@ export const completeBox = async (req: Request, res: Response) => {
     const { id } = req.params
     const { reason } = req.body // Optional reason for incomplete completion
 
-    const box = await InventoryItemModel.findById(id)
+    const box = asBox(await InventoryItemModel.findById(id))
     if (!box || !box.isBox) {
       return res.status(404).json({
         success: false,
@@ -250,7 +268,7 @@ export const deleteBoxPiece = async (req: Request, res: Response) => {
   try {
     const { id, pieceId } = req.params
 
-    const box = await InventoryItemModel.findById(id)
+    const box = asBox(await InventoryItemModel.findById(id))
     if (!box || !box.isBox) {
       return res.status(404).json({
         success: false,
@@ -259,7 +277,7 @@ export const deleteBoxPiece = async (req: Request, res: Response) => {
       })
     }
 
-    const piece = await InventoryItemModel.findById(pieceId)
+    const piece = asBox(await InventoryItemModel.findById(pieceId))
     if (!piece) {
       return res.status(404).json({
         success: false,
@@ -321,7 +339,7 @@ export const updateBoxPieceQuantity = async (req: Request, res: Response) => {
       })
     }
 
-    const box = await InventoryItemModel.findById(id)
+    const box = asBox(await InventoryItemModel.findById(id))
     if (!box || !box.isBox) {
       return res.status(404).json({
         success: false,
@@ -330,7 +348,7 @@ export const updateBoxPieceQuantity = async (req: Request, res: Response) => {
       })
     }
 
-    const piece = await InventoryItemModel.findById(pieceId)
+    const piece = asBox(await InventoryItemModel.findById(pieceId))
     if (!piece) {
       return res.status(404).json({
         success: false,
@@ -383,7 +401,7 @@ export const updateBox = async (req: Request, res: Response) => {
     const { id } = req.params
     const updates = req.body
 
-    const box = await InventoryItemModel.findById(id)
+    const box = asBox(await InventoryItemModel.findById(id))
     if (!box || !box.isBox) {
       return res.status(404).json({
         success: false,

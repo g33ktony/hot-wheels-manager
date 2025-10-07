@@ -57,7 +57,8 @@ export default function Deliveries() {
 
     const { data: deliveries, isLoading, error } = useDeliveries()
     const { data: customers } = useCustomers()
-    const { data: inventoryItems } = useInventory()
+    const { data: inventoryData } = useInventory({ limit: 1000 }) // Cargar todos los items para deliveries
+    const inventoryItems = inventoryData?.items || []
     const createDeliveryMutation = useCreateDelivery()
     const updateDeliveryMutation = useUpdateDelivery()
     const createCustomerMutation = useCreateCustomer()

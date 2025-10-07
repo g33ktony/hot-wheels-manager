@@ -1,9 +1,12 @@
 import { Schema, model, Document } from 'mongoose'
 import { InventoryItem } from '@shared/types'
 
-export interface IInventoryItem extends Omit<InventoryItem, '_id'>, Document {}
+// Extender la interfaz base con campos de Document
+export interface IInventoryItem extends Omit<InventoryItem, '_id'>, Document {
+  lastUpdated: Date;
+}
 
-const inventoryItemSchema = new Schema<IInventoryItem>({
+const inventoryItemSchema = new Schema({
   carId: { type: String, required: true }, // Usará toy_num de HotWheelsCar
   quantity: { type: Number, required: true, min: 0 },
   reservedQuantity: { type: Number, required: true, min: 0, default: 0 }, // Cantidad reservada para entregas pendientes
