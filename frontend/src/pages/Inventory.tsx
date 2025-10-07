@@ -191,8 +191,9 @@ export default function Inventory() {
         if (!pagination || pagination.totalPages <= 1) return null
 
         return (
-            <div className="flex items-center justify-between px-4 py-3 bg-white border rounded-lg">
-                <div className="flex items-center gap-2 text-sm text-gray-700">
+            <div className="bg-white border rounded-lg p-3 w-full">
+                {/* Info text - hidden on mobile to save space */}
+                <div className="hidden sm:flex items-center justify-center text-sm text-gray-700 mb-3">
                     <span>
                         Mostrando <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> -{' '}
                         <span className="font-medium">
@@ -202,16 +203,22 @@ export default function Inventory() {
                     </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Mobile compact info */}
+                <div className="sm:hidden text-xs text-gray-600 text-center mb-2">
+                    {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, pagination.totalItems)} de {pagination.totalItems} items
+                </div>
+
+                {/* Pagination controls */}
+                <div className="flex items-center justify-center gap-1 sm:gap-2 w-full">
                     <Button
                         size="sm"
                         variant="secondary"
                         onClick={() => handlePageChange(Math.max(1, currentPage - 1), position === 'bottom')}
                         disabled={currentPage === 1}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 px-2 sm:px-3"
                     >
                         <ChevronLeft size={16} />
-                        Anterior
+                        <span className="hidden sm:inline">Anterior</span>
                     </Button>
 
                     <div className="flex items-center gap-1">
@@ -227,7 +234,7 @@ export default function Inventory() {
                                     <button
                                         key={pageNum}
                                         onClick={() => handlePageChange(pageNum, position === 'bottom')}
-                                        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${currentPage === pageNum
+                                        className={`px-2 sm:px-3 py-1 rounded text-sm font-medium transition-colors min-w-[32px] ${currentPage === pageNum
                                             ? 'bg-primary-500 text-white'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
@@ -239,7 +246,7 @@ export default function Inventory() {
                                 pageNum === currentPage - 2 ||
                                 pageNum === currentPage + 2
                             ) {
-                                return <span key={pageNum} className="px-2 text-gray-400">...</span>
+                                return <span key={pageNum} className="px-1 text-gray-400">...</span>
                             }
                             return null
                         })}
@@ -250,9 +257,9 @@ export default function Inventory() {
                         variant="secondary"
                         onClick={() => handlePageChange(Math.min(pagination.totalPages, currentPage + 1), position === 'bottom')}
                         disabled={currentPage === pagination.totalPages}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 px-2 sm:px-3"
                     >
-                        Siguiente
+                        <span className="hidden sm:inline">Siguiente</span>
                         <ChevronRight size={16} />
                     </Button>
                 </div>
