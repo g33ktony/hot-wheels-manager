@@ -1935,13 +1935,31 @@ export default function Purchases() {
                                                 <div className="flex justify-between items-center text-sm">
                                                     <span className="text-gray-700">Cantidad total de piezas:</span>
                                                     <span className="font-semibold text-gray-900">
-                                                        {newPurchase.items.reduce((sum, item) => sum + item.quantity, 0)} piezas
+                                                        {newPurchase.items.reduce((sum, item) => {
+                                                            // Para series, sumar las cantidades de seriesPieces
+                                                            if (item.itemType === 'series' && item.seriesPieces && item.seriesPieces.length > 0) {
+                                                                return sum + item.seriesPieces.reduce((pieceSum, piece) => pieceSum + (piece.quantity || 0), 0)
+                                                            }
+                                                            // Para cajas selladas, usar boxSize (72 piezas) × cantidad de cajas
+                                                            if (item.itemType === 'box' || item.isBox) {
+                                                                return sum + ((item.boxSize || 72) * item.quantity)
+                                                            }
+                                                            // Para items individuales, usar quantity normal
+                                                            return sum + item.quantity
+                                                        }, 0)} piezas
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between items-center pt-2 border-t border-blue-200">
                                                     <span className="font-medium text-gray-900">Subtotal de items:</span>
                                                     <span className="font-bold text-lg text-gray-900">
-                                                        ${newPurchase.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0).toFixed(2)}
+                                                        ${newPurchase.items.reduce((sum, item) => {
+                                                            // Para series, calcular: seriesSize × unitPrice
+                                                            if (item.itemType === 'series') {
+                                                                return sum + ((item.seriesSize || 0) * item.unitPrice)
+                                                            }
+                                                            // Para cajas y items individuales: quantity × unitPrice
+                                                            return sum + (item.quantity * item.unitPrice)
+                                                        }, 0).toFixed(2)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -1960,7 +1978,14 @@ export default function Purchases() {
                                             <div className="flex justify-between items-center mt-3 pt-3 border-t-2 border-blue-300 bg-white rounded-lg p-3 shadow-sm">
                                                 <span className="font-bold text-gray-900 text-lg">Total General:</span>
                                                 <span className="font-bold text-2xl text-blue-600">
-                                                    ${(newPurchase.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) + newPurchase.shippingCost).toFixed(2)}
+                                                    ${(newPurchase.items.reduce((sum, item) => {
+                                                        // Para series, calcular: seriesSize × unitPrice
+                                                        if (item.itemType === 'series') {
+                                                            return sum + ((item.seriesSize || 0) * item.unitPrice)
+                                                        }
+                                                        // Para cajas y items individuales: quantity × unitPrice
+                                                        return sum + (item.quantity * item.unitPrice)
+                                                    }, 0) + newPurchase.shippingCost).toFixed(2)}
                                                 </span>
                                             </div>
 
@@ -1968,10 +1993,26 @@ export default function Purchases() {
                                             {newPurchase.items.length > 0 && (
                                                 <div className="mt-3 text-center text-xs text-gray-600 italic">
                                                     Precio promedio por pieza: $
-                                                    {(
-                                                        (newPurchase.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) + newPurchase.shippingCost) /
-                                                        newPurchase.items.reduce((sum, item) => sum + item.quantity, 0)
-                                                    ).toFixed(2)}
+                                                    {(() => {
+                                                        const totalCost = newPurchase.items.reduce((sum, item) => {
+                                                            if (item.itemType === 'series') {
+                                                                return sum + ((item.seriesSize || 0) * item.unitPrice)
+                                                            }
+                                                            return sum + (item.quantity * item.unitPrice)
+                                                        }, 0) + newPurchase.shippingCost
+                                                        
+                                                        const totalPieces = newPurchase.items.reduce((sum, item) => {
+                                                            if (item.itemType === 'series' && item.seriesPieces && item.seriesPieces.length > 0) {
+                                                                return sum + item.seriesPieces.reduce((pieceSum, piece) => pieceSum + (piece.quantity || 0), 0)
+                                                            }
+                                                            if (item.itemType === 'box' || item.isBox) {
+                                                                return sum + ((item.boxSize || 72) * item.quantity)
+                                                            }
+                                                            return sum + item.quantity
+                                                        }, 0)
+                                                        
+                                                        return totalPieces > 0 ? (totalCost / totalPieces).toFixed(2) : '0.00'
+                                                    })()}
                                                 </div>
                                             )}
                                         </div>
