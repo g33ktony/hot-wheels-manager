@@ -962,6 +962,61 @@ export default function Purchases() {
                                                         </button>
                                                     </div>
 
+                                                    {/* ✅ NUEVO: Selector de Tipo de Item */}
+                                                    <div className="mb-4">
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            Tipo de Item
+                                                        </label>
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    handleItemChange(index, 'itemType', 'individual')
+                                                                    handleItemChange(index, 'isBox', false)
+                                                                }}
+                                                                className={`p-3 border-2 rounded-lg transition-all ${
+                                                                    (item.itemType === 'individual' || !item.itemType) && !item.isBox
+                                                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                                        : 'border-gray-300 hover:border-gray-400'
+                                                                }`}
+                                                            >
+                                                                <Car size={20} className="mx-auto mb-1" />
+                                                                <div className="text-xs font-medium">Individual</div>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    handleItemChange(index, 'itemType', 'box')
+                                                                    handleItemChange(index, 'isBox', true)
+                                                                    handleItemChange(index, 'carId', '') // Limpiar carId, se genera automático
+                                                                }}
+                                                                className={`p-3 border-2 rounded-lg transition-all ${
+                                                                    item.itemType === 'box' || item.isBox
+                                                                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                                                        : 'border-gray-300 hover:border-gray-400'
+                                                                }`}
+                                                            >
+                                                                <Box size={20} className="mx-auto mb-1" />
+                                                                <div className="text-xs font-medium">Caja Sellada</div>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    handleItemChange(index, 'itemType', 'series')
+                                                                    handleItemChange(index, 'isBox', false)
+                                                                }}
+                                                                className={`p-3 border-2 rounded-lg transition-all ${
+                                                                    item.itemType === 'series'
+                                                                        ? 'border-green-500 bg-green-50 text-green-700'
+                                                                        : 'border-gray-300 hover:border-gray-400'
+                                                                }`}
+                                                            >
+                                                                <Package size={20} className="mx-auto mb-1" />
+                                                                <div className="text-xs font-medium">Serie</div>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
                                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-1">
