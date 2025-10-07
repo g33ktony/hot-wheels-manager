@@ -337,29 +337,27 @@ export default function Purchases() {
                     const seriesPrice = (item.seriesSize || 0) * item.unitPrice
                     
                     item.seriesPieces.forEach((piece, index) => {
-                        // Repetir cada pieza según su cantidad
-                        for (let i = 0; i < piece.quantity; i++) {
-                            expandedItems.push({
-                                carId: piece.carId,
-                                quantity: 1, // Cada item expandido es 1 unidad
-                                unitPrice: item.unitPrice,
-                                condition: item.condition,
-                                brand: item.brand,
-                                pieceType: item.pieceType,
-                                isTreasureHunt: piece.isTreasureHunt || false,
-                                isSuperTreasureHunt: piece.isSuperTreasureHunt || false,
-                                isChase: piece.isChase || false,
-                                // Información de la serie
-                                seriesId: seriesId,
-                                seriesName: item.seriesName,
-                                seriesSize: item.seriesSize,
-                                seriesPosition: index + 1,
-                                seriesPrice: seriesPrice,
-                                ...(item.location && item.location.trim() !== '' && { location: item.location }),
-                                ...(piece.notes && piece.notes.trim() !== '' && { notes: piece.notes }),
-                                ...(piece.photos && piece.photos.length > 0 && { photos: piece.photos })
-                            })
-                        }
+                        // Crear UN solo item con la cantidad especificada (no repetir)
+                        expandedItems.push({
+                            carId: piece.carId,
+                            quantity: piece.quantity, // Usar la cantidad directamente
+                            unitPrice: item.unitPrice,
+                            condition: item.condition,
+                            brand: item.brand,
+                            pieceType: item.pieceType,
+                            isTreasureHunt: piece.isTreasureHunt || false,
+                            isSuperTreasureHunt: piece.isSuperTreasureHunt || false,
+                            isChase: piece.isChase || false,
+                            // Información de la serie
+                            seriesId: seriesId,
+                            seriesName: item.seriesName,
+                            seriesSize: item.seriesSize,
+                            seriesPosition: index + 1,
+                            seriesPrice: seriesPrice,
+                            ...(item.location && item.location.trim() !== '' && { location: item.location }),
+                            ...(piece.notes && piece.notes.trim() !== '' && { notes: piece.notes }),
+                            ...(piece.photos && piece.photos.length > 0 && { photos: piece.photos })
+                        })
                     })
                 }
                 // CASO 2: Caja Sellada - Generar carId automático si no existe
