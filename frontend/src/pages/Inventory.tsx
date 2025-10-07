@@ -743,12 +743,12 @@ export default function Inventory() {
     }
 
     return (
-        <div className="space-y-6 w-full max-w-full">
+        <div className="space-y-6 w-full">
             {/* Ref para scroll automático */}
             <div ref={topRef} />
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
                     <p className="text-gray-600">Gestiona tus piezas de Hot Wheels</p>
@@ -986,7 +986,7 @@ export default function Inventory() {
                     </div>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full max-w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
                     {filteredItems.map((item) => (
                         <Card
                             key={item._id}

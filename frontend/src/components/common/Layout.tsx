@@ -54,7 +54,7 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex">
+        <div className="min-h-screen bg-gray-50 flex overflow-x-hidden w-full max-w-full">
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
@@ -144,9 +144,9 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
             {/* Main content */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden">
                 {/* Top bar - same height as sidebar header */}
-                <div className="h-16 bg-white border-b border-gray-200 px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30">
+                <div className="h-16 bg-white border-b border-gray-200 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-30 w-full">
                     <button
                         className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                         onClick={() => setSidebarOpen(true)}
@@ -167,9 +167,9 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
 
                 {/* Page content - properly aligned with top bar */}
-                <main className="flex-1 overflow-auto">
-                    <div className="py-4 px-3 sm:px-4 lg:py-6 lg:px-6 pb-safe w-full max-w-full">
-                        <div className="w-full max-w-full">
+                <main className="flex-1 overflow-auto w-full">
+                    <div className="py-4 px-3 sm:px-4 lg:py-6 lg:px-6 pb-safe w-full">
+                        <div className="w-full">
                             {children}
                         </div>
                     </div>
