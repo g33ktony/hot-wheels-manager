@@ -54,6 +54,14 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: JWT_EXPIRES_IN }
     )
 
+    // DEBUG: Log token info
+    const decoded = jwt.decode(token) as any
+    console.log('🔐 TOKEN GENERADO:')
+    console.log('  - Expira en:', JWT_EXPIRES_IN)
+    console.log('  - iat (issued at):', new Date(decoded.iat * 1000).toISOString())
+    console.log('  - exp (expires at):', new Date(decoded.exp * 1000).toISOString())
+    console.log('  - Tiempo hasta expiración:', Math.floor((decoded.exp - decoded.iat) / 3600), 'horas')
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -88,11 +96,22 @@ export const verifyToken = async (req: Request, res: Response) => {
       })
     }
 
+    console.log('🔍 VERIFICANDO TOKEN:')
+    console.log('  - Token recibido:', token.substring(0, 20) + '...')
+    
     const decoded = jwt.verify(token, JWT_SECRET) as {
       userId: string
       email: string
       role: string
+      iat: number
+      exp: number
     }
+
+    console.log('  - Token válido')
+    console.log('  - Usuario:', decoded.email)
+    console.log('  - Emitido:', new Date(decoded.iat * 1000).toISOString())
+    console.log('  - Expira:', new Date(decoded.exp * 1000).toISOString())
+    console.log('  - Tiempo restante:', Math.floor((decoded.exp - Date.now() / 1000) / 3600), 'horas')
 
     // Buscar usuario
     const user = await UserModel.findById(decoded.userId)
@@ -116,6 +135,16 @@ export const verifyToken = async (req: Request, res: Response) => {
       }
     })
   } catch (error) {
+    console.error('❌ ERROR VERIFICANDO TOKEN:')
+    if (error instanceof jwt.TokenExpiredError) {
+      console.error('  - Token expirado')
+      console.error('  - Expiró en:', error.expiredAt)
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      console.error('  - Error JWT:', error.message)
+    } else {
+      console.error('  - Error desconocido:', error)
+    }
+    
     return res.status(401).json({
       success: false,
       message: 'Invalid or expired token'
