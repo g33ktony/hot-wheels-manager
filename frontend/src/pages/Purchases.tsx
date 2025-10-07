@@ -1017,6 +1017,147 @@ export default function Purchases() {
                                                         </div>
                                                     </div>
 
+                                                    {/* Renderizado condicional según tipo */}
+                                                    {(item.itemType === 'box' || item.isBox) ? (
+                                                        /* ========== FORMULARIO PARA CAJA SELLADA ========== */
+                                                        <div className="space-y-4">
+                                                            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                                                <div className="text-sm font-medium text-purple-800 mb-3 flex items-center">
+                                                                    <Box size={16} className="mr-2" />
+                                                                    Configuración de Caja Sellada
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Nombre de la Caja *
+                                                                        </label>
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={item.boxName || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'boxName', e.target.value)}
+                                                                            placeholder="Ej: Caja P, Caja J, Caja Q"
+                                                                            required
+                                                                        />
+                                                                        {!item.boxName && (
+                                                                            <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Cantidad de Cajas
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            value={item.quantity}
+                                                                            onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                                            required
+                                                                        />
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Piezas por Caja *
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            value={item.boxSize || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'boxSize', parseInt(e.target.value) || 0)}
+                                                                            placeholder="72"
+                                                                            min="1"
+                                                                            required
+                                                                        />
+                                                                        {!item.boxSize && (
+                                                                            <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Precio por Caja *
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            value={item.boxPrice || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'boxPrice', parseFloat(e.target.value) || 0)}
+                                                                            placeholder="2200"
+                                                                            min="0"
+                                                                            step="0.01"
+                                                                            required
+                                                                        />
+                                                                        {!item.boxPrice && (
+                                                                            <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="md:col-span-2">
+                                                                        <div className="bg-purple-100 border border-purple-300 rounded-lg p-3">
+                                                                            <div className="text-sm font-medium text-purple-900 mb-2">
+                                                                                📊 Resumen de Costo
+                                                                            </div>
+                                                                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                                                                <div>
+                                                                                    <div className="text-gray-600">Costo por Pieza:</div>
+                                                                                    <div className="font-semibold text-purple-700">
+                                                                                        ${item.boxSize && item.boxPrice ? (item.boxPrice / item.boxSize).toFixed(2) : '0.00'}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div className="text-gray-600">Total Piezas:</div>
+                                                                                    <div className="font-semibold text-purple-700">
+                                                                                        {(item.boxSize || 0) * (item.quantity || 1)} piezas
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="col-span-2 pt-2 border-t border-purple-300">
+                                                                                    <div className="text-gray-600">Subtotal:</div>
+                                                                                    <div className="font-bold text-lg text-purple-900">
+                                                                                        ${((item.boxPrice || 0) * (item.quantity || 1)).toFixed(2)}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="text-xs text-gray-500 mt-3 flex items-center">
+                                                                    <AlertCircle size={12} className="mr-1" />
+                                                                    El Car ID será generado automáticamente (ej: BOX-P-2025)
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Ubicación y Notas para Caja */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    <MapPin size={16} className="inline mr-1" />
+                                                                    Ubicación Física
+                                                                </label>
+                                                                <Input
+                                                                    type="text"
+                                                                    value={item.location || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'location', e.target.value)}
+                                                                    placeholder="Ej: Bodega A, Estante 3..."
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Notas de la Caja
+                                                                </label>
+                                                                <textarea
+                                                                    value={item.notes || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
+                                                                    placeholder="Observaciones sobre la caja sellada..."
+                                                                    rows={2}
+                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        /* ========== FORMULARIO PARA ITEM INDIVIDUAL ========== */
+                                                        <div className="space-y-4">
+
                                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1297,90 +1438,6 @@ export default function Purchases() {
                                                         </div>
                                                     </div>
 
-                                                    {/* Box Option */}
-                                                    <div className="mt-4">
-                                                        <div className="flex items-center space-x-4">
-                                                            <div className="flex items-center space-x-2">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    id={`isBox-${index}`}
-                                                                    checked={item.isBox || false}
-                                                                    onChange={(e) => handleItemChange(index, 'isBox', e.target.checked)}
-                                                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                                />
-                                                                <label htmlFor={`isBox-${index}`} className="text-sm font-medium text-gray-700">
-                                                                    <Package size={16} className="inline mr-1" />
-                                                                    Es una caja sellada (72, 24 piezas, etc.)
-                                                                </label>
-                                                            </div>
-                                                        </div>
-
-                                                        {item.isBox && (
-                                                            <div className="mt-3 p-4 bg-purple-50 border border-purple-200 rounded-lg space-y-3">
-                                                                <div className="text-sm font-medium text-purple-800 mb-2">
-                                                                    📦 Configuración de Caja
-                                                                </div>
-
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                            Nombre de la Caja *
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={item.boxName || ''}
-                                                                            onChange={(e) => handleItemChange(index, 'boxName', e.target.value)}
-                                                                            placeholder="Ej: Caja P, Caja J, Caja Q"
-                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                                        />
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                            Cantidad de Piezas *
-                                                                        </label>
-                                                                        <input
-                                                                            type="number"
-                                                                            value={item.boxSize || ''}
-                                                                            onChange={(e) => handleItemChange(index, 'boxSize', parseInt(e.target.value) || 0)}
-                                                                            placeholder="72"
-                                                                            min="1"
-                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                                        />
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                            Precio Total de la Caja *
-                                                                        </label>
-                                                                        <input
-                                                                            type="number"
-                                                                            value={item.boxPrice || ''}
-                                                                            onChange={(e) => handleItemChange(index, 'boxPrice', parseFloat(e.target.value) || 0)}
-                                                                            placeholder="2200"
-                                                                            min="0"
-                                                                            step="0.01"
-                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                                                        />
-                                                                    </div>
-
-                                                                    <div>
-                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                                            Costo por Pieza
-                                                                        </label>
-                                                                        <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600">
-                                                                            ${item.boxSize && item.boxPrice ? (item.boxPrice / item.boxSize).toFixed(2) : '0.00'}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="text-xs text-gray-500 mt-2">
-                                                                    💡 El Car ID será generado automáticamente (ej: BOX-P-2025)
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
                                                     {/* Notes */}
                                                     <div className="mt-4">
                                                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1398,6 +1455,8 @@ export default function Purchases() {
                                                     <div className="mt-2 text-sm text-gray-600">
                                                         Subtotal: ${(item.quantity * item.unitPrice).toFixed(2)}
                                                     </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
