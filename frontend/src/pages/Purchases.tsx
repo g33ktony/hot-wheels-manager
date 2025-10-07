@@ -159,6 +159,7 @@ export default function Purchases() {
         })
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleAddCompleteSeries = () => {
         // Reset series data and open modal
         setSeriesData({
@@ -922,30 +923,22 @@ export default function Purchases() {
                                 <div>
                                     <div className="flex items-center justify-between mb-4">
                                         <h4 className="text-md font-medium text-gray-900">Items de la Compra</h4>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={handleAddItem}
-                                            >
-                                                + Item Individual
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                onClick={handleAddCompleteSeries}
-                                            >
-                                                + Serie Completa
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={handleAddItem}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Plus size={16} />
+                                            Agregar Item
+                                        </Button>
                                     </div>
 
                                     {newPurchase.items.length === 0 ? (
                                         <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                                             <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
                                             <p className="text-gray-600">No hay items agregados</p>
-                                            <p className="text-sm text-gray-500">Agrega items individuales o series completas</p>
+                                            <p className="text-sm text-gray-500">Haz clic en "Agregar Item" y selecciona el tipo dentro del formulario</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
