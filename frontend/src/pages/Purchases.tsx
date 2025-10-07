@@ -967,8 +967,14 @@ export default function Purchases() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    handleItemChange(index, 'itemType', 'individual')
-                                                                    handleItemChange(index, 'isBox', false)
+                                                                    console.log('🔵 Click en Individual')
+                                                                    const updatedItems = [...newPurchase.items]
+                                                                    updatedItems[index] = { 
+                                                                        ...updatedItems[index], 
+                                                                        itemType: 'individual',
+                                                                        isBox: false
+                                                                    }
+                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
                                                                 className={`p-3 border-2 rounded-lg transition-all ${
                                                                     (item.itemType === 'individual' || !item.itemType) && !item.isBox
@@ -982,9 +988,15 @@ export default function Purchases() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    handleItemChange(index, 'itemType', 'box')
-                                                                    handleItemChange(index, 'isBox', true)
-                                                                    handleItemChange(index, 'carId', '') // Limpiar carId, se genera automático
+                                                                    console.log('🟣 Click en Caja')
+                                                                    const updatedItems = [...newPurchase.items]
+                                                                    updatedItems[index] = { 
+                                                                        ...updatedItems[index], 
+                                                                        itemType: 'box',
+                                                                        isBox: true,
+                                                                        carId: '' // Limpiar carId, se genera automático
+                                                                    }
+                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
                                                                 className={`p-3 border-2 rounded-lg transition-all ${
                                                                     item.itemType === 'box' || item.isBox
@@ -998,8 +1010,14 @@ export default function Purchases() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    handleItemChange(index, 'itemType', 'series')
-                                                                    handleItemChange(index, 'isBox', false)
+                                                                    console.log('🟢 Click en Serie')
+                                                                    const updatedItems = [...newPurchase.items]
+                                                                    updatedItems[index] = { 
+                                                                        ...updatedItems[index], 
+                                                                        itemType: 'series',
+                                                                        isBox: false
+                                                                    }
+                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
                                                                 className={`p-3 border-2 rounded-lg transition-all ${
                                                                     item.itemType === 'series'
