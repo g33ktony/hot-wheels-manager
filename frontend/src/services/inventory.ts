@@ -5,11 +5,23 @@ import type {
   ApiResponse 
 } from '@shared/types'
 
+interface PaginatedInventoryResponse {
+  items: InventoryItem[]
+  pagination: {
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+  }
+}
+
 export const inventoryService = {
-  // Obtener todos los items del inventario
-  getAll: async (): Promise<InventoryItem[]> => {
-    const response = await api.get<ApiResponse<{items: InventoryItem[]}>>('/inventory')
-    return response.data.data?.items || []
+  // Obtener todos los items del inventario con paginación
+  getAll: async (page: number = 1, limit: number = 15): Promise<PaginatedInventoryResponse> => {
+    const response = await api.get<ApiResponse<PaginatedInventoryResponse>>(
+      `/inventory?page=${page}&limit=${limit}`
+    )
+    return response.data.data || { items: [], pagination: { currentPage: 1, totalPages: 0, totalItems: 0, itemsPerPage: limit } }
   },
 
   // Obtener un item del inventario por ID

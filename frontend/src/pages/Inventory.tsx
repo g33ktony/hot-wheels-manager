@@ -21,6 +21,8 @@ const PREDEFINED_BRANDS = [
 ]
 
 export default function Inventory() {
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(15)
     const [searchTerm, setSearchTerm] = useState('')
     const [filterCondition, setFilterCondition] = useState('')
     const [filterBrand, setFilterBrand] = useState('')
@@ -77,12 +79,16 @@ export default function Inventory() {
         seriesDefaultPrice: 0
     })
 
-    const { data: inventoryItems, isLoading, error } = useInventory()
+    const { data: inventoryData, isLoading, error } = useInventory({ page: currentPage, limit: itemsPerPage })
     const { data: customBrands } = useCustomBrands()
     const createItemMutation = useCreateInventoryItem()
     const deleteItemMutation = useDeleteInventoryItem()
     const updateItemMutation = useUpdateInventoryItem()
     const createCustomBrandMutation = useCreateCustomBrand()
+
+    // Extract items and pagination from response
+    const inventoryItems = inventoryData?.items || []
+    const pagination = inventoryData?.pagination
 
     // Combine predefined and custom brands
     const allBrands = [
@@ -993,6 +999,77 @@ export default function Inventory() {
                             </div>
                         </Card>
                     ))}
+                </div>
+            )}
+
+            {/* Pagination Controls */}
+            {pagination && pagination.totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-between px-4 py-3 bg-white border rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <span>
+                            Mostrando <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> -{' '}
+                            <span className="font-medium">
+                                {Math.min(currentPage * itemsPerPage, pagination.totalItems)}
+                            </span> de{' '}
+                            <span className="font-medium">{pagination.totalItems}</span> items
+                        </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="flex items-center gap-1"
+                        >
+                            <ChevronLeft size={16} />
+                            Anterior
+                        </Button>
+                        
+                        <div className="flex items-center gap-1">
+                            {[...Array(pagination.totalPages)].map((_, idx) => {
+                                const pageNum = idx + 1
+                                // Show first, last, current, and pages around current
+                                if (
+                                    pageNum === 1 ||
+                                    pageNum === pagination.totalPages ||
+                                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                ) {
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => setCurrentPage(pageNum)}
+                                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                                currentPage === pageNum
+                                                    ? 'bg-primary-500 text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    )
+                                } else if (
+                                    pageNum === currentPage - 2 ||
+                                    pageNum === currentPage + 2
+                                ) {
+                                    return <span key={pageNum} className="px-2 text-gray-400">...</span>
+                                }
+                                return null
+                            })}
+                        </div>
+                        
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                            disabled={currentPage === pagination.totalPages}
+                            className="flex items-center gap-1"
+                        >
+                            Siguiente
+                            <ChevronRight size={16} />
+                        </Button>
+                    </div>
                 </div>
             )}
 

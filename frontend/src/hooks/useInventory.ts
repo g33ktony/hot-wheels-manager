@@ -3,10 +3,22 @@ import { inventoryService } from '@/services/inventory'
 import type { CreateInventoryItemDto } from '@shared/types'
 import toast from 'react-hot-toast'
 
-export const useInventory = () => {
-  return useQuery('inventory', inventoryService.getAll, {
-    staleTime: 2 * 60 * 1000, // 2 minutos
-  })
+interface UseInventoryOptions {
+  page?: number
+  limit?: number
+}
+
+export const useInventory = (options: UseInventoryOptions = {}) => {
+  const { page = 1, limit = 15 } = options
+  
+  return useQuery(
+    ['inventory', page, limit], 
+    () => inventoryService.getAll(page, limit), 
+    {
+      staleTime: 2 * 60 * 1000, // 2 minutos
+      keepPreviousData: true, // Mantiene datos anteriores mientras carga nuevos
+    }
+  )
 }
 
 export const useInventoryItem = (id: string) => {
