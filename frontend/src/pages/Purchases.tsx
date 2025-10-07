@@ -326,39 +326,90 @@ export default function Purchases() {
         }
 
         try {
-            // Clean items: convert empty strings to undefined for optional fields
-            const cleanedItems = newPurchase.items.map(item => {
-                // Generate carId for boxes if not provided
-                if (item.isBox && !item.carId) {
-                    const boxPrefix = item.boxName?.toUpperCase().replace(/\s+/g, '-') || 'BOX'
-                    const timestamp = Date.now()
-                    item.carId = `${boxPrefix}-${timestamp}`
+            // Expandir y limpiar items
+            const expandedItems: any[] = []
+            
+            newPurchase.items.forEach(item => {
+                // CASO 1: Caja de Serie - Expandir en items individuales
+                if (item.itemType === 'series' && item.seriesPieces && item.seriesPieces.length > 0) {
+                    // Generar un ID único para la serie
+                    const seriesId = `SERIES-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                    const seriesPrice = (item.seriesSize || 0) * item.unitPrice
+                    
+                    item.seriesPieces.forEach((piece, index) => {
+                        // Repetir cada pieza según su cantidad
+                        for (let i = 0; i < piece.quantity; i++) {
+                            expandedItems.push({
+                                carId: piece.carId,
+                                quantity: 1, // Cada item expandido es 1 unidad
+                                unitPrice: item.unitPrice,
+                                condition: item.condition,
+                                brand: item.brand,
+                                pieceType: item.pieceType,
+                                isTreasureHunt: piece.isTreasureHunt || false,
+                                isSuperTreasureHunt: piece.isSuperTreasureHunt || false,
+                                isChase: piece.isChase || false,
+                                // Información de la serie
+                                seriesId: seriesId,
+                                seriesName: item.seriesName,
+                                seriesSize: item.seriesSize,
+                                seriesPosition: index + 1,
+                                seriesPrice: seriesPrice,
+                                ...(item.location && item.location.trim() !== '' && { location: item.location }),
+                                ...(piece.notes && piece.notes.trim() !== '' && { notes: piece.notes }),
+                                ...(piece.photos && piece.photos.length > 0 && { photos: piece.photos })
+                            })
+                        }
+                    })
                 }
-
-                return {
-                    carId: item.carId,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    condition: item.condition,
-                    // Only send pieceType and brand if they have actual values
-                    ...(item.pieceType && { pieceType: item.pieceType }),
-                    ...(item.brand && item.brand.trim() !== '' && { brand: item.brand }),
-                    isTreasureHunt: item.isTreasureHunt || false,
-                    isSuperTreasureHunt: item.isSuperTreasureHunt || false,
-                    isChase: item.isChase || false,
-                    ...(item.seriesId && item.seriesId.trim() !== '' && { seriesId: item.seriesId }),
-                    ...(item.seriesName && item.seriesName.trim() !== '' && { seriesName: item.seriesName }),
-                    ...(item.seriesSize && { seriesSize: item.seriesSize }),
-                    ...(item.seriesPosition && { seriesPosition: item.seriesPosition }),
-                    ...(item.seriesPrice && { seriesPrice: item.seriesPrice }),
-                    // Box fields
-                    isBox: item.isBox || false,
-                    ...(item.isBox && item.boxName && item.boxName.trim() !== '' && { boxName: item.boxName }),
-                    ...(item.isBox && item.boxSize && { boxSize: item.boxSize }),
-                    ...(item.isBox && item.boxPrice && { boxPrice: item.boxPrice }),
-                    ...(item.photos && item.photos.length > 0 && { photos: item.photos }),
-                    ...(item.location && item.location.trim() !== '' && { location: item.location }),
-                    ...(item.notes && item.notes.trim() !== '' && { notes: item.notes })
+                // CASO 2: Caja Sellada - Generar carId automático si no existe
+                else if (item.itemType === 'box' || item.isBox) {
+                    if (!item.carId) {
+                        const boxPrefix = item.boxName?.toUpperCase().replace(/\s+/g, '-') || 'BOX'
+                        const timestamp = Date.now()
+                        item.carId = `${boxPrefix}-${timestamp}`
+                    }
+                    
+                    expandedItems.push({
+                        carId: item.carId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        condition: item.condition,
+                        ...(item.pieceType && { pieceType: item.pieceType }),
+                        ...(item.brand && item.brand.trim() !== '' && { brand: item.brand }),
+                        isTreasureHunt: item.isTreasureHunt || false,
+                        isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+                        isChase: item.isChase || false,
+                        isBox: true,
+                        ...(item.boxName && item.boxName.trim() !== '' && { boxName: item.boxName }),
+                        ...(item.boxSize && { boxSize: item.boxSize }),
+                        ...(item.boxPrice && { boxPrice: item.boxPrice }),
+                        ...(item.photos && item.photos.length > 0 && { photos: item.photos }),
+                        ...(item.location && item.location.trim() !== '' && { location: item.location }),
+                        ...(item.notes && item.notes.trim() !== '' && { notes: item.notes })
+                    })
+                }
+                // CASO 3: Item Individual - Mantener como está
+                else {
+                    expandedItems.push({
+                        carId: item.carId,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        condition: item.condition,
+                        ...(item.pieceType && { pieceType: item.pieceType }),
+                        ...(item.brand && item.brand.trim() !== '' && { brand: item.brand }),
+                        isTreasureHunt: item.isTreasureHunt || false,
+                        isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+                        isChase: item.isChase || false,
+                        ...(item.seriesId && item.seriesId.trim() !== '' && { seriesId: item.seriesId }),
+                        ...(item.seriesName && item.seriesName.trim() !== '' && { seriesName: item.seriesName }),
+                        ...(item.seriesSize && { seriesSize: item.seriesSize }),
+                        ...(item.seriesPosition && { seriesPosition: item.seriesPosition }),
+                        ...(item.seriesPrice && { seriesPrice: item.seriesPrice }),
+                        ...(item.photos && item.photos.length > 0 && { photos: item.photos }),
+                        ...(item.location && item.location.trim() !== '' && { location: item.location }),
+                        ...(item.notes && item.notes.trim() !== '' && { notes: item.notes })
+                    })
                 }
             })
 
@@ -368,7 +419,7 @@ export default function Purchases() {
                     id: editingPurchase._id,
                     data: {
                         supplierId: newPurchase.supplierId,
-                        items: cleanedItems,
+                        items: expandedItems,
                         totalCost: newPurchase.totalCost,
                         shippingCost: newPurchase.shippingCost,
                         trackingNumber: newPurchase.trackingNumber || undefined,
@@ -381,7 +432,7 @@ export default function Purchases() {
                 // Create new purchase
                 await createPurchaseMutation.mutateAsync({
                     supplierId: newPurchase.supplierId,
-                    items: cleanedItems,
+                    items: expandedItems,
                     totalCost: newPurchase.totalCost,
                     shippingCost: newPurchase.shippingCost,
                     trackingNumber: newPurchase.trackingNumber || undefined,
