@@ -92,6 +92,7 @@ export default function Purchases() {
             seriesPieces?: Array<{
                 carId: string;
                 position: number;
+                quantity: number; // Cantidad de esta pieza específica
                 isTreasureHunt: boolean;
                 isSuperTreasureHunt: boolean;
                 isChase: boolean;
@@ -1181,7 +1182,7 @@ export default function Purchases() {
                                                             </div>
                                                         </div>
                                                     ) : item.itemType === 'series' ? (
-                                                        /* ========== FORMULARIO PARA CAJA DE SERIE (Registro individual de piezas) ========== */
+                                                        /* ========== FORMULARIO PARA CAJA DE SERIE (Registro con cantidades) ========== */
                                                         <div className="space-y-4">
                                                             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                                                                 <div className="text-sm font-medium text-green-800 mb-3 flex items-center">
@@ -1216,33 +1217,10 @@ export default function Purchases() {
                                                                             onChange={(e) => {
                                                                                 const newSize = parseInt(e.target.value) || 0
                                                                                 const updatedItems = [...newPurchase.items]
-                                                                                const currentPieces = updatedItems[index].seriesPieces || []
-                                                                                
-                                                                                // Ajustar el array de piezas
-                                                                                let newPieces = [...currentPieces]
-                                                                                if (newSize > currentPieces.length) {
-                                                                                    // Agregar más piezas
-                                                                                    newPieces = [
-                                                                                        ...currentPieces,
-                                                                                        ...Array.from({ length: newSize - currentPieces.length }, (_, i) => ({
-                                                                                            carId: '',
-                                                                                            position: currentPieces.length + i + 1,
-                                                                                            isTreasureHunt: false,
-                                                                                            isSuperTreasureHunt: false,
-                                                                                            isChase: false,
-                                                                                            photos: [],
-                                                                                            notes: ''
-                                                                                        }))
-                                                                                    ]
-                                                                                } else if (newSize < currentPieces.length) {
-                                                                                    // Quitar piezas del final
-                                                                                    newPieces = currentPieces.slice(0, newSize)
-                                                                                }
-                                                                                
                                                                                 updatedItems[index] = { 
                                                                                     ...updatedItems[index], 
                                                                                     seriesSize: newSize,
-                                                                                    seriesPieces: newPieces
+                                                                                    seriesPieces: [] // Reset pieces cuando cambia el total
                                                                                 }
                                                                                 setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                             }}
@@ -1253,7 +1231,7 @@ export default function Purchases() {
                                                                         {!item.seriesSize && (
                                                                             <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
                                                                         )}
-                                                                        <div className="text-xs text-gray-500 mt-1">Puede ser 5, 8, 10, 24... piezas</div>
+                                                                        <div className="text-xs text-gray-500 mt-1">Total de piezas en la caja</div>
                                                                     </div>
 
                                                                     <div>
@@ -1338,145 +1316,251 @@ export default function Purchases() {
                                                                     </div>
 
                                                                     <div className="md:col-span-2">
-                                                                        <div className="bg-green-100 border border-green-300 rounded-lg p-3">
-                                                                            <div className="text-sm font-medium text-green-900 mb-2">
-                                                                                📊 Resumen de la Serie
-                                                                            </div>
-                                                                            <div className="grid grid-cols-2 gap-3 text-sm">
-                                                                                <div>
-                                                                                    <div className="text-gray-600">Total de Piezas:</div>
-                                                                                    <div className="font-semibold text-green-700">
-                                                                                        {item.seriesSize || 0} piezas
+                                                                        {(() => {
+                                                                            const registeredCount = (item.seriesPieces || []).reduce((sum, p) => sum + (p.quantity || 0), 0)
+                                                                            const remaining = (item.seriesSize || 0) - registeredCount
+                                                                            
+                                                                            return (
+                                                                                <div className={`border rounded-lg p-3 ${
+                                                                                    remaining === 0 ? 'bg-green-100 border-green-300' : 'bg-yellow-50 border-yellow-300'
+                                                                                }`}>
+                                                                                    <div className="text-sm font-medium mb-2">
+                                                                                        📊 Progreso de Registro
+                                                                                    </div>
+                                                                                    <div className="grid grid-cols-3 gap-3 text-sm">
+                                                                                        <div>
+                                                                                            <div className="text-gray-600">Total:</div>
+                                                                                            <div className="font-semibold text-gray-800">
+                                                                                                {item.seriesSize || 0} piezas
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <div className="text-gray-600">Registradas:</div>
+                                                                                            <div className="font-semibold text-blue-700">
+                                                                                                {registeredCount} piezas
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <div className="text-gray-600">Faltan:</div>
+                                                                                            <div className={`font-bold ${remaining === 0 ? 'text-green-700' : 'text-orange-600'}`}>
+                                                                                                {remaining} piezas
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="col-span-3 pt-2 border-t">
+                                                                                            <div className="text-gray-600">Subtotal:</div>
+                                                                                            <div className="font-bold text-lg text-gray-900">
+                                                                                                ${((item.unitPrice || 0) * (item.seriesSize || 0)).toFixed(2)}
+                                                                                            </div>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
-                                                                                <div>
-                                                                                    <div className="text-gray-600">Precio por Pieza:</div>
-                                                                                    <div className="font-semibold text-green-700">
-                                                                                        ${(item.unitPrice || 0).toFixed(2)}
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="col-span-2 pt-2 border-t border-green-300">
-                                                                                    <div className="text-gray-600">Subtotal de la Serie:</div>
-                                                                                    <div className="font-bold text-lg text-green-900">
-                                                                                        ${((item.unitPrice || 0) * (item.seriesSize || 0)).toFixed(2)}
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
+                                                                            )
+                                                                        })()}
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            {/* Piezas Individuales */}
+                                                            {/* Registro de Piezas con Cantidades */}
                                                             {item.seriesSize && item.seriesSize > 0 && (
                                                                 <div className="space-y-3">
                                                                     <div className="flex items-center justify-between">
                                                                         <h4 className="font-medium text-gray-900">Registro de Piezas</h4>
-                                                                        <div className="text-sm text-gray-500">
-                                                                            {(item.seriesPieces?.filter(p => p.carId.trim()).length || 0)} de {item.seriesSize} completadas
-                                                                        </div>
+                                                                        <Button
+                                                                            type="button"
+                                                                            size="sm"
+                                                                            variant="secondary"
+                                                                            onClick={() => {
+                                                                                const updatedItems = [...newPurchase.items]
+                                                                                const currentPieces = updatedItems[index].seriesPieces || []
+                                                                                const registeredCount = currentPieces.reduce((sum, p) => sum + (p.quantity || 0), 0)
+                                                                                const remaining = (updatedItems[index].seriesSize || 0) - registeredCount
+                                                                                
+                                                                                if (remaining > 0) {
+                                                                                    updatedItems[index] = {
+                                                                                        ...updatedItems[index],
+                                                                                        seriesPieces: [
+                                                                                            ...currentPieces,
+                                                                                            {
+                                                                                                carId: '',
+                                                                                                position: currentPieces.length + 1,
+                                                                                                quantity: 1,
+                                                                                                isTreasureHunt: false,
+                                                                                                isSuperTreasureHunt: false,
+                                                                                                isChase: false,
+                                                                                                photos: [],
+                                                                                                notes: ''
+                                                                                            }
+                                                                                        ]
+                                                                                    }
+                                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                }
+                                                                            }}
+                                                                            disabled={(() => {
+                                                                                const registeredCount = (item.seriesPieces || []).reduce((sum, p) => sum + (p.quantity || 0), 0)
+                                                                                return registeredCount >= (item.seriesSize || 0)
+                                                                            })()}
+                                                                        >
+                                                                            + Agregar Pieza
+                                                                        </Button>
                                                                     </div>
                                                                     
                                                                     <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                                                                        {(item.seriesPieces || []).map((piece: any, pieceIndex: number) => (
-                                                                            <div key={pieceIndex} className="border rounded-lg p-3 bg-white">
-                                                                                <div className="flex items-center justify-between mb-2">
-                                                                                    <h5 className="font-medium text-gray-900 text-sm">
-                                                                                        Pieza {piece.position} de {item.seriesSize}
-                                                                                    </h5>
-                                                                                    {piece.carId && (
-                                                                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ Completo</span>
-                                                                                    )}
+                                                                        {(item.seriesPieces || []).map((piece: any, pieceIndex: number) => {
+                                                                            const registeredCount = (item.seriesPieces || []).reduce((sum, p) => sum + (p.quantity || 0), 0)
+                                                                            const remaining = (item.seriesSize || 0) - registeredCount + (piece.quantity || 0) // Incluir la cantidad actual
+                                                                            
+                                                                            return (
+                                                                                <div key={pieceIndex} className="border rounded-lg p-3 bg-white relative">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            const updatedItems = [...newPurchase.items]
+                                                                                            const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                            pieces.splice(pieceIndex, 1)
+                                                                                            // Reajustar posiciones
+                                                                                            pieces.forEach((p, i) => p.position = i + 1)
+                                                                                            updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                            setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                        }}
+                                                                                        className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                                                                                    >
+                                                                                        <X size={16} />
+                                                                                    </button>
+
+                                                                                    <div className="flex items-center justify-between mb-2 pr-6">
+                                                                                        <h5 className="font-medium text-gray-900 text-sm">
+                                                                                            Pieza #{piece.position}
+                                                                                        </h5>
+                                                                                        {piece.carId && piece.quantity > 0 && (
+                                                                                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                                                                                ✓ {piece.quantity} unidad{piece.quantity > 1 ? 'es' : ''}
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+
+                                                                                    <div className="space-y-2">
+                                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                                            <div className="col-span-2 md:col-span-1">
+                                                                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                                                                    ID del Auto *
+                                                                                                </label>
+                                                                                                <AutocompleteCarId
+                                                                                                    value={piece.carId}
+                                                                                                    onChange={(value) => {
+                                                                                                        const updatedItems = [...newPurchase.items]
+                                                                                                        const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                                        pieces[pieceIndex] = { ...pieces[pieceIndex], carId: value }
+                                                                                                        updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                                    }}
+                                                                                                    placeholder={`Ej: HW-2024-001`}
+                                                                                                />
+                                                                                            </div>
+
+                                                                                            <div className="col-span-2 md:col-span-1">
+                                                                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                                                                    Cantidad de esta pieza *
+                                                                                                </label>
+                                                                                                <Input
+                                                                                                    type="number"
+                                                                                                    min="1"
+                                                                                                    max={remaining}
+                                                                                                    value={piece.quantity || 1}
+                                                                                                    onChange={(e) => {
+                                                                                                        const newQty = parseInt(e.target.value) || 1
+                                                                                                        const updatedItems = [...newPurchase.items]
+                                                                                                        const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                                        pieces[pieceIndex] = { ...pieces[pieceIndex], quantity: Math.min(newQty, remaining) }
+                                                                                                        updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                                    }}
+                                                                                                    placeholder="1"
+                                                                                                />
+                                                                                                <div className="text-xs text-gray-500 mt-1">
+                                                                                                    Máx: {remaining}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+
+                                                                                        <div className="grid grid-cols-3 gap-2">
+                                                                                            <label className="flex items-center text-xs">
+                                                                                                <input
+                                                                                                    type="checkbox"
+                                                                                                    checked={piece.isTreasureHunt || false}
+                                                                                                    onChange={(e) => {
+                                                                                                        const updatedItems = [...newPurchase.items]
+                                                                                                        const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                                        pieces[pieceIndex] = { ...pieces[pieceIndex], isTreasureHunt: e.target.checked }
+                                                                                                        updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                                    }}
+                                                                                                    className="mr-1"
+                                                                                                />
+                                                                                                TH
+                                                                                            </label>
+                                                                                            <label className="flex items-center text-xs">
+                                                                                                <input
+                                                                                                    type="checkbox"
+                                                                                                    checked={piece.isSuperTreasureHunt || false}
+                                                                                                    onChange={(e) => {
+                                                                                                        const updatedItems = [...newPurchase.items]
+                                                                                                        const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                                        pieces[pieceIndex] = { ...pieces[pieceIndex], isSuperTreasureHunt: e.target.checked }
+                                                                                                        updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                                    }}
+                                                                                                    className="mr-1"
+                                                                                                />
+                                                                                                STH
+                                                                                            </label>
+                                                                                            <label className="flex items-center text-xs">
+                                                                                                <input
+                                                                                                    type="checkbox"
+                                                                                                    checked={piece.isChase || false}
+                                                                                                    onChange={(e) => {
+                                                                                                        const updatedItems = [...newPurchase.items]
+                                                                                                        const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                                        pieces[pieceIndex] = { ...pieces[pieceIndex], isChase: e.target.checked }
+                                                                                                        updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                                    }}
+                                                                                                    className="mr-1"
+                                                                                                />
+                                                                                                Chase
+                                                                                            </label>
+                                                                                        </div>
+
+                                                                                        <div>
+                                                                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                                                                Notas de esta pieza
+                                                                                            </label>
+                                                                                            <textarea
+                                                                                                value={piece.notes || ''}
+                                                                                                onChange={(e) => {
+                                                                                                    const updatedItems = [...newPurchase.items]
+                                                                                                    const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                                    pieces[pieceIndex] = { ...pieces[pieceIndex], notes: e.target.value }
+                                                                                                    updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                                }}
+                                                                                                placeholder="Observaciones específicas..."
+                                                                                                rows={1}
+                                                                                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                                            />
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
-
-                                                                                <div className="space-y-2">
-                                                                                    <div>
-                                                                                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                                            ID del Auto *
-                                                                                        </label>
-                                                                                        <AutocompleteCarId
-                                                                                            value={piece.carId}
-                                                                                            onChange={(value) => {
-                                                                                                const updatedItems = [...newPurchase.items]
-                                                                                                const pieces = [...(updatedItems[index].seriesPieces || [])]
-                                                                                                pieces[pieceIndex] = { ...pieces[pieceIndex], carId: value }
-                                                                                                updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
-                                                                                                setNewPurchase({ ...newPurchase, items: updatedItems })
-                                                                                            }}
-                                                                                            placeholder={`Ej: HW-2024-001`}
-                                                                                        />
-                                                                                    </div>
-
-                                                                                    <div className="grid grid-cols-3 gap-2">
-                                                                                        <label className="flex items-center text-xs">
-                                                                                            <input
-                                                                                                type="checkbox"
-                                                                                                checked={piece.isTreasureHunt || false}
-                                                                                                onChange={(e) => {
-                                                                                                    const updatedItems = [...newPurchase.items]
-                                                                                                    const pieces = [...(updatedItems[index].seriesPieces || [])]
-                                                                                                    pieces[pieceIndex] = { ...pieces[pieceIndex], isTreasureHunt: e.target.checked }
-                                                                                                    updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
-                                                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
-                                                                                                }}
-                                                                                                className="mr-1"
-                                                                                            />
-                                                                                            TH
-                                                                                        </label>
-                                                                                        <label className="flex items-center text-xs">
-                                                                                            <input
-                                                                                                type="checkbox"
-                                                                                                checked={piece.isSuperTreasureHunt || false}
-                                                                                                onChange={(e) => {
-                                                                                                    const updatedItems = [...newPurchase.items]
-                                                                                                    const pieces = [...(updatedItems[index].seriesPieces || [])]
-                                                                                                    pieces[pieceIndex] = { ...pieces[pieceIndex], isSuperTreasureHunt: e.target.checked }
-                                                                                                    updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
-                                                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
-                                                                                                }}
-                                                                                                className="mr-1"
-                                                                                            />
-                                                                                            STH
-                                                                                        </label>
-                                                                                        <label className="flex items-center text-xs">
-                                                                                            <input
-                                                                                                type="checkbox"
-                                                                                                checked={piece.isChase || false}
-                                                                                                onChange={(e) => {
-                                                                                                    const updatedItems = [...newPurchase.items]
-                                                                                                    const pieces = [...(updatedItems[index].seriesPieces || [])]
-                                                                                                    pieces[pieceIndex] = { ...pieces[pieceIndex], isChase: e.target.checked }
-                                                                                                    updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
-                                                                                                    setNewPurchase({ ...newPurchase, items: updatedItems })
-                                                                                                }}
-                                                                                                className="mr-1"
-                                                                                            />
-                                                                                            Chase
-                                                                                        </label>
-                                                                                    </div>
-
-                                                                                    <div>
-                                                                                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                                                                                            Notas de esta pieza
-                                                                                        </label>
-                                                                                        <textarea
-                                                                                            value={piece.notes || ''}
-                                                                                            onChange={(e) => {
-                                                                                                const updatedItems = [...newPurchase.items]
-                                                                                                const pieces = [...(updatedItems[index].seriesPieces || [])]
-                                                                                                pieces[pieceIndex] = { ...pieces[pieceIndex], notes: e.target.value }
-                                                                                                updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
-                                                                                                setNewPurchase({ ...newPurchase, items: updatedItems })
-                                                                                            }}
-                                                                                            placeholder="Observaciones específicas..."
-                                                                                            rows={1}
-                                                                                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                                                                                        />
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        ))}
+                                                                            )
+                                                                        })}
                                                                     </div>
+
+                                                                    {(item.seriesPieces || []).length === 0 && (
+                                                                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                                                            <Package size={32} className="mx-auto mb-2 opacity-50" />
+                                                                            <p className="text-sm">No hay piezas registradas</p>
+                                                                            <p className="text-xs">Haz clic en "+ Agregar Pieza" para empezar</p>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             )}
 
