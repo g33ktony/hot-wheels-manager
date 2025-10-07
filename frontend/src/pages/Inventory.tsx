@@ -820,7 +820,7 @@ export default function Inventory() {
             <Card>
                 <div className="space-y-4 w-full">
                     {/* First row: Search and Condition */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 w-full">
                         <div className="relative w-full">
                             <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                             <Input
@@ -856,7 +856,7 @@ export default function Inventory() {
                     </div>
 
                     {/* Second row: Brand and Type filters */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 sm:gap-3 w-full">
                         <select
                             value={filterBrand}
                             onChange={(e) => {
@@ -986,7 +986,7 @@ export default function Inventory() {
                     </div>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 w-full max-w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full max-w-full">
                     {filteredItems.map((item) => (
                         <Card
                             key={item._id}
@@ -1110,9 +1110,9 @@ export default function Inventory() {
                                             </div>
                                         )}
 
-                                        <div className="flex items-center justify-between mt-2">
+                                        <div className="flex items-center justify-between mt-2 gap-2">
                                             <span className={`
-                      px-2 py-1 text-xs font-medium rounded-full
+                      px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap
                       ${item.condition === 'mint' ? 'bg-green-100 text-green-800' :
                                                     item.condition === 'good' ? 'bg-blue-100 text-blue-800' :
                                                         item.condition === 'fair' ? 'bg-yellow-100 text-yellow-800' :
@@ -1123,11 +1123,11 @@ export default function Inventory() {
                                                     item.condition === 'good' ? 'Bueno' :
                                                         item.condition === 'fair' ? 'Regular' : 'Malo'}
                                             </span>
-                                            <span className="text-sm font-medium text-gray-900">
-                                                Disponible: {item.quantity - (item.reservedQuantity || 0)} / {item.quantity}
+                                            <span className="text-xs font-medium text-gray-900 text-right flex-shrink-0">
+                                                {item.quantity - (item.reservedQuantity || 0)}/{item.quantity}
                                                 {(item.reservedQuantity || 0) > 0 && (
-                                                    <span className="text-orange-600 ml-1">
-                                                        ({item.reservedQuantity || 0} reservado{(item.reservedQuantity || 0) !== 1 ? 's' : ''})
+                                                    <span className="text-orange-600 block text-xs">
+                                                        ({item.reservedQuantity} res.)
                                                     </span>
                                                 )}
                                             </span>
