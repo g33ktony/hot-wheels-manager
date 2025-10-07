@@ -1502,6 +1502,21 @@ export default function Purchases() {
                                                                                                         updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
                                                                                                         setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                                                     }}
+                                                                                                    onSelect={(selectedItem) => {
+                                                                                                        // Auto-llenar flags TH/STH/Chase desde el inventario
+                                                                                                        const updatedItems = [...newPurchase.items]
+                                                                                                        const pieces = [...(updatedItems[index].seriesPieces || [])]
+                                                                                                        pieces[pieceIndex] = { 
+                                                                                                            ...pieces[pieceIndex], 
+                                                                                                            carId: selectedItem.carId,
+                                                                                                            isTreasureHunt: selectedItem.isTreasureHunt || false,
+                                                                                                            isSuperTreasureHunt: selectedItem.isSuperTreasureHunt || false,
+                                                                                                            isChase: selectedItem.isChase || false,
+                                                                                                            photos: selectedItem.photos || pieces[pieceIndex].photos
+                                                                                                        }
+                                                                                                        updatedItems[index] = { ...updatedItems[index], seriesPieces: pieces }
+                                                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                                                    }}
                                                                                                     placeholder={`Ej: HW-2024-001`}
                                                                                                 />
                                                                                             </div>
@@ -1656,6 +1671,24 @@ export default function Purchases() {
                                                                 <AutocompleteCarId
                                                                     value={item.carId}
                                                                     onChange={(value) => handleItemChange(index, 'carId', value)}
+                                                                    onSelect={(selectedItem) => {
+                                                                        // Auto-llenar campos cuando se selecciona un item del inventario
+                                                                        const updatedItems = [...newPurchase.items]
+                                                                        updatedItems[index] = {
+                                                                            ...updatedItems[index],
+                                                                            carId: selectedItem.carId,
+                                                                            brand: selectedItem.brand || updatedItems[index].brand,
+                                                                            pieceType: selectedItem.pieceType || updatedItems[index].pieceType,
+                                                                            condition: selectedItem.condition || updatedItems[index].condition,
+                                                                            isTreasureHunt: selectedItem.isTreasureHunt || false,
+                                                                            isSuperTreasureHunt: selectedItem.isSuperTreasureHunt || false,
+                                                                            isChase: selectedItem.isChase || false,
+                                                                            unitPrice: selectedItem.purchasePrice || updatedItems[index].unitPrice,
+                                                                            photos: selectedItem.photos || updatedItems[index].photos,
+                                                                            location: selectedItem.location || updatedItems[index].location,
+                                                                        }
+                                                                        setNewPurchase({ ...newPurchase, items: updatedItems })
+                                                                    }}
                                                                     placeholder="Buscar por ID, nombre o marca..."
                                                                 />
                                                             </div>

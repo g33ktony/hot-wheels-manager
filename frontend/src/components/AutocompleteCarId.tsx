@@ -4,11 +4,12 @@ import { useInventory } from '@/hooks/useInventory'
 interface AutocompleteInputProps {
     value: string
     onChange: (value: string) => void
+    onSelect?: (item: any) => void // Callback cuando se selecciona un item completo
     placeholder?: string
     required?: boolean
 }
 
-export default function AutocompleteCarId({ value, onChange, placeholder, required }: AutocompleteInputProps) {
+export default function AutocompleteCarId({ value, onChange, onSelect, placeholder, required }: AutocompleteInputProps) {
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [searchTerm, setSearchTerm] = useState(value)
     const inputRef = useRef<HTMLInputElement>(null)
@@ -49,11 +50,16 @@ export default function AutocompleteCarId({ value, onChange, placeholder, requir
         setShowSuggestions(newValue.length > 0)
     }
 
-    const handleSelectSuggestion = (carId: string) => {
-        onChange(carId)
-        setSearchTerm(carId)
+    const handleSelectSuggestion = (item: any) => {
+        onChange(item.carId)
+        setSearchTerm(item.carId)
         setShowSuggestions(false)
         inputRef.current?.focus()
+        
+        // Llamar al callback onSelect si está definido, pasando el item completo
+        if (onSelect) {
+            onSelect(item)
+        }
     }
 
     return (
@@ -78,7 +84,7 @@ export default function AutocompleteCarId({ value, onChange, placeholder, requir
                         <button
                             key={index}
                             type="button"
-                            onClick={() => handleSelectSuggestion(item.carId)}
+                            onClick={() => handleSelectSuggestion(item)}
                             className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-0"
                         >
                             <div className="flex items-center justify-between">
