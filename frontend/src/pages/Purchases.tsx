@@ -159,6 +159,7 @@ export default function Purchases() {
         })
     }
 
+    // @ts-ignore - Función para serie completa, deshabilitada temporalmente
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleAddCompleteSeries = () => {
         // Reset series data and open modal
