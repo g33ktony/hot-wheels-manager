@@ -6,14 +6,36 @@ import toast from 'react-hot-toast'
 interface UseInventoryOptions {
   page?: number
   limit?: number
+  search?: string
+  condition?: string
+  brand?: string
+  pieceType?: string
+  treasureHunt?: 'all' | 'th' | 'sth'
+  chase?: boolean
 }
 
 export const useInventory = (options: UseInventoryOptions = {}) => {
-  const { page = 1, limit = 15 } = options
+  const { 
+    page = 1, 
+    limit = 15,
+    search = '',
+    condition = '',
+    brand = '',
+    pieceType = '',
+    treasureHunt = 'all',
+    chase = false
+  } = options
   
   return useQuery(
-    ['inventory', page, limit], 
-    () => inventoryService.getAll(page, limit), 
+    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase], 
+    () => inventoryService.getAll(page, limit, {
+      search,
+      condition,
+      brand,
+      pieceType,
+      treasureHunt,
+      chase
+    }), 
     {
       staleTime: 2 * 60 * 1000, // 2 minutos
       keepPreviousData: true, // Mantiene datos anteriores mientras carga nuevos

@@ -82,7 +82,16 @@ export default function Inventory() {
         seriesDefaultPrice: 0
     })
 
-    const { data: inventoryData, isLoading, error } = useInventory({ page: currentPage, limit: itemsPerPage })
+    const { data: inventoryData, isLoading, error } = useInventory({ 
+        page: currentPage, 
+        limit: itemsPerPage,
+        search: searchTerm,
+        condition: filterCondition,
+        brand: filterBrand,
+        pieceType: filterPieceType,
+        treasureHunt: filterTreasureHunt,
+        chase: filterChase
+    })
     const { data: customBrands } = useCustomBrands()
     const createItemMutation = useCreateInventoryItem()
     const deleteItemMutation = useDeleteInventoryItem()
@@ -98,6 +107,32 @@ export default function Inventory() {
         ...PREDEFINED_BRANDS,
         ...(customBrands?.map(b => b.name) || [])
     ].sort()
+
+    // Resetear página a 1 cuando cambian los filtros
+    const handleFilterChange = (filterType: string, value: any) => {
+        setCurrentPage(1) // Reset to page 1 when filters change
+        
+        switch (filterType) {
+            case 'search':
+                setSearchTerm(value)
+                break
+            case 'condition':
+                setFilterCondition(value)
+                break
+            case 'brand':
+                setFilterBrand(value)
+                break
+            case 'pieceType':
+                setFilterPieceType(value)
+                break
+            case 'treasureHunt':
+                setFilterTreasureHunt(value)
+                break
+            case 'chase':
+                setFilterChase(value)
+                break
+        }
+    }
 
     // Función para cambiar de página con scroll automático
     const handlePageChange = (newPage: number, scrollToTop: boolean = false) => {
@@ -194,20 +229,8 @@ export default function Inventory() {
         )
     }
 
-    const filteredItems = inventoryItems?.filter(item => {
-        const matchesSearch = !searchTerm ||
-            (item.carId && item.carId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (item.hotWheelsCar?.model && item.hotWheelsCar.model.toLowerCase().includes(searchTerm.toLowerCase()))
-        const matchesCondition = !filterCondition || item.condition === filterCondition
-        const matchesBrand = !filterBrand || item.brand?.toLowerCase() === filterBrand.toLowerCase()
-        const matchesPieceType = !filterPieceType || item.pieceType === filterPieceType
-        const matchesTreasureHunt = filterTreasureHunt === 'all' ||
-            (filterTreasureHunt === 'th' && item.isTreasureHunt) ||
-            (filterTreasureHunt === 'sth' && item.isSuperTreasureHunt)
-        const matchesChase = !filterChase || item.isChase
-
-        return matchesSearch && matchesCondition && matchesBrand && matchesPieceType && matchesTreasureHunt && matchesChase
-    }) || []
+    // Los items ya vienen filtrados del backend
+    const filteredItems = inventoryItems
 
     const handleAddItem = async () => {
         try {
@@ -754,14 +777,14 @@ export default function Inventory() {
                             <Input
                                 placeholder="Buscar por nombre o código..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => handleFilterChange('search', e.target.value)}
                                 className="pl-10"
                             />
                         </div>
 
                         <select
                             value={filterCondition}
-                            onChange={(e) => setFilterCondition(e.target.value)}
+                            onChange={(e) => handleFilterChange('condition', e.target.value)}
                             className="input"
                         >
                             <option value="">Todas las condiciones</option>
@@ -783,12 +806,12 @@ export default function Inventory() {
                         <select
                             value={filterBrand}
                             onChange={(e) => {
-                                setFilterBrand(e.target.value)
+                                handleFilterChange('brand', e.target.value)
                                 // Reset type-specific filters when brand changes
                                 if (e.target.value === '') {
-                                    setFilterPieceType('')
-                                    setFilterTreasureHunt('all')
-                                    setFilterChase(false)
+                                    handleFilterChange('pieceType', '')
+                                    handleFilterChange('treasureHunt', 'all')
+                                    handleFilterChange('chase', false)
                                 }
                             }}
                             className="input"
@@ -804,10 +827,10 @@ export default function Inventory() {
                             <select
                                 value={filterPieceType}
                                 onChange={(e) => {
-                                    setFilterPieceType(e.target.value)
+                                    handleFilterChange('pieceType', e.target.value)
                                     // Reset special edition filters when type changes
-                                    setFilterTreasureHunt('all')
-                                    setFilterChase(false)
+                                    handleFilterChange('treasureHunt', 'all')
+                                    handleFilterChange('chase', false)
                                 }}
                                 className="input"
                             >
@@ -822,7 +845,7 @@ export default function Inventory() {
                         {filterBrand?.toLowerCase() === 'hot wheels' && filterPieceType === 'basic' && (
                             <select
                                 value={filterTreasureHunt}
-                                onChange={(e) => setFilterTreasureHunt(e.target.value as 'all' | 'th' | 'sth')}
+                                onChange={(e) => handleFilterChange('treasureHunt', e.target.value as 'all' | 'th' | 'sth')}
                                 className="input"
                             >
                                 <option value="all">Todos (TH/STH)</option>
@@ -838,7 +861,7 @@ export default function Inventory() {
                                     <input
                                         type="checkbox"
                                         checked={filterChase}
-                                        onChange={(e) => setFilterChase(e.target.checked)}
+                                        onChange={(e) => handleFilterChange('chase', e.target.checked)}
                                         className="rounded"
                                     />
                                     <span className="text-sm font-medium text-gray-700">
@@ -855,6 +878,7 @@ export default function Inventory() {
                                 variant="secondary"
                                 size="sm"
                                 onClick={() => {
+                                    setCurrentPage(1) // Reset page
                                     setSearchTerm('')
                                     setFilterCondition('')
                                     setFilterBrand('')

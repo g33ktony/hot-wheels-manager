@@ -8,65 +8,85 @@ import { calculateDefaultSeriesPrice } from '../utils/seriesHelpers';
 export const getInventoryItems = async (req: Request, res: Response): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 15; // Changed default to 15 for better performance
+    const limit = parseInt(req.query.limit as string) || 15;
     const skip = (page - 1) * limit;
 
+    // Extract filter parameters
+    const searchTerm = req.query.search as string;
+    const filterCondition = req.query.condition as string;
+    const filterBrand = req.query.brand as string;
+    const filterPieceType = req.query.pieceType as string;
+    const filterTreasureHunt = req.query.treasureHunt as string; // 'all' | 'th' | 'sth'
+    const filterChase = req.query.chase === 'true';
+
+    // Build query object
+    const query: any = {};
+
+    // Search term (carId or notes)
+    if (searchTerm && searchTerm.length > 0) {
+      query.$or = [
+        { carId: { $regex: searchTerm, $options: 'i' } },
+        { notes: { $regex: searchTerm, $options: 'i' } }
+      ];
+    }
+
+    // Condition filter
+    if (filterCondition && filterCondition.length > 0) {
+      query.condition = filterCondition;
+    }
+
+    // Brand filter
+    if (filterBrand && filterBrand.length > 0) {
+      query.brand = filterBrand;
+    }
+
+    // Piece type filter
+    if (filterPieceType && filterPieceType.length > 0) {
+      query.pieceType = filterPieceType;
+    }
+
+    // Treasure Hunt filter
+    if (filterTreasureHunt && filterTreasureHunt !== 'all') {
+      if (filterTreasureHunt === 'th') {
+        query.isTreasureHunt = true;
+      } else if (filterTreasureHunt === 'sth') {
+        query.isSuperTreasureHunt = true;
+      }
+    }
+
+    // Chase filter
+    if (filterChase) {
+      query.isChase = true;
+    }
+
     // First check if we have any inventory items
-    const inventoryCount = await InventoryItemModel.countDocuments();
+    const inventoryCount = await InventoryItemModel.countDocuments(query);
     
     if (inventoryCount === 0) {
-      // If no inventory, show some sample Hot Wheels from our catalog
-      const sampleCars = await HotWheelsCarModel.find()
-        .limit(limit)
-        .skip(skip)
-        .sort({ year: -1 });
-      
-      const total = await HotWheelsCarModel.countDocuments();
-      
-      // Transform catalog items to look like inventory items
-      const inventoryItems = sampleCars.map((car: IHotWheelsCar) => ({
-        _id: car._id,
-        carId: car.toy_num,
-        quantity: 0,
-        reservedQuantity: 0,
-        purchasePrice: 0,
-        suggestedPrice: 5.00,
-        condition: 'mint',
-        notes: 'From catalog - not yet in inventory',
-        dateAdded: new Date(),
-        hotWheelsCar: {
-          toy_num: car.toy_num,
-          model: car.carModel,
-          series: car.series,
-          year: car.year,
-          color: car.color,
-          photo_url: car.photo_url
-        }
-      }));
-
+      // If no inventory matches, return empty result
       res.json({
         success: true,
         data: {
-          items: inventoryItems,
+          items: [],
           pagination: {
             currentPage: page,
-            totalPages: Math.ceil(total / limit),
-            totalItems: total,
+            totalPages: 0,
+            totalItems: 0,
             itemsPerPage: limit
           }
         },
-        message: 'Showing catalog items (no inventory yet)'
+        message: 'No items found matching filters'
       });
       return;
     }
 
-    // Get actual inventory items
-    const inventoryItems = await InventoryItemModel.find()
+    // Get filtered inventory items
+    const inventoryItems = await InventoryItemModel.find(query)
       .limit(limit)
       .skip(skip)
       .sort({ dateAdded: -1 });
 
-    const total = await InventoryItemModel.countDocuments();
+    const total = await InventoryItemModel.countDocuments(query);
 
     res.json({
       success: true,

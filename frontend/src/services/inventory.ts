@@ -15,11 +15,50 @@ interface PaginatedInventoryResponse {
   }
 }
 
+interface InventoryFilters {
+  search?: string
+  condition?: string
+  brand?: string
+  pieceType?: string
+  treasureHunt?: 'all' | 'th' | 'sth'
+  chase?: boolean
+}
+
 export const inventoryService = {
-  // Obtener todos los items del inventario con paginación
-  getAll: async (page: number = 1, limit: number = 15): Promise<PaginatedInventoryResponse> => {
+  // Obtener todos los items del inventario con paginación y filtros
+  getAll: async (
+    page: number = 1, 
+    limit: number = 15,
+    filters: InventoryFilters = {}
+  ): Promise<PaginatedInventoryResponse> => {
+    // Build query params
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    })
+
+    // Add filters if they exist
+    if (filters.search && filters.search.length > 0) {
+      params.append('search', filters.search)
+    }
+    if (filters.condition && filters.condition.length > 0) {
+      params.append('condition', filters.condition)
+    }
+    if (filters.brand && filters.brand.length > 0) {
+      params.append('brand', filters.brand)
+    }
+    if (filters.pieceType && filters.pieceType.length > 0) {
+      params.append('pieceType', filters.pieceType)
+    }
+    if (filters.treasureHunt && filters.treasureHunt !== 'all') {
+      params.append('treasureHunt', filters.treasureHunt)
+    }
+    if (filters.chase) {
+      params.append('chase', 'true')
+    }
+
     const response = await api.get<ApiResponse<PaginatedInventoryResponse>>(
-      `/inventory?page=${page}&limit=${limit}`
+      `/inventory?${params.toString()}`
     )
     return response.data.data || { items: [], pagination: { currentPage: 1, totalPages: 0, totalItems: 0, itemsPerPage: limit } }
   },
