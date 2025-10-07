@@ -988,7 +988,7 @@ export default function Purchases() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    console.log('🟣 Click en Caja')
+                                                                    console.log('🟣 Click en Caja Sellada')
                                                                     const updatedItems = [...newPurchase.items]
                                                                     updatedItems[index] = { 
                                                                         ...updatedItems[index], 
@@ -1006,11 +1006,12 @@ export default function Purchases() {
                                                             >
                                                                 <Box size={20} className="mx-auto mb-1" />
                                                                 <div className="text-xs font-medium">Caja Sellada</div>
+                                                                <div className="text-[10px] text-gray-500">72 piezas</div>
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    console.log('🟢 Click en Serie')
+                                                                    console.log('🟢 Click en Caja de Serie')
                                                                     const updatedItems = [...newPurchase.items]
                                                                     updatedItems[index] = { 
                                                                         ...updatedItems[index], 
@@ -1026,14 +1027,15 @@ export default function Purchases() {
                                                                 }`}
                                                             >
                                                                 <Package size={20} className="mx-auto mb-1" />
-                                                                <div className="text-xs font-medium">Serie</div>
+                                                                <div className="text-xs font-medium">Caja de Serie</div>
+                                                                <div className="text-[10px] text-gray-500">5 modelos × 2</div>
                                                             </button>
                                                         </div>
                                                     </div>
 
                                                     {/* Renderizado condicional según tipo */}
-                                                    {(item.itemType === 'box' || item.isBox) ? (
-                                                        /* ========== FORMULARIO PARA CAJA SELLADA ========== */
+                                                    {item.itemType === 'box' || item.isBox ? (
+                                                        /* ========== FORMULARIO PARA CAJA SELLADA (72 piezas básicas) ========== */
                                                         <div className="space-y-4">
                                                             <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
                                                                 <div className="text-sm font-medium text-purple-800 mb-3 flex items-center">
@@ -1163,6 +1165,155 @@ export default function Purchases() {
                                                                     value={item.notes || ''}
                                                                     onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
                                                                     placeholder="Observaciones sobre la caja sellada..."
+                                                                    rows={2}
+                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ) : item.itemType === 'series' ? (
+                                                        /* ========== FORMULARIO PARA CAJA DE SERIE (5 modelos × 2) ========== */
+                                                        <div className="space-y-4">
+                                                            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                                                <div className="text-sm font-medium text-green-800 mb-3 flex items-center">
+                                                                    <Package size={16} className="mr-2" />
+                                                                    Configuración de Caja de Serie
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div className="md:col-span-2">
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Nombre de la Serie *
+                                                                        </label>
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={item.seriesName || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'seriesName', e.target.value)}
+                                                                            placeholder="Ej: Fast & Furious 2024, Mainline Mix..."
+                                                                            required
+                                                                        />
+                                                                        {!item.seriesName && (
+                                                                            <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Modelos en la Serie *
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            value={item.seriesSize || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'seriesSize', parseInt(e.target.value) || 5)}
+                                                                            placeholder="5"
+                                                                            min="1"
+                                                                            required
+                                                                        />
+                                                                        {!item.seriesSize && (
+                                                                            <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
+                                                                        )}
+                                                                        <div className="text-xs text-gray-500 mt-1">Cada caja trae 2 de cada modelo</div>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Cantidad de Cajas *
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            min="1"
+                                                                            value={item.quantity}
+                                                                            onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                                            required
+                                                                        />
+                                                                    </div>
+
+                                                                    <div className="md:col-span-2">
+                                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                            Precio por Caja *
+                                                                        </label>
+                                                                        <Input
+                                                                            type="number"
+                                                                            value={item.unitPrice || ''}
+                                                                            onChange={(e) => handleItemChange(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                                            placeholder="280.00"
+                                                                            min="0"
+                                                                            step="0.01"
+                                                                            required
+                                                                        />
+                                                                        {!item.unitPrice && (
+                                                                            <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="md:col-span-2">
+                                                                        <div className="bg-green-100 border border-green-300 rounded-lg p-3">
+                                                                            <div className="text-sm font-medium text-green-900 mb-2">
+                                                                                📊 Resumen de Caja de Serie
+                                                                            </div>
+                                                                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                                                                <div>
+                                                                                    <div className="text-gray-600">Piezas por Caja:</div>
+                                                                                    <div className="font-semibold text-green-700">
+                                                                                        {(item.seriesSize || 0) * 2} piezas ({item.seriesSize || 0} modelos × 2)
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div className="text-gray-600">Costo por Pieza:</div>
+                                                                                    <div className="font-semibold text-green-700">
+                                                                                        ${item.seriesSize && item.unitPrice ? (item.unitPrice / (item.seriesSize * 2)).toFixed(2) : '0.00'}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div className="text-gray-600">Total de Piezas:</div>
+                                                                                    <div className="font-semibold text-green-700">
+                                                                                        {(item.seriesSize || 0) * 2 * (item.quantity || 1)} piezas
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div className="text-gray-600">Unidades por Modelo:</div>
+                                                                                    <div className="font-semibold text-green-700">
+                                                                                        {2 * (item.quantity || 1)} de cada uno
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="col-span-2 pt-2 border-t border-green-300">
+                                                                                    <div className="text-gray-600">Subtotal:</div>
+                                                                                    <div className="font-bold text-lg text-green-900">
+                                                                                        ${((item.unitPrice || 0) * (item.quantity || 1)).toFixed(2)}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="text-xs text-gray-500 mt-3 flex items-center">
+                                                                    <AlertCircle size={12} className="mr-1" />
+                                                                    El Car ID será generado automáticamente para la serie
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Ubicación y Notas para Serie */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    <MapPin size={16} className="inline mr-1" />
+                                                                    Ubicación Física
+                                                                </label>
+                                                                <Input
+                                                                    type="text"
+                                                                    value={item.location || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'location', e.target.value)}
+                                                                    placeholder="Ej: Bodega B, Estante 2..."
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                                    Notas de la Serie
+                                                                </label>
+                                                                <textarea
+                                                                    value={item.notes || ''}
+                                                                    onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
+                                                                    placeholder="Observaciones sobre esta serie..."
                                                                     rows={2}
                                                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                                 />
