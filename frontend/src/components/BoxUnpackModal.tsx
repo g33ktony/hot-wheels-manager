@@ -297,7 +297,7 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                                                                 <span className="text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Chase</span>
                                                             )}
                                                         </div>
-                                                        
+
                                                         {/* Quantity - Editable */}
                                                         {editingPieceId === piece._id ? (
                                                             <div className="flex items-center gap-1 mt-2">

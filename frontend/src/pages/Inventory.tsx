@@ -1,12 +1,15 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { useQueryClient } from 'react-query'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
+import { inventoryService } from '@/services/inventory'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import debounce from 'lodash.debounce'
 
 // Predefined brands
 const PREDEFINED_BRANDS = [
@@ -24,6 +27,7 @@ export default function Inventory() {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(15)
     const [searchTerm, setSearchTerm] = useState('')
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('') // For debounced API calls
     const [filterCondition, setFilterCondition] = useState('')
     const [filterBrand, setFilterBrand] = useState('')
     const [filterPieceType, setFilterPieceType] = useState('')
@@ -45,9 +49,27 @@ export default function Inventory() {
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
     const [customBrandInput, setCustomBrandInput] = useState('')
     const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
-    
+
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
+
+    // Debounced search - actualiza después de 500ms sin escribir
+    const debouncedSearch = useCallback(
+        debounce((value: string) => {
+            setDebouncedSearchTerm(value)
+            setCurrentPage(1) // Reset to page 1 on search
+        }, 500),
+        []
+    )
+
+    // Actualizar debounced search cuando cambia searchTerm
+    useEffect(() => {
+        debouncedSearch(searchTerm)
+        // Cleanup
+        return () => {
+            debouncedSearch.cancel()
+        }
+    }, [searchTerm, debouncedSearch])
     const [newItem, setNewItem] = useState({
         carId: '',
         quantity: 1,
@@ -82,10 +104,10 @@ export default function Inventory() {
         seriesDefaultPrice: 0
     })
 
-    const { data: inventoryData, isLoading, error } = useInventory({ 
-        page: currentPage, 
+    const { data: inventoryData, isLoading, error } = useInventory({
+        page: currentPage,
         limit: itemsPerPage,
-        search: searchTerm,
+        search: debouncedSearchTerm, // Use debounced value for API calls
         condition: filterCondition,
         brand: filterBrand,
         pieceType: filterPieceType,
@@ -98,9 +120,30 @@ export default function Inventory() {
     const updateItemMutation = useUpdateInventoryItem()
     const createCustomBrandMutation = useCreateCustomBrand()
 
+    // Query client for prefetching
+    const queryClient = useQueryClient()
+
     // Extract items and pagination from response
     const inventoryItems = inventoryData?.items || []
     const pagination = inventoryData?.pagination
+
+    // Prefetch next page for instant navigation
+    useEffect(() => {
+        if (pagination && currentPage < pagination.totalPages) {
+            const nextPage = currentPage + 1
+            queryClient.prefetchQuery(
+                ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase],
+                () => inventoryService.getAll(nextPage, itemsPerPage, {
+                    search: debouncedSearchTerm,
+                    condition: filterCondition,
+                    brand: filterBrand,
+                    pieceType: filterPieceType,
+                    treasureHunt: filterTreasureHunt,
+                    chase: filterChase
+                })
+            )
+        }
+    }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, queryClient])
 
     // Combine predefined and custom brands
     const allBrands = [
@@ -111,9 +154,10 @@ export default function Inventory() {
     // Resetear página a 1 cuando cambian los filtros
     const handleFilterChange = (filterType: string, value: any) => {
         setCurrentPage(1) // Reset to page 1 when filters change
-        
+
         switch (filterType) {
             case 'search':
+                // Solo actualiza el estado local, el debounce se encarga de la API
                 setSearchTerm(value)
                 break
             case 'condition':
@@ -157,7 +201,7 @@ export default function Inventory() {
                         <span className="font-medium">{pagination.totalItems}</span> items
                     </span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                     <Button
                         size="sm"
@@ -169,7 +213,7 @@ export default function Inventory() {
                         <ChevronLeft size={16} />
                         Anterior
                     </Button>
-                    
+
                     <div className="flex items-center gap-1">
                         {[...Array(pagination.totalPages)].map((_, idx) => {
                             const pageNum = idx + 1
@@ -183,11 +227,10 @@ export default function Inventory() {
                                     <button
                                         key={pageNum}
                                         onClick={() => handlePageChange(pageNum, position === 'bottom')}
-                                        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                            currentPage === pageNum
+                                        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${currentPage === pageNum
                                                 ? 'bg-primary-500 text-white'
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
+                                            }`}
                                     >
                                         {pageNum}
                                     </button>
@@ -201,7 +244,7 @@ export default function Inventory() {
                             return null
                         })}
                     </div>
-                    
+
                     <Button
                         size="sm"
                         variant="secondary"
@@ -703,7 +746,7 @@ export default function Inventory() {
         <div className="space-y-6">
             {/* Ref para scroll automático */}
             <div ref={topRef} />
-            
+
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -952,6 +995,7 @@ export default function Inventory() {
                                                 <img
                                                     src={item.photos[0]}
                                                     alt="Hot Wheels"
+                                                    loading="lazy"
                                                     className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
                                                         }`}
                                                 />
@@ -978,8 +1022,8 @@ export default function Inventory() {
                                             {/* Piece Type Badge */}
                                             {item.pieceType && (
                                                 <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
-                                                        item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
-                                                            'bg-orange-500 bg-opacity-90 text-white'
+                                                    item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
+                                                        'bg-orange-500 bg-opacity-90 text-white'
                                                     }`}>
                                                     {item.pieceType === 'basic' ? 'BÁSICO' :
                                                         item.pieceType === 'premium' ? 'PREMIUM' : 'RLC'}
@@ -1808,6 +1852,7 @@ export default function Inventory() {
                                                 <img
                                                     src={photo}
                                                     alt={`Foto ${index + 1}`}
+                                                    loading="lazy"
                                                     className="w-full h-20 object-cover rounded border"
                                                 />
                                                 <button
@@ -2204,6 +2249,7 @@ export default function Inventory() {
                                                 <img
                                                     src={photo}
                                                     alt={`Foto ${index + 1}`}
+                                                    loading="lazy"
                                                     className="w-full h-20 object-cover rounded border"
                                                 />
                                                 <button
