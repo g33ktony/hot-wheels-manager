@@ -60,6 +60,9 @@ export default function Layout({ children }: LayoutProps) {
                 <div
                     className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
+                    style={{
+                        WebkitTapHighlightColor: 'transparent',
+                    }}
                 />
             )}
 
@@ -69,11 +72,15 @@ export default function Layout({ children }: LayoutProps) {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
                 <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-                    <h1 className="text-lg lg:text-xl font-bold text-gray-900">🏎️ Hot Wheels Manager</h1>
+                    <h1 className="text-lg lg:text-xl font-bold text-gray-900 select-none">🏎️ Hot Wheels Manager</h1>
                     <button
-                        className="lg:hidden p-2 -mr-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors"
+                        className="lg:hidden p-2 -mr-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
                         onClick={() => setSidebarOpen(false)}
                         aria-label="Cerrar menú"
+                        style={{
+                            WebkitTapHighlightColor: 'transparent',
+                            WebkitTouchCallout: 'none',
+                        }}
                     >
                         <X size={24} />
                     </button>
@@ -88,7 +95,7 @@ export default function Layout({ children }: LayoutProps) {
                                 to={item.href}
                                 className={`
                   flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200
-                  min-h-[44px] touch-manipulation relative
+                  min-h-[44px] touch-manipulation relative select-none
                   ${isActive
                                         ? item.highlight
                                             ? 'bg-orange-100 text-orange-700 shadow-sm'
@@ -98,6 +105,10 @@ export default function Layout({ children }: LayoutProps) {
                                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200'
                                     }
                 `}
+                                style={{
+                                    WebkitTapHighlightColor: 'transparent',
+                                    WebkitTouchCallout: 'none',
+                                }}
                                 onClick={() => setSidebarOpen(false)}
                             >
                                 <item.icon size={22} className="mr-3 flex-shrink-0" />
@@ -121,9 +132,13 @@ export default function Layout({ children }: LayoutProps) {
                     <button
                         onClick={handleLogout}
                         className="w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation text-red-600 hover:bg-red-50 active:bg-red-100 mt-4"
+                        style={{
+                            WebkitTapHighlightColor: 'transparent',
+                            WebkitTouchCallout: 'none',
+                        }}
                     >
                         <LogOut size={22} className="mr-3 flex-shrink-0" />
-                        <span className="flex-1">Cerrar sesión</span>
+                        <span className="flex-1 select-none">Cerrar sesión</span>
                     </button>
                 </nav>
             </div>
@@ -136,12 +151,16 @@ export default function Layout({ children }: LayoutProps) {
                         className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Abrir menú"
+                        style={{
+                            WebkitTapHighlightColor: 'transparent',
+                            WebkitTouchCallout: 'none',
+                        }}
                     >
                         <Menu size={24} />
                     </button>
 
                     <div className="flex-1 lg:flex lg:items-center lg:justify-end">
-                        <div className="text-sm text-gray-500 hidden sm:block">
+                        <div className="text-sm text-gray-500 hidden sm:block select-none">
                             {user?.name || 'Usuario'}
                         </div>
                     </div>

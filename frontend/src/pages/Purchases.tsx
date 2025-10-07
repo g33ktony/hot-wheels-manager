@@ -904,7 +904,12 @@ export default function Purchases() {
                                             <select
                                                 value={newPurchase.supplierId}
                                                 onChange={(e) => setNewPurchase({ ...newPurchase, supplierId: e.target.value })}
-                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                className="flex-1 px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] touch-manipulation"
+                                                style={{
+                                                    fontSize: '16px',
+                                                    WebkitAppearance: 'none',
+                                                    WebkitTapHighlightColor: 'transparent',
+                                                }}
                                                 required
                                             >
                                                 <option value="">Seleccionar proveedor</option>
@@ -976,11 +981,16 @@ export default function Purchases() {
                                         Notas
                                     </label>
                                     <textarea
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[88px] touch-manipulation resize-y"
                                         rows={3}
                                         value={newPurchase.notes}
                                         onChange={(e) => setNewPurchase({ ...newPurchase, notes: e.target.value })}
                                         placeholder="Notas adicionales..."
+                                        style={{
+                                            fontSize: '16px',
+                                            WebkitAppearance: 'none',
+                                            WebkitTapHighlightColor: 'transparent',
+                                        }}
                                     />
                                 </div>
 
@@ -1014,7 +1024,11 @@ export default function Purchases() {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleRemoveItem(index)}
-                                                            className="text-red-500 hover:text-red-700"
+                                                            className="text-red-500 hover:text-red-700 min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
+                                                            style={{
+                                                                WebkitTapHighlightColor: 'transparent',
+                                                                WebkitTouchCallout: 'none',
+                                                            }}
                                                         >
                                                             <X size={20} />
                                                         </button>
@@ -1038,11 +1052,15 @@ export default function Purchases() {
                                                                     }
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
-                                                                className={`p-3 border-2 rounded-lg transition-all ${
+                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${
                                                                     (item.itemType === 'individual' || !item.itemType) && !item.isBox
                                                                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                                                                         : 'border-gray-300 hover:border-gray-400'
                                                                 }`}
+                                                                style={{
+                                                                    WebkitTapHighlightColor: 'transparent',
+                                                                    WebkitTouchCallout: 'none',
+                                                                }}
                                                             >
                                                                 <Car size={20} className="mx-auto mb-1" />
                                                                 <div className="text-xs font-medium">Individual</div>
@@ -1060,11 +1078,15 @@ export default function Purchases() {
                                                                     }
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
-                                                                className={`p-3 border-2 rounded-lg transition-all ${
+                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${
                                                                     item.itemType === 'box' || item.isBox
                                                                         ? 'border-purple-500 bg-purple-50 text-purple-700'
                                                                         : 'border-gray-300 hover:border-gray-400'
                                                                 }`}
+                                                                style={{
+                                                                    WebkitTapHighlightColor: 'transparent',
+                                                                    WebkitTouchCallout: 'none',
+                                                                }}
                                                             >
                                                                 <Box size={20} className="mx-auto mb-1" />
                                                                 <div className="text-xs font-medium">Caja Sellada</div>
@@ -1082,11 +1104,15 @@ export default function Purchases() {
                                                                     }
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
-                                                                className={`p-3 border-2 rounded-lg transition-all ${
+                                                                className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${
                                                                     item.itemType === 'series'
                                                                         ? 'border-green-500 bg-green-50 text-green-700'
                                                                         : 'border-gray-300 hover:border-gray-400'
                                                                 }`}
+                                                                style={{
+                                                                    WebkitTapHighlightColor: 'transparent',
+                                                                    WebkitTouchCallout: 'none',
+                                                                }}
                                                             >
                                                                 <Package size={20} className="mx-auto mb-1" />
                                                                 <div className="text-xs font-medium">Caja de Serie</div>
@@ -1310,7 +1336,12 @@ export default function Purchases() {
                                                                         <select
                                                                             value={item.brand || ''}
                                                                             onChange={(e) => handleItemChange(index, 'brand', e.target.value)}
-                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
+                                                                            style={{
+                                                                                fontSize: '16px',
+                                                                                WebkitAppearance: 'none',
+                                                                                WebkitTapHighlightColor: 'transparent',
+                                                                            }}
                                                                             required
                                                                         >
                                                                             <option value="">Seleccionar marca...</option>
@@ -1327,7 +1358,12 @@ export default function Purchases() {
                                                                         <select
                                                                             value={item.pieceType || ''}
                                                                             onChange={(e) => handleItemChange(index, 'pieceType', e.target.value)}
-                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
+                                                                            style={{
+                                                                                fontSize: '16px',
+                                                                                WebkitAppearance: 'none',
+                                                                                WebkitTapHighlightColor: 'transparent',
+                                                                            }}
                                                                             required
                                                                         >
                                                                             <option value="">Seleccionar...</option>
@@ -1344,7 +1380,12 @@ export default function Purchases() {
                                                                         <select
                                                                             value={item.condition}
                                                                             onChange={(e) => handleItemChange(index, 'condition', e.target.value as any)}
-                                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
+                                                                            style={{
+                                                                                fontSize: '16px',
+                                                                                WebkitAppearance: 'none',
+                                                                                WebkitTapHighlightColor: 'transparent',
+                                                                            }}
                                                                         >
                                                                             <option value="mint">Mint</option>
                                                                             <option value="good">Good</option>
@@ -1611,7 +1652,12 @@ export default function Purchases() {
                                                                                                 }}
                                                                                                 placeholder="Observaciones específicas..."
                                                                                                 rows={1}
-                                                                                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation resize-y"
+                                                                                                style={{
+                                                                                                    fontSize: '16px',
+                                                                                                    WebkitAppearance: 'none',
+                                                                                                    WebkitTapHighlightColor: 'transparent',
+                                                                                                }}
                                                                                             />
                                                                                         </div>
                                                                                     </div>
@@ -1640,7 +1686,12 @@ export default function Purchases() {
                                                                     onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
                                                                     placeholder="Observaciones generales sobre esta serie..."
                                                                     rows={2}
-                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[88px] touch-manipulation resize-y"
+                                                                    style={{
+                                                                        fontSize: '16px',
+                                                                        WebkitAppearance: 'none',
+                                                                        WebkitTapHighlightColor: 'transparent',
+                                                                    }}
                                                                 />
                                                             </div>
                                                         </div>
@@ -1730,7 +1781,12 @@ export default function Purchases() {
                                                                 <select
                                                                     value={item.condition}
                                                                     onChange={(e) => handleItemChange(index, 'condition', e.target.value)}
-                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                    style={{
+                                                                        fontSize: '16px',
+                                                                        WebkitAppearance: 'none',
+                                                                        WebkitTapHighlightColor: 'transparent',
+                                                                    }}
                                                                 >
                                                                     <option value="mint">Mint (Perfecto)</option>
                                                                     <option value="good">Good (Buen estado)</option>
@@ -1754,7 +1810,12 @@ export default function Purchases() {
                                                                 <select
                                                                     value={item.brand || ''}
                                                                     onChange={(e) => handleBrandChange(index, e.target.value)}
-                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                    style={{
+                                                                        fontSize: '16px',
+                                                                        WebkitAppearance: 'none',
+                                                                        WebkitTapHighlightColor: 'transparent',
+                                                                    }}
                                                                 >
                                                                     <option value="">Seleccionar marca...</option>
                                                                     {allBrands.map((brand) => (
@@ -1801,7 +1862,12 @@ export default function Purchases() {
                                                                 <select
                                                                     value={item.pieceType || ''}
                                                                     onChange={(e) => handleItemChange(index, 'pieceType', e.target.value)}
-                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                    style={{
+                                                                        fontSize: '16px',
+                                                                        WebkitAppearance: 'none',
+                                                                        WebkitTapHighlightColor: 'transparent',
+                                                                    }}
                                                                 >
                                                                     <option value="">Seleccionar...</option>
                                                                     <option value="basic">Básico</option>

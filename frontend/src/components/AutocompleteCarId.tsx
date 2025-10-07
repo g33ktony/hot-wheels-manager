@@ -82,13 +82,21 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                 onFocus={() => searchTerm.length > 0 && setShowSuggestions(true)}
                 placeholder={placeholder || 'Buscar Hot Wheels...'}
                 required={required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                style={{
+                    fontSize: '16px', // Prevent iOS zoom on focus
+                    WebkitAppearance: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                }}
             />
 
             {showSuggestions && suggestions.length > 0 && (
                 <div 
                     ref={suggestionsRef}
                     className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
+                    style={{
+                        WebkitOverflowScrolling: 'touch',
+                    }}
                 >
                     {suggestions.map((item, index) => (
                         <button
@@ -98,13 +106,19 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                                 e.preventDefault() // Prevenir que el input pierda focus antes de seleccionar
                                 handleSelectSuggestion(item)
                             }}
-                            className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-0"
+                            className="w-full px-4 py-3 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-0 min-h-[60px] touch-manipulation active:bg-blue-100"
+                            style={{
+                                WebkitTapHighlightColor: 'transparent',
+                                WebkitTouchCallout: 'none',
+                            }}
                         >
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <div className="font-medium text-gray-900">{item.carId}</div>
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-gray-900 truncate" style={{ fontSize: '16px' }}>
+                                        {item.carId}
+                                    </div>
                                     {item.brand && (
-                                        <div className="text-xs text-gray-500">
+                                        <div className="text-sm text-gray-500 truncate">
                                             {item.brand}
                                             {item.pieceType && ` • ${item.pieceType}`}
                                             {item.isTreasureHunt && ' • TH'}
@@ -117,7 +131,11 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                                     <img 
                                         src={item.photos[0]} 
                                         alt={item.carId}
-                                        className="w-12 h-12 object-cover rounded ml-2"
+                                        className="w-14 h-14 object-cover rounded flex-shrink-0"
+                                        style={{
+                                            WebkitUserSelect: 'none',
+                                            userSelect: 'none',
+                                        }}
                                     />
                                 )}
                             </div>
@@ -129,9 +147,12 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
             {showSuggestions && searchTerm.length > 0 && suggestions.length === 0 && (
                 <div 
                     ref={suggestionsRef}
-                    className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-3"
+                    className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-4"
+                    style={{
+                        WebkitTapHighlightColor: 'transparent',
+                    }}
                 >
-                    <div className="text-sm text-gray-500 text-center">
+                    <div className="text-sm text-gray-500 text-center select-none">
                         No se encontraron Hot Wheels con "{searchTerm}"
                     </div>
                 </div>

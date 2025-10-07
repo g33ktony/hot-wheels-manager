@@ -8,8 +8,9 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
     ({ label, error, helperText, className = '', ...props }, ref) => {
+        // iOS-optimized input classes with 16px font-size to prevent zoom
         const inputClasses = `
-      block w-full rounded-lg border px-4 py-3 text-base placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors
+      block w-full rounded-lg border px-4 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors
       touch-manipulation min-h-[44px]
       ${error
                 ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500'
@@ -18,23 +19,31 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       ${className}
     `
 
+        // iOS-specific styles to prevent zoom on focus and improve appearance
+        const iosStyles = {
+            fontSize: '16px', // Prevent iOS zoom on focus
+            WebkitAppearance: 'none' as const,
+            WebkitTapHighlightColor: 'transparent',
+        }
+
         return (
             <div>
                 {label && (
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2 select-none">
                         {label}
                     </label>
                 )}
                 <input
                     ref={ref}
                     className={inputClasses}
+                    style={iosStyles}
                     {...props}
                 />
                 {error && (
-                    <p className="mt-1.5 text-sm text-danger-600">{error}</p>
+                    <p className="mt-1.5 text-sm text-danger-600 select-none">{error}</p>
                 )}
                 {helperText && !error && (
-                    <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>
+                    <p className="mt-1.5 text-sm text-gray-500 select-none">{helperText}</p>
                 )}
             </div>
         )

@@ -7,11 +7,21 @@
     font-family: 'Inter', system-ui, sans-serif;
     /* Prevent text size adjustment on iOS */
     -webkit-text-size-adjust: 100%;
+    /* Enable smooth scrolling with momentum on iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Improve text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   body {
     /* Prevent overscroll bounce on iOS */
     overscroll-behavior-y: none;
+    /* Disable iOS tap highlight */
+    -webkit-tap-highlight-color: transparent;
+    /* Support for notch/home indicator */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   
   /* iOS Safe Area support */
@@ -19,12 +29,118 @@
     .pb-safe {
       padding-bottom: calc(1rem + env(safe-area-inset-bottom));
     }
+    
+    .pt-safe {
+      padding-top: env(safe-area-inset-top);
+    }
+    
+    .px-safe {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
+  
+  /* Improve input behavior on iOS */
+  input,
+  textarea,
+  select {
+    /* Prevent zoom on focus in iOS */
+    font-size: 16px;
+    /* Improve appearance */
+    -webkit-appearance: none;
+    appearance: none;
+    /* Better border radius */
+    border-radius: 8px;
+  }
+  
+  /* Remove iOS input shadows */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  /* Better button appearance on iOS */
+  button {
+    -webkit-appearance: none;
+    appearance: none;
+    /* Prevent iOS from adding extra padding */
+    -webkit-touch-callout: none;
+    /* Better touch feedback */
+    cursor: pointer;
+  }
+  
+  /* Smooth scrolling for all scrollable containers */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better checkbox/radio appearance on iOS */
+  input[type="checkbox"],
+  input[type="radio"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  input[type="radio"] {
+    border-radius: 50%;
+  }
+  
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+  }
+  
+  input[type="checkbox"]:checked::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  input[type="radio"]:checked::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background-color: white;
+    border-radius: 50%;
   }
 }
 
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+    /* iOS optimizations */
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+    -webkit-user-select: none;
+    /* Better active state on iOS */
+    -webkit-transition: all 0.2s;
+    transition: all 0.2s;
+  }
+  
+  .btn:active {
+    transform: scale(0.97);
+    -webkit-transform: scale(0.97);
   }
   
   .btn-primary {
@@ -49,6 +165,11 @@
   
   .input {
     @apply block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
+    /* iOS optimizations */
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on focus */
+    -webkit-appearance: none;
+    appearance: none;
   }
   
   .card {
@@ -62,10 +183,39 @@
   /* Mobile-friendly table wrapper with horizontal scroll */
   .table-responsive {
     @apply overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0;
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
   }
   
-  /* Touch-friendly elements */
+  /* Touch-friendly elements - 44x44px minimum per Apple HIG */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* iOS-optimized modal/dropdown */
+  .modal-overlay {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better select appearance on iOS */
+  select {
+    min-height: 44px;
+    font-size: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  
+  /* Improve textarea on iOS */
+  textarea {
+    min-height: 88px; /* 2x touch target */
+    font-size: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    resize: vertical;
   }
 }

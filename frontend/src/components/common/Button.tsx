@@ -18,26 +18,33 @@ export default function Button({
     disabled,
     ...props
 }: ButtonProps) {
-    const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none shadow-sm hover:shadow-md'
+    // iOS-optimized base classes with touch targets and webkit support
+    const baseClasses = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none shadow-sm hover:shadow-md touch-manipulation select-none'
 
     const variantClasses = {
-        primary: 'bg-primary-600 text-white hover:bg-primary-700 hover:-translate-y-0.5 focus:ring-primary-500 active:translate-y-0',
-        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 hover:-translate-y-0.5 focus:ring-gray-500 active:translate-y-0',
-        success: 'bg-success-600 text-white hover:bg-success-700 hover:-translate-y-0.5 focus:ring-success-500 active:translate-y-0',
-        warning: 'bg-warning-600 text-white hover:bg-warning-700 hover:-translate-y-0.5 focus:ring-warning-500 active:translate-y-0',
-        danger: 'bg-danger-600 text-white hover:bg-danger-700 hover:-translate-y-0.5 focus:ring-danger-500 active:translate-y-0',
+        primary: 'bg-primary-600 text-white hover:bg-primary-700 hover:-translate-y-0.5 focus:ring-primary-500 active:translate-y-0 active:scale-[0.97]',
+        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 hover:-translate-y-0.5 focus:ring-gray-500 active:translate-y-0 active:scale-[0.97]',
+        success: 'bg-success-600 text-white hover:bg-success-700 hover:-translate-y-0.5 focus:ring-success-500 active:translate-y-0 active:scale-[0.97]',
+        warning: 'bg-warning-600 text-white hover:bg-warning-700 hover:-translate-y-0.5 focus:ring-warning-500 active:translate-y-0 active:scale-[0.97]',
+        danger: 'bg-danger-600 text-white hover:bg-danger-700 hover:-translate-y-0.5 focus:ring-danger-500 active:translate-y-0 active:scale-[0.97]',
     }
 
+    // iOS Human Interface Guidelines: minimum 44x44pt touch targets
     const sizeClasses = {
-        sm: 'px-3 py-1.5 text-sm',
-        md: 'px-4 py-2 text-sm',
-        lg: 'px-6 py-3 text-base',
+        sm: 'px-3 py-2.5 text-sm min-h-[44px]',
+        md: 'px-4 py-3 text-sm min-h-[44px]',
+        lg: 'px-6 py-4 text-base min-h-[52px]',
     }
 
     return (
         <button
             className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
             disabled={disabled || loading}
+            style={{
+                WebkitTapHighlightColor: 'transparent',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+            }}
             {...props}
         >
             {loading && (
