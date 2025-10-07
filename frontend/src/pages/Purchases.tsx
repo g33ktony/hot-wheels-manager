@@ -850,16 +850,18 @@ export default function Purchases() {
                                                 Editar
                                             </Button>
                                         )}
-                                        <Button
-                                            size="sm"
-                                            variant="danger"
-                                            onClick={() => handleDeletePurchase(purchase._id!)}
-                                            disabled={deletePurchaseMutation.isLoading}
-                                            className="min-h-[44px] text-xs lg:text-sm"
-                                        >
-                                            <Trash2 size={16} className="mr-1" />
-                                            Eliminar
-                                        </Button>
+                                        {purchase.status !== 'received' && (
+                                            <Button
+                                                size="sm"
+                                                variant="danger"
+                                                onClick={() => handleDeletePurchase(purchase._id!)}
+                                                disabled={deletePurchaseMutation.isLoading}
+                                                className="min-h-[44px] text-xs lg:text-sm"
+                                            >
+                                                <Trash2 size={16} className="mr-1" />
+                                                Eliminar
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
