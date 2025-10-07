@@ -270,8 +270,10 @@ export default function Purchases() {
     }
 
     const handleItemChange = (index: number, field: string, value: any) => {
+        console.log(`🔧 handleItemChange: index=${index}, field=${field}, value=${value}`)
         const updatedItems = [...newPurchase.items]
         updatedItems[index] = { ...updatedItems[index], [field]: value }
+        console.log('📦 Item actualizado:', updatedItems[index])
         setNewPurchase({ ...newPurchase, items: updatedItems })
     }
 
@@ -958,7 +960,7 @@ export default function Purchases() {
                                                     {/* ✅ NUEVO: Selector de Tipo de Item */}
                                                     <div className="mb-4">
                                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                            Tipo de Item
+                                                            Tipo de Item (Debug: {item.itemType || 'undefined'}, isBox: {item.isBox ? 'true' : 'false'})
                                                         </label>
                                                         <div className="grid grid-cols-3 gap-2">
                                                             <button
