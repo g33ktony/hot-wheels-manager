@@ -1492,28 +1492,64 @@ export default function Purchases() {
                                         </div>
                                     )}
 
+                                    {/* Resumen Total Mejorado */}
                                     {newPurchase.items.length > 0 && (
-                                        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-medium text-gray-900">Total de Items:</span>
-                                                <span className="font-bold text-lg text-gray-900">
-                                                    ${newPurchase.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0).toFixed(2)}
-                                                </span>
+                                        <div className="mt-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-5 border-2 border-blue-300 shadow-md">
+                                            <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <span className="text-2xl">💰</span>
+                                                Resumen de Compra
+                                            </h5>
+                                            
+                                            {/* Desglose por item */}
+                                            <div className="space-y-2 mb-4">
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-700">Número de items:</span>
+                                                    <span className="font-semibold text-gray-900">
+                                                        {newPurchase.items.length} {newPurchase.items.length === 1 ? 'item' : 'items'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-700">Cantidad total de piezas:</span>
+                                                    <span className="font-semibold text-gray-900">
+                                                        {newPurchase.items.reduce((sum, item) => sum + item.quantity, 0)} piezas
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                                                    <span className="font-medium text-gray-900">Subtotal de items:</span>
+                                                    <span className="font-bold text-lg text-gray-900">
+                                                        ${newPurchase.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0).toFixed(2)}
+                                                    </span>
+                                                </div>
                                             </div>
+
+                                            {/* Shipping cost */}
                                             {newPurchase.shippingCost > 0 && (
-                                                <div className="flex justify-between items-center mt-2">
-                                                    <span className="text-sm text-gray-600">Costo de Envío:</span>
+                                                <div className="flex justify-between items-center mb-3 py-2 border-t border-blue-200">
+                                                    <span className="text-sm text-gray-700">Costo de Envío:</span>
                                                     <span className="text-sm font-medium text-gray-900">
-                                                        ${newPurchase.shippingCost.toFixed(2)}
+                                                        +${newPurchase.shippingCost.toFixed(2)}
                                                     </span>
                                                 </div>
                                             )}
-                                            <div className="flex justify-between items-center mt-2 pt-2 border-t border-blue-200">
-                                                <span className="font-bold text-gray-900">Total General:</span>
-                                                <span className="font-bold text-xl text-blue-600">
+
+                                            {/* Grand total */}
+                                            <div className="flex justify-between items-center mt-3 pt-3 border-t-2 border-blue-300 bg-white rounded-lg p-3 shadow-sm">
+                                                <span className="font-bold text-gray-900 text-lg">Total General:</span>
+                                                <span className="font-bold text-2xl text-blue-600">
                                                     ${(newPurchase.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) + newPurchase.shippingCost).toFixed(2)}
                                                 </span>
                                             </div>
+
+                                            {/* Average price per piece */}
+                                            {newPurchase.items.length > 0 && (
+                                                <div className="mt-3 text-center text-xs text-gray-600 italic">
+                                                    Precio promedio por pieza: $
+                                                    {(
+                                                        (newPurchase.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0) + newPurchase.shippingCost) /
+                                                        newPurchase.items.reduce((sum, item) => sum + item.quantity, 0)
+                                                    ).toFixed(2)}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
