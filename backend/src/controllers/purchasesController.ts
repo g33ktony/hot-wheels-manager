@@ -4,6 +4,7 @@ import Purchase from '../models/Purchase'
 import { InventoryItemModel } from '../models/InventoryItem'
 import { SupplierModel } from '../models/Supplier'
 import { DeliveryModel } from '../models/Delivery'
+import { PendingItemModel } from '../models/PendingItem'
 import { SaleModel } from '../models/Sale'
 
 export const getPurchases = async (req: Request, res: Response) => {
@@ -433,6 +434,12 @@ export const deletePurchase = async (req: Request, res: Response) => {
       if (deletedDeliveries.deletedCount > 0) {
         console.log(`✅ Deleted ${deletedDeliveries.deletedCount} delivery(ies) associated with purchase ${id}`)
       }
+    }
+    
+    // Always delete associated pending items (regardless of purchase status)
+    const deletedPendingItems = await PendingItemModel.deleteMany({ originalPurchaseId: id })
+    if (deletedPendingItems.deletedCount > 0) {
+      console.log(`✅ Deleted ${deletedPendingItems.deletedCount} pending item(s) associated with purchase ${id}`)
     }
 
     await Purchase.findByIdAndDelete(id)

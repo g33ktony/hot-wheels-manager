@@ -51,15 +51,25 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
     }
 
     const handleSelectSuggestion = (item: any) => {
+        // Cerrar el dropdown primero
+        setShowSuggestions(false)
+        
+        // Actualizar valores
         onChange(item.carId)
         setSearchTerm(item.carId)
-        setShowSuggestions(false)
-        inputRef.current?.focus()
         
         // Llamar al callback onSelect si está definido, pasando el item completo
         if (onSelect) {
-            onSelect(item)
+            // Usar setTimeout para evitar conflictos de estado
+            setTimeout(() => {
+                onSelect(item)
+            }, 0)
         }
+        
+        // Focus al input después de seleccionar
+        setTimeout(() => {
+            inputRef.current?.blur()
+        }, 100)
     }
 
     return (
@@ -84,7 +94,10 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                         <button
                             key={index}
                             type="button"
-                            onClick={() => handleSelectSuggestion(item)}
+                            onMouseDown={(e) => {
+                                e.preventDefault() // Prevenir que el input pierda focus antes de seleccionar
+                                handleSelectSuggestion(item)
+                            }}
                             className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none border-b border-gray-100 last:border-0"
                         >
                             <div className="flex items-center justify-between">
