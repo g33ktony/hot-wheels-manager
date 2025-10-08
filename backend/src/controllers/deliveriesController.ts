@@ -207,6 +207,12 @@ export const updateDelivery = async (req: Request, res: Response) => {
         // No payments made
         delivery.paymentStatus = 'pending';
       }
+      
+      // If items changed and delivery was prepared, change status back to scheduled
+      // because new items need to be prepared
+      if (delivery.status === 'prepared') {
+        delivery.status = 'scheduled';
+      }
     }
 
     await delivery.save();
