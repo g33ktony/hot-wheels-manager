@@ -198,6 +198,7 @@ export interface Supplier {
 
 export interface Sale {
   _id?: string;
+  userId: string; // Multi-tenant: Owner of this sale
   customerId?: string;
   customer?: Customer;
   items: SaleItem[];

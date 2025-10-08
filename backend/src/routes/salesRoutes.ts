@@ -1,7 +1,11 @@
 import { Router } from 'express'
 import * as salesController from '../controllers/salesController'
+import { tenantContext } from '../middleware/tenant'
 
 const router = Router()
+
+// Todas las rutas requieren tenantContext para inyectar userId
+router.use(tenantContext)
 
 // GET /api/sales - Get all sales
 router.get('/', salesController.getSales)

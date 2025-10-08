@@ -5,7 +5,16 @@ import { InventoryItemModel } from '../models/InventoryItem';
 // Get all sales
 export const getSales = async (req: Request, res: Response) => {
   try {
-    const sales = await SaleModel.find()
+    const userId = req.userId
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
+    const sales = await SaleModel.find({ userId })
       .populate('customerId')
       .populate('deliveryId')
       .sort({ saleDate: -1 });
@@ -28,6 +37,15 @@ export const getSales = async (req: Request, res: Response) => {
 // Create a new sale
 export const createSale = async (req: Request, res: Response) => {
   try {
+    const userId = req.userId
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
     const { items, customerId, deliveryId, paymentMethod, status, notes, totalAmount } = req.body;
 
     // Validate required fields
@@ -42,8 +60,11 @@ export const createSale = async (req: Request, res: Response) => {
     // Validate and process each item
     for (const item of items) {
       if (item.inventoryItemId) {
-        // Check if inventory item exists and has sufficient quantity
-        const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
+        // Check if inventory item exists and belongs to this user
+        const inventoryItem = await InventoryItemModel.findOne({ 
+          _id: item.inventoryItemId,
+          userId 
+        });
         if (!inventoryItem) {
           return res.status(404).json({
             success: false,
@@ -61,8 +82,9 @@ export const createSale = async (req: Request, res: Response) => {
       }
     }
 
-    // Create the sale
+    // Create the sale with userId
     const newSale = new SaleModel({
+      userId,
       customerId,
       items,
       totalAmount,
@@ -75,11 +97,11 @@ export const createSale = async (req: Request, res: Response) => {
 
     const savedSale = await newSale.save();
 
-    // Update inventory quantities
+    // Update inventory quantities (solo del usuario)
     for (const item of items) {
       if (item.inventoryItemId) {
-        await InventoryItemModel.findByIdAndUpdate(
-          item.inventoryItemId,
+        await InventoryItemModel.findOneAndUpdate(
+          { _id: item.inventoryItemId, userId },
           { $inc: { quantity: -item.quantity } }
         );
       }
@@ -108,8 +130,18 @@ export const createSale = async (req: Request, res: Response) => {
 // Get sales statistics
 export const getSalesStats = async (req: Request, res: Response) => {
   try {
-    const totalSales = await SaleModel.countDocuments();
+    const userId = req.userId
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
+    const totalSales = await SaleModel.countDocuments({ userId });
     const totalRevenue = await SaleModel.aggregate([
+      { $match: { userId } },
       {
         $group: {
           _id: null,
@@ -125,6 +157,7 @@ export const getSalesStats = async (req: Request, res: Response) => {
     const monthlyStats = await SaleModel.aggregate([
       {
         $match: {
+          userId,
           saleDate: { $gte: thisMonth }
         }
       },
@@ -137,7 +170,7 @@ export const getSalesStats = async (req: Request, res: Response) => {
       }
     ]);
 
-    const recentSales = await SaleModel.find()
+    const recentSales = await SaleModel.find({ userId })
       .populate('customerId')
       .sort({ saleDate: -1 })
       .limit(5);
@@ -168,9 +201,17 @@ export const updateSale = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const userId = req.userId
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
 
-    const updatedSale = await SaleModel.findByIdAndUpdate(
-      id,
+    const updatedSale = await SaleModel.findOneAndUpdate(
+      { _id: id, userId },
       updateData,
       { new: true }
     ).populate('customerId');
@@ -179,7 +220,7 @@ export const updateSale = async (req: Request, res: Response) => {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Venta no encontrada'
+        message: 'Venta no encontrada o no pertenece al usuario'
       });
     }
 
@@ -202,22 +243,30 @@ export const updateSale = async (req: Request, res: Response) => {
 export const deleteSale = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
 
-    const deletedSale = await SaleModel.findByIdAndDelete(id);
+    const deletedSale = await SaleModel.findOneAndDelete({ _id: id, userId });
 
     if (!deletedSale) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Venta no encontrada'
+        message: 'Venta no encontrada o no pertenece al usuario'
       });
     }
 
-    // Restore inventory quantities for all items in the sale
+    // Restore inventory quantities for all items in the sale (solo del usuario)
     for (const item of deletedSale.items) {
       if (item.inventoryItemId) {
-        await InventoryItemModel.findByIdAndUpdate(
-          item.inventoryItemId,
+        await InventoryItemModel.findOneAndUpdate(
+          { _id: item.inventoryItemId, userId },
           { 
             $inc: { 
               quantity: item.quantity

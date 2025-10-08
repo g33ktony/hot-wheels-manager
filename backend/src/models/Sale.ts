@@ -10,6 +10,7 @@ export interface SaleItem {
 }
 
 export interface ISale extends Document {
+  userId: string // Multi-tenant: Owner of this sale
   customerId?: mongoose.Types.ObjectId
   customer?: any // Populated customer data
   items: SaleItem[]
@@ -56,6 +57,11 @@ const SaleItemSchema = new Schema<SaleItem>({
 })
 
 const SaleSchema = new Schema<ISale>({
+  userId: {
+    type: String,
+    required: true,
+    index: true
+  },
   customerId: {
     type: Schema.Types.ObjectId,
     ref: 'Customer'
@@ -98,5 +104,10 @@ const SaleSchema = new Schema<ISale>({
 }, {
   timestamps: true
 })
+
+// Multi-tenant indexes
+SaleSchema.index({ userId: 1, saleDate: -1 })
+SaleSchema.index({ userId: 1, status: 1 })
+SaleSchema.index({ userId: 1, customerId: 1 })
 
 export const SaleModel = mongoose.model<ISale>('Sale', SaleSchema)
