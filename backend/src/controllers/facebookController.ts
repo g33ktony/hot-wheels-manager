@@ -92,10 +92,25 @@ export class FacebookController {
 
             postMessage += '\n📱 Envíame mensaje para más información'
 
-            // Get image URLs (first photo of each item)
+            // Get backend URL from environment or construct it
+            const backendUrl = process.env.BACKEND_URL || 
+                              process.env.RAILWAY_PUBLIC_DOMAIN ? 
+                              `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 
+                              'http://localhost:3001'
+
+            // Get image URLs (first photo of each item) and convert to absolute URLs
             const imageUrls = items
                 .filter((item: IInventoryItem) => item.photos && item.photos.length > 0)
-                .map((item: IInventoryItem) => item.photos![0])
+                .map((item: IInventoryItem) => {
+                    const photoPath = item.photos![0]
+                    // If already absolute URL, return as is
+                    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+                        return photoPath
+                    }
+                    // Convert relative path to absolute URL
+                    const cleanPath = photoPath.startsWith('/') ? photoPath : `/${photoPath}`
+                    return `${backendUrl}${cleanPath}`
+                })
 
             if (imageUrls.length === 0) {
                 return res.status(400).json({
