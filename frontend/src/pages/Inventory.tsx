@@ -7,7 +7,8 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react'
+import FacebookPublishModal from '@/components/FacebookPublishModal'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import debounce from 'lodash.debounce'
 
@@ -44,6 +45,8 @@ export default function Inventory() {
     // Bulk delete state
     const [isSelectionMode, setIsSelectionMode] = useState(false)
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+    // Facebook publish modal
+    const [showFacebookModal, setShowFacebookModal] = useState(false)
     // Search suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
@@ -778,6 +781,14 @@ export default function Inventory() {
                                         size="sm"
                                     >
                                         Deseleccionar ({selectedItems.size})
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        icon={<Facebook size={18} />}
+                                        onClick={() => setShowFacebookModal(true)}
+                                        size="sm"
+                                    >
+                                        Publicar en Facebook
                                     </Button>
                                     <Button
                                         variant="danger"
@@ -2384,6 +2395,17 @@ export default function Inventory() {
                     </div>
                 </div>
             )}
+
+            {/* Facebook Publish Modal */}
+            <FacebookPublishModal
+                isOpen={showFacebookModal}
+                onClose={() => setShowFacebookModal(false)}
+                selectedItems={filteredItems.filter(item => selectedItems.has(item._id!))}
+                onSuccess={() => {
+                    setIsSelectionMode(false)
+                    setSelectedItems(new Set())
+                }}
+            />
         </div>
     )
 }
