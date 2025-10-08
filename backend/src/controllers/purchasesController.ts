@@ -9,7 +9,12 @@ import { SaleModel } from '../models/Sale'
 
 export const getPurchases = async (req: Request, res: Response) => {
   try {
-    const purchases = await Purchase.find()
+    const userId = req.userId
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'User ID not found in request' })
+    }
+
+    const purchases = await Purchase.find({ userId })
       .populate('supplierId')
       .sort({ purchaseDate: -1 })
 
@@ -37,6 +42,15 @@ export const updatePurchaseStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { status } = req.body
+    const userId = req.userId
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
 
     if (!['pending', 'paid', 'shipped', 'received', 'cancelled'].includes(status)) {
       return res.status(400).json({
@@ -46,12 +60,12 @@ export const updatePurchaseStatus = async (req: Request, res: Response) => {
       })
     }
 
-    const purchase = await Purchase.findById(id)
+    const purchase = await Purchase.findOne({ _id: id, userId })
     if (!purchase) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Compra no encontrada'
+        message: 'Compra no encontrada o no pertenece al usuario'
       })
     }
 
@@ -90,13 +104,22 @@ export const receivePurchaseWithVerification = async (req: Request, res: Respons
   try {
     const { id } = req.params
     const { receivedQuantities } = req.body // Array of { index: number, quantity: number }
+    const userId = req.userId
 
-    const purchase = await Purchase.findById(id)
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
+    const purchase = await Purchase.findOne({ _id: id, userId })
     if (!purchase) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Compra no encontrada'
+        message: 'Compra no encontrada o no pertenece al usuario'
       })
     }
 
@@ -156,16 +179,21 @@ export const receivePurchaseWithVerification = async (req: Request, res: Respons
 
 export const createPurchase = async (req: Request, res: Response) => {
   try {
+    const userId = req.userId
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'User ID not found in request' })
+    }
+
     const purchaseData = req.body
 
-    // Validate supplier exists if supplierId is provided
+    // Validate supplier exists and belongs to user if supplierId is provided
     if (purchaseData.supplierId) {
-      const supplier = await SupplierModel.findById(purchaseData.supplierId)
+      const supplier = await SupplierModel.findOne({ _id: purchaseData.supplierId, userId })
       if (!supplier) {
         return res.status(404).json({
           success: false,
           data: null,
-          message: 'Proveedor no encontrado'
+          message: 'Proveedor no encontrado o no pertenece al usuario'
         })
       }
       purchaseData.supplier = supplier
@@ -178,6 +206,9 @@ export const createPurchase = async (req: Request, res: Response) => {
         0
       ) + (purchaseData.shippingCost || 0)
     }
+
+    // Add userId to purchase data
+    purchaseData.userId = userId
 
     const newPurchase = new Purchase(purchaseData)
     const savedPurchase = await newPurchase.save()
@@ -331,24 +362,33 @@ export const updatePurchase = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const updateData = req.body
+    const userId = req.userId
 
-    const purchase = await Purchase.findById(id)
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
+    const purchase = await Purchase.findOne({ _id: id, userId })
     if (!purchase) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Compra no encontrada'
+        message: 'Compra no encontrada o no pertenece al usuario'
       })
     }
 
-    // Validate supplier exists if supplierId is provided
+    // Validate supplier exists and belongs to user if supplierId is provided
     if (updateData.supplierId) {
-      const supplier = await SupplierModel.findById(updateData.supplierId)
+      const supplier = await SupplierModel.findOne({ _id: updateData.supplierId, userId })
       if (!supplier) {
         return res.status(404).json({
           success: false,
           data: null,
-          message: 'Proveedor no encontrado'
+          message: 'Proveedor no encontrado o no pertenece al usuario'
         })
       }
     }
@@ -398,13 +438,22 @@ export const updatePurchase = async (req: Request, res: Response) => {
 export const deletePurchase = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
+    const userId = req.userId
 
-    const purchase = await Purchase.findById(id)
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
+    const purchase = await Purchase.findOne({ _id: id, userId })
     if (!purchase) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Compra no encontrada'
+        message: 'Compra no encontrada o no pertenece al usuario'
       })
     }
 

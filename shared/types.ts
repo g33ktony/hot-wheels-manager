@@ -86,6 +86,7 @@ export interface InventoryItem {
 
 export interface Purchase {
   _id?: string;
+  userId: string; // Multi-tenant: Owner of this purchase
   items: PurchaseItem[];
   supplierId: string | Supplier; // Reference to Supplier or populated Supplier object
   supplier?: Supplier; // Alternative field for populated supplier data

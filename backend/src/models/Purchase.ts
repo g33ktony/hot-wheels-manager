@@ -35,6 +35,11 @@ const PurchaseItemSchema = new Schema<PurchaseItem>({
 }, { _id: false })
 
 const PurchaseSchema = new Schema<Purchase & Document>({
+  userId: {
+    type: String,
+    required: true,
+    index: true
+  },
   items: [PurchaseItemSchema],
   supplierId: {
     type: Schema.Types.ObjectId,
@@ -66,8 +71,9 @@ const PurchaseSchema = new Schema<Purchase & Document>({
 })
 
 // Indexes for better query performance
-PurchaseSchema.index({ supplierId: 1 })
-PurchaseSchema.index({ status: 1 })
+PurchaseSchema.index({ userId: 1, status: 1 })
+PurchaseSchema.index({ userId: 1, purchaseDate: -1 })
+PurchaseSchema.index({ userId: 1, supplierId: 1 })
 PurchaseSchema.index({ purchaseDate: -1 })
 PurchaseSchema.index({ 'items.carId': 1 })
 

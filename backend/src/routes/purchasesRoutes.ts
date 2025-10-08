@@ -1,7 +1,11 @@
 import { Router } from 'express'
 import { getPurchases, createPurchase, updatePurchase, updatePurchaseStatus, receivePurchaseWithVerification, deletePurchase } from '../controllers/purchasesController'
+import { tenantContext } from '../middleware/tenant'
 
 const router = Router()
+
+// Apply tenant context middleware to all routes
+router.use(tenantContext)
 
 // GET /api/purchases - Get all purchases
 router.get('/', getPurchases)
