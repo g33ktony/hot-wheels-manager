@@ -4,7 +4,17 @@ import { SupplierModel } from '../models/Supplier';
 // Get all suppliers
 export const getSuppliers = async (req: Request, res: Response) => {
   try {
-    const suppliers = await SupplierModel.find().sort({ name: 1 });
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const suppliers = await SupplierModel.find({ userId }).sort({ name: 1 });
 
     res.json({
       success: true,
@@ -25,13 +35,23 @@ export const getSuppliers = async (req: Request, res: Response) => {
 export const getSupplierById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const supplier = await SupplierModel.findById(id);
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const supplier = await SupplierModel.findOne({ _id: id, userId });
 
     if (!supplier) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Proveedor no encontrado'
+        message: 'Proveedor no encontrado o no pertenece al usuario'
       });
     }
 
@@ -54,6 +74,15 @@ export const getSupplierById = async (req: Request, res: Response) => {
 export const createSupplier = async (req: Request, res: Response) => {
   try {
     const { name, email, phone, website, contactMethod, address, notes } = req.body;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
 
     // Validate required fields
     if (!name) {
@@ -64,9 +93,9 @@ export const createSupplier = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if supplier with same email already exists
+    // Check if supplier with same email already exists for this user
     if (email) {
-      const existingSupplier = await SupplierModel.findOne({ email });
+      const existingSupplier = await SupplierModel.findOne({ email, userId });
       if (existingSupplier) {
         return res.status(400).json({
           success: false,
@@ -77,6 +106,7 @@ export const createSupplier = async (req: Request, res: Response) => {
     }
 
     const supplier = new SupplierModel({
+      userId,
       name,
       email,
       phone,
@@ -108,19 +138,28 @@ export const updateSupplier = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, email, phone, website, contactMethod, address, notes } = req.body;
+    const userId = req.userId;
 
-    const supplier = await SupplierModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const supplier = await SupplierModel.findOne({ _id: id, userId });
     if (!supplier) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Proveedor no encontrado'
+        message: 'Proveedor no encontrado o no pertenece al usuario'
       });
     }
 
-    // Check if email is being changed and if it already exists
+    // Check if email is being changed and if it already exists for this user
     if (email && email !== supplier.email) {
-      const existingSupplier = await SupplierModel.findOne({ email });
+      const existingSupplier = await SupplierModel.findOne({ email, userId });
       if (existingSupplier) {
         return res.status(400).json({
           success: false,
@@ -159,17 +198,26 @@ export const updateSupplier = async (req: Request, res: Response) => {
 export const deleteSupplier = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
-    const supplier = await SupplierModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const supplier = await SupplierModel.findOne({ _id: id, userId });
     if (!supplier) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Proveedor no encontrado'
+        message: 'Proveedor no encontrado o no pertenece al usuario'
       });
     }
 
-    await SupplierModel.findByIdAndDelete(id);
+    await SupplierModel.findOneAndDelete({ _id: id, userId });
 
     res.json({
       success: true,

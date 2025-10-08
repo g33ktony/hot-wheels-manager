@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface ISupplier extends Document {
+  userId: string;
   name: string;
   email?: string;
   phone?: string;
@@ -15,6 +16,11 @@ export interface ISupplier extends Document {
 }
 
 const SupplierSchema = new Schema<ISupplier>({
+  userId: {
+    type: String,
+    required: true,
+    index: true
+  },
   name: {
     type: String,
     required: true,
@@ -59,8 +65,8 @@ const SupplierSchema = new Schema<ISupplier>({
 })
 
 // Indexes for better query performance
-SupplierSchema.index({ name: 1 })
-SupplierSchema.index({ email: 1 })
-SupplierSchema.index({ phone: 1 })
+SupplierSchema.index({ userId: 1, name: 1 })
+SupplierSchema.index({ userId: 1, email: 1 })
+SupplierSchema.index({ userId: 1, phone: 1 })
 
 export const SupplierModel = mongoose.model<ISupplier>('Supplier', SupplierSchema)
