@@ -21,6 +21,7 @@ export default function InventoryItemSelector({
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedItem, setSelectedItem] = useState<any>(null)
+    const [isInitialized, setIsInitialized] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
     const suggestionsRef = useRef<HTMLDivElement>(null)
 
@@ -30,6 +31,11 @@ export default function InventoryItemSelector({
         limit: 20
     })
 
+    // Separate query to fetch initial item by ID when editing
+    const { data: initialItemData } = useInventory({
+        limit: 1000, // Get all items to find the one we need
+    })
+
     // Filter to show only items with available stock
     const availableItems = (inventoryData?.items || []).filter(item => {
         const available = item.quantity - (item.reservedQuantity || 0)
@@ -37,20 +43,22 @@ export default function InventoryItemSelector({
         return available > 0 && item._id && !excludeIds.includes(item._id)
     })
 
+    // Initialize with the selected item from parent value
     useEffect(() => {
-        // If value changes from parent and we don't have a selected item yet
-        if (value && !selectedItem) {
-            const item = availableItems.find(i => i._id === value)
+        if (value && !isInitialized && initialItemData?.items) {
+            const item = initialItemData.items.find(i => i._id === value)
             if (item) {
                 setSelectedItem(item)
                 setSearchTerm(item.hotWheelsCar?.model || item.carId)
+                setIsInitialized(true)
             }
-        } else if (!value && selectedItem) {
+        } else if (!value && isInitialized) {
             // Parent cleared the value
             setSelectedItem(null)
             setSearchTerm('')
+            setIsInitialized(false)
         }
-    }, [value]) // Remove inventoryData from dependencies
+    }, [value, initialItemData, isInitialized])
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -108,6 +116,7 @@ export default function InventoryItemSelector({
         setSearchTerm('')
         onChange('')
         setShowSuggestions(false)
+        setIsInitialized(false)
         inputRef.current?.focus()
     }
 

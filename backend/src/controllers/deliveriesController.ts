@@ -192,6 +192,18 @@ export const updateDelivery = async (req: Request, res: Response) => {
     // Recalculate total if items changed
     if (items) {
       delivery.totalAmount = items.reduce((total: number, item: any) => total + (item.unitPrice * item.quantity), 0);
+      
+      // Recalculate payment status when items change
+      const totalPaid = delivery.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
+      const remainingAmount = delivery.totalAmount - totalPaid;
+      
+      if (remainingAmount > 0.01) {
+        delivery.paymentStatus = 'pending';
+      } else if (Math.abs(remainingAmount) < 0.01) {
+        delivery.paymentStatus = 'paid';
+      } else {
+        delivery.paymentStatus = 'overpaid';
+      }
     }
 
     await delivery.save();
