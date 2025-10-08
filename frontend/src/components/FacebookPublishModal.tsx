@@ -183,7 +183,7 @@ export default function FacebookPublishModal({
                                                     className="w-16 h-16 object-cover rounded border border-gray-200"
                                                 />
                                             )}
-                                            
+
                                             {/* Item info */}
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-gray-900 truncate">

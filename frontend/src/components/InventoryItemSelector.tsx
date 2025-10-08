@@ -10,13 +10,13 @@ interface InventoryItemSelectorProps {
     required?: boolean
 }
 
-export default function InventoryItemSelector({ 
-    value, 
-    onChange, 
-    onSelect, 
+export default function InventoryItemSelector({
+    value,
+    onChange,
+    onSelect,
     excludeIds = [],
-    placeholder, 
-    required 
+    placeholder,
+    required
 }: InventoryItemSelectorProps) {
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -80,7 +80,7 @@ export default function InventoryItemSelector({
         const newValue = e.target.value
         setSearchTerm(newValue)
         setShowSuggestions(true) // Siempre mostrar sugerencias cuando escribe
-        
+
         // Si el usuario borra el texto completamente, limpiar la selección
         if (newValue.length === 0) {
             setSelectedItem(null)
@@ -136,16 +136,15 @@ export default function InventoryItemSelector({
                     placeholder={placeholder || 'Buscar pieza en inventario...'}
                     required={required}
                     disabled={!!selectedItem}
-                    className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation ${
-                        selectedItem ? 'bg-gray-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px] touch-manipulation ${selectedItem ? 'bg-gray-50 cursor-not-allowed' : ''
+                        }`}
                     style={{
                         fontSize: '16px',
                         WebkitAppearance: 'none',
                         WebkitTapHighlightColor: 'transparent',
                     }}
                 />
-                
+
                 {selectedItem && (
                     <button
                         type="button"
@@ -254,7 +253,7 @@ export default function InventoryItemSelector({
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                     <div className="text-sm text-gray-500 text-center select-none">
-                        {inventoryData?.items?.length === 0 
+                        {inventoryData?.items?.length === 0
                             ? `No se encontraron piezas con "${searchTerm}"`
                             : 'No hay piezas disponibles con stock'
                         }

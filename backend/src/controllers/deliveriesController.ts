@@ -197,12 +197,15 @@ export const updateDelivery = async (req: Request, res: Response) => {
       const totalPaid = delivery.payments?.reduce((sum, payment) => sum + payment.amount, 0) || 0;
       const remainingAmount = delivery.totalAmount - totalPaid;
       
-      if (remainingAmount > 0.01) {
-        delivery.paymentStatus = 'pending';
-      } else if (Math.abs(remainingAmount) < 0.01) {
+      if (Math.abs(remainingAmount) < 0.01) {
+        // Fully paid (within 1 cent tolerance)
         delivery.paymentStatus = 'paid';
+      } else if (totalPaid > 0) {
+        // Partially paid (includes overpaid cases)
+        delivery.paymentStatus = 'partial';
       } else {
-        delivery.paymentStatus = 'overpaid';
+        // No payments made
+        delivery.paymentStatus = 'pending';
       }
     }
 
