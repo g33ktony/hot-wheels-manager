@@ -44,6 +44,7 @@ export interface RecentActivity {
 
 export interface InventoryItem {
   _id?: string;
+  userId: string; // Multi-tenant: Owner of this inventory item
   carId: string; // Referencia al HotWheelsCar
   quantity: number;
   reservedQuantity?: number; // Cantidad reservada para entregas pendientes

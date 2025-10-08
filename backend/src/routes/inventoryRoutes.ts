@@ -9,7 +9,13 @@ import {
   getMissingSeriesPieces,
 } from '../controllers/inventoryController'
 
+
+import { tenantContext } from '../middleware/tenant'
 const router = Router()
+
+
+// Todas las rutas requieren tenantContext para inyectar userId
+router.use(tenantContext)
 
 // GET /api/inventory - Get all inventory items
 router.get('/', getInventoryItems)

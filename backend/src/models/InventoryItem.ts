@@ -7,6 +7,7 @@ export interface IInventoryItem extends Omit<InventoryItem, '_id'>, Document {
 }
 
 const inventoryItemSchema = new Schema({
+  userId: { type: String, required: true }, // Multi-tenant: Owner of this inventory item
   carId: { type: String, required: true }, // Usará toy_num de HotWheelsCar
   quantity: { type: Number, required: true, min: 0 },
   reservedQuantity: { type: Number, required: true, min: 0, default: 0 }, // Cantidad reservada para entregas pendientes
@@ -62,12 +63,12 @@ inventoryItemSchema.pre('save', function(next) {
 })
 
 // Índices para performance
-// Índice simple para queries básicas
-inventoryItemSchema.index({ carId: 1 })
-inventoryItemSchema.index({ condition: 1 })
-inventoryItemSchema.index({ quantity: 1 })
-inventoryItemSchema.index({ dateAdded: -1 })
-inventoryItemSchema.index({ seriesId: 1 })
+// Multi-tenant: CRITICAL - All queries must filter by userId
+inventoryItemSchema.index({ userId: 1, carId: 1 })
+inventoryItemSchema.index({ userId: 1, condition: 1 })
+inventoryItemSchema.index({ userId: 1, quantity: 1 })
+inventoryItemSchema.index({ userId: 1, dateAdded: -1 })
+inventoryItemSchema.index({ userId: 1, seriesId: 1 })
 
 // Índice compuesto para filtros múltiples (NUEVO - Performance Boost)
 inventoryItemSchema.index({ 

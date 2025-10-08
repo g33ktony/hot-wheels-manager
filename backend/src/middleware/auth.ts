@@ -6,6 +6,7 @@ export interface AuthRequest extends Request {
     userId: string
     email: string
     role: string
+    status: string
   }
 }
 
@@ -27,6 +28,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       userId: string
       email: string
       role: string
+      status: string
     }
 
     // Agregar usuario al request

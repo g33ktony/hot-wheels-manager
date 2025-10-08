@@ -7,6 +7,16 @@ import { calculateDefaultSeriesPrice } from '../utils/seriesHelpers';
 // Get inventory items
 export const getInventoryItems = async (req: Request, res: Response): Promise<void> => {
   try {
+    // CRITICAL: Multi-tenant - Get userId from request (set by tenant middleware)
+    const userId = req.userId
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'User ID not found in request'
+      })
+      return
+    }
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 15;
     const skip = (page - 1) * limit;
@@ -19,8 +29,8 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     const filterTreasureHunt = req.query.treasureHunt as string; // 'all' | 'th' | 'sth'
     const filterChase = req.query.chase === 'true';
 
-    // Build query object
-    const query: any = {};
+    // Build query object - ALWAYS filter by userId first
+    const query: any = { userId };
 
     // Search term (carId or notes)
     if (searchTerm && searchTerm.length > 0) {
@@ -111,6 +121,16 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
 // Add inventory item
 export const addInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
+    // CRITICAL: Multi-tenant - Get userId from request
+    const userId = req.userId
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'User ID not found in request'
+      })
+      return
+    }
+
     const { 
       carId, quantity, purchasePrice, suggestedPrice, condition, notes, photos, location,
       seriesId, seriesName, seriesSize, seriesPosition, seriesPrice,
@@ -137,8 +157,8 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       finalSeriesPrice = seriesPrice || seriesDefaultPrice
     }
 
-    // Check if this car is already in inventory
-    const existingItem = await InventoryItemModel.findOne({ carId });
+    // CRITICAL: Check if this car is already in THIS USER'S inventory
+    const existingItem = await InventoryItemModel.findOne({ userId, carId });
     
     if (existingItem) {
       // Update existing item quantity
@@ -170,8 +190,9 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
         data: existingItem
       });
     } else {
-      // Create new inventory item
+      // Create new inventory item with userId
       const inventoryItem = new InventoryItemModel({
+        userId, // CRITICAL: Multi-tenant
         carId,
         quantity,
         purchasePrice,
@@ -219,20 +240,25 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
   try {
     const { id } = req.params;
     const updates = req.body;
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'User ID not found in request' });
+      return;
+    }
 
     // If updating series info, recalculate default price
     if (updates.seriesId && updates.seriesSize && updates.suggestedPrice) {
       const seriesDefaultPrice = calculateDefaultSeriesPrice(updates.suggestedPrice, updates.seriesSize)
       updates.seriesDefaultPrice = seriesDefaultPrice
-      
       // Use provided seriesPrice or default
       if (!updates.seriesPrice) {
         updates.seriesPrice = seriesDefaultPrice
       }
     }
 
-    const inventoryItem = await InventoryItemModel.findByIdAndUpdate(
-      id,
+    // Solo permitir actualizar si el item pertenece al usuario
+    const inventoryItem = await InventoryItemModel.findOneAndUpdate(
+      { _id: id, userId },
       updates,
       { new: true }
     );
@@ -240,7 +266,7 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
     if (!inventoryItem) {
       res.status(404).json({ 
         success: false,
-        error: 'Inventory item not found' 
+        error: 'Inventory item not found or not owned by user' 
       });
       return;
     }
@@ -262,13 +288,19 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
 export const deleteInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'User ID not found in request' });
+      return;
+    }
 
-    const inventoryItem = await InventoryItemModel.findByIdAndDelete(id);
+    // Solo permitir borrar si el item pertenece al usuario
+    const inventoryItem = await InventoryItemModel.findOneAndDelete({ _id: id, userId });
 
     if (!inventoryItem) {
       res.status(404).json({ 
         success: false,
-        error: 'Inventory item not found' 
+        error: 'Inventory item not found or not owned by user' 
       });
       return;
     }
