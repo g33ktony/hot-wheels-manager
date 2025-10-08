@@ -1,7 +1,11 @@
 import { Router } from 'express'
 import * as customersController from '../controllers/customersController'
+import { tenantContext } from '../middleware/tenant'
 
 const router = Router()
+
+// Apply tenant context middleware to all routes
+router.use(tenantContext)
 
 // GET /api/customers - Get all customers
 router.get('/', customersController.getCustomers)

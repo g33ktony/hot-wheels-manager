@@ -4,7 +4,17 @@ import { CustomerModel } from '../models/Customer';
 // Get all customers
 export const getCustomers = async (req: Request, res: Response) => {
   try {
-    const customers = await CustomerModel.find().sort({ name: 1 });
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const customers = await CustomerModel.find({ userId }).sort({ name: 1 });
 
     res.json({
       success: true,
@@ -25,13 +35,23 @@ export const getCustomers = async (req: Request, res: Response) => {
 export const getCustomerById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const customer = await CustomerModel.findById(id);
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const customer = await CustomerModel.findOne({ _id: id, userId });
 
     if (!customer) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Cliente no encontrado'
+        message: 'Cliente no encontrado o no pertenece al usuario'
       });
     }
 
@@ -54,6 +74,15 @@ export const getCustomerById = async (req: Request, res: Response) => {
 export const createCustomer = async (req: Request, res: Response) => {
   try {
     const { name, email, phone, contactMethod, address, notes } = req.body;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
 
     // Validate required fields
     if (!name) {
@@ -64,9 +93,9 @@ export const createCustomer = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if customer with same email already exists
+    // Check if customer with same email already exists for this user
     if (email) {
-      const existingCustomer = await CustomerModel.findOne({ email });
+      const existingCustomer = await CustomerModel.findOne({ email, userId });
       if (existingCustomer) {
         return res.status(400).json({
           success: false,
@@ -77,6 +106,7 @@ export const createCustomer = async (req: Request, res: Response) => {
     }
 
     const customer = new CustomerModel({
+      userId,
       name,
       email,
       phone,
@@ -107,19 +137,28 @@ export const updateCustomer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { name, email, phone, contactMethod, address, notes } = req.body;
+    const userId = req.userId;
 
-    const customer = await CustomerModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const customer = await CustomerModel.findOne({ _id: id, userId });
     if (!customer) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Cliente no encontrado'
+        message: 'Cliente no encontrado o no pertenece al usuario'
       });
     }
 
-    // Check if email is being changed and if it already exists
+    // Check if email is being changed and if it already exists for this user
     if (email && email !== customer.email) {
-      const existingCustomer = await CustomerModel.findOne({ email });
+      const existingCustomer = await CustomerModel.findOne({ email, userId });
       if (existingCustomer) {
         return res.status(400).json({
           success: false,
@@ -157,17 +196,26 @@ export const updateCustomer = async (req: Request, res: Response) => {
 export const deleteCustomer = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
-    const customer = await CustomerModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const customer = await CustomerModel.findOne({ _id: id, userId });
     if (!customer) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Cliente no encontrado'
+        message: 'Cliente no encontrado o no pertenece al usuario'
       });
     }
 
-    await CustomerModel.findByIdAndDelete(id);
+    await CustomerModel.findOneAndDelete({ _id: id, userId });
 
     res.json({
       success: true,
