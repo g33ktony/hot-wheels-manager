@@ -23,6 +23,7 @@ import customBrandRoutes from './routes/customBrandRoutes'
 import boxesRoutes from './routes/boxes'
 import pendingItemsRoutes from './routes/pendingItemsRoutes'
 import facebookRoutes from './routes/facebookRoutes'
+import deliveryLocationsRoutes from './routes/deliveryLocations'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -134,6 +135,7 @@ app.use('/api/custom-brands', authMiddleware, customBrandRoutes)
 app.use('/api/boxes', authMiddleware, boxesRoutes)
 app.use('/api/pending-items', authMiddleware, pendingItemsRoutes)
 app.use('/api/facebook', authMiddleware, facebookRoutes)
+app.use('/api/delivery-locations', authMiddleware, deliveryLocationsRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)

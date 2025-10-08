@@ -3,6 +3,7 @@ import { useQueryClient } from 'react-query'
 import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
+import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -55,14 +56,18 @@ export default function Deliveries() {
         phone: '',
         address: ''
     })
+    const [customLocation, setCustomLocation] = useState('')
+    const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
     const { data: deliveries, isLoading, error } = useDeliveries()
     const { data: customers } = useCustomers()
     const { data: inventoryData } = useInventory({ limit: 1000 }) // Cargar todos los items para deliveries
     const inventoryItems = inventoryData?.items || []
+    const { data: deliveryLocations } = useDeliveryLocations()
     const createDeliveryMutation = useCreateDelivery()
     const updateDeliveryMutation = useUpdateDelivery()
     const createCustomerMutation = useCreateCustomer()
+    const createLocationMutation = useCreateDeliveryLocation()
     const markCompletedMutation = useMarkDeliveryAsCompleted()
     const markPreparedMutation = useMarkDeliveryAsPrepared()
     const deleteDeliveryMutation = useDeleteDelivery()
@@ -323,6 +328,8 @@ export default function Deliveries() {
         setShowCreateModal(false)
         setIsEditMode(false)
         setEditingDelivery(null)
+        setShowCustomLocationInput(false)
+        setCustomLocation('')
         // Reset form
         setNewDelivery({
             customerId: '',
@@ -333,6 +340,30 @@ export default function Deliveries() {
             totalAmount: 0,
             notes: ''
         })
+    }
+
+    const handleLocationChange = async (value: string) => {
+        if (value === 'other') {
+            setShowCustomLocationInput(true)
+            setNewDelivery({ ...newDelivery, location: '' })
+        } else {
+            setShowCustomLocationInput(false)
+            setCustomLocation('')
+            setNewDelivery({ ...newDelivery, location: value })
+        }
+    }
+
+    const handleCustomLocationBlur = async () => {
+        if (customLocation.trim() && !deliveryLocations?.find(loc => loc.name.toLowerCase() === customLocation.trim().toLowerCase())) {
+            try {
+                await createLocationMutation.mutateAsync(customLocation.trim())
+                setNewDelivery({ ...newDelivery, location: customLocation.trim() })
+            } catch (error) {
+                console.error('Error creating location:', error)
+            }
+        } else if (customLocation.trim()) {
+            setNewDelivery({ ...newDelivery, location: customLocation.trim() })
+        }
     }
 
     const addDeliveryItem = () => {
@@ -892,13 +923,45 @@ export default function Deliveries() {
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Ubicación *
                                     </label>
-                                    <Input
-                                        type="text"
-                                        placeholder="Dirección de entrega"
-                                        value={newDelivery.location}
-                                        onChange={(e) => setNewDelivery({ ...newDelivery, location: e.target.value })}
-                                        required
-                                    />
+                                    {!showCustomLocationInput ? (
+                                        <select
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                            value={newDelivery.location}
+                                            onChange={(e) => handleLocationChange(e.target.value)}
+                                            required
+                                        >
+                                            <option value="">Seleccionar ubicación</option>
+                                            {deliveryLocations?.map((loc) => (
+                                                <option key={loc._id} value={loc.name}>
+                                                    {loc.name}
+                                                </option>
+                                            ))}
+                                            <option value="other">Otro...</option>
+                                        </select>
+                                    ) : (
+                                        <div className="flex gap-2">
+                                            <Input
+                                                type="text"
+                                                placeholder="Nueva ubicación"
+                                                value={customLocation}
+                                                onChange={(e) => setCustomLocation(e.target.value)}
+                                                onBlur={handleCustomLocationBlur}
+                                                required
+                                                autoFocus
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setShowCustomLocationInput(false)
+                                                    setCustomLocation('')
+                                                }}
+                                            >
+                                                <X size={16} />
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

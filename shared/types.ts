@@ -414,6 +414,14 @@ export interface CustomBrand {
   userId?: string; // In case we implement multi-user in the future
 }
 
+// Delivery locations saved by users
+export interface DeliveryLocation {
+  _id?: string;
+  name: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export interface ActivityItem {
   id: string;
   type: 'sale' | 'purchase' | 'delivery' | 'inventory';
