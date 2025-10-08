@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose'
 
 export interface IDelivery extends Document {
+  userId: string;
   saleId?: string;
   customerId: mongoose.Types.ObjectId;
   customer: any; // Populated customer data
@@ -90,6 +91,11 @@ const PaymentSchema = new Schema<Payment>({
 }, { _id: true, timestamps: true })
 
 const DeliverySchema = new Schema<IDelivery>({
+  userId: {
+    type: String,
+    required: true,
+    index: true
+  },
   saleId: {
     type: String
   },
@@ -151,8 +157,8 @@ const DeliverySchema = new Schema<IDelivery>({
 })
 
 // Indexes for better query performance
-DeliverySchema.index({ customerId: 1 })
-DeliverySchema.index({ status: 1 })
-DeliverySchema.index({ scheduledDate: -1 })
+DeliverySchema.index({ userId: 1, customerId: 1 })
+DeliverySchema.index({ userId: 1, status: 1 })
+DeliverySchema.index({ userId: 1, scheduledDate: -1 })
 
 export const DeliveryModel = mongoose.model<IDelivery>('Delivery', DeliverySchema)

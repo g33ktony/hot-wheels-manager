@@ -259,6 +259,7 @@ export interface BuyerInfo {
 
 export interface Delivery {
   _id?: string;
+  userId: string;
   saleId?: string;
   customerId: string;
   customer: Customer;

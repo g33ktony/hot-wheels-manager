@@ -8,7 +8,17 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 // Get all deliveries
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
-    const deliveries = await DeliveryModel.find()
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const deliveries = await DeliveryModel.find({ userId })
       .populate('customerId')
       .populate('items.inventoryItemId')
       .sort({ scheduledDate: -1 });
@@ -32,7 +42,17 @@ export const getDeliveries = async (req: Request, res: Response) => {
 export const getDeliveryById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const delivery = await DeliveryModel.findById(id)
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const delivery = await DeliveryModel.findOne({ _id: id, userId })
       .populate('customerId')
       .populate('items.inventoryItemId');
 
@@ -40,7 +60,7 @@ export const getDeliveryById = async (req: Request, res: Response) => {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Entrega no encontrada'
+        message: 'Entrega no encontrada o no pertenece al usuario'
       });
     }
 
@@ -63,6 +83,15 @@ export const getDeliveryById = async (req: Request, res: Response) => {
 export const createDelivery = async (req: Request, res: Response) => {
   try {
     const { customerId, items, scheduledDate, scheduledTime, location, notes } = req.body;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
 
     // Validate required fields
     if (!customerId || !items || items.length === 0) {
@@ -73,13 +102,13 @@ export const createDelivery = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if customer exists
-    const customer = await CustomerModel.findById(customerId);
+    // Check if customer exists and belongs to user
+    const customer = await CustomerModel.findOne({ _id: customerId, userId });
     if (!customer) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Cliente no encontrado'
+        message: 'Cliente no encontrado o no pertenece al usuario'
       });
     }
 
@@ -133,6 +162,7 @@ export const createDelivery = async (req: Request, res: Response) => {
     }
 
     const delivery = new DeliveryModel({
+      userId,
       customerId,
       customer,
       items,
@@ -166,13 +196,22 @@ export const updateDelivery = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { customerId, items, scheduledDate, scheduledTime, location, status, notes } = req.body;
+    const userId = req.userId;
 
-    const delivery = await DeliveryModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const delivery = await DeliveryModel.findOne({ _id: id, userId });
     if (!delivery) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Entrega no encontrada'
+        message: 'Entrega no encontrada o no pertenece al usuario'
       });
     }
 
@@ -236,13 +275,22 @@ export const updateDelivery = async (req: Request, res: Response) => {
 export const deleteDelivery = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
-    const delivery = await DeliveryModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const delivery = await DeliveryModel.findOne({ _id: id, userId });
     if (!delivery) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Entrega no encontrada'
+        message: 'Entrega no encontrada o no pertenece al usuario'
       });
     }
 
@@ -286,13 +334,22 @@ export const deleteDelivery = async (req: Request, res: Response) => {
 export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
-    const delivery = await DeliveryModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const delivery = await DeliveryModel.findOne({ _id: id, userId });
     if (!delivery) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Entrega no encontrada'
+        message: 'Entrega no encontrada o no pertenece al usuario'
       });
     }
 
@@ -357,13 +414,22 @@ export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
 export const markDeliveryAsPending = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
-    const delivery = await DeliveryModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const delivery = await DeliveryModel.findOne({ _id: id, userId });
     if (!delivery) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Entrega no encontrada'
+        message: 'Entrega no encontrada o no pertenece al usuario'
       });
     }
 
@@ -531,13 +597,22 @@ const removeSalesFromDelivery = async (delivery: any) => {
 export const markDeliveryAsPrepared = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
-    const delivery = await DeliveryModel.findById(id);
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      });
+    }
+
+    const delivery = await DeliveryModel.findOne({ _id: id, userId });
     if (!delivery) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Entrega no encontrada'
+        message: 'Entrega no encontrada o no pertenece al usuario'
       });
     }
 
