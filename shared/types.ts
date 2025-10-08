@@ -432,9 +432,9 @@ export interface TodaysDelivery {
 // Custom brands saved by users
 export interface CustomBrand {
   _id?: string;
+  userId: string;
   name: string;
   createdAt?: Date;
-  userId?: string; // In case we implement multi-user in the future
 }
 
 // Delivery locations saved by users

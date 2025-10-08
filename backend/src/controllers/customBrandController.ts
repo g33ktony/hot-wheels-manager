@@ -4,7 +4,17 @@ import { CustomBrandModel } from '../models/CustomBrand';
 // Get all custom brands
 export const getCustomBrands = async (req: Request, res: Response): Promise<void> => {
   try {
-    const brands = await CustomBrandModel.find().sort({ name: 1 });
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'User ID not found in request'
+      });
+      return;
+    }
+
+    const brands = await CustomBrandModel.find({ userId }).sort({ name: 1 });
     
     res.json({
       success: true,
@@ -24,6 +34,15 @@ export const getCustomBrands = async (req: Request, res: Response): Promise<void
 export const createCustomBrand = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = req.body;
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'User ID not found in request'
+      });
+      return;
+    }
 
     if (!name || !name.trim()) {
       res.status(400).json({
@@ -33,8 +52,9 @@ export const createCustomBrand = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Check if brand already exists
+    // Check if brand already exists for this user
     const existingBrand = await CustomBrandModel.findOne({ 
+      userId,
       name: { $regex: new RegExp(`^${name.trim()}$`, 'i') }
     });
 
@@ -49,6 +69,7 @@ export const createCustomBrand = async (req: Request, res: Response): Promise<vo
     }
 
     const brand = new CustomBrandModel({
+      userId,
       name: name.trim()
     });
 
@@ -72,13 +93,22 @@ export const createCustomBrand = async (req: Request, res: Response): Promise<vo
 export const deleteCustomBrand = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const userId = req.userId;
 
-    const brand = await CustomBrandModel.findByIdAndDelete(id);
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'User ID not found in request'
+      });
+      return;
+    }
+
+    const brand = await CustomBrandModel.findOneAndDelete({ _id: id, userId });
 
     if (!brand) {
       res.status(404).json({
         success: false,
-        message: 'Brand not found'
+        message: 'Brand not found or does not belong to user'
       });
       return;
     }
