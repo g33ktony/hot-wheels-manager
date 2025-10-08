@@ -4,7 +4,17 @@ import { DeliveryLocationModel } from '../models/DeliveryLocation'
 // Get all delivery locations
 export const getDeliveryLocations = async (req: Request, res: Response) => {
   try {
-    const locations = await DeliveryLocationModel.find().sort({ name: 1 })
+    const userId = req.userId
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
+    const locations = await DeliveryLocationModel.find({ userId }).sort({ name: 1 })
     
     res.json({
       success: true,
@@ -25,6 +35,15 @@ export const getDeliveryLocations = async (req: Request, res: Response) => {
 export const createDeliveryLocation = async (req: Request, res: Response) => {
   try {
     const { name } = req.body
+    const userId = req.userId
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -34,8 +53,9 @@ export const createDeliveryLocation = async (req: Request, res: Response) => {
       })
     }
 
-    // Check if location already exists
+    // Check if location already exists for this user
     const existingLocation = await DeliveryLocationModel.findOne({ 
+      userId,
       name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } 
     })
 
@@ -48,6 +68,7 @@ export const createDeliveryLocation = async (req: Request, res: Response) => {
     }
 
     const location = new DeliveryLocationModel({
+      userId,
       name: name.trim()
     })
 
@@ -72,14 +93,23 @@ export const createDeliveryLocation = async (req: Request, res: Response) => {
 export const deleteDeliveryLocation = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
+    const userId = req.userId
 
-    const location = await DeliveryLocationModel.findByIdAndDelete(id)
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        message: 'User ID not found in request'
+      })
+    }
+
+    const location = await DeliveryLocationModel.findOneAndDelete({ _id: id, userId })
 
     if (!location) {
       return res.status(404).json({
         success: false,
         data: null,
-        message: 'Ubicación no encontrada'
+        message: 'Ubicación no encontrada o no pertenece al usuario'
       })
     }
 

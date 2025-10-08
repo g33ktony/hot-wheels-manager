@@ -440,6 +440,7 @@ export interface CustomBrand {
 // Delivery locations saved by users
 export interface DeliveryLocation {
   _id?: string;
+  userId: string;
   name: string;
   createdAt?: Date;
   updatedAt?: Date;
