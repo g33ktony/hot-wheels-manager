@@ -1,5 +1,22 @@
 // Tipos compartidos entre frontend y backend
 
+// User types
+export interface User {
+  _id?: string;
+  email: string;
+  name: string;
+  businessName?: string;
+  role: 'admin' | 'user';
+  status: 'pending' | 'active' | 'inactive' | 'suspended';
+  subscriptionStartDate?: Date;
+  subscriptionEndDate?: Date;
+  subscriptionType?: 'monthly' | 'annual';
+  approvedBy?: string;
+  approvedAt?: Date;
+  createdAt?: Date;
+  lastLogin?: Date;
+}
+
 export interface HotWheelsCar {
   toy_num: string;
   col_num: string;

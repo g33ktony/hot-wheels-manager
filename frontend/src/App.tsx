@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
 import Layout from './components/common/Layout'
 import Login from './pages/Login'
+import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Inventory from './pages/Inventory'
 import Sales from './pages/Sales'
@@ -18,8 +19,9 @@ function App() {
     return (
         <AuthProvider>
             <Routes>
-                {/* Ruta pública */}
+                {/* Rutas públicas */}
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
                 {/* Rutas protegidas */}
                 <Route

@@ -1,15 +1,14 @@
 import express from 'express'
-import { login, verifyToken, changePassword } from '../controllers/authController'
+import { login, verifyToken, changePassword, register } from '../controllers/authController'
 
 const router = express.Router()
 
-// Login
+// Rutas públicas (sin autenticación)
 router.post('/login', login)
+router.post('/register', register)
 
-// Verificar token (mantener sesión)
+// Rutas protegidas (requieren autenticación)
 router.get('/verify', verifyToken)
-
-// Cambiar contraseña
 router.post('/change-password', changePassword)
 
 export default router

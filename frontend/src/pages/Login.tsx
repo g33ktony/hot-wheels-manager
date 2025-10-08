@@ -112,6 +112,19 @@ const Login: React.FC = () => {
           >
             {isLoading ? 'Ingresando...' : 'Ingresar'}
           </Button>
+
+          {/* Link to Register */}
+          <div className="text-center pt-4 border-t mt-4">
+            <p className="text-sm text-gray-600">
+              ¿No tienes cuenta?{' '}
+              <a
+                href="/register"
+                className="text-primary-600 hover:text-primary-700 font-medium"
+              >
+                Regístrate Aquí
+              </a>
+            </p>
+          </div>
         </form>
 
         {/* Footer */}

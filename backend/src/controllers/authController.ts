@@ -39,6 +39,31 @@ export const login = async (req: Request, res: Response) => {
       })
     }
 
+    // Verificar estado del usuario
+    if (user.status === 'pending') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is pending approval. Please wait for admin authorization.'
+      })
+    }
+
+    if (user.status === 'inactive' || user.status === 'suspended') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account is not active. Please contact support.'
+      })
+    }
+
+    // Verificar suscripción (solo para usuarios no-admin)
+    if (user.role !== 'admin' && user.subscriptionEndDate) {
+      if (new Date() > user.subscriptionEndDate) {
+        return res.status(403).json({
+          success: false,
+          message: 'Your subscription has expired. Please renew to continue.'
+        })
+      }
+    }
+
     // Actualizar último login
     user.lastLogin = new Date()
     await user.save()
@@ -48,7 +73,8 @@ export const login = async (req: Request, res: Response) => {
       {
         userId: user._id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        status: user.status
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -71,7 +97,10 @@ export const login = async (req: Request, res: Response) => {
           id: user._id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
+          status: user.status,
+          businessName: user.businessName,
+          subscriptionEndDate: user.subscriptionEndDate
         }
       }
     })
@@ -199,6 +228,88 @@ export const changePassword = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Error changing password'
+    })
+  }
+}
+
+// Register - Public endpoint for new users
+export const register = async (req: Request, res: Response) => {
+  try {
+    const { email, password, name, businessName } = req.body
+
+    // Validar campos requeridos
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, password and name are required'
+      })
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      })
+    }
+
+    // Validar longitud de contraseña
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      })
+    }
+
+    // Verificar si el email ya existe
+    const existingUser = await UserModel.findOne({ email: email.toLowerCase() })
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered'
+      })
+    }
+
+    // Hashear contraseña
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Crear usuario con estado 'pending'
+    const newUser = new UserModel({
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      name,
+      businessName: businessName || undefined,
+      role: 'user',
+      status: 'pending' // Requiere aprobación del admin
+    })
+
+    await newUser.save()
+
+    console.log('✅ New user registered:', {
+      email: newUser.email,
+      name: newUser.name,
+      status: newUser.status
+    })
+
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful. Please wait for admin approval.',
+      data: {
+        user: {
+          id: newUser._id,
+          email: newUser.email,
+          name: newUser.name,
+          businessName: newUser.businessName,
+          status: newUser.status
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Registration error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error during registration'
     })
   }
 }
