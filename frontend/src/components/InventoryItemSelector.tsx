@@ -38,18 +38,19 @@ export default function InventoryItemSelector({
     })
 
     useEffect(() => {
-        // If value changes from parent, find and display the item
-        if (value && inventoryData?.items) {
-            const item = inventoryData.items.find(i => i._id === value)
+        // If value changes from parent and we don't have a selected item yet
+        if (value && !selectedItem) {
+            const item = availableItems.find(i => i._id === value)
             if (item) {
                 setSelectedItem(item)
                 setSearchTerm(item.hotWheelsCar?.model || item.carId)
             }
-        } else if (!value) {
+        } else if (!value && selectedItem) {
+            // Parent cleared the value
             setSelectedItem(null)
             setSearchTerm('')
         }
-    }, [value, inventoryData])
+    }, [value]) // Remove inventoryData from dependencies
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -70,12 +71,13 @@ export default function InventoryItemSelector({
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value
         setSearchTerm(newValue)
-        setShowSuggestions(newValue.length > 0)
+        setShowSuggestions(true) // Siempre mostrar sugerencias cuando escribe
         
-        // Si el usuario borra el texto, limpiar la selección
+        // Si el usuario borra el texto completamente, limpiar la selección
         if (newValue.length === 0) {
             setSelectedItem(null)
             onChange('')
+            setShowSuggestions(false)
         }
     }
 
