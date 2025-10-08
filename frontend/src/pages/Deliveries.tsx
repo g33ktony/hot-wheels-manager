@@ -924,10 +924,6 @@ export default function Deliveries() {
                                                     <InventoryItemSelector
                                                         value={item.inventoryItemId || ''}
                                                         onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
-                                                        onSelect={(selectedItem) => {
-                                                            // Auto-fill item details
-                                                            updateDeliveryItem(index, 'inventoryItemId', selectedItem._id)
-                                                        }}
                                                         excludeIds={newDelivery.items
                                                             .filter((_, i) => i !== index)
                                                             .map(item => item.inventoryItemId)
