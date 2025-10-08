@@ -8,6 +8,7 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
 import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign } from 'lucide-react'
+import InventoryItemSelector from '@/components/InventoryItemSelector'
 
 export default function Deliveries() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -918,42 +919,23 @@ export default function Deliveries() {
                                 <div className="space-y-4">
                                     {newDelivery.items.map((item, index) => (
                                         <div key={index} className="space-y-2">
-                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
+                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
                                                 <div className="flex-1">
-                                                    <select
-                                                        className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
+                                                    <InventoryItemSelector
                                                         value={item.inventoryItemId || ''}
-                                                        onChange={(e) => updateDeliveryItem(index, 'inventoryItemId', e.target.value)}
-                                                    >
-                                                        <option value="">Seleccionar pieza del inventario</option>
-                                                        {inventoryItems && (() => {
-                                                            // Get available items
-                                                            const availableItems = inventoryItems.filter(inv => (inv.quantity - (inv.reservedQuantity || 0)) > 0)
-
-                                                            // Get items that are already selected in this delivery (for editing)
-                                                            const selectedItemIds = newDelivery.items.map(deliveryItem => deliveryItem.inventoryItemId).filter(Boolean)
-                                                            const selectedItems = inventoryItems.filter(inv => selectedItemIds.includes(inv._id))
-
-                                                            // Combine available items and selected items (avoid duplicates)
-                                                            const allRelevantItems = [
-                                                                ...availableItems,
-                                                                ...selectedItems.filter(selected => !availableItems.find(available => available._id === selected._id))
-                                                            ]
-
-                                                            return allRelevantItems.map((inv) => {
-                                                                const isAvailable = (inv.quantity - (inv.reservedQuantity || 0)) > 0
-                                                                const availableText = isAvailable
-                                                                    ? `(Disponible: ${inv.quantity - (inv.reservedQuantity || 0)})`
-                                                                    : '(En entrega actual)'
-
-                                                                return (
-                                                                    <option key={inv._id} value={inv._id}>
-                                                                        {inv.hotWheelsCar?.model || inv.carId} {availableText} - ${inv.suggestedPrice}
-                                                                    </option>
-                                                                )
-                                                            })
-                                                        })()}
-                                                    </select>
+                                                        onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
+                                                        onSelect={(selectedItem) => {
+                                                            // Auto-fill item details
+                                                            updateDeliveryItem(index, 'inventoryItemId', selectedItem._id)
+                                                        }}
+                                                        excludeIds={newDelivery.items
+                                                            .filter((_, i) => i !== index)
+                                                            .map(item => item.inventoryItemId)
+                                                            .filter(Boolean) as string[]
+                                                        }
+                                                        placeholder="Buscar pieza en inventario..."
+                                                        required
+                                                    />
                                                 </div>
                                                 <div className="flex gap-3 sm:gap-4 sm:w-auto">
                                                     <div className="w-20 min-w-[80px]">

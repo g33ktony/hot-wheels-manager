@@ -36,22 +36,27 @@ async function verifyToken() {
         console.log('   Permisos:', debugResponse.data.data.scopes?.join(', ') || 'No disponibles');
         console.log('');
 
-        // 2. Obtener información de la página
+        // 2. Obtener información de la página (opcional)
         console.log('2️⃣ Obteniendo información de la página...');
-        const pageResponse = await axios.get(
-            `https://graph.facebook.com/v18.0/${PAGE_ID}`,
-            {
-                params: {
-                    fields: 'id,name,category,picture',
-                    access_token: ACCESS_TOKEN
+        try {
+            const pageResponse = await axios.get(
+                `https://graph.facebook.com/v18.0/${PAGE_ID}`,
+                {
+                    params: {
+                        fields: 'id,name,category,picture',
+                        access_token: ACCESS_TOKEN
+                    }
                 }
-            }
-        );
-        
-        console.log('✅ Página encontrada');
-        console.log('   ID:', pageResponse.data.id);
-        console.log('   Nombre:', pageResponse.data.name);
-        console.log('   Categoría:', pageResponse.data.category);
+            );
+            
+            console.log('✅ Página encontrada');
+            console.log('   ID:', pageResponse.data.id);
+            console.log('   Nombre:', pageResponse.data.name);
+            console.log('   Categoría:', pageResponse.data.category);
+        } catch (error) {
+            console.log('⚠️  No se puede obtener info de página (requiere permisos adicionales)');
+            console.log('   Esto es normal y no afecta la publicación');
+        }
         console.log('');
 
         // 3. Verificar permisos de la página
@@ -81,20 +86,37 @@ async function verifyToken() {
         const requiredPerms = ['pages_show_list', 'pages_manage_posts'];
         const grantedPerms = debugResponse.data.data.scopes || [];
         
+        let allPermsGranted = true;
         requiredPerms.forEach(perm => {
             const hasIt = grantedPerms.includes(perm);
-            console.log(`   ${hasIt ? '✅' : '❌'} ${perm}`);
+            console.log(`   ${hasIt ? '✅' : '❌'} ${perm} ${hasIt ? '' : '(FALTA - REQUERIDO)'}`);
+            if (!hasIt) allPermsGranted = false;
         });
         
         console.log('');
+        
+        if (!allPermsGranted) {
+            console.error('❌ ERROR: Faltan permisos requeridos');
+            console.error('');
+            console.error('💡 SOLUCIÓN:');
+            console.error('   1. Ve a https://developers.facebook.com/tools/explorer/');
+            console.error('   2. Genera un nuevo User Access Token con:');
+            console.error('      ✅ pages_show_list');
+            console.error('      ✅ pages_manage_posts');
+            console.error('   3. Consulta: /me/accounts');
+            console.error('   4. Copia el "access_token" de tu página (no el User Token)');
+            console.error('   5. Actualiza FACEBOOK_ACCESS_TOKEN en .env y Railway');
+            console.error('');
+            process.exit(1);
+        }
+        
         console.log('✅ ¡Verificación completa!');
         console.log('');
         console.log('📋 RESUMEN:');
         console.log('   - Token válido y activo');
-        console.log('   - Página accesible');
-        console.log('   - Permisos verificados');
+        console.log('   - Todos los permisos necesarios presentes');
         console.log('');
-        console.log('🎉 ¡Todo parece estar configurado correctamente!');
+        console.log('🎉 ¡Todo está configurado correctamente para publicar!');
         
     } catch (error) {
         console.error('');
