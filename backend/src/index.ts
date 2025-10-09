@@ -27,6 +27,7 @@ import deliveryLocationsRoutes from './routes/deliveryLocations'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
+import { tenantContext } from './middleware/tenantContext'
 import errorHandler from './middleware/errorHandler'
 import notFoundHandler from './middleware/notFoundHandler'
 import { performanceLogger, responseSizeLogger } from './middleware/performance'
@@ -77,7 +78,7 @@ app.use(responseSizeLogger) // Response size tracking
 app.use(limiter) // Rate limiting (skips auth routes)
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173']
+    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173', 'http://localhost:5180', 'http://localhost:3000']
     console.log('🔍 CORS Check - Origin:', origin, 'Allowed:', allowedOrigins)
     
     // Allow requests with no origin (like mobile apps or Postman)
@@ -88,7 +89,8 @@ app.use(cors({
       return origin === allowedOrigin || 
              origin === allowedOrigin + '/' ||
              origin.startsWith(allowedOrigin + '/') ||
-             (allowedOrigin.includes('vercel.app') && origin.includes('vercel.app'))
+             (allowedOrigin.includes('vercel.app') && origin.includes('vercel.app')) ||
+             (process.env.NODE_ENV === 'development' && origin.startsWith('http://localhost:'))
     })
     
     if (isAllowed) {
@@ -122,20 +124,20 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes)
 
 // Rutas protegidas (requieren autenticación)
-app.use('/api/hotwheels', authMiddleware, hotWheelsRoutes)
-app.use('/api/inventory', authMiddleware, inventoryRoutes)
-app.use('/api/sales', authMiddleware, salesRoutes)
-app.use('/api/purchases', authMiddleware, purchasesRoutes)
-app.use('/api/deliveries', authMiddleware, deliveriesRoutes)
-app.use('/api/customers', authMiddleware, customersRoutes)
-app.use('/api/suppliers', authMiddleware, suppliersRoutes)
-app.use('/api/market-prices', authMiddleware, marketPricesRoutes)
-app.use('/api/dashboard', authMiddleware, dashboardRoutes)
-app.use('/api/custom-brands', authMiddleware, customBrandRoutes)
-app.use('/api/boxes', authMiddleware, boxesRoutes)
-app.use('/api/pending-items', authMiddleware, pendingItemsRoutes)
-app.use('/api/facebook', authMiddleware, facebookRoutes)
-app.use('/api/delivery-locations', authMiddleware, deliveryLocationsRoutes)
+app.use('/api/hotwheels', authMiddleware, tenantContext, hotWheelsRoutes)
+app.use('/api/inventory', authMiddleware, tenantContext, inventoryRoutes)
+app.use('/api/sales', authMiddleware, tenantContext, salesRoutes)
+app.use('/api/purchases', authMiddleware, tenantContext, purchasesRoutes)
+app.use('/api/deliveries', authMiddleware, tenantContext, deliveriesRoutes)
+app.use('/api/customers', authMiddleware, tenantContext, customersRoutes)
+app.use('/api/suppliers', authMiddleware, tenantContext, suppliersRoutes)
+app.use('/api/market-prices', authMiddleware, tenantContext, marketPricesRoutes)
+app.use('/api/dashboard', authMiddleware, tenantContext, dashboardRoutes)
+app.use('/api/custom-brands', authMiddleware, tenantContext, customBrandRoutes)
+app.use('/api/boxes', authMiddleware, tenantContext, boxesRoutes)
+app.use('/api/pending-items', authMiddleware, tenantContext, pendingItemsRoutes)
+app.use('/api/facebook', authMiddleware, tenantContext, facebookRoutes)
+app.use('/api/delivery-locations', authMiddleware, tenantContext, deliveryLocationsRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)

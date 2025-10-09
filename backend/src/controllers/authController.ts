@@ -73,20 +73,11 @@ export const login = async (req: Request, res: Response) => {
       {
         userId: user._id,
         email: user.email,
-        role: user.role,
-        status: user.status
+        role: user.role
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     )
-
-    // DEBUG: Log token info
-    const decoded = jwt.decode(token) as any
-    console.log('🔐 TOKEN GENERADO:')
-    console.log('  - Expira en:', JWT_EXPIRES_IN)
-    console.log('  - iat (issued at):', new Date(decoded.iat * 1000).toISOString())
-    console.log('  - exp (expires at):', new Date(decoded.exp * 1000).toISOString())
-    console.log('  - Tiempo hasta expiración:', Math.floor((decoded.exp - decoded.iat) / 3600), 'horas')
 
     res.json({
       success: true,
@@ -125,9 +116,6 @@ export const verifyToken = async (req: Request, res: Response) => {
       })
     }
 
-    console.log('🔍 VERIFICANDO TOKEN:')
-    console.log('  - Token recibido:', token.substring(0, 20) + '...')
-    
     const decoded = jwt.verify(token, JWT_SECRET) as {
       userId: string
       email: string
@@ -135,12 +123,6 @@ export const verifyToken = async (req: Request, res: Response) => {
       iat: number
       exp: number
     }
-
-    console.log('  - Token válido')
-    console.log('  - Usuario:', decoded.email)
-    console.log('  - Emitido:', new Date(decoded.iat * 1000).toISOString())
-    console.log('  - Expira:', new Date(decoded.exp * 1000).toISOString())
-    console.log('  - Tiempo restante:', Math.floor((decoded.exp - Date.now() / 1000) / 3600), 'horas')
 
     // Buscar usuario
     const user = await UserModel.findById(decoded.userId)

@@ -26,11 +26,6 @@ export const tenantContext = (req: Request, res: Response, next: NextFunction) =
     req.userId = (req.user as any).userId
     req.userRole = (req.user as any).role
     req.userStatus = (req.user as any).status
-    
-    // Debug log (remover en producción)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🔒 Tenant Context: User ${req.userId} (${req.userRole}) accessing ${req.method} ${req.path}`)
-    }
   }
   
   next()

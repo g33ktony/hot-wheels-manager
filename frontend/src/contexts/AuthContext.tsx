@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { toast } from 'react-hot-toast'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api'
 
 interface User {
   id: string
@@ -27,21 +27,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Verificar token al cargar la aplicación
+  // Verificar token al cargar la aplicación (de manera silenciosa)
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem('token')
       const storedUser = localStorage.getItem('user')
 
       if (storedToken && storedUser) {
-        setToken(storedToken)
-        setUser(JSON.parse(storedUser))
-
-        // Verificar si el token aún es válido
-        const isValid = await verifyTokenAPI(storedToken)
-        if (!isValid) {
-          // Token expirado, limpiar
-          logout()
+        try {
+          const parsedUser = JSON.parse(storedUser)
+          setToken(storedToken)
+          setUser(parsedUser)
+          
+          // No verificar automáticamente el token para evitar requests innecesarios
+          // La verificación se hará cuando sea necesario
+        } catch (error) {
+          // Si hay error parseando el user, limpiar
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
         }
       }
 
