@@ -725,6 +725,7 @@ export default function Deliveries() {
                                                 variant="secondary"
                                                 onClick={() => handleShowReport(delivery)}
                                                 title="Compartir reporte"
+                                                aria-label="Compartir reporte"
                                                 className="min-w-[44px] min-h-[44px]"
                                             >
                                                 <Share2 size={16} />
