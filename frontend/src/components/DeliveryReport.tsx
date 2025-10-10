@@ -39,30 +39,19 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
 
     const key = status.toLowerCase()
     switch (key) {
-      case 'pending':
-      case 'pendiente':
-        return 'Pendiente'
+
       case 'scheduled':
       case 'programada':
         return 'Programada'
-      case 'in_transit':
-      case 'in-transit':
-      case 'en_transito':
-      case 'en_transito':
-      case 'en tránsito':
-      case 'en_transito':
-        return 'En tránsito'
-      case 'delivered':
-      case 'entregado':
-        return 'Entregado'
+
       case 'cancelled':
-      case 'canceled':
-      case 'cancelado':
         return 'Cancelado'
-      case 'failed':
-      case 'error':
-      case 'fallido':
-        return 'Fallido'
+      case 'prepared':
+        return 'Preparado'
+      case 'completed':
+        return 'completado'
+      case 'rescheduled':
+        return 'Reprogramado'
       default:
         // Capitalize first letter and keep as fallback
         return status.charAt(0).toUpperCase() + status.slice(1)
