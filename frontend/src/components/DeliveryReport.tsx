@@ -84,6 +84,9 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
     if (!reportRef.current) return
     setIsGenerating(true)
     try {
+      const nav: any = navigator
+
+      // Generate the image first (preferred) so we can attempt a file-based share.
       const canvas = await html2canvas(reportRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
@@ -92,32 +95,46 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
         width: reportRef.current.getBoundingClientRect().width,
         height: reportRef.current.scrollHeight
       })
-
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b)))
       if (!blob) throw new Error('No se pudo generar la imagen')
 
       const file = new File([blob], `reporte-entrega-${delivery._id || 'sin-id'}.png`, { type: 'image/png' })
-      const shareData: any = {
+      const shareDataFile: any = {
         title: 'Reporte de Entrega',
         text: `Entrega para ${delivery.customer?.name || ''}`
       }
-      const nav: any = navigator
 
-      if (nav.canShare && nav.canShare({ files: [file] })) {
+      // Try file-based sharing first
+      if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) {
         try {
-          await nav.share({ ...shareData, files: [file] })
+          await nav.share({ ...shareDataFile, files: [file] })
           return
         } catch (err) {
-          console.warn('share(files) falló', err)
+          console.warn('share(files) falló tras generar imagen', err)
         }
       }
 
+      // Some implementations accept files even if canShare is not present/true.
       if (nav.share) {
         try {
-          await nav.share(shareData)
+          await nav.share({ ...shareDataFile, files: [file] })
           return
         } catch (err) {
-          console.warn('navigator.share con texto falló', err)
+          console.warn('navigator.share(files) intentó pero falló', err)
+        }
+      }
+
+      // As a last resort, try text-only share (this will share the page URL in many apps)
+      const shareDataText: any = {
+        title: 'Reporte de Entrega',
+        text: `Entrega para ${delivery.customer?.name || ''}`
+      }
+      if (nav.share) {
+        try {
+          await nav.share(shareDataText)
+          return
+        } catch (err) {
+          console.warn('navigator.share(text) falló', err)
         }
       }
 
@@ -323,25 +340,26 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             <div className="text-sm text-gray-700">Generando imagen, por favor espera...</div>
           </div>
         )}
-        <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-semibold text-gray-900">Reporte de Entrega</h3>
-          <div className="flex gap-2 items-center">
-            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
+          <div className="flex flex-wrap gap-2 items-center">
+            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Compartir reporte">
               <Share2 size={16} />
-              Compartir
+              <span className="hidden sm:inline">Compartir</span>
             </Button>
 
-            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
+            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Descargar reporte">
               <Download size={16} />
-              Descargar
+              <span className="hidden sm:inline">Descargar</span>
             </Button>
 
-            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
-              PDF
+            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Generar PDF">
+              <span className="sr-only sm:not-sr-only">PDF</span>
+              <span className="hidden sm:inline">PDF</span>
             </Button>
 
-            <Button onClick={onClose} variant="secondary" size="sm" disabled={isGenerating}>
-              Cerrar
+            <Button onClick={onClose} variant="secondary" size="sm" className="min-w-0" disabled={isGenerating} aria-label="Cerrar reporte">
+              <span className="hidden sm:inline">Cerrar</span>
             </Button>
           </div>
         </div>
@@ -357,23 +375,23 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       <div className="bg-white rounded-lg shadow-xl max-w-full sm:max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b gap-4 flex-wrap" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <h2 className="text-xl font-bold text-gray-900">Reporte de Entrega</h2>
-          <div className="flex gap-2 items-center flex-wrap">
-            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
+          <div className="flex flex-wrap gap-2 items-center">
+            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Compartir reporte">
               <Share2 size={16} />
-              Compartir
+              <span className="hidden sm:inline">Compartir</span>
             </Button>
 
-            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
+            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Descargar reporte">
               <Download size={16} />
-              Descargar
+              <span className="hidden sm:inline">Descargar</span>
             </Button>
 
-            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
-              PDF
+            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Generar PDF">
+              <span className="hidden sm:inline">PDF</span>
             </Button>
 
-            <Button onClick={onClose} variant="secondary" size="sm" disabled={isGenerating}>
-              Cerrar
+            <Button onClick={onClose} variant="secondary" size="sm" className="min-w-0" disabled={isGenerating} aria-label="Cerrar reporte">
+              <span className="hidden sm:inline">Cerrar</span>
             </Button>
 
             {isGenerating && <div className="ml-2 text-sm text-gray-600">Generando...</div>}
