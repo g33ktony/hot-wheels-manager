@@ -102,32 +102,49 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
         height: reportRef.current.scrollHeight
       })
 
-      canvas.toBlob(async (blob) => {
-        if (!blob) return
+      // Await blob creation
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b)))
+      if (!blob) throw new Error('No se pudo generar la imagen')
 
-        const file = new File([blob], `reporte-entrega-${delivery._id || 'sin-id'}.png`, { type: 'image/png' })
+      const file = new File([blob], `reporte-entrega-${delivery._id || 'sin-id'}.png`, { type: 'image/png' })
 
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: 'Reporte de Entrega',
-              text: `Entrega para ${delivery.customer.name}`,
-              files: [file]
-            })
-          } catch (error) {
-            console.error('Error compartiendo:', error)
-            // Fallback a descarga
-            generateImage()
-          }
-        } else {
-          // Fallback para navegadores que no soportan Web Share API
-          generateImage()
+      const shareData: any = {
+        title: 'Reporte de Entrega',
+        text: `Entrega para ${delivery.customer.name}`
+      }
+
+      // Prefer canShare(files) when available
+      const nav: any = navigator
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        try {
+          await nav.share({ ...shareData, files: [file] })
+          return
+        } catch (err) {
+          console.warn('share(files) falló, intentando otras alternativas', err)
         }
-      })
+      }
+
+      // Try plain share (title + text) if supported — on some iOS versions only this is supported
+      if (nav.share) {
+        try {
+          await nav.share(shareData)
+          return
+        } catch (err) {
+          console.warn('navigator.share con texto falló, se usará descarga como fallback', err)
+        }
+      }
+
+      // Final fallback: trigger download
+      generateImage()
 
     } catch (error) {
       console.error('Error generando imagen para compartir:', error)
-      alert('Error al compartir la imagen del reporte')
+      alert('No fue posible compartir el reporte desde este navegador. Se descargará el archivo en su lugar.')
+      try {
+        generateImage()
+      } catch (e) {
+        // ignore
+      }
     } finally {
       setIsGenerating(false)
     }
@@ -179,7 +196,7 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header con acciones */}
-        <div className="flex justify-between items-center p-6 border-b">
+  <div className="flex justify-between items-center p-6 border-b gap-4 flex-wrap" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <h2 className="text-xl font-bold text-gray-900">Reporte de Entrega</h2>
           <div className="flex gap-2 items-center">
             <Button
