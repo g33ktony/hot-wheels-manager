@@ -182,6 +182,7 @@ const startServer = async () => {
       console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`)
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
       console.log(`📊 Database: ${dbConnected ? '✅ Connected' : '❌ Disconnected'}`)
+      // startup logs
       if (process.env.FRONTEND_URL) {
         console.log(`🎯 Frontend URL: ${process.env.FRONTEND_URL}`)
       }

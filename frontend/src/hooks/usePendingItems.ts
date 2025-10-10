@@ -2,13 +2,10 @@ import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { pendingItemsService } from '@/services/pendingItems'
 
 // Get all pending items
-export const usePendingItems = (filters?: {
-  status?: string
-  overdue?: boolean
-}) => {
+export const usePendingItems = (filters?: { status?: string; overdue?: boolean }) => {
   return useQuery({
     queryKey: ['pending-items', filters],
-    queryFn: () => pendingItemsService.getAll(filters)
+    queryFn: () => pendingItemsService.getAll(filters),
   })
 }
 
@@ -16,7 +13,7 @@ export const usePendingItems = (filters?: {
 export const usePendingItemsStats = () => {
   return useQuery({
     queryKey: ['pending-items-stats'],
-    queryFn: () => pendingItemsService.getStats()
+    queryFn: () => pendingItemsService.getStats(),
   })
 }
 

@@ -8,8 +8,9 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign } from 'lucide-react'
+import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign, Share2 } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
+import DeliveryReport from '@/components/DeliveryReport'
 
 export default function Deliveries() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -17,6 +18,7 @@ export default function Deliveries() {
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [showReportModal, setShowReportModal] = useState(false)
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
     const [editingDelivery, setEditingDelivery] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
@@ -187,6 +189,16 @@ export default function Deliveries() {
     const handleViewDetails = (delivery: any) => {
         setSelectedDelivery(delivery)
         setShowDetailsModal(true)
+    }
+
+    const handleShowReport = (delivery: any) => {
+        setSelectedDelivery(delivery)
+        setShowReportModal(true)
+    }
+
+    const handleCloseReport = () => {
+        setShowReportModal(false)
+        setSelectedDelivery(null)
     }
 
     const handleCloseDetails = () => {
@@ -708,26 +720,14 @@ export default function Deliveries() {
                                             >
                                                 <Eye size={16} />
                                             </Button>
-                                            {delivery.status !== 'completed' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleEditDelivery(delivery)}
-                                                    title="Editar entrega"
-                                                    className="min-w-[44px] min-h-[44px]"
-                                                >
-                                                    <Edit size={16} />
-                                                </Button>
-                                            )}
                                             <Button
                                                 size="sm"
-                                                variant="danger"
-                                                onClick={() => handleDeleteDelivery(delivery._id!)}
-                                                disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
+                                                variant="secondary"
+                                                onClick={() => handleShowReport(delivery)}
+                                                title="Compartir reporte"
                                                 className="min-w-[44px] min-h-[44px]"
-                                                title={delivery.status === 'completed' ? 'No se puede eliminar entrega completada' : 'Eliminar entrega'}
                                             >
-                                                <Trash2 size={16} />
+                                                <Share2 size={16} />
                                             </Button>
                                         </div>
                                     </div>
@@ -1552,6 +1552,27 @@ export default function Deliveries() {
                                     {addPaymentMutation.isLoading ? 'Registrando...' : 'Registrar Pago'}
                                 </Button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delivery Report Modal */}
+            {showReportModal && selectedDelivery && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b">
+                            <h2 className="text-xl font-semibold text-gray-900">Reporte de Entrega</h2>
+                            <button
+                                onClick={handleCloseReport}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <DeliveryReport delivery={selectedDelivery} onClose={handleCloseReport} />
                         </div>
                     </div>
                 </div>

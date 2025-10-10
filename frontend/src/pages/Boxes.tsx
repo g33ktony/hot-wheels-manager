@@ -168,8 +168,8 @@ function BoxCard({ box, onOpenUnpack }: BoxCardProps) {
                         <p className="text-sm text-gray-500 mt-1">{box.carId}</p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs font-medium ${box.boxStatus === 'sealed'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
                         }`}>
                         {box.boxStatus === 'sealed' ? '🔒 Sellada' : '📦 En proceso'}
                     </div>
