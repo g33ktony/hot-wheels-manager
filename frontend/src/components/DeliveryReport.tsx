@@ -92,15 +92,6 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
 
   const shareImage = async () => {
     if (!reportRef.current) return
-
-    // Open a new window synchronously to avoid popup blockers on mobile (we'll write into it later if needed)
-    let openedWindow: Window | null = null
-    try {
-      openedWindow = window.open('', '_blank')
-    } catch (e) {
-      openedWindow = null
-    }
-
     setIsGenerating(true)
 
     try {
@@ -113,7 +104,6 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
         height: reportRef.current.scrollHeight
       })
 
-      // Await blob creation
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b)))
       if (!blob) throw new Error('No se pudo generar la imagen')
 
@@ -125,17 +115,18 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
       }
 
       const nav: any = navigator
-      // Try sharing the file when supported
+
+      // 1) Prefer sharing the file via Web Share API (fast path)
       if (nav.canShare && nav.canShare({ files: [file] })) {
         try {
           await nav.share({ ...shareData, files: [file] })
           return
         } catch (err) {
-          console.warn('share(files) falló, intentando otras alternativas', err)
+          console.warn('share(files) falló', err)
         }
       }
 
-      // Try plain share (title + text)
+      // 2) Try plain share (text/title)
       if (nav.share) {
         try {
           await nav.share(shareData)
@@ -145,50 +136,31 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
         }
       }
 
-      // As a robust fallback: if we opened a window earlier, write the image into it so the user can share/save via Safari UI
-      try {
-        if (openedWindow) {
+      // 3) Ask user whether to open the image in a new tab for manual sharing (explicit opt-in)
+      const wantOpen = window.confirm('No fue posible abrir el menú de compartir automáticamente. ¿Deseas abrir la imagen en una nueva pestaña para compartirla manualmente (usar menú de Safari)?')
+      if (wantOpen) {
+        try {
           const url = URL.createObjectURL(blob)
-          // Navigate the previously opened window to the blob URL so the image displays there
-          openedWindow.location.href = url
-          // revoke URL after some time
-          setTimeout(() => URL.revokeObjectURL(url), 15000)
-          alert('Se abrirá la imagen en una nueva pestaña; utiliza el menú de compartir de Safari para compartirla.')
+          // Open in a new tab now (user-initiated) — should avoid popup blockers
+          const w = window.open(url, '_blank')
+          if (!w) {
+            // If still blocked, fall back to download
+            generateImage()
+          } else {
+            setTimeout(() => URL.revokeObjectURL(url), 15000)
+          }
           return
+        } catch (e) {
+          console.warn('No se pudo abrir la nueva pestaña con la imagen', e)
         }
-      } catch (e) {
-        console.warn('No se pudo abrir/mostrar la imagen en la ventana abierta', e)
       }
 
-      // Last resort: trigger download
-      generateImage()
+      // 4) Last resort: ask to download
+      const shouldDownload = window.confirm('¿Deseas descargar el reporte en su lugar?')
+      if (shouldDownload) generateImage()
 
     } catch (error) {
       console.error('Error generando imagen para compartir:', error)
-      // Try to fallback gracefully: if we had an openedWindow, attempt to write into it
-      try {
-        if (openedWindow && reportRef.current) {
-          const canvas = await html2canvas(reportRef.current, {
-            backgroundColor: '#ffffff',
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            width: 600,
-            height: reportRef.current.scrollHeight
-          })
-          const b = await new Promise<Blob | null>((resolve) => canvas.toBlob((x) => resolve(x)))
-          if (b) {
-            const url = URL.createObjectURL(b)
-            openedWindow.location.href = url
-            setTimeout(() => URL.revokeObjectURL(url), 15000)
-            alert('Se abrirá la imagen en una nueva pestaña; utiliza el menú de compartir de Safari para compartirla.')
-            return
-          }
-        }
-      } catch (e) {
-        console.error('Fallback al generar/abrir imagen también falló:', e)
-      }
-
       const shouldDownload = window.confirm('No fue posible compartir el reporte. ¿Deseas descargarlo en su lugar?')
       if (shouldDownload) generateImage()
     } finally {
