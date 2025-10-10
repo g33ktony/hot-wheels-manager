@@ -88,8 +88,19 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
     }
   }
 
+  // (removed openBlobInNewTab helper; handling is done inline below)
+
   const shareImage = async () => {
     if (!reportRef.current) return
+
+    // Open a new window synchronously to avoid popup blockers on mobile (we'll write into it later if needed)
+    let openedWindow: Window | null = null
+    try {
+      openedWindow = window.open('', '_blank')
+    } catch (e) {
+      openedWindow = null
+    }
+
     setIsGenerating(true)
 
     try {
@@ -113,8 +124,8 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
         text: `Entrega para ${delivery.customer.name}`
       }
 
-      // Prefer canShare(files) when available
       const nav: any = navigator
+      // Try sharing the file when supported
       if (nav.canShare && nav.canShare({ files: [file] })) {
         try {
           await nav.share({ ...shareData, files: [file] })
@@ -124,27 +135,62 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
         }
       }
 
-      // Try plain share (title + text) if supported — on some iOS versions only this is supported
+      // Try plain share (title + text)
       if (nav.share) {
         try {
           await nav.share(shareData)
           return
         } catch (err) {
-          console.warn('navigator.share con texto falló, se usará descarga como fallback', err)
+          console.warn('navigator.share con texto falló', err)
         }
       }
 
-      // Final fallback: trigger download
+      // As a robust fallback: if we opened a window earlier, write the image into it so the user can share/save via Safari UI
+      try {
+        if (openedWindow) {
+          const url = URL.createObjectURL(blob)
+          // Navigate the previously opened window to the blob URL so the image displays there
+          openedWindow.location.href = url
+          // revoke URL after some time
+          setTimeout(() => URL.revokeObjectURL(url), 15000)
+          alert('Se abrirá la imagen en una nueva pestaña; utiliza el menú de compartir de Safari para compartirla.')
+          return
+        }
+      } catch (e) {
+        console.warn('No se pudo abrir/mostrar la imagen en la ventana abierta', e)
+      }
+
+      // Last resort: trigger download
       generateImage()
 
     } catch (error) {
       console.error('Error generando imagen para compartir:', error)
-      alert('No fue posible compartir el reporte desde este navegador. Se descargará el archivo en su lugar.')
+      // Try to fallback gracefully: if we had an openedWindow, attempt to write into it
       try {
-        generateImage()
+        if (openedWindow && reportRef.current) {
+          const canvas = await html2canvas(reportRef.current, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            width: 600,
+            height: reportRef.current.scrollHeight
+          })
+          const b = await new Promise<Blob | null>((resolve) => canvas.toBlob((x) => resolve(x)))
+          if (b) {
+            const url = URL.createObjectURL(b)
+            openedWindow.location.href = url
+            setTimeout(() => URL.revokeObjectURL(url), 15000)
+            alert('Se abrirá la imagen en una nueva pestaña; utiliza el menú de compartir de Safari para compartirla.')
+            return
+          }
+        }
       } catch (e) {
-        // ignore
+        console.error('Fallback al generar/abrir imagen también falló:', e)
       }
+
+      const shouldDownload = window.confirm('No fue posible compartir el reporte. ¿Deseas descargarlo en su lugar?')
+      if (shouldDownload) generateImage()
     } finally {
       setIsGenerating(false)
     }
@@ -196,60 +242,34 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-x-hidden">
       <div className="bg-white rounded-lg shadow-xl max-w-full sm:max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header con acciones */}
-  <div className="flex justify-between items-center p-6 border-b gap-4 flex-wrap" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="flex justify-between items-center p-6 border-b gap-4 flex-wrap" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <h2 className="text-xl font-bold text-gray-900">Reporte de Entrega</h2>
           <div className="flex gap-2 items-center flex-wrap">
-            <Button
-              onClick={shareImage}
-              variant="secondary"
-              size="sm"
-              className="flex items-center gap-2"
-              disabled={isGenerating}
-            >
+            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
               <Share2 size={16} />
               Compartir
             </Button>
-            <Button
-              onClick={generateImage}
-              variant="secondary"
-              size="sm"
-              className="flex items-center gap-2"
-              disabled={isGenerating}
-            >
+
+            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
               <Download size={16} />
               Descargar
             </Button>
-            <Button
-              onClick={generatePDF}
-              variant="secondary"
-              size="sm"
-              className="flex items-center gap-2"
-              disabled={isGenerating}
-            >
+
+            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
               PDF
             </Button>
-            <Button
-              onClick={onClose}
-              variant="secondary"
-              size="sm"
-              disabled={isGenerating}
-            >
+
+            <Button onClick={onClose} variant="secondary" size="sm" disabled={isGenerating}>
               Cerrar
             </Button>
 
-            {isGenerating && (
-              <div className="ml-2 text-sm text-gray-600">Generando...</div>
-            )}
+            {isGenerating && <div className="ml-2 text-sm text-gray-600">Generando...</div>}
           </div>
         </div>
 
         {/* Contenido del reporte */}
         <div className="p-6">
-          <div
-            ref={reportRef}
-            className="bg-white p-6 border rounded-lg"
-            style={{ minHeight: '400px' }}
-          >
+          <div ref={reportRef} className="bg-white p-6 border rounded-lg" style={{ minHeight: '400px' }}>
             {/* Header del reporte */}
             <div className="text-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">2Fast Wheels Garage</h1>
@@ -262,12 +282,8 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Cliente</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-medium text-gray-900">{delivery.customer.name}</p>
-                {delivery.customer.phone && (
-                  <p className="text-gray-600">Teléfono: {delivery.customer.phone}</p>
-                )}
-                {delivery.customer.email && (
-                  <p className="text-gray-600">Email: {delivery.customer.email}</p>
-                )}
+                {delivery.customer.phone && <p className="text-gray-600">Teléfono: {delivery.customer.phone}</p>}
+                {delivery.customer.email && <p className="text-gray-600">Email: {delivery.customer.email}</p>}
               </div>
             </div>
 
@@ -287,10 +303,12 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
                     </div>
                   )}
                 </div>
+
                 <div className="mt-3">
                   <p className="text-sm text-gray-600">Ubicación</p>
                   <p className="font-medium">{delivery.location}</p>
                 </div>
+
                 <div className="mt-3">
                   <p className="text-sm text-gray-600">Estado</p>
                   <p className="font-medium">{statusToSpanish(delivery.status as any)}</p>
@@ -302,36 +320,38 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Artículos</h3>
               <div className="border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Artículo</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">Cantidad</th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Precio</th>
-                      <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {delivery.items.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-2 text-sm text-gray-900">{item.carName}</td>
-                        <td className="px-4 py-2 text-center text-sm text-gray-900">{item.quantity}</td>
-                        <td className="px-4 py-2 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice)}</td>
-                        <td className="px-4 py-2 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice * item.quantity)}</td>
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full min-w-[640px]">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Artículo</th>
+                        <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">Cantidad</th>
+                        <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Precio</th>
+                        <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</th>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-gray-50">
-                    <tr>
-                      <td colSpan={3} className="px-4 py-3 text-right text-sm font-medium text-gray-900">
-                        Total:
-                      </td>
-                      <td className="px-4 py-3 text-right text-lg font-bold text-gray-900">
-                        {formatCurrency(delivery.totalAmount)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </thead>
+
+                    <tbody className="divide-y divide-gray-200">
+                      {delivery.items.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-2 text-sm text-gray-900">{item.carName}</td>
+                          <td className="px-4 py-2 text-center text-sm text-gray-900">{item.quantity}</td>
+                          <td className="px-4 py-2 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice)}</td>
+                          <td className="px-4 py-2 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice * item.quantity)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+
+                    <tfoot className="bg-gray-50">
+                      <tr>
+                        <td colSpan={3} className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+                          Total:
+                        </td>
+                        <td className="px-4 py-3 text-right text-lg font-bold text-gray-900">{formatCurrency(delivery.totalAmount)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
             </div>
 
