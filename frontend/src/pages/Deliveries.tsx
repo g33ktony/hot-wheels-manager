@@ -828,6 +828,15 @@ export default function Deliveries() {
                                     )}
                                     <Button
                                         size="sm"
+                                        variant="secondary"
+                                        onClick={() => handleShowReport(delivery)}
+                                        title="Compartir reporte"
+                                        aria-label="Compartir reporte"
+                                    >
+                                        <Share2 size={16} />
+                                    </Button>
+                                    <Button
+                                        size="sm"
                                         variant="danger"
                                         onClick={() => handleDeleteDelivery(delivery._id!)}
                                         disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
