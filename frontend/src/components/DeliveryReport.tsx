@@ -200,35 +200,90 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
     if (!reportRef.current) return
     setIsGenerating(true)
 
+    // Render at a desktop-like width so mobile PDFs look like desktop
+    const DESKTOP_WIDTH = 1000 // px — chosen to emulate desktop layout
+
     try {
-      const canvas = await html2canvas(reportRef.current, {
+      // Clone the report node so we can style it independently
+      const original = reportRef.current
+      const clone = original.cloneNode(true) as HTMLElement
+
+      // Create an offscreen container to host the clone
+      const container = document.createElement('div')
+      container.style.position = 'fixed'
+      container.style.left = '-9999px'
+      container.style.top = '0'
+      container.style.width = `${DESKTOP_WIDTH}px`
+      container.style.overflow = 'visible'
+      container.appendChild(clone)
+      document.body.appendChild(container)
+
+      // Apply desktop-like styles to the clone root to force desktop layout
+      clone.style.width = `${DESKTOP_WIDTH}px`
+      clone.style.boxSizing = 'border-box'
+
+      // Use html2canvas on the clone with higher scale for crispness
+      const scale = Math.min(2, (DESKTOP_WIDTH / (original.getBoundingClientRect().width || DESKTOP_WIDTH)) * 2)
+
+      const canvas = await html2canvas(clone, {
         backgroundColor: '#ffffff',
-        scale: 2,
+        scale,
         useCORS: true,
         allowTaint: true,
-        width: 600,
-        height: reportRef.current.scrollHeight
+        width: DESKTOP_WIDTH,
+        height: clone.scrollHeight
       })
 
       const imgData = canvas.toDataURL('image/png')
 
-      // Dynamically import jspdf to avoid static module/type resolution issues in the build
+      // Dynamically import jspdf only when needed
       const jspdfModule: any = await import('jspdf')
       const { jsPDF } = jspdfModule
 
-      // Create PDF (A4) and add image
+      // Prepare PDF (A4 in points)
       const pdf = new jsPDF('p', 'pt', 'a4')
       const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = pdf.internal.pageSize.getHeight()
 
-      // Calculate image dimensions to fit PDF width
+      // The canvas dimensions are in device pixels; compute rendered size to fit PDF width
       const imgWidth = canvas.width
       const imgHeight = canvas.height
-      const ratio = pdfWidth / imgWidth
-      const renderedHeight = imgHeight * ratio
+      const renderedWidth = pdfWidth
+      const renderedHeight = (imgHeight * renderedWidth) / imgWidth
 
-      // Single page PDF: scale to fit width. For very long content this will shrink content to fit a single page.
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, renderedHeight)
+      // If the renderedHeight fits in one page, add once. Otherwise, split into pages
+      if (renderedHeight <= pdfHeight) {
+        pdf.addImage(imgData, 'PNG', 0, 0, renderedWidth, renderedHeight)
+      } else {
+        // For tall images, slice vertically into page-sized chunks
+        const pageCanvas = document.createElement('canvas')
+        const pageCtx = pageCanvas.getContext('2d')!
+
+        const pxPerPt = imgWidth / renderedWidth
+        const pagePxHeight = Math.floor(pdfHeight * pxPerPt)
+
+        pageCanvas.width = imgWidth
+        pageCanvas.height = pagePxHeight
+
+        let yOffset = 0
+        let pageIndex = 0
+        while (yOffset < imgHeight) {
+          pageCtx.clearRect(0, 0, pageCanvas.width, pageCanvas.height)
+          pageCtx.drawImage(canvas, 0, yOffset, imgWidth, pagePxHeight, 0, 0, imgWidth, pagePxHeight)
+          const pageData = pageCanvas.toDataURL('image/png')
+
+          if (pageIndex > 0) pdf.addPage()
+          pdf.addImage(pageData, 'PNG', 0, 0, renderedWidth, pdfHeight)
+
+          yOffset += pagePxHeight
+          pageIndex += 1
+        }
+      }
+
       pdf.save(`reporte-entrega-${delivery._id || 'sin-id'}.pdf`)
+
+      // Cleanup clone container
+      document.body.removeChild(container)
 
     } catch (error) {
       console.error('Error generando PDF:', error)
