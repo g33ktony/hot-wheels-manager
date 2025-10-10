@@ -15,6 +15,61 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   const reportRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
 
+  const DESKTOP_WIDTH = 1000
+  const generationCancelledRef = useRef({ cancelled: false })
+
+  async function captureNode(node: HTMLElement, desktopWidth = DESKTOP_WIDTH) {
+    const originalRect = node.getBoundingClientRect()
+    const clone = node.cloneNode(true) as HTMLElement
+    const container = document.createElement('div')
+    container.style.position = 'fixed'
+    container.style.left = '-9999px'
+    container.style.top = '0'
+    container.style.width = `${desktopWidth}px`
+    container.style.overflow = 'visible'
+    container.appendChild(clone)
+    document.body.appendChild(container)
+
+    clone.style.width = `${desktopWidth}px`
+    clone.style.boxSizing = 'border-box'
+
+    const scale = Math.min(2, (desktopWidth / (originalRect.width || desktopWidth)) * 2)
+
+    try {
+      const canvas = await html2canvas(clone, {
+        backgroundColor: '#ffffff',
+        scale,
+        useCORS: true,
+        allowTaint: true,
+        width: desktopWidth,
+        height: clone.scrollHeight
+      })
+      if (generationCancelledRef.current.cancelled) {
+        if (container.parentNode) container.parentNode.removeChild(container)
+        throw new Error('generation cancelled')
+      }
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b)))
+      return { blob, canvas, container }
+    } catch (err) {
+      if (container.parentNode) container.parentNode.removeChild(container)
+      throw err
+    }
+  }
+
+  function cancelGeneration() {
+    generationCancelledRef.current.cancelled = true
+    setIsGenerating(false)
+  }
+
+  function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 15000)
+  }
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -58,24 +113,17 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   const generateImage = async () => {
     if (!reportRef.current) return
     setIsGenerating(true)
+    let capturedContainer: HTMLElement | null = null
     try {
-      const canvas = await html2canvas(reportRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        width: reportRef.current.getBoundingClientRect().width,
-        height: reportRef.current.scrollHeight
-      })
-      const image = canvas.toDataURL('image/png')
-      const link = document.createElement('a')
-      link.download = `reporte-entrega-${delivery._id || 'sin-id'}.png`
-      link.href = image
-      link.click()
+      const { blob, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
+      capturedContainer = c
+      if (!blob) throw new Error('no blob')
+      downloadBlob(blob, `reporte-entrega-${delivery._id || 'sin-id'}.png`)
     } catch (error) {
       console.error('Error generando imagen:', error)
       alert('Error al generar la imagen del reporte')
     } finally {
+      if (capturedContainer && capturedContainer.parentNode) capturedContainer.parentNode.removeChild(capturedContainer)
       setIsGenerating(false)
     }
   }
@@ -83,84 +131,70 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   const shareImage = async () => {
     if (!reportRef.current) return
     setIsGenerating(true)
+    let capturedContainer: HTMLElement | null = null
     try {
       const nav: any = navigator
-
-      // Generate the image first (preferred) so we can attempt a file-based share.
-      const canvas = await html2canvas(reportRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        width: reportRef.current.getBoundingClientRect().width,
-        height: reportRef.current.scrollHeight
-      })
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b)))
+      const { blob, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
+      capturedContainer = c
       if (!blob) throw new Error('No se pudo generar la imagen')
 
       const file = new File([blob], `reporte-entrega-${delivery._id || 'sin-id'}.png`, { type: 'image/png' })
-      const shareDataFile: any = {
-        title: 'Reporte de Entrega',
-        text: `Entrega para ${delivery.customer?.name || ''}`
-      }
+      const shareMeta: any = { title: 'Reporte de Entrega', text: `Entrega para ${delivery.customer?.name || ''}` }
 
-      // Try file-based sharing first
+      // Prefer file-based share
       if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) {
         try {
-          await nav.share({ ...shareDataFile, files: [file] })
+          await nav.share({ ...shareMeta, files: [file] })
           return
         } catch (err) {
-          console.warn('share(files) falló tras generar imagen', err)
+          console.warn('navigator.share(files) failed', err)
         }
       }
 
-      // Some implementations accept files even if canShare is not present/true.
+      // Try calling share(files) even if canShare wasn't present
       if (nav.share) {
         try {
-          await nav.share({ ...shareDataFile, files: [file] })
+          await nav.share({ ...shareMeta, files: [file] })
           return
         } catch (err) {
-          console.warn('navigator.share(files) intentó pero falló', err)
+          console.warn('navigator.share(files) fallback failed', err)
         }
       }
 
-      // As a last resort, try text-only share (this will share the page URL in many apps)
-      const shareDataText: any = {
-        title: 'Reporte de Entrega',
-        text: `Entrega para ${delivery.customer?.name || ''}`
-      }
+      // Try text-only share
       if (nav.share) {
         try {
-          await nav.share(shareDataText)
+          await nav.share(shareMeta)
           return
         } catch (err) {
-          console.warn('navigator.share(text) falló', err)
+          console.warn('navigator.share(text) failed', err)
         }
       }
 
-      const wantOpen = window.confirm('No fue posible abrir el menú de compartir automáticamente. ¿Deseas abrir la imagen en una nueva pestaña para compartirla manualmente (usar menú de Safari)?')
+      // Final fallback: open in new tab or download
+      const wantOpen = window.confirm('No fue posible abrir el menú de compartir automáticamente. ¿Deseas abrir la imagen en una nueva pestaña para compartirla manualmente?')
       if (wantOpen) {
-        try {
-          const url = URL.createObjectURL(blob)
-          const w = window.open(url, '_blank')
-          if (!w) {
-            generateImage()
-          } else {
-            setTimeout(() => URL.revokeObjectURL(url), 15000)
-          }
-          return
-        } catch (e) {
-          console.warn('No se pudo abrir la nueva pestaña con la imagen', e)
-        }
+        const url = URL.createObjectURL(blob)
+        const w = window.open(url, '_blank')
+        if (!w) downloadBlob(blob, `reporte-entrega-${delivery._id || 'sin-id'}.png`)
+        else setTimeout(() => URL.revokeObjectURL(url), 15000)
+        return
       }
 
       const shouldDownload = window.confirm('¿Deseas descargar el reporte en su lugar?')
-      if (shouldDownload) generateImage()
+      if (shouldDownload) downloadBlob(blob, `reporte-entrega-${delivery._id || 'sin-id'}.png`)
     } catch (error) {
       console.error('Error generando imagen para compartir:', error)
       const shouldDownload = window.confirm('No fue posible compartir el reporte. ¿Deseas descargarlo en su lugar?')
-      if (shouldDownload) generateImage()
+      if (shouldDownload) {
+        try {
+          await generateImage()
+        } catch (_) {
+          /* ignore */
+        }
+      }
     } finally {
+      if (capturedContainer && capturedContainer.parentNode) capturedContainer.parentNode.removeChild(capturedContainer)
       setIsGenerating(false)
     }
   }
@@ -168,31 +202,11 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   const generatePDF = async () => {
     if (!reportRef.current) return
     setIsGenerating(true)
-    const DESKTOP_WIDTH = 1000
+    let capturedContainer: HTMLElement | null = null
     try {
-      const original = reportRef.current
-      const clone = original.cloneNode(true) as HTMLElement
-      const container = document.createElement('div')
-      container.style.position = 'fixed'
-      container.style.left = '-9999px'
-      container.style.top = '0'
-      container.style.width = `${DESKTOP_WIDTH}px`
-      container.style.overflow = 'visible'
-      container.appendChild(clone)
-      document.body.appendChild(container)
-      clone.style.width = `${DESKTOP_WIDTH}px`
-      clone.style.boxSizing = 'border-box'
-
-      const scale = Math.min(2, (DESKTOP_WIDTH / (original.getBoundingClientRect().width || DESKTOP_WIDTH)) * 2)
-      const canvas = await html2canvas(clone, {
-        backgroundColor: '#ffffff',
-        scale,
-        useCORS: true,
-        allowTaint: true,
-        width: DESKTOP_WIDTH,
-        height: clone.scrollHeight
-      })
-
+      const { canvas, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
+      capturedContainer = c
+      if (!canvas) throw new Error('no canvas')
       const imgData = canvas.toDataURL('image/png')
       const jspdfModule: any = await import('jspdf')
       const { jsPDF } = jspdfModule
@@ -226,11 +240,11 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
         }
       }
       pdf.save(`reporte-entrega-${delivery._id || 'sin-id'}.pdf`)
-      document.body.removeChild(container)
     } catch (error) {
       console.error('Error generando PDF:', error)
       alert('Error al generar PDF del reporte')
     } finally {
+      if (capturedContainer && capturedContainer.parentNode) capturedContainer.parentNode.removeChild(capturedContainer)
       setIsGenerating(false)
     }
   }
@@ -337,7 +351,13 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       <div className="p-6 relative">
         {isGenerating && (
           <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center">
-            <div className="text-sm text-gray-700">Generando imagen, por favor espera...</div>
+            <div className="flex flex-col items-center gap-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-gray-600" />
+              <div className="text-sm text-gray-700">Generando imagen, por favor espera...</div>
+              <div className="flex gap-2">
+                <Button onClick={cancelGeneration} variant="secondary" size="sm">Cancelar</Button>
+              </div>
+            </div>
           </div>
         )}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -394,7 +414,12 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
               <span className="hidden sm:inline">Cerrar</span>
             </Button>
 
-            {isGenerating && <div className="ml-2 text-sm text-gray-600">Generando...</div>}
+            {isGenerating && (
+              <div className="ml-2 flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600" />
+                <div className="text-sm text-gray-600">Generando...</div>
+              </div>
+            )}
           </div>
         </div>
 
