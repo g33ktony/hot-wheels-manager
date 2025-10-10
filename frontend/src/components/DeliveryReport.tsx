@@ -323,6 +323,29 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             <div className="text-sm text-gray-700">Generando imagen, por favor espera...</div>
           </div>
         )}
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h3 className="text-lg font-semibold text-gray-900">Reporte de Entrega</h3>
+          <div className="flex gap-2 items-center">
+            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
+              <Share2 size={16} />
+              Compartir
+            </Button>
+
+            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
+              <Download size={16} />
+              Descargar
+            </Button>
+
+            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2" disabled={isGenerating}>
+              PDF
+            </Button>
+
+            <Button onClick={onClose} variant="secondary" size="sm" disabled={isGenerating}>
+              Cerrar
+            </Button>
+          </div>
+        </div>
+
         <div ref={reportRef}>{ReportContent}</div>
       </div>
     )
