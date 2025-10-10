@@ -33,6 +33,42 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
     }).format(amount)
   }
 
+  // Map delivery status values to Spanish labels
+  const statusToSpanish = (status?: string) => {
+    if (!status) return 'Desconocido'
+
+    const key = status.toLowerCase()
+    switch (key) {
+      case 'pending':
+      case 'pendiente':
+        return 'Pendiente'
+      case 'scheduled':
+      case 'programada':
+        return 'Programada'
+      case 'in_transit':
+      case 'in-transit':
+      case 'en_transito':
+      case 'en_transito':
+      case 'en tránsito':
+      case 'en_transito':
+        return 'En tránsito'
+      case 'delivered':
+      case 'entregado':
+        return 'Entregado'
+      case 'cancelled':
+      case 'canceled':
+      case 'cancelado':
+        return 'Cancelado'
+      case 'failed':
+      case 'error':
+      case 'fallido':
+        return 'Fallido'
+      default:
+        // Capitalize first letter and keep as fallback
+        return status.charAt(0).toUpperCase() + status.slice(1)
+    }
+  }
+
   const generateImage = async () => {
     if (!reportRef.current) return
     setIsGenerating(true)
@@ -210,7 +246,7 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
           >
             {/* Header del reporte */}
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Hot Wheels Manager</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">2Fast Wheels Garage</h1>
               <h2 className="text-lg font-semibold text-gray-700">Reporte de Entrega</h2>
               <p className="text-sm text-gray-500">ID: {delivery._id}</p>
             </div>
@@ -251,7 +287,7 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
                 </div>
                 <div className="mt-3">
                   <p className="text-sm text-gray-600">Estado</p>
-                  <p className="font-medium capitalize">{delivery.status}</p>
+                  <p className="font-medium">{statusToSpanish(delivery.status as any)}</p>
                 </div>
               </div>
             </div>
@@ -264,7 +300,7 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Artículo</th>
-                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">Cant.</th>
+                      <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">Cantidad</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Precio</th>
                       <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</th>
                     </tr>
@@ -306,7 +342,7 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
 
             {/* Footer */}
             <div className="text-center text-sm text-gray-500 mt-8 pt-4 border-t">
-              <p>Generado por Hot Wheels Manager</p>
+              <p>Generado por 2Fast Wheels Garage</p>
               <p>{new Date().toLocaleString('es-ES')}</p>
             </div>
           </div>
