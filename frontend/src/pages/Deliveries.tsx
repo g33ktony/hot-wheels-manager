@@ -1582,7 +1582,7 @@ export default function Deliveries() {
                         </div>
 
                         <div className="p-6">
-                            <DeliveryReport delivery={selectedDelivery} onClose={handleCloseReport} />
+                            <DeliveryReport delivery={selectedDelivery} onClose={handleCloseReport} inline />
                         </div>
                     </div>
                 </div>
