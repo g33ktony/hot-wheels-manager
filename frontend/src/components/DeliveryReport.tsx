@@ -49,7 +49,7 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
       case 'prepared':
         return 'Preparado'
       case 'completed':
-        return 'completado'
+        return 'Entregado'
       case 'rescheduled':
         return 'Reprogramado'
       default:
