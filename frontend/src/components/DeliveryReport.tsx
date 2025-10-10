@@ -27,7 +27,7 @@ export default function DeliveryReport({ delivery, onClose }: DeliveryReportProp
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN'
     }).format(amount)
