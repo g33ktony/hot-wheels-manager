@@ -1097,6 +1097,7 @@ export default function Deliveries() {
                                             <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
                                                 <div className="flex-1">
                                                     <InventoryItemSelector
+                                                        key={item.inventoryItemId || `empty-${index}`}
                                                         value={item.inventoryItemId || ''}
                                                         onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
                                                         excludeIds={newDelivery.items
