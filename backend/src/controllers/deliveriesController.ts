@@ -10,13 +10,18 @@ export const getDeliveries = async (req: Request, res: Response) => {
   try {
     // Get status filter from query params (default to non-completed)
     const { status } = req.query;
+
+    // Build filter
+    const filter: any = {};
     
-    // Build filter query
-    let filter: any = {};
-    if (status && status !== 'all') {
+    // Handle status filtering
+    if (status === 'pending') {
+      // 'pending' means both scheduled and prepared
+      filter.status = { $in: ['scheduled', 'prepared'] };
+    } else if (status) {
       filter.status = status;
-    } else if (!status) {
-      // Default: exclude completed deliveries for better performance
+    } else {
+      // Default: exclude completed deliveries
       filter.status = { $ne: 'completed' };
     }
     
