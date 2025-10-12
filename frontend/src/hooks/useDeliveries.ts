@@ -6,6 +6,9 @@ import toast from 'react-hot-toast'
 export const useDeliveries = () => {
   return useQuery('deliveries', deliveriesService.getAll, {
     staleTime: 2 * 60 * 1000, // 2 minutos
+    retry: 3, // Retry 3 times on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    refetchOnWindowFocus: false, // Don't refetch on window focus to reduce load
   })
 }
 

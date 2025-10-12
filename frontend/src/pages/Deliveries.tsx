@@ -63,7 +63,10 @@ export default function Deliveries() {
 
     const { data: deliveries, isLoading, error } = useDeliveries()
     const { data: customers } = useCustomers()
-    const { data: inventoryData } = useInventory({ limit: 1000 }) // Cargar todos los items para deliveries
+    // Only load inventory when creating/editing a delivery
+    const { data: inventoryData } = useInventory({ 
+        limit: showCreateModal ? 1000 : 10 // Load all only when modal is open
+    })
     const inventoryItems = inventoryData?.items || []
     const { data: deliveryLocations } = useDeliveryLocations()
     const createDeliveryMutation = useCreateDelivery()
@@ -84,7 +87,20 @@ export default function Deliveries() {
     if (error) {
         return (
             <div className="text-center py-12">
-                <p className="text-danger-600">Error al cargar las entregas</p>
+                <div className="mb-4">
+                    <Truck size={64} className="mx-auto text-gray-400 mb-4" />
+                    <p className="text-danger-600 text-lg font-semibold mb-2">Error al cargar las entregas</p>
+                    <p className="text-gray-600 text-sm mb-4">
+                        {(error as any)?.message || 'No se pudo conectar con el servidor'}
+                    </p>
+                </div>
+                <Button 
+                    onClick={() => window.location.reload()} 
+                    variant="primary"
+                    size="sm"
+                >
+                    Reintentar
+                </Button>
             </div>
         )
     }

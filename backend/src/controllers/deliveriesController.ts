@@ -9,9 +9,15 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
     const deliveries = await DeliveryModel.find()
-      .populate('customerId')
-      .populate('items.inventoryItemId')
-      .sort({ scheduledDate: -1 });
+      .populate('customerId', 'name email phone') // Only select needed fields
+      .populate({
+        path: 'items.inventoryItemId',
+        select: 'carName purchasePrice condition' // Only select needed fields
+      })
+      .select('-__v') // Exclude version key
+      .sort({ scheduledDate: -1 })
+      .lean() // Convert to plain JS objects for better performance
+      .limit(200); // Limit results to prevent overload
 
     res.json({
       success: true,
