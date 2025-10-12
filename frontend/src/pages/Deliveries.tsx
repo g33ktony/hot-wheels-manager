@@ -327,6 +327,13 @@ export default function Deliveries() {
         const formattedDelivery = {
             customerId: customerId,
             items: delivery.items?.map((item: any) => {
+                console.log('🔍 Formatting item for edit:', {
+                    inventoryItemId: item.inventoryItemId,
+                    hotWheelsCarId: item.hotWheelsCarId,
+                    carId: item.carId,
+                    carName: item.carName
+                })
+                
                 let inventoryItemId = ''
                 if (item.inventoryItemId) {
                     if (typeof item.inventoryItemId === 'string') {
@@ -337,7 +344,7 @@ export default function Deliveries() {
                         inventoryItemId = String(item.inventoryItemId)
                     }
                 }
-                
+
                 // If no inventoryItemId, try to use hotWheelsCarId as fallback
                 if (!inventoryItemId && item.hotWheelsCarId) {
                     if (typeof item.hotWheelsCarId === 'string') {
@@ -348,7 +355,9 @@ export default function Deliveries() {
                         inventoryItemId = String(item.hotWheelsCarId)
                     }
                 }
-                
+
+                console.log('✅ Final inventoryItemId:', inventoryItemId)
+
                 return {
                     inventoryItemId: inventoryItemId,
                     hotWheelsCarId: item.hotWheelsCarId,
