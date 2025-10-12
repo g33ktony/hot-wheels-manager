@@ -723,6 +723,17 @@ export default function Deliveries() {
                                             >
                                                 <Eye size={16} />
                                             </Button>
+                                            {delivery.status !== 'completed' && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    onClick={() => handleEditDelivery(delivery)}
+                                                    title="Editar entrega"
+                                                    className="min-w-[44px] min-h-[44px] !text-blue-600 hover:!text-blue-700 !bg-blue-50 hover:!bg-blue-100"
+                                                >
+                                                    <Edit size={16} />
+                                                </Button>
+                                            )}
                                             <Button
                                                 size="sm"
                                                 variant="secondary"
