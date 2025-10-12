@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useInventory } from '@/hooks/useInventory'
+import { useInventory, useInventoryItem } from '@/hooks/useInventory'
 
 interface InventoryItemSelectorProps {
     value: string // inventoryItemId
@@ -31,10 +31,8 @@ export default function InventoryItemSelector({
         limit: 20
     })
 
-    // Separate query to fetch initial item by ID when editing
-    const { data: initialItemData } = useInventory({
-        limit: 1000, // Get all items to find the one we need
-    })
+    // Fetch specific item by ID when editing (more efficient than loading all items)
+    const { data: initialItem } = useInventoryItem(value)
 
     // Filter to show only items with available stock
     const availableItems = (inventoryData?.items || []).filter(item => {
@@ -45,20 +43,17 @@ export default function InventoryItemSelector({
 
     // Initialize with the selected item from parent value
     useEffect(() => {
-        if (value && !isInitialized && initialItemData?.items) {
-            const item = initialItemData.items.find(i => i._id === value)
-            if (item) {
-                setSelectedItem(item)
-                setSearchTerm(item.hotWheelsCar?.model || item.carId)
-                setIsInitialized(true)
-            }
+        if (value && !isInitialized && initialItem) {
+            setSelectedItem(initialItem)
+            setSearchTerm(initialItem.hotWheelsCar?.model || initialItem.carId)
+            setIsInitialized(true)
         } else if (!value && isInitialized) {
             // Parent cleared the value
             setSelectedItem(null)
             setSearchTerm('')
             setIsInitialized(false)
         }
-    }, [value, initialItemData, isInitialized])
+    }, [value, initialItem, isInitialized])
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
