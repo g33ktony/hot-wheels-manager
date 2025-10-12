@@ -71,7 +71,11 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   }
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('es-ES', {
+    // Extract date without timezone issues
+    const dateStr = date.toString().split('T')[0]
+    const [year, month, day] = dateStr.split('-')
+    const localDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    return localDate.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
