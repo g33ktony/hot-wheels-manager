@@ -822,11 +822,10 @@ export default function Deliveries() {
                                             variant="secondary"
                                             onClick={() => handleEditDelivery(delivery)}
                                             title="Editar entrega"
-                                            className="text-blue-500 hover:text-blue-700"
+                                            className="!text-blue-600 hover:!text-blue-700 !bg-blue-50 hover:!bg-blue-100"
                                         >
                                             <Edit size={16} />
                                         </Button>
-
                                     )}
                                     <Button
                                         size="sm"
@@ -861,8 +860,8 @@ export default function Deliveries() {
 
             {/* Create Delivery Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden">
                         <div className="flex items-center justify-between p-6 border-b">
                             <h2 className="text-xl font-semibold text-gray-900">
                                 {isEditMode ? 'Editar Entrega' : 'Nueva Entrega'}
@@ -1230,9 +1229,9 @@ export default function Deliveries() {
 
             {/* Details Modal */}
             {showDetailsModal && selectedDelivery && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden">
+                        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
                             <h2 className="text-xl font-semibold text-gray-900">Detalles de Entrega</h2>
                             <button
                                 onClick={handleCloseDetails}
@@ -1240,6 +1239,86 @@ export default function Deliveries() {
                             >
                                 <X size={20} />
                             </button>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="px-6 py-4 bg-gray-50 border-b">
+                            <div className="flex flex-wrap gap-2">
+                                {selectedDelivery.status === 'scheduled' && (
+                                    <>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                handleMarkAsPrepared(selectedDelivery._id!)
+                                                handleCloseDetails()
+                                            }}
+                                            disabled={markPreparedMutation.isLoading}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Package size={16} />
+                                            <span>Marcar como Preparada</span>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
+                                                    handleMarkAsCompleted(selectedDelivery._id!)
+                                                    handleCloseDetails()
+                                                }
+                                            }}
+                                            disabled={markCompletedMutation.isLoading}
+                                            variant="success"
+                                            className="flex items-center gap-2"
+                                        >
+                                            <CheckCircle size={16} />
+                                            <span>Marcar como Completada</span>
+                                        </Button>
+                                    </>
+                                )}
+                                {selectedDelivery.status === 'prepared' && (
+                                    <Button
+                                        size="sm"
+                                        onClick={() => {
+                                            if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
+                                                handleMarkAsCompleted(selectedDelivery._id!)
+                                                handleCloseDetails()
+                                            }
+                                        }}
+                                        disabled={markCompletedMutation.isLoading}
+                                        variant="success"
+                                        className="flex items-center gap-2"
+                                    >
+                                        <CheckCircle size={16} />
+                                        <span>Marcar como Completada</span>
+                                    </Button>
+                                )}
+                                {selectedDelivery.status !== 'completed' && (
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => {
+                                            handleEditDelivery(selectedDelivery)
+                                            handleCloseDetails()
+                                        }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Edit size={16} />
+                                        <span>Editar</span>
+                                    </Button>
+                                )}
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        handleShowReport(selectedDelivery)
+                                        handleCloseDetails()
+                                    }}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Share2 size={16} />
+                                    <span>Compartir Reporte</span>
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="p-6">
