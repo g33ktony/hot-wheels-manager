@@ -8,6 +8,7 @@ interface InventoryItemSelectorProps {
     excludeIds?: string[] // IDs de items ya seleccionados en otros campos
     placeholder?: string
     required?: boolean
+    fallbackName?: string // Display name when item is not found in inventory
 }
 
 export default function InventoryItemSelector({
@@ -16,7 +17,8 @@ export default function InventoryItemSelector({
     onSelect,
     excludeIds = [],
     placeholder,
-    required
+    required,
+    fallbackName
 }: InventoryItemSelectorProps) {
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -49,6 +51,20 @@ export default function InventoryItemSelector({
                 setSelectedItem(initialItem)
                 setSearchTerm(initialItem.hotWheelsCar?.model || initialItem.carId)
             }
+        } else if (value && fallbackName && !initialItem) {
+            // Item not found in inventory (404), but we have a fallback name to display
+            // Create a temporary item object to show the name
+            const tempItem = {
+                _id: value,
+                carId: fallbackName,
+                hotWheelsCar: { model: fallbackName },
+                quantity: 0, // Mark as unavailable
+                suggestedPrice: 0
+            }
+            if (!selectedItem || selectedItem._id !== value) {
+                setSelectedItem(tempItem)
+                setSearchTerm(fallbackName)
+            }
         } else if (!value) {
             // Parent cleared the value
             if (selectedItem || searchTerm) {
@@ -56,7 +72,7 @@ export default function InventoryItemSelector({
                 setSearchTerm('')
             }
         }
-    }, [value, initialItem])
+    }, [value, initialItem, fallbackName])
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

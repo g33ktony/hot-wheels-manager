@@ -1116,6 +1116,7 @@ export default function Deliveries() {
                                                         }
                                                         placeholder="Buscar pieza en inventario..."
                                                         required
+                                                        fallbackName={item.carName || undefined}
                                                     />
                                                 </div>
                                                 <div className="flex gap-3 sm:gap-4 sm:w-auto">
