@@ -7,9 +7,16 @@ import type {
 
 export const deliveriesService = {
   // Obtener todas las entregas
-  getAll: async (): Promise<Delivery[]> => {
-    const response = await api.get<ApiResponse<Delivery[]>>('/deliveries')
+  getAll: async (status?: string): Promise<Delivery[]> => {
+    const params = status ? { status } : {};
+    const response = await api.get<ApiResponse<Delivery[]>>('/deliveries', { params })
     return response.data.data || []
+  },
+
+  // Obtener estadísticas de entregas
+  getStats: async (): Promise<any> => {
+    const response = await api.get<ApiResponse<any>>('/deliveries/stats')
+    return response.data.data || {}
   },
 
   // Obtener entrega por ID

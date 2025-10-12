@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQueryClient } from 'react-query'
-import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
+import { useDeliveries, useDeliveryStats, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
@@ -14,6 +14,7 @@ import DeliveryReport from '@/components/DeliveryReport'
 
 export default function Deliveries() {
     const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState<string>()
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false)
@@ -61,10 +62,11 @@ export default function Deliveries() {
     const [customLocation, setCustomLocation] = useState('')
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
-    const { data: deliveries, isLoading, error } = useDeliveries()
+    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter)
+    const { data: stats } = useDeliveryStats()
     const { data: customers } = useCustomers()
     // Only load inventory when creating/editing a delivery
-    const { data: inventoryData } = useInventory({ 
+    const { data: inventoryData } = useInventory({
         limit: showCreateModal ? 1000 : 10 // Load all only when modal is open
     })
     const inventoryItems = inventoryData?.items || []
@@ -94,8 +96,8 @@ export default function Deliveries() {
                         {(error as any)?.message || 'No se pudo conectar con el servidor'}
                     </p>
                 </div>
-                <Button 
-                    onClick={() => window.location.reload()} 
+                <Button
+                    onClick={() => window.location.reload()}
                     variant="primary"
                     size="sm"
                 >
@@ -563,10 +565,15 @@ export default function Deliveries() {
         return newDelivery.items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0)
     }
 
+    // Use stats from API
     const totalDeliveries = deliveries?.length || 0
-    const pendingDeliveries = deliveries?.filter(d => d.status === 'scheduled').length || 0
-    const preparedDeliveries = deliveries?.filter(d => d.status === 'prepared').length || 0
-    const completedDeliveries = deliveries?.filter(d => d.status === 'completed').length || 0
+    const pendingDeliveries = stats?.scheduled?.count || 0
+    const preparedDeliveries = stats?.prepared?.count || 0
+    const completedDeliveries = stats?.completed?.count || 0
+
+    const handleStatusFilterClick = (status?: string) => {
+        setStatusFilter(statusFilter === status ? undefined : status)
+    }
 
     return (
         <div className="space-y-4 lg:space-y-6">
@@ -584,22 +591,28 @@ export default function Deliveries() {
                 </Button>
             </div>
 
-            {/* Stats Cards - 2 columns on mobile, 4 on desktop */}
+            {/* Stats Cards - 2 columns on mobile, 4 on desktop - Clickable to filter */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${!statusFilter ? 'ring-2 ring-blue-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick(undefined)}
+                    >
                         <div className="p-2 rounded-lg bg-blue-100 self-start">
                             <Truck size={20} className="text-blue-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-gray-600">Total Entregas</p>
+                            <p className="text-xs lg:text-sm font-medium text-gray-600">Total Activas</p>
                             <p className="text-lg lg:text-2xl font-bold text-gray-900">{totalDeliveries}</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${statusFilter === 'scheduled' ? 'ring-2 ring-yellow-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick('scheduled')}
+                    >
                         <div className="p-2 rounded-lg bg-yellow-100 self-start">
                             <Clock size={20} className="text-yellow-600" />
                         </div>
@@ -610,8 +623,11 @@ export default function Deliveries() {
                     </div>
                 </Card>
 
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${statusFilter === 'prepared' ? 'ring-2 ring-orange-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick('prepared')}
+                    >
                         <div className="p-2 rounded-lg bg-orange-100 self-start">
                             <Package size={20} className="text-orange-600" />
                         </div>
@@ -622,8 +638,11 @@ export default function Deliveries() {
                     </div>
                 </Card>
 
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${statusFilter === 'completed' ? 'ring-2 ring-green-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick('completed')}
+                    >
                         <div className="p-2 rounded-lg bg-green-100 self-start">
                             <CheckCircle size={20} className="text-green-600" />
                         </div>
@@ -662,6 +681,29 @@ export default function Deliveries() {
                     </div>
                 </div>
             </Card>
+
+            {/* Active Filter Indicator */}
+            {statusFilter && (
+                <div className="flex items-center justify-between px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                        Mostrando entregas: <span className="font-semibold">
+                            {statusFilter === 'scheduled' ? 'Pendientes' :
+                             statusFilter === 'prepared' ? 'Preparadas' :
+                             statusFilter === 'completed' ? 'Completadas' :
+                             statusFilter === 'cancelled' ? 'Canceladas' : 
+                             statusFilter === 'rescheduled' ? 'Reprogramadas' : ''}
+                        </span>
+                    </p>
+                    <Button 
+                        size="sm" 
+                        variant="secondary"
+                        onClick={() => setStatusFilter(undefined)}
+                        className="text-blue-700 hover:text-blue-900"
+                    >
+                        Limpiar filtro
+                    </Button>
+                </div>
+            )}
 
             {/* Deliveries List */}
             <Card className="p-4 lg:p-6">

@@ -8,8 +8,20 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 // Get all deliveries
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
+    // Get status filter from query params (default to non-completed)
+    const { status } = req.query;
+    
+    // Build filter query
+    let filter: any = {};
+    if (status && status !== 'all') {
+      filter.status = status;
+    } else if (!status) {
+      // Default: exclude completed deliveries for better performance
+      filter.status = { $ne: 'completed' };
+    }
+    
     // Simplified query - remove nested populate for better performance
-    const deliveries = await DeliveryModel.find()
+    const deliveries = await DeliveryModel.find(filter)
       .populate('customerId', 'name email phone') // Only populate customer
       .select('-__v') // Exclude version key
       .sort({ scheduledDate: -1 })
@@ -28,6 +40,52 @@ export const getDeliveries = async (req: Request, res: Response) => {
       success: false,
       data: null,
       message: 'Error al obtener las entregas'
+    });
+  }
+};
+
+// Get delivery statistics
+export const getDeliveryStats = async (req: Request, res: Response) => {
+  try {
+    const stats = await DeliveryModel.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$totalAmount' }
+        }
+      }
+    ]).option({ maxTimeMS: 5000 });
+    
+    // Format stats into an object
+    const formattedStats = {
+      scheduled: { count: 0, totalAmount: 0 },
+      prepared: { count: 0, totalAmount: 0 },
+      completed: { count: 0, totalAmount: 0 },
+      cancelled: { count: 0, totalAmount: 0 },
+      rescheduled: { count: 0, totalAmount: 0 },
+    };
+    
+    stats.forEach((stat: any) => {
+      if (formattedStats[stat._id as keyof typeof formattedStats]) {
+        formattedStats[stat._id as keyof typeof formattedStats] = {
+          count: stat.count,
+          totalAmount: stat.totalAmount
+        };
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: formattedStats,
+      message: 'Stats retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching delivery stats:', error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al obtener estadísticas'
     });
   }
 };
