@@ -377,10 +377,6 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
               <FileText size={16} />
               <span className="hidden sm:inline">PDF</span>
             </Button>
-
-            <Button onClick={onClose} variant="secondary" size="sm" className="min-w-0" disabled={isGenerating} aria-label="Cerrar reporte">
-              <span className="hidden sm:inline">Cerrar</span>
-            </Button>
           </div>
         </div>
 
