@@ -570,7 +570,8 @@ export default function Deliveries() {
     }
 
     // Use stats from API
-    const totalDeliveries = deliveries?.length || 0
+    // Total active deliveries = scheduled + prepared (not completed)
+    const totalDeliveries = (stats?.scheduled?.count || 0) + (stats?.prepared?.count || 0)
     const pendingDeliveries = (stats?.scheduled?.count || 0) + (stats?.prepared?.count || 0)
     const preparedDeliveries = stats?.prepared?.count || 0
     const completedDeliveries = stats?.completed?.count || 0
