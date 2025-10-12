@@ -822,9 +822,11 @@ export default function Deliveries() {
                                             variant="secondary"
                                             onClick={() => handleEditDelivery(delivery)}
                                             title="Editar entrega"
+                                            className="text-blue-500 hover:text-blue-700"
                                         >
                                             <Edit size={16} />
                                         </Button>
+
                                     )}
                                     <Button
                                         size="sm"

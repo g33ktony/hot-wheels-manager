@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
-import { Download, Share2 } from 'lucide-react'
+import { Download, Share2, FileText } from 'lucide-react'
 import Button from '@/components/common/Button'
 import type { Delivery } from '@shared/types'
 
@@ -374,7 +374,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             </Button>
 
             <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Generar PDF">
-              <span className="sr-only sm:not-sr-only">PDF</span>
+              <FileText size={16} />
               <span className="hidden sm:inline">PDF</span>
             </Button>
 
@@ -407,6 +407,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             </Button>
 
             <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Generar PDF">
+              <FileText size={16} />
               <span className="hidden sm:inline">PDF</span>
             </Button>
 
