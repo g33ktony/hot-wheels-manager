@@ -27,8 +27,13 @@ export default function Boxes() {
         ? Array.from(new Set(boxes.map((box: any) => box.brand).filter(Boolean)))
         : []
 
-    // Filter boxes
+    // Filter boxes - exclude completed boxes by default
     const filteredBoxes = boxes?.filter((box: any) => {
+        // Always exclude completed boxes from the list
+        if (box.boxStatus === 'completed') {
+            return false
+        }
+        
         const matchesSearch = box.boxName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             box.carId?.toLowerCase().includes(searchTerm.toLowerCase())
         const matchesBrand = filterBrand === 'all' || box.brand === filterBrand
