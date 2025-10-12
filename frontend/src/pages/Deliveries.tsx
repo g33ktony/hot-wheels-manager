@@ -337,13 +337,31 @@ export default function Deliveries() {
                         inventoryItemId = String(item.inventoryItemId)
                     }
                 }
+                
+                // If no inventoryItemId, try to use hotWheelsCarId as fallback
+                if (!inventoryItemId && item.hotWheelsCarId) {
+                    if (typeof item.hotWheelsCarId === 'string') {
+                        inventoryItemId = item.hotWheelsCarId
+                    } else if (item.hotWheelsCarId._id) {
+                        inventoryItemId = String(item.hotWheelsCarId._id)
+                    } else {
+                        inventoryItemId = String(item.hotWheelsCarId)
+                    }
+                }
+                
                 return {
                     inventoryItemId: inventoryItemId,
                     hotWheelsCarId: item.hotWheelsCarId,
                     carId: item.carId,
                     carName: item.carName,
                     quantity: item.quantity,
-                    unitPrice: item.unitPrice
+                    unitPrice: item.unitPrice,
+                    // Preserve series information if present
+                    seriesId: item.seriesId,
+                    seriesName: item.seriesName,
+                    seriesSize: item.seriesSize,
+                    seriesPrice: item.seriesPrice,
+                    isSoldAsSeries: item.isSoldAsSeries
                 }
             }) || [],
             scheduledDate: delivery.scheduledDate ?
