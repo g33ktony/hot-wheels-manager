@@ -182,15 +182,16 @@ export default function Inventory() {
     }
 
     // Función para cambiar de página con scroll automático
-    const handlePageChange = (newPage: number, scrollToTop: boolean = false) => {
+    const handlePageChange = (newPage: number) => {
         setCurrentPage(newPage)
-        if (scrollToTop && topRef.current) {
+        // Always scroll to top when changing pages
+        if (topRef.current) {
             topRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
     }
 
     // Componente de paginación reutilizable
-    const PaginationControls = ({ position }: { position: 'top' | 'bottom' }) => {
+    const PaginationControls = () => {
         if (!pagination || pagination.totalPages <= 1) return null
 
         return (
@@ -216,7 +217,7 @@ export default function Inventory() {
                     <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => handlePageChange(Math.max(1, currentPage - 1), position === 'bottom')}
+                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
                         className="flex items-center gap-1 px-2 sm:px-3"
                     >
@@ -236,7 +237,7 @@ export default function Inventory() {
                                 return (
                                     <button
                                         key={pageNum}
-                                        onClick={() => handlePageChange(pageNum, position === 'bottom')}
+                                        onClick={() => handlePageChange(pageNum)}
                                         className={`px-2 sm:px-3 py-1 rounded text-sm font-medium transition-colors min-w-[32px] ${currentPage === pageNum
                                             ? 'bg-primary-500 text-white'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -258,7 +259,7 @@ export default function Inventory() {
                     <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => handlePageChange(Math.min(pagination.totalPages, currentPage + 1), position === 'bottom')}
+                        onClick={() => handlePageChange(Math.min(pagination.totalPages, currentPage + 1))}
                         disabled={currentPage === pagination.totalPages}
                         className="flex items-center gap-1 px-2 sm:px-3"
                     >
@@ -982,10 +983,22 @@ export default function Inventory() {
             </Card>
 
             {/* Pagination Controls - Top */}
-            <PaginationControls position="top" />
+            <PaginationControls />
 
-            {/* Inventory Grid */}
-            {filteredItems.length === 0 ? (
+            {/* Inventory Grid with loading overlay */}
+            <div className="relative">
+                {/* Loading overlay when changing pages */}
+                {isLoading && inventoryData && (
+                    <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+                            <p className="text-sm text-gray-600 font-medium">Cargando items...</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Inventory Grid */}
+                {filteredItems.length === 0 ? (
                 <Card>
                     <div className="text-center py-12">
                         <Package size={48} className="mx-auto text-gray-400 mb-4" />
@@ -1205,9 +1218,10 @@ export default function Inventory() {
                     ))}
                 </div>
             )}
+            </div>
 
             {/* Pagination Controls - Bottom */}
-            <PaginationControls position="bottom" />
+            <PaginationControls />
 
             {/* Add Item Modal */}
             {showAddModal && (
