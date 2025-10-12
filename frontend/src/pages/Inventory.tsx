@@ -140,13 +140,14 @@ export default function Inventory() {
         })
     }, [currentPage, inventoryItems, pagination])
 
-    // Prefetch next page for instant navigation
+    // Aggressive prefetching: prefetch next AND previous pages for instant navigation
     useEffect(() => {
-        if (pagination && currentPage < pagination.totalPages) {
-            const nextPage = currentPage + 1
+        if (!pagination) return
+
+        const prefetchPage = (page: number) => {
             queryClient.prefetchQuery(
-                ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase],
-                () => inventoryService.getAll(nextPage, itemsPerPage, {
+                ['inventory', page, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase],
+                () => inventoryService.getAll(page, itemsPerPage, {
                     search: debouncedSearchTerm,
                     condition: filterCondition,
                     brand: filterBrand,
@@ -155,6 +156,16 @@ export default function Inventory() {
                     chase: filterChase
                 })
             )
+        }
+
+        // Prefetch next page
+        if (currentPage < pagination.totalPages) {
+            prefetchPage(currentPage + 1)
+        }
+
+        // Prefetch previous page
+        if (currentPage > 1) {
+            prefetchPage(currentPage - 1)
         }
     }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, queryClient])
 
@@ -998,13 +1009,11 @@ export default function Inventory() {
 
             {/* Inventory Grid with loading overlay */}
             <div className="relative">
-                {/* Loading overlay when changing pages */}
+                {/* Subtle loading indicator when changing pages (data is cached so show old data) */}
                 {isLoading && inventoryData && (
-                    <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                            <p className="text-sm text-gray-600 font-medium">Cargando items...</p>
-                        </div>
+                    <div className="absolute top-4 right-4 z-20 bg-white shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 border border-gray-200">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500"></div>
+                        <p className="text-xs text-gray-600 font-medium">Cargando...</p>
                     </div>
                 )}
 

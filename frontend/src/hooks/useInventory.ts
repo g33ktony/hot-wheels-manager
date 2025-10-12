@@ -40,10 +40,10 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
       })
     }, 
     {
-      staleTime: 0, // Always refetch when query key changes
-      cacheTime: 5 * 60 * 1000, // 5 minutes
-      keepPreviousData: false, // Don't keep previous data - show loading state
-      refetchOnWindowFocus: false, // Don't refetch on window focus
+      staleTime: 1000, // Consider data fresh for 1 second
+      cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+      keepPreviousData: true, // Keep showing old data while new loads (smooth UX)
+      refetchOnWindowFocus: false,
     }
   )
 }
