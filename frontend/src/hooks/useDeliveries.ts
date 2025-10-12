@@ -3,9 +3,19 @@ import { deliveriesService } from '@/services/deliveries'
 import type { CreateDeliveryDto } from '@shared/types'
 import toast from 'react-hot-toast'
 
-export const useDeliveries = () => {
-  return useQuery('deliveries', deliveriesService.getAll, {
+export const useDeliveries = (status?: string) => {
+  return useQuery(['deliveries', status], () => deliveriesService.getAll(status), {
     staleTime: 2 * 60 * 1000, // 2 minutos
+    retry: 3, // Retry 3 times on failure
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    refetchOnWindowFocus: false, // Don't refetch on window focus to reduce load
+  })
+}
+
+export const useDeliveryStats = () => {
+  return useQuery('deliveryStats', deliveriesService.getStats, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   })
 }
 

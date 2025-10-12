@@ -4,6 +4,9 @@ import * as deliveryPaymentController from '../controllers/deliveryPaymentContro
 
 const router = Router()
 
+// GET /api/deliveries/stats - Get delivery statistics (must come before /:id)
+router.get('/stats', deliveriesController.getDeliveryStats)
+
 // GET /api/deliveries - Get all deliveries
 router.get('/', deliveriesController.getDeliveries)
 

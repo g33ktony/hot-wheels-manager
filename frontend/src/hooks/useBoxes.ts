@@ -36,7 +36,7 @@ export const useBoxes = () => {
     queryKey: ['boxes'],
     queryFn: async () => {
       return await boxesService.getAll()
-    }
+    },
   })
 }
 

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQueryClient } from 'react-query'
-import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
+import { useDeliveries, useDeliveryStats, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
@@ -8,15 +8,18 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign } from 'lucide-react'
+import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign, Share2 } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
+import DeliveryReport from '@/components/DeliveryReport'
 
 export default function Deliveries() {
     const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState<string>()
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [showReportModal, setShowReportModal] = useState(false)
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
     const [editingDelivery, setEditingDelivery] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
@@ -59,9 +62,13 @@ export default function Deliveries() {
     const [customLocation, setCustomLocation] = useState('')
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
-    const { data: deliveries, isLoading, error } = useDeliveries()
+    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter)
+    const { data: stats } = useDeliveryStats()
     const { data: customers } = useCustomers()
-    const { data: inventoryData } = useInventory({ limit: 1000 }) // Cargar todos los items para deliveries
+    // Only load inventory when creating/editing a delivery
+    const { data: inventoryData } = useInventory({
+        limit: showCreateModal ? 1000 : 10 // Load all only when modal is open
+    })
     const inventoryItems = inventoryData?.items || []
     const { data: deliveryLocations } = useDeliveryLocations()
     const createDeliveryMutation = useCreateDelivery()
@@ -82,7 +89,20 @@ export default function Deliveries() {
     if (error) {
         return (
             <div className="text-center py-12">
-                <p className="text-danger-600">Error al cargar las entregas</p>
+                <div className="mb-4">
+                    <Truck size={64} className="mx-auto text-gray-400 mb-4" />
+                    <p className="text-danger-600 text-lg font-semibold mb-2">Error al cargar las entregas</p>
+                    <p className="text-gray-600 text-sm mb-4">
+                        {(error as any)?.message || 'No se pudo conectar con el servidor'}
+                    </p>
+                </div>
+                <Button
+                    onClick={() => window.location.reload()}
+                    variant="primary"
+                    size="sm"
+                >
+                    Reintentar
+                </Button>
             </div>
         )
     }
@@ -187,6 +207,19 @@ export default function Deliveries() {
     const handleViewDetails = (delivery: any) => {
         setSelectedDelivery(delivery)
         setShowDetailsModal(true)
+    }
+
+    const handleShowReport = (delivery: any) => {
+        setSelectedDelivery(delivery)
+        setShowReportModal(true)
+    }
+
+    const handleCloseReport = () => {
+        setShowReportModal(false)
+        // Don't clear selectedDelivery if details modal is still open
+        if (!showDetailsModal) {
+            setSelectedDelivery(null)
+        }
     }
 
     const handleCloseDetails = () => {
@@ -532,10 +565,15 @@ export default function Deliveries() {
         return newDelivery.items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0)
     }
 
+    // Use stats from API
     const totalDeliveries = deliveries?.length || 0
-    const pendingDeliveries = deliveries?.filter(d => d.status === 'scheduled').length || 0
-    const preparedDeliveries = deliveries?.filter(d => d.status === 'prepared').length || 0
-    const completedDeliveries = deliveries?.filter(d => d.status === 'completed').length || 0
+    const pendingDeliveries = stats?.scheduled?.count || 0
+    const preparedDeliveries = stats?.prepared?.count || 0
+    const completedDeliveries = stats?.completed?.count || 0
+
+    const handleStatusFilterClick = (status?: string) => {
+        setStatusFilter(statusFilter === status ? undefined : status)
+    }
 
     return (
         <div className="space-y-4 lg:space-y-6">
@@ -553,22 +591,28 @@ export default function Deliveries() {
                 </Button>
             </div>
 
-            {/* Stats Cards - 2 columns on mobile, 4 on desktop */}
+            {/* Stats Cards - 2 columns on mobile, 4 on desktop - Clickable to filter */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${!statusFilter ? 'ring-2 ring-blue-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick(undefined)}
+                    >
                         <div className="p-2 rounded-lg bg-blue-100 self-start">
                             <Truck size={20} className="text-blue-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-gray-600">Total Entregas</p>
+                            <p className="text-xs lg:text-sm font-medium text-gray-600">Total Activas</p>
                             <p className="text-lg lg:text-2xl font-bold text-gray-900">{totalDeliveries}</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${statusFilter === 'scheduled' ? 'ring-2 ring-yellow-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick('scheduled')}
+                    >
                         <div className="p-2 rounded-lg bg-yellow-100 self-start">
                             <Clock size={20} className="text-yellow-600" />
                         </div>
@@ -579,8 +623,11 @@ export default function Deliveries() {
                     </div>
                 </Card>
 
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${statusFilter === 'prepared' ? 'ring-2 ring-orange-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick('prepared')}
+                    >
                         <div className="p-2 rounded-lg bg-orange-100 self-start">
                             <Package size={20} className="text-orange-600" />
                         </div>
@@ -591,8 +638,11 @@ export default function Deliveries() {
                     </div>
                 </Card>
 
-                <Card className="p-4 lg:p-6 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
+                <Card className={`p-4 lg:p-6 hover:shadow-md transition-all duration-200 cursor-pointer ${statusFilter === 'completed' ? 'ring-2 ring-green-500' : ''}`}>
+                    <div 
+                        className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0"
+                        onClick={() => handleStatusFilterClick('completed')}
+                    >
                         <div className="p-2 rounded-lg bg-green-100 self-start">
                             <CheckCircle size={20} className="text-green-600" />
                         </div>
@@ -631,6 +681,29 @@ export default function Deliveries() {
                     </div>
                 </div>
             </Card>
+
+            {/* Active Filter Indicator */}
+            {statusFilter && (
+                <div className="flex items-center justify-between px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                        Mostrando entregas: <span className="font-semibold">
+                            {statusFilter === 'scheduled' ? 'Pendientes' :
+                             statusFilter === 'prepared' ? 'Preparadas' :
+                             statusFilter === 'completed' ? 'Completadas' :
+                             statusFilter === 'cancelled' ? 'Canceladas' : 
+                             statusFilter === 'rescheduled' ? 'Reprogramadas' : ''}
+                        </span>
+                    </p>
+                    <Button 
+                        size="sm" 
+                        variant="secondary"
+                        onClick={() => setStatusFilter(undefined)}
+                        className="text-blue-700 hover:text-blue-900"
+                    >
+                        Limpiar filtro
+                    </Button>
+                </div>
+            )}
 
             {/* Deliveries List */}
             <Card className="p-4 lg:p-6">
@@ -714,20 +787,20 @@ export default function Deliveries() {
                                                     variant="secondary"
                                                     onClick={() => handleEditDelivery(delivery)}
                                                     title="Editar entrega"
-                                                    className="min-w-[44px] min-h-[44px]"
+                                                    className="min-w-[44px] min-h-[44px] !text-blue-600 hover:!text-blue-700 !bg-blue-50 hover:!bg-blue-100"
                                                 >
                                                     <Edit size={16} />
                                                 </Button>
                                             )}
                                             <Button
                                                 size="sm"
-                                                variant="danger"
-                                                onClick={() => handleDeleteDelivery(delivery._id!)}
-                                                disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
+                                                variant="secondary"
+                                                onClick={() => handleShowReport(delivery)}
+                                                title="Compartir reporte"
+                                                aria-label="Compartir reporte"
                                                 className="min-w-[44px] min-h-[44px]"
-                                                title={delivery.status === 'completed' ? 'No se puede eliminar entrega completada' : 'Eliminar entrega'}
                                             >
-                                                <Trash2 size={16} />
+                                                <Share2 size={16} />
                                             </Button>
                                         </div>
                                     </div>
@@ -821,10 +894,20 @@ export default function Deliveries() {
                                             variant="secondary"
                                             onClick={() => handleEditDelivery(delivery)}
                                             title="Editar entrega"
+                                            className="!text-blue-600 hover:!text-blue-700 !bg-blue-50 hover:!bg-blue-100"
                                         >
                                             <Edit size={16} />
                                         </Button>
                                     )}
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => handleShowReport(delivery)}
+                                        title="Compartir reporte"
+                                        aria-label="Compartir reporte"
+                                    >
+                                        <Share2 size={16} />
+                                    </Button>
                                     <Button
                                         size="sm"
                                         variant="danger"
@@ -849,8 +932,8 @@ export default function Deliveries() {
 
             {/* Create Delivery Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden">
                         <div className="flex items-center justify-between p-6 border-b">
                             <h2 className="text-xl font-semibold text-gray-900">
                                 {isEditMode ? 'Editar Entrega' : 'Nueva Entrega'}
@@ -1218,9 +1301,9 @@ export default function Deliveries() {
 
             {/* Details Modal */}
             {showDetailsModal && selectedDelivery && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden">
+                        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
                             <h2 className="text-xl font-semibold text-gray-900">Detalles de Entrega</h2>
                             <button
                                 onClick={handleCloseDetails}
@@ -1228,6 +1311,85 @@ export default function Deliveries() {
                             >
                                 <X size={20} />
                             </button>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="px-6 py-4 bg-gray-50 border-b">
+                            <div className="flex flex-wrap gap-2">
+                                {selectedDelivery.status === 'scheduled' && (
+                                    <>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                handleMarkAsPrepared(selectedDelivery._id!)
+                                                handleCloseDetails()
+                                            }}
+                                            disabled={markPreparedMutation.isLoading}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Package size={16} />
+                                            <span>Marcar como Preparada</span>
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
+                                                    handleMarkAsCompleted(selectedDelivery._id!)
+                                                    handleCloseDetails()
+                                                }
+                                            }}
+                                            disabled={markCompletedMutation.isLoading}
+                                            variant="success"
+                                            className="flex items-center gap-2"
+                                        >
+                                            <CheckCircle size={16} />
+                                            <span>Marcar como Completada</span>
+                                        </Button>
+                                    </>
+                                )}
+                                {selectedDelivery.status === 'prepared' && (
+                                    <Button
+                                        size="sm"
+                                        onClick={() => {
+                                            if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
+                                                handleMarkAsCompleted(selectedDelivery._id!)
+                                                handleCloseDetails()
+                                            }
+                                        }}
+                                        disabled={markCompletedMutation.isLoading}
+                                        variant="success"
+                                        className="flex items-center gap-2"
+                                    >
+                                        <CheckCircle size={16} />
+                                        <span>Marcar como Completada</span>
+                                    </Button>
+                                )}
+                                {selectedDelivery.status !== 'completed' && (
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => {
+                                            handleEditDelivery(selectedDelivery)
+                                            handleCloseDetails()
+                                        }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Edit size={16} />
+                                        <span>Editar</span>
+                                    </Button>
+                                )}
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        setShowReportModal(true)
+                                    }}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Share2 size={16} />
+                                    <span>Compartir Reporte</span>
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="p-6">
@@ -1552,6 +1714,27 @@ export default function Deliveries() {
                                     {addPaymentMutation.isLoading ? 'Registrando...' : 'Registrar Pago'}
                                 </Button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delivery Report Modal */}
+            {showReportModal && selectedDelivery && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto overflow-x-hidden">
+                        <div className="flex items-center justify-between p-6 border-b">
+                            <h2 className="text-xl font-semibold text-gray-900">Reporte de Entrega</h2>
+                            <button
+                                onClick={handleCloseReport}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <DeliveryReport delivery={selectedDelivery} onClose={handleCloseReport} inline />
                         </div>
                     </div>
                 </div>

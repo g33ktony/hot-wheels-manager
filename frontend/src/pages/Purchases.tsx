@@ -1053,8 +1053,8 @@ export default function Purchases() {
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
                                                                 className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${(item.itemType === 'individual' || !item.itemType) && !item.isBox
-                                                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                                        : 'border-gray-300 hover:border-gray-400'
+                                                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                                    : 'border-gray-300 hover:border-gray-400'
                                                                     }`}
                                                                 style={{
                                                                     WebkitTapHighlightColor: 'transparent',
@@ -1078,8 +1078,8 @@ export default function Purchases() {
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
                                                                 className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'box' || item.isBox
-                                                                        ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                                                        : 'border-gray-300 hover:border-gray-400'
+                                                                    ? 'border-purple-500 bg-purple-50 text-purple-700'
+                                                                    : 'border-gray-300 hover:border-gray-400'
                                                                     }`}
                                                                 style={{
                                                                     WebkitTapHighlightColor: 'transparent',
@@ -1103,8 +1103,8 @@ export default function Purchases() {
                                                                     setNewPurchase({ ...newPurchase, items: updatedItems })
                                                                 }}
                                                                 className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'series'
-                                                                        ? 'border-green-500 bg-green-50 text-green-700'
-                                                                        : 'border-gray-300 hover:border-gray-400'
+                                                                    ? 'border-green-500 bg-green-50 text-green-700'
+                                                                    : 'border-gray-300 hover:border-gray-400'
                                                                     }`}
                                                                 style={{
                                                                     WebkitTapHighlightColor: 'transparent',
