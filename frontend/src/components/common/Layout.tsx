@@ -17,6 +17,7 @@ import {
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
+import { useBoxes } from '@/hooks/useBoxes'
 
 interface LayoutProps {
     children: ReactNode
@@ -28,6 +29,10 @@ export default function Layout({ children }: LayoutProps) {
     const navigate = useNavigate()
     const { user, logout } = useAuth()
     const { data: pendingItemsStats } = usePendingItemsStats()
+    const { data: boxes } = useBoxes()
+
+    // Filter active boxes (exclude completed ones)
+    const activeBoxes = boxes?.filter((box: any) => box.boxStatus !== 'completed') || []
 
     const navigationItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -42,7 +47,13 @@ export default function Layout({ children }: LayoutProps) {
             badge: pendingItemsStats.totalCount,
             highlight: true
         }] : []),
-        { name: 'Cajas', href: '/boxes', icon: PackageOpen },
+        // Conditional: Only show if there are active boxes (sealed or unpacking)
+        ...(activeBoxes.length > 0 ? [{
+            name: 'Cajas',
+            href: '/boxes',
+            icon: PackageOpen,
+            badge: activeBoxes.length
+        }] : []),
         { name: 'Entregas', href: '/deliveries', icon: Truck },
         { name: 'Clientes', href: '/customers', icon: Users },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
