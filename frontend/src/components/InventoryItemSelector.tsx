@@ -21,7 +21,6 @@ export default function InventoryItemSelector({
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedItem, setSelectedItem] = useState<any>(null)
-    const [isInitialized, setIsInitialized] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
     const suggestionsRef = useRef<HTMLDivElement>(null)
 
@@ -43,17 +42,21 @@ export default function InventoryItemSelector({
 
     // Initialize with the selected item from parent value
     useEffect(() => {
-        if (value && !isInitialized && initialItem) {
-            setSelectedItem(initialItem)
-            setSearchTerm(initialItem.hotWheelsCar?.model || initialItem.carId)
-            setIsInitialized(true)
-        } else if (!value && isInitialized) {
+        // If we have a value and the initialItem is loaded
+        if (value && initialItem) {
+            // Only update if we don't have a selected item or if the value changed
+            if (!selectedItem || selectedItem._id !== value) {
+                setSelectedItem(initialItem)
+                setSearchTerm(initialItem.hotWheelsCar?.model || initialItem.carId)
+            }
+        } else if (!value) {
             // Parent cleared the value
-            setSelectedItem(null)
-            setSearchTerm('')
-            setIsInitialized(false)
+            if (selectedItem || searchTerm) {
+                setSelectedItem(null)
+                setSearchTerm('')
+            }
         }
-    }, [value, initialItem, isInitialized])
+    }, [value, initialItem])
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -111,7 +114,6 @@ export default function InventoryItemSelector({
         setSearchTerm('')
         onChange('')
         setShowSuggestions(false)
-        setIsInitialized(false)
         inputRef.current?.focus()
     }
 
