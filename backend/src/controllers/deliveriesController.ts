@@ -8,16 +8,14 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 // Get all deliveries
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
+    // Simplified query - remove nested populate for better performance
     const deliveries = await DeliveryModel.find()
-      .populate('customerId', 'name email phone') // Only select needed fields
-      .populate({
-        path: 'items.inventoryItemId',
-        select: 'carName purchasePrice condition' // Only select needed fields
-      })
+      .populate('customerId', 'name email phone') // Only populate customer
       .select('-__v') // Exclude version key
       .sort({ scheduledDate: -1 })
       .lean() // Convert to plain JS objects for better performance
-      .limit(200); // Limit results to prevent overload
+      .limit(200) // Limit results to prevent overload
+      .maxTimeMS(8000); // Set max execution time to 8 seconds
 
     res.json({
       success: true,
