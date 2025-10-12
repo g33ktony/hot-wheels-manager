@@ -40,9 +40,9 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
       })
     }, 
     {
-      staleTime: 1000, // Consider data fresh for 1 second
+      staleTime: 0, // Always consider stale to force refetch
       cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-      keepPreviousData: true, // Keep showing old data while new loads (smooth UX)
+      keepPreviousData: false, // TEMP: Disable to see if we get correct data
       refetchOnWindowFocus: false,
     }
   )

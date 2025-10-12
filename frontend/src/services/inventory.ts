@@ -57,9 +57,15 @@ export const inventoryService = {
       params.append('chase', 'true')
     }
 
+    console.log('🌐 API Call:', `/inventory?${params.toString()}`)
     const response = await api.get<ApiResponse<PaginatedInventoryResponse>>(
       `/inventory?${params.toString()}`
     )
+    console.log('📦 API Response:', {
+      itemCount: response.data.data?.items?.length,
+      pagination: response.data.data?.pagination,
+      firstItemId: response.data.data?.items?.[0]?._id
+    })
     return response.data.data || { items: [], pagination: { currentPage: 1, totalPages: 0, totalItems: 0, itemsPerPage: limit } }
   },
 
