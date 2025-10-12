@@ -28,18 +28,22 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
   
   return useQuery(
     ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase], 
-    () => inventoryService.getAll(page, limit, {
-      search,
-      condition,
-      brand,
-      pieceType,
-      treasureHunt,
-      chase
-    }), 
+    () => {
+      console.log('🔄 Fetching inventory for page:', page)
+      return inventoryService.getAll(page, limit, {
+        search,
+        condition,
+        brand,
+        pieceType,
+        treasureHunt,
+        chase
+      })
+    }, 
     {
-      staleTime: 30 * 1000, // 30 seconds
+      staleTime: 0, // Always refetch when query key changes
       cacheTime: 5 * 60 * 1000, // 5 minutes
-      keepPreviousData: true, // Mantiene datos anteriores mientras carga nuevos
+      keepPreviousData: false, // Don't keep previous data - show loading state
+      refetchOnWindowFocus: false, // Don't refetch on window focus
     }
   )
 }
