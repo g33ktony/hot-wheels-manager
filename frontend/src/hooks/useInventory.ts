@@ -26,23 +26,13 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
     chase = false
   } = options
   
-  return useQuery(
-    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase], 
-    () => {
-      console.log('🔄 Fetching inventory for page:', page)
-      return inventoryService.getAll(page, limit, {
-        search,
-        condition,
-        brand,
-        pieceType,
-        treasureHunt,
-        chase
-      })
-    }, 
+  return useQuery<PaginatedInventoryResponse, Error>(
+    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase],
+    () => inventoryService.getAll({ page, limit, search, condition, brand, pieceType, treasureHunt, chase }),
     {
-      staleTime: 0, // Always consider stale to force refetch
+      staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
       cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-      keepPreviousData: false, // TEMP: Disable to see if we get correct data
+      keepPreviousData: true, // Show previous data while fetching new page for smooth transitions
       refetchOnWindowFocus: false,
     }
   )

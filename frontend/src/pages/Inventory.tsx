@@ -130,16 +130,6 @@ export default function Inventory() {
     const inventoryItems = inventoryData?.items || []
     const pagination = inventoryData?.pagination
 
-    // Debug logging
-    useEffect(() => {
-        console.log('📊 Inventory data updated:', {
-            currentPage,
-            itemCount: inventoryItems.length,
-            firstItemId: inventoryItems[0]?._id,
-            pagination: pagination
-        })
-    }, [currentPage, inventoryItems, pagination])
-
     // Aggressive prefetching: prefetch next AND previous pages for instant navigation
     useEffect(() => {
         if (!pagination) return
@@ -204,7 +194,6 @@ export default function Inventory() {
 
     // Función para cambiar de página con scroll automático
     const handlePageChange = (newPage: number) => {
-        console.log('📄 Changing page from', currentPage, 'to', newPage)
         setCurrentPage(newPage)
         // Always scroll to top when changing pages
         if (topRef.current) {
