@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { inventoryService } from '@/services/inventory'
+import { inventoryService, type PaginatedInventoryResponse } from '@/services/inventory'
 import type { CreateInventoryItemDto } from '@shared/types'
 import toast from 'react-hot-toast'
 
@@ -28,7 +28,7 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
   
   return useQuery<PaginatedInventoryResponse, Error>(
     ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase],
-    () => inventoryService.getAll({ page, limit, search, condition, brand, pieceType, treasureHunt, chase }),
+    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase }),
     {
       staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
       cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes

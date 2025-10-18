@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useInventory, useInventoryItem } from '@/hooks/useInventory'
+import type { InventoryItem } from '@shared/types'
 
 interface InventoryItemSelectorProps {
     value: string // inventoryItemId
@@ -36,7 +37,7 @@ export default function InventoryItemSelector({
     const { data: initialItem } = useInventoryItem(value)
 
     // Filter to show only items with available stock
-    const availableItems = (inventoryData?.items || []).filter(item => {
+    const availableItems = (inventoryData?.items || []).filter((item: InventoryItem) => {
         const available = item.quantity - (item.reservedQuantity || 0)
         // Exclude already selected items in other rows
         return available > 0 && item._id && !excludeIds.includes(item._id)
@@ -178,7 +179,7 @@ export default function InventoryItemSelector({
                     className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto"
                     style={{ WebkitOverflowScrolling: 'touch' }}
                 >
-                    {availableItems.map((item) => {
+                    {availableItems.map((item: InventoryItem) => {
                         const available = item.quantity - (item.reservedQuantity || 0)
                         const carName = item.hotWheelsCar?.model || item.carId
                         const series = item.hotWheelsCar?.series || item.seriesName

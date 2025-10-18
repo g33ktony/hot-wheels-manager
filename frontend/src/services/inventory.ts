@@ -5,7 +5,7 @@ import type {
   ApiResponse 
 } from '@shared/types'
 
-interface PaginatedInventoryResponse {
+export interface PaginatedInventoryResponse {
   items: InventoryItem[]
   pagination: {
     currentPage: number
@@ -15,7 +15,7 @@ interface PaginatedInventoryResponse {
   }
 }
 
-interface InventoryFilters {
+export interface InventoryFilters {
   search?: string
   condition?: string
   brand?: string

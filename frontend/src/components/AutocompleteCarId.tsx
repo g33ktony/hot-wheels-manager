@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useInventory } from '@/hooks/useInventory'
+import type { InventoryItem } from '@shared/types'
 
 interface AutocompleteInputProps {
     value: string
@@ -98,7 +99,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                         WebkitOverflowScrolling: 'touch',
                     }}
                 >
-                    {suggestions.map((item, index) => (
+                    {suggestions.map((item: InventoryItem, index: number) => (
                         <button
                             key={index}
                             type="button"
