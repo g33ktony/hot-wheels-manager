@@ -597,12 +597,16 @@ export default function Deliveries() {
         return newDelivery.items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0)
     }
 
-    // Use stats from API
+    // Calculate stats from filtered deliveries (respecting date and search filters)
+    const scheduledCount = filteredDeliveries.filter(d => d.status === 'scheduled').length
+    const preparedCount = filteredDeliveries.filter(d => d.status === 'prepared').length
+    const completedCount = filteredDeliveries.filter(d => d.status === 'completed').length
+    
     // Total active deliveries = scheduled + prepared (not completed)
-    const totalDeliveries = (stats?.scheduled?.count || 0) + (stats?.prepared?.count || 0)
-    const pendingDeliveries = (stats?.scheduled?.count || 0) + (stats?.prepared?.count || 0)
-    const preparedDeliveries = stats?.prepared?.count || 0
-    const completedDeliveries = stats?.completed?.count || 0
+    const totalDeliveries = scheduledCount + preparedCount
+    const pendingDeliveries = scheduledCount + preparedCount
+    const preparedDeliveries = preparedCount
+    const completedDeliveries = completedCount
 
     const handleStatusFilterClick = (status?: string) => {
         // Special handling for 'pending' - it should show both scheduled and prepared
