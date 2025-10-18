@@ -8,6 +8,7 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
+import Modal from '@/components/common/Modal'
 import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign, Share2 } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import DeliveryReport from '@/components/DeliveryReport'
@@ -974,22 +975,45 @@ export default function Deliveries() {
             </Card>
 
             {/* Create Delivery Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden">
-                        <div className="flex items-center justify-between p-6 border-b">
-                            <h2 className="text-xl font-semibold text-gray-900">
-                                {isEditMode ? 'Editar Entrega' : 'Nueva Entrega'}
-                            </h2>
-                            <button
-                                onClick={handleCloseModal}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-6">
+            <Modal
+                isOpen={showCreateModal}
+                onClose={handleCloseModal}
+                title={isEditMode ? 'Editar Entrega' : 'Nueva Entrega'}
+                maxWidth="4xl"
+                headerActions={
+                    <Button
+                        type="button"
+                        size="sm"
+                        onClick={addDeliveryItem}
+                        className="block lg:hidden"
+                    >
+                        <Plus size={16} />
+                        Agregar Item
+                    </Button>
+                }
+                footer={
+                    <div className="flex space-x-3">
+                        <Button
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={handleCloseModal}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            className="flex-1"
+                            onClick={handleCreateDelivery}
+                            disabled={createDeliveryMutation.isLoading || updateDeliveryMutation.isLoading}
+                        >
+                            {isEditMode
+                                ? (updateDeliveryMutation.isLoading ? 'Actualizando...' : 'Actualizar Entrega')
+                                : (createDeliveryMutation.isLoading ? 'Creando...' : 'Crear Entrega')
+                            }
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1099,6 +1123,7 @@ export default function Deliveries() {
                                         type="button"
                                         size="sm"
                                         onClick={addDeliveryItem}
+                                        className="hidden lg:block"
                                     >
                                         <Plus size={16} />
                                         Agregar Item
@@ -1230,29 +1255,7 @@ export default function Deliveries() {
                                 />
                             </div>
                         </div>
-
-                        <div className="flex space-x-3 p-6 border-t bg-gray-50">
-                            <Button
-                                variant="secondary"
-                                className="flex-1"
-                                onClick={handleCloseModal}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                className="flex-1"
-                                onClick={handleCreateDelivery}
-                                disabled={createDeliveryMutation.isLoading || updateDeliveryMutation.isLoading}
-                            >
-                                {isEditMode
-                                    ? (updateDeliveryMutation.isLoading ? 'Actualizando...' : 'Actualizar Entrega')
-                                    : (createDeliveryMutation.isLoading ? 'Creando...' : 'Crear Entrega')
-                                }
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                    </Modal>
 
             {/* Create Customer Modal */}
             {showCreateCustomerModal && (
