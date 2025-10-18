@@ -33,7 +33,7 @@ export default function Boxes() {
         if (box.boxStatus === 'completed') {
             return false
         }
-        
+
         const matchesSearch = box.boxName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             box.carId?.toLowerCase().includes(searchTerm.toLowerCase())
         const matchesBrand = filterBrand === 'all' || box.brand === filterBrand

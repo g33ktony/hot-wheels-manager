@@ -1009,225 +1009,225 @@ export default function Inventory() {
 
                 {/* Inventory Grid */}
                 {filteredItems.length === 0 ? (
-                <Card>
-                    <div className="text-center py-12">
-                        <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay piezas en el inventario</h3>
-                        <p className="text-gray-500 mb-4">
-                            {searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase
-                                ? 'No se encontraron piezas con los filtros aplicados'
-                                : 'Comienza agregando tu primera pieza al inventario'
-                            }
-                        </p>
-                        {!searchTerm && !filterCondition && !filterBrand && !filterPieceType && filterTreasureHunt === 'all' && !filterChase && (
-                            <Button icon={<Plus size={20} />} onClick={() => setShowAddModal(true)}>
-                                Agregar Primera Pieza
-                            </Button>
-                        )}
-                    </div>
-                </Card>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
-                    {filteredItems.map((item: InventoryItem) => (
-                        <Card
-                            key={item._id}
-                            hover={!isSelectionMode}
-                            className={`relative ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''}`}
-                        >
-                            <div
-                                className={`${isSelectionMode ? 'cursor-pointer' : ''}`}
-                                onClick={() => isSelectionMode && item._id && toggleItemSelection(item._id)}
+                    <Card>
+                        <div className="text-center py-12">
+                            <Package size={48} className="mx-auto text-gray-400 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay piezas en el inventario</h3>
+                            <p className="text-gray-500 mb-4">
+                                {searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase
+                                    ? 'No se encontraron piezas con los filtros aplicados'
+                                    : 'Comienza agregando tu primera pieza al inventario'
+                                }
+                            </p>
+                            {!searchTerm && !filterCondition && !filterBrand && !filterPieceType && filterTreasureHunt === 'all' && !filterChase && (
+                                <Button icon={<Plus size={20} />} onClick={() => setShowAddModal(true)}>
+                                    Agregar Primera Pieza
+                                </Button>
+                            )}
+                        </div>
+                    </Card>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
+                        {filteredItems.map((item: InventoryItem) => (
+                            <Card
+                                key={item._id}
+                                hover={!isSelectionMode}
+                                className={`relative ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''}`}
                             >
-                                {/* Selection Checkbox */}
-                                {isSelectionMode && (
-                                    <div className="absolute top-3 left-3 z-10">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedItems.has(item._id!)}
-                                            onChange={() => item._id && toggleItemSelection(item._id)}
-                                            className="w-6 h-6 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="space-y-4">
-                                    {/* Car Image Placeholder */}
-                                    <div
-                                        className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
-                                        onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
-                                    >
-                                        {item.photos && item.photos.length > 0 ? (
-                                            <>
-                                                <img
-                                                    src={item.photos[0]}
-                                                    alt="Hot Wheels"
-                                                    loading="lazy"
-                                                    className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
-                                                        }`}
-                                                />
-                                                {/* Zoom indicator */}
-                                                {!isSelectionMode && (
-                                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20 rounded-lg">
-                                                        <Maximize2 size={32} className="text-white drop-shadow-lg" />
-                                                    </div>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <Package size={48} className="text-gray-400" />
-                                        )}
-
-                                        {/* Brand Badge - Top Left */}
-                                        {item.brand && (
-                                            <div className="absolute top-2 left-2 px-2 py-1 bg-gray-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
-                                                {item.brand}
-                                            </div>
-                                        )}
-
-                                        {/* Type and Special Badges - Top Right */}
-                                        <div className="absolute top-2 right-2 flex flex-col gap-1">
-                                            {/* Piece Type Badge */}
-                                            {item.pieceType && (
-                                                <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
-                                                    item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
-                                                        'bg-orange-500 bg-opacity-90 text-white'
-                                                    }`}>
-                                                    {item.pieceType === 'basic' ? 'BÁSICO' :
-                                                        item.pieceType === 'premium' ? 'PREMIUM' : 'RLC'}
-                                                </span>
-                                            )}
-
-                                            {/* Treasure Hunt Badge */}
-                                            {item.isSuperTreasureHunt && (
-                                                <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded shadow-lg">
-                                                    $TH
-                                                </span>
-                                            )}
-                                            {item.isTreasureHunt && !item.isSuperTreasureHunt && (
-                                                <span className="px-2 py-1 text-xs font-bold bg-green-500 bg-opacity-90 text-white rounded shadow-lg">
-                                                    TH
-                                                </span>
-                                            )}
-
-                                            {/* Chase Badge */}
-                                            {item.isChase && (
-                                                <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-red-500 to-pink-600 text-white rounded shadow-lg">
-                                                    CHASE
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>                                {/* Car Info */}
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900 truncate">
-                                            {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
-                                        </h3>
-                                        <p className="text-sm text-gray-500 truncate">
-                                            {item.hotWheelsCar?.series} {item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}
-                                        </p>
-                                        <p className="text-xs text-gray-400">
-                                            {item.hotWheelsCar?.toy_num || item.carId}
-                                        </p>
-
-                                        {/* Series Badge */}
-                                        {item.seriesId && (
-                                            <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                                                🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})
-                                            </div>
-                                        )}
-
-                                        {/* Box Badge - If this IS a sealed box */}
-                                        {item.isBox && (
-                                            <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                                                📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas
-                                                {item.boxStatus === 'sealed' && ' 🔒'}
-                                                {item.boxStatus === 'unpacking' && ' ⏳'}
-                                            </div>
-                                        )}
-
-                                        {/* Source Box Badge - If this piece came from a box */}
-                                        {item.sourceBox && !item.isBox && (
-                                            <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
-                                                📦 De: {item.sourceBox}
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center justify-between mt-2 gap-2">
-                                            <span className={`
-                      px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap
-                      ${item.condition === 'mint' ? 'bg-green-100 text-green-800' :
-                                                    item.condition === 'good' ? 'bg-blue-100 text-blue-800' :
-                                                        item.condition === 'fair' ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-red-100 text-red-800'
-                                                }
-                    `}>
-                                                {item.condition === 'mint' ? 'Mint' :
-                                                    item.condition === 'good' ? 'Bueno' :
-                                                        item.condition === 'fair' ? 'Regular' : 'Malo'}
-                                            </span>
-                                            <span className="text-xs font-medium text-gray-900 text-right flex-shrink-0">
-                                                {item.quantity - (item.reservedQuantity || 0)}/{item.quantity}
-                                                {(item.reservedQuantity || 0) > 0 && (
-                                                    <span className="text-orange-600 block text-xs">
-                                                        ({item.reservedQuantity} res.)
-                                                    </span>
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Pricing */}
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">Costo:</span>
-                                            <span className="font-medium">${item.purchasePrice.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-600">Sugerido:</span>
-                                            <span className="font-medium text-green-600">${item.suggestedPrice.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm border-t pt-1">
-                                            <span className="text-gray-600">Ganancia:</span>
-                                            <span className="font-semibold text-primary-600">
-                                                ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
-                                                <span className="text-xs ml-1">
-                                                    (+{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%)
-                                                </span>
-                                            </span>
-                                        </div>
-                                        {item.location && (
-                                            <div className="flex items-center gap-1 text-xs text-gray-500 pt-1 border-t">
-                                                <MapPin size={12} />
-                                                <span className="truncate">{item.location}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Actions */}
-                                    {!isSelectionMode && (
-                                        <div className="flex space-x-2 pt-2">
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                className="flex-1"
-                                                onClick={() => handleEditItem(item)}
-                                            >
-                                                <Edit size={16} />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="danger"
-                                                onClick={() => item._id && handleDeleteItem(item._id)}
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
+                                <div
+                                    className={`${isSelectionMode ? 'cursor-pointer' : ''}`}
+                                    onClick={() => isSelectionMode && item._id && toggleItemSelection(item._id)}
+                                >
+                                    {/* Selection Checkbox */}
+                                    {isSelectionMode && (
+                                        <div className="absolute top-3 left-3 z-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedItems.has(item._id!)}
+                                                onChange={() => item._id && toggleItemSelection(item._id)}
+                                                className="w-6 h-6 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
                                         </div>
                                     )}
+
+                                    <div className="space-y-4">
+                                        {/* Car Image Placeholder */}
+                                        <div
+                                            className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
+                                            onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
+                                        >
+                                            {item.photos && item.photos.length > 0 ? (
+                                                <>
+                                                    <img
+                                                        src={item.photos[0]}
+                                                        alt="Hot Wheels"
+                                                        loading="lazy"
+                                                        className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
+                                                            }`}
+                                                    />
+                                                    {/* Zoom indicator */}
+                                                    {!isSelectionMode && (
+                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20 rounded-lg">
+                                                            <Maximize2 size={32} className="text-white drop-shadow-lg" />
+                                                        </div>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <Package size={48} className="text-gray-400" />
+                                            )}
+
+                                            {/* Brand Badge - Top Left */}
+                                            {item.brand && (
+                                                <div className="absolute top-2 left-2 px-2 py-1 bg-gray-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
+                                                    {item.brand}
+                                                </div>
+                                            )}
+
+                                            {/* Type and Special Badges - Top Right */}
+                                            <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                                {/* Piece Type Badge */}
+                                                {item.pieceType && (
+                                                    <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
+                                                        item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
+                                                            'bg-orange-500 bg-opacity-90 text-white'
+                                                        }`}>
+                                                        {item.pieceType === 'basic' ? 'BÁSICO' :
+                                                            item.pieceType === 'premium' ? 'PREMIUM' : 'RLC'}
+                                                    </span>
+                                                )}
+
+                                                {/* Treasure Hunt Badge */}
+                                                {item.isSuperTreasureHunt && (
+                                                    <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded shadow-lg">
+                                                        $TH
+                                                    </span>
+                                                )}
+                                                {item.isTreasureHunt && !item.isSuperTreasureHunt && (
+                                                    <span className="px-2 py-1 text-xs font-bold bg-green-500 bg-opacity-90 text-white rounded shadow-lg">
+                                                        TH
+                                                    </span>
+                                                )}
+
+                                                {/* Chase Badge */}
+                                                {item.isChase && (
+                                                    <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-red-500 to-pink-600 text-white rounded shadow-lg">
+                                                        CHASE
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>                                {/* Car Info */}
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900 truncate">
+                                                {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 truncate">
+                                                {item.hotWheelsCar?.series} {item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                {item.hotWheelsCar?.toy_num || item.carId}
+                                            </p>
+
+                                            {/* Series Badge */}
+                                            {item.seriesId && (
+                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                                                    🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})
+                                                </div>
+                                            )}
+
+                                            {/* Box Badge - If this IS a sealed box */}
+                                            {item.isBox && (
+                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                                                    📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas
+                                                    {item.boxStatus === 'sealed' && ' 🔒'}
+                                                    {item.boxStatus === 'unpacking' && ' ⏳'}
+                                                </div>
+                                            )}
+
+                                            {/* Source Box Badge - If this piece came from a box */}
+                                            {item.sourceBox && !item.isBox && (
+                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                                                    📦 De: {item.sourceBox}
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center justify-between mt-2 gap-2">
+                                                <span className={`
+                      px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap
+                      ${item.condition === 'mint' ? 'bg-green-100 text-green-800' :
+                                                        item.condition === 'good' ? 'bg-blue-100 text-blue-800' :
+                                                            item.condition === 'fair' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-red-100 text-red-800'
+                                                    }
+                    `}>
+                                                    {item.condition === 'mint' ? 'Mint' :
+                                                        item.condition === 'good' ? 'Bueno' :
+                                                            item.condition === 'fair' ? 'Regular' : 'Malo'}
+                                                </span>
+                                                <span className="text-xs font-medium text-gray-900 text-right flex-shrink-0">
+                                                    {item.quantity - (item.reservedQuantity || 0)}/{item.quantity}
+                                                    {(item.reservedQuantity || 0) > 0 && (
+                                                        <span className="text-orange-600 block text-xs">
+                                                            ({item.reservedQuantity} res.)
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Pricing */}
+                                        <div className="space-y-1">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-600">Costo:</span>
+                                                <span className="font-medium">${item.purchasePrice.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-600">Sugerido:</span>
+                                                <span className="font-medium text-green-600">${item.suggestedPrice.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm border-t pt-1">
+                                                <span className="text-gray-600">Ganancia:</span>
+                                                <span className="font-semibold text-primary-600">
+                                                    ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
+                                                    <span className="text-xs ml-1">
+                                                        (+{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%)
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            {item.location && (
+                                                <div className="flex items-center gap-1 text-xs text-gray-500 pt-1 border-t">
+                                                    <MapPin size={12} />
+                                                    <span className="truncate">{item.location}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Actions */}
+                                        {!isSelectionMode && (
+                                            <div className="flex space-x-2 pt-2">
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    className="flex-1"
+                                                    onClick={() => handleEditItem(item)}
+                                                >
+                                                    <Edit size={16} />
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="danger"
+                                                    onClick={() => item._id && handleDeleteItem(item._id)}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
-            )}
+                            </Card>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Pagination Controls - Bottom */}

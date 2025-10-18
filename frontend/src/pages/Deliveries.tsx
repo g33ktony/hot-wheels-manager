@@ -334,7 +334,7 @@ export default function Deliveries() {
                     carId: item.carId,
                     carName: item.carName
                 })
-                
+
                 let inventoryItemId = ''
                 if (item.inventoryItemId) {
                     if (typeof item.inventoryItemId === 'string') {
