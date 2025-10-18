@@ -7,6 +7,7 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
+import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
@@ -1235,19 +1236,38 @@ export default function Inventory() {
 
             {/* Add Item Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">Agregar Nueva Pieza</h3>
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="text-gray-400 hover:text-gray-600"
+                <Modal
+                    isOpen={showAddModal}
+                    onClose={resetForm}
+                    title="Agregar Nueva Pieza"
+                    maxWidth="md"
+                    footer={
+                        <div className="flex space-x-3">
+                            <Button
+                                variant="secondary"
+                                className="flex-1"
+                                onClick={resetForm}
                             >
-                                <X size={20} />
-                            </button>
+                                Cancelar
+                            </Button>
+                            <Button
+                                className="flex-1"
+                                onClick={handleAddItem}
+                                disabled={newItem.isMultipleCars ? newItem.cars.length === 0 : !newItem.carId}
+                            >
+                                {existingItemToUpdate
+                                    ? '✏️ Actualizar Pieza'
+                                    : newItem.isMultipleCars
+                                        ? `Agregar ${newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} Piezas (${newItem.cars.length} modelos)`
+                                        : newItem.isBox
+                                            ? `Agregar ${newItem.quantity} Piezas`
+                                            : 'Agregar Pieza'
+                                }
+                            </Button>
                         </div>
-
-                        <div className="space-y-4">
+                    }
+                >
+                    <div className="space-y-4">
                             {/* Type Selection */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2050,35 +2070,8 @@ export default function Inventory() {
                                 </div>
                             )}
                         </div>
-
-                        <div className="flex space-x-3 mt-6">
-                            <Button
-                                variant="secondary"
-                                className="flex-1"
-                                onClick={() => {
-                                    resetForm()
-                                }}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                className="flex-1"
-                                onClick={handleAddItem}
-                                disabled={newItem.isMultipleCars ? newItem.cars.length === 0 : !newItem.carId}
-                            >
-                                {existingItemToUpdate
-                                    ? '✏️ Actualizar Pieza'
-                                    : newItem.isMultipleCars
-                                        ? `Agregar ${newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} Piezas (${newItem.cars.length} modelos)`
-                                        : newItem.isBox
-                                            ? `Agregar ${newItem.quantity} Piezas`
-                                            : 'Agregar Pieza'
-                                }
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                    </Modal>
+                )}
 
             {/* Edit Item Modal */}
             {showEditModal && editingItem && (
