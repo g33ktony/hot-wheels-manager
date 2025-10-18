@@ -129,9 +129,8 @@ export default function MarkRefundedModal({
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                             required
                         >
-                            <option value="PayPal">PayPal</option>
-                            <option value="Tarjeta de crédito">Tarjeta de crédito</option>
                             <option value="Transferencia bancaria">Transferencia bancaria</option>
+                            <option value="Efectivo">Efectivo</option>
                             <option value="Crédito del vendedor">Crédito del vendedor</option>
                             <option value="Otro">Otro</option>
                         </select>
