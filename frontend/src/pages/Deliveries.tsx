@@ -11,6 +11,7 @@ import { Loading } from '@/components/common/Loading'
 import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign, Share2 } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import DeliveryReport from '@/components/DeliveryReport'
+import type { InventoryItem } from '../../../shared/types'
 
 export default function Deliveries() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -450,7 +451,7 @@ export default function Deliveries() {
 
         // Auto-fill car details when inventory item is selected
         if (field === 'inventoryItemId' && value) {
-            const inventoryItem = inventoryItems?.find(item => item._id === value)
+            const inventoryItem = inventoryItems?.find((item: InventoryItem) => item._id === value)
             if (inventoryItem) {
                 // Check if this is a catalog item (quantity = 0) or real inventory item
                 if (inventoryItem.quantity === 0) {
@@ -485,18 +486,18 @@ export default function Deliveries() {
             console.log('🎁 Completing series:', { seriesId, seriesPrice, seriesSize })
 
             // Find all items from this series in inventory
-            const seriesItems = inventoryItems?.filter(item => item.seriesId === seriesId) || []
+            const seriesItems = inventoryItems?.filter((item: InventoryItem) => item.seriesId === seriesId) || []
 
-            console.log('📦 Series items found:', seriesItems.length, seriesItems.map(i => ({
+            console.log('📦 Series items found:', seriesItems.length, seriesItems.map((i: InventoryItem) => ({
                 carId: i.carId,
                 suggestedPrice: i.suggestedPrice,
                 seriesPrice: i.seriesPrice
             })))
 
             // Check if we have all pieces available
-            const unavailableItems = seriesItems.filter(item => (item.quantity - (item.reservedQuantity || 0)) < 1)
+            const unavailableItems = seriesItems.filter((item: InventoryItem) => (item.quantity - (item.reservedQuantity || 0)) < 1)
             if (unavailableItems.length > 0) {
-                const itemNames = unavailableItems.map(i => i.hotWheelsCar?.model || i.carId).join(', ')
+                const itemNames = unavailableItems.map((i: InventoryItem) => i.hotWheelsCar?.model || i.carId).join(', ')
                 alert(`❌ No hay suficiente inventario para completar la serie.\nPiezas faltantes: ${itemNames}`)
                 return
             }
@@ -513,7 +514,7 @@ export default function Deliveries() {
             // Add or update all pieces from the series
             const updatedItems = [...newDelivery.items]
 
-            seriesItems.forEach(seriesItem => {
+            seriesItems.forEach((seriesItem: InventoryItem) => {
                 const existingIndex = updatedItems.findIndex(item => item.inventoryItemId === seriesItem._id)
 
                 if (existingIndex >= 0) {
@@ -571,7 +572,7 @@ export default function Deliveries() {
                     .map(item => {
                         if (item.seriesId === itemToRemove.seriesId) {
                             // Reset to individual price
-                            const inventoryItem = inventoryItems?.find(inv => inv._id === item.inventoryItemId)
+                            const inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId)
                             return {
                                 ...item,
                                 unitPrice: inventoryItem?.suggestedPrice || item.unitPrice,
@@ -1472,7 +1473,7 @@ export default function Deliveries() {
                                                     let inventoryItem;
                                                     if (typeof item.inventoryItemId === 'string') {
                                                         // Not populated, find in inventoryItems
-                                                        inventoryItem = inventoryItems?.find(inv => inv._id === item.inventoryItemId);
+                                                        inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId);
                                                     } else {
                                                         // Already populated
                                                         inventoryItem = item.inventoryItemId;
@@ -1605,7 +1606,7 @@ export default function Deliveries() {
                                         let inventoryItem;
                                         if (typeof item.inventoryItemId === 'string') {
                                             // Not populated, find in inventoryItems
-                                            inventoryItem = inventoryItems?.find(inv => inv._id === item.inventoryItemId);
+                                            inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId);
                                         } else {
                                             // Already populated
                                             inventoryItem = item.inventoryItemId;

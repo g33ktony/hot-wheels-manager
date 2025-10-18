@@ -11,6 +11,7 @@ import FacebookPublishModal from '@/components/FacebookPublishModal'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import debounce from 'lodash.debounce'
+import type { InventoryItem } from '../../../shared/types'
 
 // Predefined brands
 const PREDEFINED_BRANDS = [
@@ -509,7 +510,7 @@ export default function Inventory() {
     }
 
     const selectAllItems = () => {
-        const allIds = new Set(filteredItems.map(item => item._id).filter(Boolean) as string[])
+        const allIds = new Set(filteredItems.map((item: InventoryItem) => item._id).filter(Boolean) as string[])
         setSelectedItems(allIds)
     }
 
@@ -555,7 +556,7 @@ export default function Inventory() {
     const getMatchingItems = () => {
         if (!newItem.carId || newItem.carId.length === 0) return []
 
-        return inventoryItems?.filter(item =>
+        return inventoryItems?.filter((item: InventoryItem) =>
             item.carId && item.carId.toLowerCase().includes(newItem.carId.toLowerCase())
         ) || []
     }
@@ -1027,7 +1028,7 @@ export default function Inventory() {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
-                    {filteredItems.map((item) => (
+                    {filteredItems.map((item: InventoryItem) => (
                         <Card
                             key={item._id}
                             hover={!isSelectionMode}
@@ -1573,7 +1574,7 @@ export default function Inventory() {
                                             <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
                                                 {getMatchingItems().length} pieza{getMatchingItems().length !== 1 ? 's' : ''} encontrada{getMatchingItems().length !== 1 ? 's' : ''}
                                             </div>
-                                            {getMatchingItems().map((item) => (
+                                            {getMatchingItems().map((item: InventoryItem) => (
                                                 <button
                                                     key={item._id}
                                                     type="button"
@@ -2423,7 +2424,7 @@ export default function Inventory() {
             <FacebookPublishModal
                 isOpen={showFacebookModal}
                 onClose={() => setShowFacebookModal(false)}
-                selectedItems={filteredItems.filter(item => selectedItems.has(item._id!))}
+                selectedItems={filteredItems.filter((item: InventoryItem) => selectedItems.has(item._id!))}
                 onSuccess={() => {
                     setIsSelectionMode(false)
                     setSelectedItems(new Set())
