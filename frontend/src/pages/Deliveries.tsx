@@ -1258,22 +1258,33 @@ export default function Deliveries() {
                     </Modal>
 
             {/* Create Customer Modal */}
-            {showCreateCustomerModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
-                        <div className="flex items-center justify-between p-6 border-b">
-                            <h2 className="text-xl font-semibold text-gray-900">Crear Nuevo Cliente</h2>
-                            <button
-                                type="button"
-                                className="p-1 hover:bg-gray-100 rounded"
-                                onClick={() => setShowCreateCustomerModal(false)}
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="space-y-4">
+            <Modal
+                isOpen={showCreateCustomerModal}
+                onClose={() => setShowCreateCustomerModal(false)}
+                title="Crear Nuevo Cliente"
+                maxWidth="md"
+                footer={
+                    <div className="flex space-x-3">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => setShowCreateCustomerModal(false)}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            className="flex-1"
+                            onClick={handleCreateCustomer}
+                            disabled={createCustomerMutation.isLoading}
+                        >
+                            {createCustomerMutation.isLoading ? 'Creando...' : 'Crear Cliente'}
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Nombre *
@@ -1323,29 +1334,7 @@ export default function Deliveries() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="flex space-x-3 pt-6 border-t mt-6">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    className="flex-1"
-                                    onClick={() => setShowCreateCustomerModal(false)}
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    type="button"
-                                    className="flex-1"
-                                    onClick={handleCreateCustomer}
-                                    disabled={createCustomerMutation.isLoading}
-                                >
-                                    {createCustomerMutation.isLoading ? 'Creando...' : 'Crear Cliente'}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+                        </Modal>
 
             {/* Details Modal */}
             {showDetailsModal && selectedDelivery && (
