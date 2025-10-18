@@ -4,6 +4,7 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
+import Modal from '@/components/common/Modal'
 
 export default function Suppliers() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -201,18 +202,38 @@ export default function Suppliers() {
 
             {/* Create/Edit Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <Card className="w-full max-w-md mx-4">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold">
-                                {editingSupplier ? 'Editar Proveedor' : 'Nuevo Proveedor'}
-                            </h2>
-                            <Button size="sm" onClick={closeModal}>
-                                X
+                <Modal
+                    isOpen={showCreateModal}
+                    onClose={closeModal}
+                    title={editingSupplier ? 'Editar Proveedor' : 'Nuevo Proveedor'}
+                    maxWidth="md"
+                    footer={
+                        <div className="flex gap-3">
+                            <Button
+                                type="button"
+                                onClick={closeModal}
+                                variant="secondary"
+                                className="flex-1"
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="submit"
+                                onClick={handleSubmit}
+                                disabled={createSupplierMutation.isLoading || updateSupplierMutation.isLoading}
+                                className="flex-1"
+                            >
+                                {createSupplierMutation.isLoading || updateSupplierMutation.isLoading
+                                    ? 'Guardando...'
+                                    : editingSupplier
+                                        ? 'Actualizar'
+                                        : 'Crear'
+                                }
                             </Button>
                         </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                    }
+                >
+                    <form onSubmit={handleSubmit} className="space-y-4">
                             <Input
                                 label="Nombre *"
                                 value={formData.name}
@@ -254,36 +275,13 @@ export default function Suppliers() {
                                 </select>
                             </div>
 
-                            <Input
-                                label="Dirección"
-                                value={formData.address}
-                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                            />
-
-                            <div className="flex gap-3 pt-4">
-                                <Button
-                                    type="button"
-                                    onClick={closeModal}
-                                    className="flex-1"
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={createSupplierMutation.isLoading || updateSupplierMutation.isLoading}
-                                    className="flex-1"
-                                >
-                                    {createSupplierMutation.isLoading || updateSupplierMutation.isLoading
-                                        ? 'Guardando...'
-                                        : editingSupplier
-                                            ? 'Actualizar'
-                                            : 'Crear'
-                                    }
-                                </Button>
-                            </div>
-                        </form>
-                    </Card>
-                </div>
+                        <Input
+                            label="Dirección"
+                            value={formData.address}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        />
+                    </form>
+                </Modal>
             )}
         </div>
     )
