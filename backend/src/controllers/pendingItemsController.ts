@@ -261,7 +261,12 @@ export const getPendingItemsStats = async (req: Request, res: Response) => {
   try {
     const allItems = await PendingItemModel.find({})
     
-    const totalValue = allItems.reduce(
+    // Only count active pending items (exclude refunded and cancelled)
+    const activePendingItems = allItems.filter(
+      item => item.status === 'pending-reshipment' || item.status === 'requesting-refund'
+    )
+    
+    const totalValue = activePendingItems.reduce(
       (sum, item) => sum + (item.unitPrice * item.quantity),
       0
     )
@@ -278,15 +283,15 @@ export const getPendingItemsStats = async (req: Request, res: Response) => {
       byStatus[item.status]++
     })
     
-    // Overdue items (>15 days)
+    // Overdue items (>15 days) - only count active pending items
     const fifteenDaysAgo = new Date()
     fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15)
-    const overdueItems = allItems.filter(item => item.reportedDate <= fifteenDaysAgo)
+    const overdueItems = activePendingItems.filter(item => item.reportedDate <= fifteenDaysAgo)
     
     res.json({
       success: true,
       data: {
-        totalCount: allItems.length,
+        totalCount: activePendingItems.length, // Only count active pending items
         totalValue,
         byStatus,
         overdueCount: overdueItems.length
