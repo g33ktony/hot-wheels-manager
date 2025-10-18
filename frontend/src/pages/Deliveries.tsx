@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQueryClient } from 'react-query'
-import { useDeliveries, useDeliveryStats, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
+import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
@@ -69,7 +69,6 @@ export default function Deliveries() {
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
     const { data: deliveries, isLoading, error } = useDeliveries(statusFilter)
-    const { data: stats } = useDeliveryStats()
     const { data: customers } = useCustomers()
     // Only load inventory when creating/editing a delivery
     const { data: inventoryData } = useInventory({
