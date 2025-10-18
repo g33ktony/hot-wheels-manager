@@ -888,7 +888,7 @@ export default function Purchases() {
                         type="button"
                         size="sm"
                         onClick={handleAddItem}
-                        className="flex items-center gap-2 block lg:hidden"
+                        className="flex items-center gap-2 lg:hidden"
                     >
                         <Plus size={16} />
                         Agregar Item
@@ -1027,7 +1027,7 @@ export default function Purchases() {
                                             type="button"
                                             size="sm"
                                             onClick={handleAddItem}
-                                            className="flex items-center gap-2 hidden lg:flex"
+                                            className="hidden lg:flex items-center gap-2"
                                         >
                                             <Plus size={16} />
                                             Agregar Item

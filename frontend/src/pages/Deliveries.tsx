@@ -984,7 +984,7 @@ export default function Deliveries() {
                         type="button"
                         size="sm"
                         onClick={addDeliveryItem}
-                        className="block lg:hidden"
+                        className="flex items-center gap-2 lg:hidden"
                     >
                         <Plus size={16} />
                         Agregar Item
@@ -1122,7 +1122,7 @@ export default function Deliveries() {
                                         type="button"
                                         size="sm"
                                         onClick={addDeliveryItem}
-                                        className="hidden lg:block"
+                                        className="hidden lg:flex items-center gap-2"
                                     >
                                         <Plus size={16} />
                                         Agregar Item
