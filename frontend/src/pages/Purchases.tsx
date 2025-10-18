@@ -888,7 +888,7 @@ export default function Purchases() {
                         type="button"
                         size="sm"
                         onClick={handleAddItem}
-                        className="flex items-center gap-2 lg:hidden"
+                        className="flex items-center gap-2"
                     >
                         <Plus size={16} />
                         Agregar Item
@@ -1021,17 +1021,8 @@ export default function Purchases() {
 
                                 {/* Items Section */}
                                 <div>
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="mb-4">
                                         <h4 className="text-md font-medium text-gray-900">Items de la Compra</h4>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            onClick={handleAddItem}
-                                            className="hidden lg:flex items-center gap-2"
-                                        >
-                                            <Plus size={16} />
-                                            Agregar Item
-                                        </Button>
                                     </div>
 
                                     {newPurchase.items.length === 0 ? (

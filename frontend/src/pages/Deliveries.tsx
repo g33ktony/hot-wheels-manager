@@ -984,7 +984,7 @@ export default function Deliveries() {
                         type="button"
                         size="sm"
                         onClick={addDeliveryItem}
-                        className="flex items-center gap-2 lg:hidden"
+                        className="flex items-center gap-2"
                     >
                         <Plus size={16} />
                         Agregar Item
@@ -1116,17 +1116,8 @@ export default function Deliveries() {
 
                             {/* Delivery Items */}
                             <div>
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="mb-4">
                                     <h3 className="text-lg font-medium text-gray-900">Items de la Entrega</h3>
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        onClick={addDeliveryItem}
-                                        className="hidden lg:flex items-center gap-2"
-                                    >
-                                        <Plus size={16} />
-                                        Agregar Item
-                                    </Button>
                                 </div>
 
                                 <div className="space-y-4">
