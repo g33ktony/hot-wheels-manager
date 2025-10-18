@@ -2074,23 +2074,38 @@ export default function Inventory() {
                 )}
 
             {/* Edit Item Modal */}
-            {showEditModal && editingItem && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">Editar Pieza</h3>
-                            <button
-                                onClick={() => {
-                                    setShowEditModal(false)
-                                    setEditingItem(null)
-                                }}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
+            <Modal
+                isOpen={showEditModal && editingItem !== null}
+                onClose={() => {
+                    setShowEditModal(false)
+                    setEditingItem(null)
+                }}
+                title="Editar Pieza"
+                maxWidth="md"
+                footer={
+                    <div className="flex space-x-3">
+                        <Button
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => {
+                                setShowEditModal(false)
+                                setEditingItem(null)
+                            }}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            className="flex-1"
+                            onClick={handleUpdateItem}
+                            disabled={!editingItem?.carId}
+                        >
+                            Actualizar Pieza
+                        </Button>
+                    </div>
+                }
+            >
+                {editingItem && (
+                    <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Código/ID del Hot Wheels
@@ -2326,29 +2341,8 @@ export default function Inventory() {
                                 )}
                             </div>
                         </div>
-
-                        <div className="flex space-x-3 mt-6">
-                            <Button
-                                variant="secondary"
-                                className="flex-1"
-                                onClick={() => {
-                                    setShowEditModal(false)
-                                    setEditingItem(null)
-                                }}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                className="flex-1"
-                                onClick={handleUpdateItem}
-                                disabled={!editingItem.carId}
-                            >
-                                Actualizar Pieza
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                    )}
+                </Modal>
 
             {/* Image Viewer Modal */}
             {showImageModal && (

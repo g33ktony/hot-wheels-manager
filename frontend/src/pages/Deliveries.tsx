@@ -1652,21 +1652,34 @@ export default function Deliveries() {
             )}
 
             {/* Payment Modal */}
-            {showPaymentModal && selectedDelivery && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
-                        <div className="flex items-center justify-between p-6 border-b">
-                            <h2 className="text-xl font-semibold text-gray-900">Registrar Pago</h2>
-                            <button
-                                onClick={() => setShowPaymentModal(false)}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="space-y-4">
+            <Modal
+                isOpen={showPaymentModal && selectedDelivery !== null}
+                onClose={() => setShowPaymentModal(false)}
+                title="Registrar Pago"
+                maxWidth="md"
+                footer={
+                    <div className="flex gap-3">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => setShowPaymentModal(false)}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="button"
+                            className="flex-1"
+                            onClick={handleAddPayment}
+                            disabled={addPaymentMutation.isLoading || newPayment.amount <= 0}
+                        >
+                            {addPaymentMutation.isLoading ? 'Registrando...' : 'Registrar Pago'}
+                        </Button>
+                    </div>
+                }
+            >
+                {selectedDelivery && (
+                    <div className="space-y-4">
                                 {/* Amount Info */}
                                 <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
                                     <div className="flex justify-between">
@@ -1732,29 +1745,8 @@ export default function Deliveries() {
                                     />
                                 </div>
                             </div>
-
-                            <div className="flex gap-3 mt-6">
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    className="flex-1"
-                                    onClick={() => setShowPaymentModal(false)}
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    type="button"
-                                    className="flex-1"
-                                    onClick={handleAddPayment}
-                                    disabled={addPaymentMutation.isLoading || newPayment.amount <= 0}
-                                >
-                                    {addPaymentMutation.isLoading ? 'Registrando...' : 'Registrar Pago'}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+                        )}
+                    </Modal>
 
             {/* Delivery Report Modal */}
             {showReportModal && selectedDelivery && (
