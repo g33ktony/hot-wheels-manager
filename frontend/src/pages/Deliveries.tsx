@@ -845,6 +845,16 @@ export default function Deliveries() {
                                             >
                                                 <Share2 size={16} />
                                             </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="danger"
+                                                onClick={() => handleDeleteDelivery(delivery._id!)}
+                                                disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
+                                                title={delivery.status === 'completed' ? 'No se puede eliminar entrega completada' : 'Eliminar entrega'}
+                                                className="min-w-[44px] min-h-[44px]"
+                                            >
+                                                <Trash2 size={16} />
+                                            </Button>
                                         </div>
                                     </div>
                                     <div className="text-sm lg:text-base text-gray-600 space-y-1">
