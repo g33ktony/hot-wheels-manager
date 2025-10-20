@@ -123,11 +123,12 @@ export default function Layout({ children }: LayoutProps) {
             <div 
                 ref={sidebarRef}
                 className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}
             >
-                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+                {/* Fixed Sidebar Header */}
+                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0 bg-white">
                     <h1 className="text-lg lg:text-xl font-bold text-gray-900 select-none">🏎️ Hot Wheels Manager</h1>
                     <button
                         className="lg:hidden p-2 -mr-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
@@ -142,7 +143,8 @@ export default function Layout({ children }: LayoutProps) {
                     </button>
                 </div>
 
-                <nav className="mt-4 px-3 space-y-1 pb-20 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 4rem)' }}>
+                {/* Scrollable Navigation */}
+                <nav className="flex-1 overflow-y-auto px-3 pt-4 pb-20 space-y-1">
                     {navigationItems.map((item: any) => {
                         const isActive = location.pathname === item.href
                         return (
