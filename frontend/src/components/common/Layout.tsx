@@ -123,12 +123,12 @@ export default function Layout({ children }: LayoutProps) {
             <div 
                 ref={sidebarRef}
                 className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col
+        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0 bg-white">
+                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0 bg-white z-10">
                     <h1 className="text-lg lg:text-xl font-bold text-gray-900 select-none">🏎️ Hot Wheels Manager</h1>
                     <button
                         className="lg:hidden p-2 -mr-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
@@ -144,7 +144,8 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
 
                 {/* Scrollable Navigation */}
-                <nav className="flex-1 overflow-y-auto px-3 pt-4 pb-20 space-y-1">
+                <div className="flex-1 overflow-y-auto">
+                    <nav className="px-3 pt-4 pb-20 space-y-1">
                     {navigationItems.map((item: any) => {
                         const isActive = location.pathname === item.href
                         return (
@@ -199,6 +200,7 @@ export default function Layout({ children }: LayoutProps) {
                         <span className="flex-1 select-none">Cerrar sesión</span>
                     </button>
                 </nav>
+                </div>
             </div>
 
             {/* Main content */}
