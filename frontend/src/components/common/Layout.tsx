@@ -204,9 +204,9 @@ export default function Layout({ children }: LayoutProps) {
             </div>
 
             {/* Main content */}
-            <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden">
+            <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className="h-16 bg-white border-b border-gray-200 px-3 sm:px-4 lg:px-6 flex items-center justify-between fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto">
+                <div className="h-16 bg-white border-b border-gray-200 px-3 sm:px-4 lg:px-6 flex items-center justify-between fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm">
                     <button
                         className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                         onClick={() => setSidebarOpen(true)}
@@ -227,8 +227,8 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
 
                 {/* Page content - Add padding-top to account for fixed header */}
-                <main className="flex-1 overflow-auto w-full pt-16">
-                    <div className="py-4 px-3 sm:px-4 lg:py-6 lg:px-6 pb-safe w-full">
+                <main className="flex-1 w-full pt-16">
+                    <div className="py-4 px-3 sm:px-4 lg:py-6 lg:px-6 pb-safe w-full max-w-full overflow-x-hidden">
                         <div className="w-full">
                             {children}
                         </div>
