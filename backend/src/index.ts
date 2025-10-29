@@ -36,7 +36,7 @@ import { performanceLogger, responseSizeLogger } from './middleware/performance'
 // Load environment variables
 dotenv.config()
 
-// Force Railway redeploy - Updated: 2025-10-28 - Fixed presale routes
+// Force Railway & Vercel redeploy - Updated: 2025-10-28 - Fixed presale routes ordering
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '3001')

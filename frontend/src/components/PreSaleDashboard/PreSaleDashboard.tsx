@@ -5,6 +5,7 @@ import PreSaleFilters from './PreSaleFilters'
 import PreSaleStats from './PreSaleStats'
 import { Filter, RefreshCw } from 'lucide-react'
 
+// Updated: 2025-10-28 - Photo feature and route fixes deployed
 type FilterType = 'all' | 'pending' | 'in-progress' | 'completed'
 
 interface Filters {
