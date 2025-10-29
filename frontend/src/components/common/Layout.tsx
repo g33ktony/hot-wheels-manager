@@ -13,7 +13,8 @@ import {
     LogOut,
     PackageOpen,
     AlertCircle,
-    DollarSign
+    DollarSign,
+    CreditCard
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -49,6 +50,7 @@ export default function Layout({ children }: LayoutProps) {
         { name: 'Pre-Ventas', href: '/presale/purchase', icon: Package },
         { name: 'Panel Pre-Ventas', href: '/presale/dashboard', icon: LayoutDashboard },
         { name: 'Pagos Pre-Venta', href: '/presale/payments', icon: DollarSign },
+        { name: 'Planes de Pago', href: '/presale-payments', icon: CreditCard },
         // Conditional: Only show if there are pending items
         ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
             name: 'Items Pendientes',
