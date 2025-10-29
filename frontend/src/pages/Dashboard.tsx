@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
 import { Package, ShoppingCart, Truck, TrendingUp, AlertTriangle, Calendar, Clock, MapPin, AlertCircle } from 'lucide-react'
+import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -131,6 +132,9 @@ export default function Dashboard() {
                     </Card>
                 ))}
             </div>
+
+            {/* Pre-Sale Alerts */}
+            <PreSaleAlertSection />
 
             {/* Recent Activity and Alerts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

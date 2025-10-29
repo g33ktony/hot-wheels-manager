@@ -11,6 +11,7 @@ import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign, Share2 } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
+import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
 import DeliveryReport from '@/components/DeliveryReport'
 import type { InventoryItem } from '../../../shared/types'
 
@@ -1130,24 +1131,77 @@ export default function Deliveries() {
                             <h3 className="text-lg font-medium text-gray-900">Items de la Entrega</h3>
                         </div>
 
+                        {/* Pre-Sale Item Selector */}
+                        <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
+                                    PRE-SALE
+                                </span>
+                                Add Pre-Sale Item
+                            </h4>
+                            <PreSaleItemAutocomplete
+                                value=""
+                                onChange={(preSaleItem) => {
+                                    // Add presale item to delivery
+                                    setNewDelivery({
+                                        ...newDelivery,
+                                        items: [
+                                            ...newDelivery.items,
+                                            {
+                                                carId: preSaleItem.carId,
+                                                carName: preSaleItem.carModel || preSaleItem.carId,
+                                                quantity: 1,
+                                                unitPrice: preSaleItem.finalPricePerUnit,
+                                                // Pre-sale specific fields
+                                                hotWheelsCarId: preSaleItem._id, // Store presale item ID
+                                                seriesId: preSaleItem._id,
+                                                seriesName: preSaleItem.carModel || 'Pre-Sale Item',
+                                                isSoldAsSeries: true
+                                            }
+                                        ]
+                                    })
+                                }}
+                                placeholder="Search presale items..."
+                                onlyActive
+                            />
+                        </div>
+
                         <div className="space-y-4">
                             {newDelivery.items.map((item, index) => (
                                 <div key={index} className="space-y-2">
-                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
+                                    <div className={`flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg ${
+                                        item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : 'border-gray-300'
+                                    }`}>
+                                        {/* Pre-Sale Badge */}
+                                        {item.isSoldAsSeries && (
+                                            <div className="absolute top-2 right-2">
+                                                <span className="inline-block px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded">
+                                                    PRE-SALE
+                                                </span>
+                                            </div>
+                                        )}
+                                        
                                         <div className="flex-1">
-                                            <InventoryItemSelector
-                                                key={item.inventoryItemId || `empty-${index}`}
-                                                value={item.inventoryItemId || ''}
-                                                onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
-                                                excludeIds={newDelivery.items
-                                                    .filter((_, i) => i !== index)
-                                                    .map(item => item.inventoryItemId)
-                                                    .filter(Boolean) as string[]
-                                                }
-                                                placeholder="Buscar pieza en inventario..."
-                                                required
-                                                fallbackName={item.carName || undefined}
-                                            />
+                                            {item.isSoldAsSeries ? (
+                                                <div className="p-2 bg-white rounded border border-purple-200">
+                                                    <p className="font-semibold text-gray-900">{item.carName}</p>
+                                                    <p className="text-sm text-gray-600">{item.carId}</p>
+                                                </div>
+                                            ) : (
+                                                <InventoryItemSelector
+                                                    key={item.inventoryItemId || `empty-${index}`}
+                                                    value={item.inventoryItemId || ''}
+                                                    onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
+                                                    excludeIds={newDelivery.items
+                                                        .filter((_, i) => i !== index)
+                                                        .map(item => item.inventoryItemId)
+                                                        .filter(Boolean) as string[]
+                                                    }
+                                                    placeholder="Buscar pieza en inventario..."
+                                                    required
+                                                    fallbackName={item.carName || undefined}
+                                                />
+                                            )}
                                         </div>
                                         <div className="flex gap-3 sm:gap-4 sm:w-auto">
                                             <div className="w-20 min-w-[80px]">
