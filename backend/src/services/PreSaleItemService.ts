@@ -41,22 +41,45 @@ class PreSaleItemService {
         preSaleItem.purchaseIds.push(purchaseId)
       }
 
+      // If a custom finalPrice is provided, update it (takes precedence over markup)
+      if (finalPrice && finalPrice > 0) {
+        preSaleItem.finalPricePerUnit = finalPrice
+        preSaleItem.markupPercentage = 
+          preSaleItem.basePricePerUnit === 0 
+            ? 0 
+            : ((finalPrice - preSaleItem.basePricePerUnit) / preSaleItem.basePricePerUnit) * 100
+      } else if (markupPercentage !== undefined && markupPercentage !== null) {
+        // Update markup if provided
+        preSaleItem.markupPercentage = markupPercentage
+        preSaleItem.finalPricePerUnit = preSaleItem.basePricePerUnit * (1 + markupPercentage / 100)
+      }
+
+      // Update photo if provided
+      if (photo) {
+        preSaleItem.photo = photo
+      }
+
       // Recalculate totals
       preSaleItem.totalSaleAmount = preSaleItem.finalPricePerUnit * preSaleItem.totalQuantity
       preSaleItem.totalCostAmount = preSaleItem.basePricePerUnit * preSaleItem.totalQuantity
       preSaleItem.totalProfit = preSaleItem.totalSaleAmount - preSaleItem.totalCostAmount
     } else {
       // Create new pre-sale item
-      const markup = markupPercentage ?? 15
+      const defaultMarkup = markupPercentage ?? 15
       
       // Use provided finalPrice if available, otherwise calculate from markup
       let calculatedFinalPrice: number
+      let calculatedMarkup: number
+      
       if (finalPrice && finalPrice > 0) {
         calculatedFinalPrice = finalPrice
-        // Recalculate markup percentage based on final price if not provided
-        // This ensures consistency: finalPrice takes precedence
+        // Recalculate markup percentage based on custom final price
+        calculatedMarkup = unitPrice === 0 
+          ? 0 
+          : ((finalPrice - unitPrice) / unitPrice) * 100
       } else {
-        calculatedFinalPrice = unitPrice * (1 + markup / 100)
+        calculatedMarkup = defaultMarkup
+        calculatedFinalPrice = unitPrice * (1 + defaultMarkup / 100)
       }
 
       preSaleItem = new PreSaleItem({
@@ -65,7 +88,7 @@ class PreSaleItemService {
         assignedQuantity: 0,
         availableQuantity: quantity,
         basePricePerUnit: unitPrice,
-        markupPercentage: markup,
+        markupPercentage: calculatedMarkup,
         finalPricePerUnit: calculatedFinalPrice,
         status: 'active',
         startDate: new Date(),

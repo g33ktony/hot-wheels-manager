@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { X, DollarSign, Calendar } from 'lucide-react'
+import { X, DollarSign, Calendar, Edit2, Save } from 'lucide-react'
+import { useUpdatePreSaleFinalPrice } from '@/hooks/usePresale'
 
 interface PreSaleItem {
     _id: string
@@ -33,15 +34,47 @@ interface PreSaleDetailModalProps {
 
 const PreSaleDetailModal: React.FC<PreSaleDetailModalProps> = ({ isOpen, onClose }) => {
     const [item, setItem] = useState<PreSaleItem | null>(null)
+    const [isEditingPrice, setIsEditingPrice] = useState(false)
+    const [editedFinalPrice, setEditedFinalPrice] = useState<number>(0)
+    const updateFinalPrice = useUpdatePreSaleFinalPrice()
 
     useEffect(() => {
         if (isOpen) {
             const stored = sessionStorage.getItem('selectedPresaleItem')
             if (stored) {
-                setItem(JSON.parse(stored))
+                const parsedItem = JSON.parse(stored)
+                setItem(parsedItem)
+                setEditedFinalPrice(parsedItem.finalPricePerUnit)
             }
         }
     }, [isOpen])
+
+    const handleSaveFinalPrice = async () => {
+        if (!item || editedFinalPrice === item.finalPricePerUnit) {
+            setIsEditingPrice(false)
+            return
+        }
+
+        try {
+            await updateFinalPrice.mutateAsync({
+                id: item._id,
+                finalPrice: editedFinalPrice
+            })
+            // Update local state
+            setItem({
+                ...item,
+                finalPricePerUnit: editedFinalPrice,
+                totalSaleAmount: editedFinalPrice * item.totalQuantity,
+                totalProfit: editedFinalPrice * item.totalQuantity - item.totalCostAmount,
+                markupPercentage: item.basePricePerUnit === 0 
+                    ? 0 
+                    : ((editedFinalPrice - item.basePricePerUnit) / item.basePricePerUnit) * 100
+            })
+            setIsEditingPrice(false)
+        } catch (error) {
+            console.error('Error updating final price:', error)
+        }
+    }
 
     if (!isOpen || !item) {
         return null
@@ -125,11 +158,54 @@ const PreSaleDetailModal: React.FC<PreSaleDetailModalProps> = ({ isOpen, onClose
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-green-50 p-4 rounded-lg">
-                            <p className="text-xs text-gray-600 uppercase tracking-wide">Final Price / Unit</p>
-                            <p className="text-2xl font-bold text-green-600 mt-1">
-                                ${item.finalPricePerUnit.toFixed(2)}
-                            </p>
+                        <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs text-gray-600 uppercase tracking-wide">Final Price / Unit</p>
+                                    {isEditingPrice ? (
+                                        <div className="flex gap-2 mt-2">
+                                            <input
+                                                type="number"
+                                                value={editedFinalPrice}
+                                                onChange={(e) => setEditedFinalPrice(parseFloat(e.target.value) || 0)}
+                                                step="0.01"
+                                                min="0"
+                                                className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            />
+                                            <button
+                                                onClick={handleSaveFinalPrice}
+                                                disabled={updateFinalPrice.isLoading}
+                                                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition text-sm font-medium flex items-center gap-1 disabled:opacity-50"
+                                            >
+                                                <Save className="w-4 h-4" />
+                                                Save
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsEditingPrice(false)
+                                                    setEditedFinalPrice(item.finalPricePerUnit)
+                                                }}
+                                                className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 transition text-sm font-medium"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <p className="text-2xl font-bold text-green-600 mt-1">
+                                            ${item.finalPricePerUnit.toFixed(2)}
+                                        </p>
+                                    )}
+                                </div>
+                                {!isEditingPrice && (
+                                    <button
+                                        onClick={() => setIsEditingPrice(true)}
+                                        className="text-blue-600 hover:text-blue-700 transition"
+                                        title="Edit final price"
+                                    >
+                                        <Edit2 className="w-5 h-5" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
