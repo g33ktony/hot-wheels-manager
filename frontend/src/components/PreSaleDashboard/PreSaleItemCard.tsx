@@ -129,6 +129,17 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
                 </div>
             </div>
 
+            {/* Photo Display */}
+            {item.photo && (
+                <div className="mb-4 rounded-lg overflow-hidden border border-gray-300">
+                    <img
+                        src={item.photo}
+                        alt={item.carModel || item.carId}
+                        className="w-full h-48 object-cover"
+                    />
+                </div>
+            )}
+
             {/* Quantity and Condition */}
             <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-200">
                 <div>

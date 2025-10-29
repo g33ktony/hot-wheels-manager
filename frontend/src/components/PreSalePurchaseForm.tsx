@@ -7,7 +7,7 @@ import Input from '@/components/common/Input'
 import LoadingSpinner from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import AutocompleteCarId from '@/components/AutocompleteCarId'
-import { Plus, DollarSign, Users, Calendar, Package, Info, Image as ImageIcon } from 'lucide-react'
+import { Plus, DollarSign, Users, Calendar, Package, Info } from 'lucide-react'
 
 interface PreSalePurchaseFormProps {
     onSuccess?: (item: any) => void

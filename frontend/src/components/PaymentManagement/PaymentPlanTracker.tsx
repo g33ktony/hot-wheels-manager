@@ -90,10 +90,10 @@ const PaymentPlanTracker: React.FC<PaymentPlanTrackerProps> = ({
             <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
                 <div
                     className={`h-3 rounded-full transition-all duration-300 ${paymentPlan.hasOverduePayments
-                            ? 'bg-red-500'
-                            : progressPercentage === 100
-                                ? 'bg-green-500'
-                                : 'bg-blue-500'
+                        ? 'bg-red-500'
+                        : progressPercentage === 100
+                            ? 'bg-green-500'
+                            : 'bg-blue-500'
                         }`}
                     style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                 />
@@ -210,10 +210,10 @@ const PaymentPlanTracker: React.FC<PaymentPlanTrackerProps> = ({
                                 <div
                                     key={index}
                                     className={`p-3 rounded-lg border-2 transition-all ${item.paid
-                                            ? 'bg-green-50 border-green-200'
-                                            : item.isOverdue
-                                                ? 'bg-red-50 border-red-200'
-                                                : 'bg-gray-50 border-gray-200'
+                                        ? 'bg-green-50 border-green-200'
+                                        : item.isOverdue
+                                            ? 'bg-red-50 border-red-200'
+                                            : 'bg-gray-50 border-gray-200'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">
@@ -235,10 +235,10 @@ const PaymentPlanTracker: React.FC<PaymentPlanTrackerProps> = ({
                                             <p className="font-bold text-lg">${item.amount.toLocaleString('es-CO')}</p>
                                             <span
                                                 className={`text-xs font-medium px-2 py-1 rounded-full ${item.paid
-                                                        ? 'bg-green-200 text-green-800'
-                                                        : item.isOverdue
-                                                            ? 'bg-red-200 text-red-800'
-                                                            : 'bg-yellow-200 text-yellow-800'
+                                                    ? 'bg-green-200 text-green-800'
+                                                    : item.isOverdue
+                                                        ? 'bg-red-200 text-red-800'
+                                                        : 'bg-yellow-200 text-yellow-800'
                                                     }`}
                                             >
                                                 {item.paid ? 'Pagado' : item.isOverdue ? 'Vencido' : 'Pendiente'}

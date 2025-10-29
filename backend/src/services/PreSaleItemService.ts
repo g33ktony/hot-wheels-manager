@@ -25,7 +25,8 @@ class PreSaleItemService {
     quantity: number,
     unitPrice: number,
     markupPercentage?: number,
-    finalPrice?: number
+    finalPrice?: number,
+    photo?: string | null
   ): Promise<PreSaleItemType> {
     // Check if pre-sale item already exists for this car
     let preSaleItem = await PreSaleItem.findOne({ carId })
@@ -73,7 +74,8 @@ class PreSaleItemService {
         deliveryAssignments: [],
         totalSaleAmount: calculatedFinalPrice * quantity,
         totalCostAmount: unitPrice * quantity,
-        totalProfit: calculatedFinalPrice * quantity - unitPrice * quantity
+        totalProfit: calculatedFinalPrice * quantity - unitPrice * quantity,
+        photo: photo || undefined
       })
 
       // Try to get car metadata
