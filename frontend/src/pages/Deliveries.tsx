@@ -135,13 +135,17 @@ export default function Deliveries() {
         }
 
         // Validate that non-presale items exist in inventory
-        const inventoryItemIds = newDelivery.items
-            .filter(item => !item.isSoldAsSeries && item.inventoryItemId)
-            .map(item => item.inventoryItemId)
+        const inventoryItems_toValidate = newDelivery.items.filter(item => {
+            // Skip presale items (they start with "presale_")
+            if (item.inventoryItemId?.startsWith('presale_')) {
+                return false
+            }
+            return item.inventoryItemId && !item.isSoldAsSeries
+        })
 
-        if (inventoryItemIds.length > 0) {
-            const invalidItems = inventoryItemIds.filter(id => 
-                !inventoryItems.some(inv => inv._id === id)
+        if (inventoryItems_toValidate.length > 0) {
+            const invalidItems = inventoryItems_toValidate.filter(item =>
+                !inventoryItems.some(inv => inv._id === item.inventoryItemId)
             )
             if (invalidItems.length > 0) {
                 alert('Algunos items del inventario ya no están disponibles. Por favor, selecciona otros items.')

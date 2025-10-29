@@ -155,7 +155,11 @@ export const createDelivery = async (req: Request, res: Response) => {
     for (const item of items) {
       let itemExists = false;
       
-      if (item.inventoryItemId) {
+      // Skip validation for presale items (they start with "presale_")
+      if (item.inventoryItemId?.startsWith('presale_')) {
+        // Presale items are pre-validated on the frontend
+        itemExists = true;
+      } else if (item.inventoryItemId) {
         // Check if it's a real inventory item
         const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
         if (inventoryItem) {
@@ -189,9 +193,9 @@ export const createDelivery = async (req: Request, res: Response) => {
       totalAmount += item.unitPrice * item.quantity;
     }
 
-    // Reserve inventory items
+    // Reserve inventory items (skip presale items)
     for (const item of items) {
-      if (item.inventoryItemId) {
+      if (item.inventoryItemId && !item.inventoryItemId.startsWith('presale_')) {
         await InventoryItemModel.findByIdAndUpdate(
           item.inventoryItemId,
           { $inc: { reservedQuantity: item.quantity } }
@@ -503,11 +507,16 @@ const createSalesFromDelivery = async (delivery: any) => {
     const saleItems = [];
 
     for (const item of delivery.items) {
+      // Skip presale items - they are handled separately by PreSalePaymentPlan
+      if (item.inventoryItemId?.startsWith('presale_')) {
+        continue; // Don't create sale items for presale items
+      }
+      
       // Check if item exists in inventory or is from catalog
       let shouldRemoveFromInventory = false;
       
       if (item.inventoryItemId) {
-        // Check if it's a real inventory item
+        // Check if it's a real inventory item (not presale)
         const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
         if (inventoryItem) {
           shouldRemoveFromInventory = true;
@@ -534,6 +543,12 @@ const createSalesFromDelivery = async (delivery: any) => {
         quantity: item.quantity,
         unitPrice: item.unitPrice
       });
+    }
+    
+    // Only create a sale if there are non-presale items
+    if (saleItems.length === 0) {
+      console.log(`No non-presale items in delivery ${delivery._id}, skipping sale creation`);
+      return;
     }
 
     // Create single sale record with all items
@@ -569,9 +584,10 @@ const removeSalesFromDelivery = async (delivery: any) => {
     const sales = await SaleModel.find({ deliveryId: delivery._id });
     
     for (const sale of sales) {
-      // Restore inventory for each item in the sale
+      // Restore inventory for each item in the sale (only non-presale items)
       for (const saleItem of sale.items) {
-        if (saleItem.inventoryItemId) {
+        const itemId = saleItem.inventoryItemId?.toString() || '';
+        if (itemId && !itemId.startsWith('presale_')) {
           const inventoryItem = await InventoryItemModel.findById(saleItem.inventoryItemId);
           if (inventoryItem) {
             // Restore inventory quantity
@@ -581,6 +597,7 @@ const removeSalesFromDelivery = async (delivery: any) => {
             );
           }
         }
+        // Presale items don't need restoration - they are managed separately
       }
       
       // Delete the sale
