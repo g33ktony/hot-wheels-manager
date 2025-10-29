@@ -47,6 +47,7 @@ export default function Deliveries() {
             carName: string;
             quantity: number;
             unitPrice: number;
+            basePricePerUnit?: number;  // For presale items
             // Series fields
             seriesId?: string;
             seriesName?: string;
@@ -1171,6 +1172,7 @@ export default function Deliveries() {
                                                 carName: preSaleItem.carModel || preSaleItem.carId,
                                                 quantity: 1,
                                                 unitPrice: preSaleItem.finalPricePerUnit,
+                                                basePricePerUnit: (preSaleItem as any).basePricePerUnit || 0,  // Add base price for presale items
                                                 // Mark as presale item
                                                 inventoryItemId: `presale_${preSaleItem._id}`,
                                                 hotWheelsCarId: preSaleItem._id,
@@ -1675,14 +1677,24 @@ export default function Deliveries() {
                                     {selectedDelivery.items?.map((item: any, index: number) => {
                                         // Find inventory item for cost information
                                         let inventoryItem;
+                                        let isPresaleItem = false;
+                                        
                                         if (typeof item.inventoryItemId === 'string') {
-                                            // Not populated, find in inventoryItems
-                                            inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId);
+                                            // Check if it's a presale item
+                                            if (item.inventoryItemId.startsWith('presale_')) {
+                                                isPresaleItem = true;
+                                                // For presale items, cost is the base price
+                                                inventoryItem = null;
+                                            } else {
+                                                // Regular inventory item - find in list
+                                                inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId);
+                                            }
                                         } else {
-                                            // Already populated
+                                            // Already populated (legacy format)
                                             inventoryItem = item.inventoryItemId;
                                         }
-                                        const cost = inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0;
+                                        
+                                        const cost = isPresaleItem ? (item.basePricePerUnit || 0) : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0);
                                         const profit = item.unitPrice - cost;
 
                                         return (
