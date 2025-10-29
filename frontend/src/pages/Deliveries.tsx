@@ -134,6 +134,21 @@ export default function Deliveries() {
             return
         }
 
+        // Validate that non-presale items exist in inventory
+        const inventoryItemIds = newDelivery.items
+            .filter(item => !item.isSoldAsSeries && item.inventoryItemId)
+            .map(item => item.inventoryItemId)
+
+        if (inventoryItemIds.length > 0) {
+            const invalidItems = inventoryItemIds.filter(id => 
+                !inventoryItems.some(inv => inv._id === id)
+            )
+            if (invalidItems.length > 0) {
+                alert('Algunos items del inventario ya no están disponibles. Por favor, selecciona otros items.')
+                return
+            }
+        }
+
         try {
             if (isEditMode && editingDelivery) {
                 // Update existing delivery
@@ -1152,8 +1167,9 @@ export default function Deliveries() {
                                                 carName: preSaleItem.carModel || preSaleItem.carId,
                                                 quantity: 1,
                                                 unitPrice: preSaleItem.finalPricePerUnit,
-                                                // Pre-sale specific fields
-                                                hotWheelsCarId: preSaleItem._id, // Store presale item ID
+                                                // Mark as presale item
+                                                inventoryItemId: `presale_${preSaleItem._id}`,
+                                                hotWheelsCarId: preSaleItem._id,
                                                 seriesId: preSaleItem._id,
                                                 seriesName: preSaleItem.carModel || 'Pre-Sale Item',
                                                 isSoldAsSeries: true
@@ -1211,6 +1227,7 @@ export default function Deliveries() {
                                                     value={item.quantity}
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
                                                     min="1"
+                                                    disabled={item.isSoldAsSeries}
                                                     className="min-h-[44px]"
                                                 />
                                             </div>
@@ -1222,6 +1239,7 @@ export default function Deliveries() {
                                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
                                                     step="0.01"
                                                     min="0"
+                                                    disabled={item.isSoldAsSeries}
                                                     className="min-h-[44px]"
                                                 />
                                             </div>
