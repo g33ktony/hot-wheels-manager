@@ -45,6 +45,7 @@ export default function Layout({ children }: LayoutProps) {
         { name: 'Inventario', href: '/inventory', icon: Package },
         { name: 'Ventas', href: '/sales', icon: ShoppingCart },
         { name: 'Compras', href: '/purchases', icon: ShoppingBag },
+        { name: 'Pre-Ventas', href: '/presale/purchase', icon: Package },
         // Conditional: Only show if there are pending items
         ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
             name: 'Items Pendientes',
