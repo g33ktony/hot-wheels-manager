@@ -17,6 +17,7 @@ export interface PreSaleItem {
   totalSaleAmount: number
   totalCostAmount: number
   totalProfit: number
+  photo?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -28,6 +29,7 @@ export interface CreatePreSaleItemDto {
   unitPrice: number
   markupPercentage?: number
   finalPrice?: number
+  photo?: string | null
 }
 
 export interface PreSalePaymentPlan {

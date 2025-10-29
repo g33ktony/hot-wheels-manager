@@ -25,6 +25,7 @@ interface PreSaleItem {
     notes?: string
     carModel?: string
     brand?: string
+    photo?: string
     purchaseIds?: string[]
     createdAt?: string
     updatedAt?: string

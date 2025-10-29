@@ -46,6 +46,7 @@ export interface PreSaleItem extends Document {
   brand?: string;
   pieceType?: 'basic' | 'premium' | 'rlc';
   condition?: 'mint' | 'good' | 'fair' | 'poor';
+  photo?: string; // Base64 encoded image or image URL
 
   // Related purchases
   purchaseIds: string[] // Array of Purchase IDs that contribute to this item
@@ -173,6 +174,10 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
     condition: {
       type: String,
       enum: ['mint', 'good', 'fair', 'poor']
+    },
+    photo: {
+      type: String,
+      default: null
     },
 
     // Related purchases
