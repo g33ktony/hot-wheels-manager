@@ -3,6 +3,9 @@ import PreSaleItemService from '../services/PreSaleItemService'
 
 const router = Router()
 
+// Log when routes are loaded - helps verify deployment
+console.log('✅ Presale Items Routes loaded - v1.0.1 with fixed route ordering')
+
 /**
  * Pre-Sale Items Routes
  * Handles CRUD and business logic for pre-sale item aggregation
@@ -12,8 +15,9 @@ const router = Router()
 router.get('/test/debug', async (req: Request, res: Response) => {
   res.json({
     success: true,
-    message: 'Presale items route is loaded',
-    timestamp: new Date().toISOString()
+    message: 'Presale items route is loaded - v1.0.1',
+    timestamp: new Date().toISOString(),
+    routesFixed: true
   })
 })
 
