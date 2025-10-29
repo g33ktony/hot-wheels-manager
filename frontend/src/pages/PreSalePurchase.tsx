@@ -66,7 +66,7 @@ export default function PreSalePurchasePage() {
                 <p className="text-gray-600 text-center py-8">No pre-sales registered yet</p>
               ) : (
                 <div className="space-y-4">
-                  {recentPreSales.map((item) => (
+                  {recentPreSales.map((item: any) => (
                     <div key={item._id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-colors">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
