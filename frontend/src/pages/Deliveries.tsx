@@ -5,6 +5,7 @@ import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
 import { usePreSaleItems } from '@/hooks/usePresale'
+import { useCreatePaymentPlan } from '@/hooks/usePaymentPlans'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -68,6 +69,13 @@ export default function Deliveries() {
         phone: '',
         address: ''
     })
+    const [paymentPlanConfig, setPaymentPlanConfig] = useState({
+        enabled: false,
+        numberOfPayments: 4,
+        paymentFrequency: 'weekly' as 'weekly' | 'biweekly' | 'monthly',
+        startDate: new Date().toISOString().split('T')[0],
+        earlyPaymentBonus: 0
+    })
     const [customLocation, setCustomLocation] = useState('')
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
@@ -89,6 +97,7 @@ export default function Deliveries() {
     const deleteDeliveryMutation = useDeleteDelivery()
     const addPaymentMutation = useAddPayment()
     const deletePaymentMutation = useDeletePayment()
+    const createPaymentPlanMutation = useCreatePaymentPlan()
     const queryClient = useQueryClient()
 
     if (isLoading) {
@@ -157,6 +166,13 @@ export default function Deliveries() {
         }
 
         try {
+            // Check if delivery has presale items
+            const hasPresaleItems = newDelivery.items.some(item => 
+                item.inventoryItemId?.startsWith('presale_')
+            )
+
+            let createdDelivery: any
+            
             if (isEditMode && editingDelivery) {
                 // Update existing delivery
                 await updateDeliveryMutation.mutateAsync({
@@ -173,7 +189,7 @@ export default function Deliveries() {
                 })
             } else {
                 // Create new delivery
-                await createDeliveryMutation.mutateAsync({
+                createdDelivery = await createDeliveryMutation.mutateAsync({
                     customerId: newDelivery.customerId,
                     items: newDelivery.items,
                     scheduledDate: new Date(newDelivery.scheduledDate),
@@ -181,6 +197,27 @@ export default function Deliveries() {
                     totalAmount: newDelivery.totalAmount,
                     notes: newDelivery.notes || undefined
                 })
+
+                // If payment plan is enabled for presale items, create it
+                if (hasPresaleItems && paymentPlanConfig.enabled && createdDelivery._id) {
+                    try {
+                        await createPaymentPlanMutation.mutateAsync({
+                            deliveryId: createdDelivery._id,
+                            customerId: newDelivery.customerId,
+                            totalAmount: newDelivery.totalAmount,
+                            numberOfPayments: paymentPlanConfig.numberOfPayments,
+                            paymentFrequency: paymentPlanConfig.paymentFrequency,
+                            startDate: new Date(paymentPlanConfig.startDate),
+                            earlyPaymentBonus: paymentPlanConfig.earlyPaymentBonus > 0 
+                                ? paymentPlanConfig.earlyPaymentBonus 
+                                : undefined
+                        })
+                    } catch (paymentPlanError) {
+                        console.error('Error creating payment plan:', paymentPlanError)
+                        // Continue even if payment plan creation fails
+                        alert('Entrega creada pero hubo un error al crear el plan de pagos. Puedes crearlo manualmente.')
+                    }
+                }
             }
 
             // Reset form and close modal
@@ -427,6 +464,14 @@ export default function Deliveries() {
             location: '',
             totalAmount: 0,
             notes: ''
+        })
+        // Reset payment plan config
+        setPaymentPlanConfig({
+            enabled: false,
+            numberOfPayments: 4,
+            paymentFrequency: 'weekly',
+            startDate: new Date().toISOString().split('T')[0],
+            earlyPaymentBonus: 0
         })
     }
 
@@ -1333,6 +1378,136 @@ export default function Deliveries() {
                             onChange={(e) => setNewDelivery({ ...newDelivery, notes: e.target.value })}
                         />
                     </div>
+
+                    {/* Payment Plan Configuration - Only show if delivery has presale items and not in edit mode */}
+                    {!isEditMode && newDelivery.items.some(item => item.inventoryItemId?.startsWith('presale_')) && (
+                        <div className="border-t pt-4 mt-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-medium text-gray-900">Plan de Pagos (Preventa)</h3>
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={paymentPlanConfig.enabled}
+                                        onChange={(e) => setPaymentPlanConfig({
+                                            ...paymentPlanConfig,
+                                            enabled: e.target.checked
+                                        })}
+                                        className="mr-2 h-4 w-4 text-blue-600 rounded"
+                                    />
+                                    <span className="text-sm">Habilitar pagos parciales</span>
+                                </label>
+                            </div>
+
+                            {paymentPlanConfig.enabled && (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Número de Pagos
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="2"
+                                                max="12"
+                                                value={paymentPlanConfig.numberOfPayments}
+                                                onChange={(e) => setPaymentPlanConfig({
+                                                    ...paymentPlanConfig,
+                                                    numberOfPayments: parseInt(e.target.value) || 2
+                                                })}
+                                                className="input w-full"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Frecuencia
+                                            </label>
+                                            <select
+                                                value={paymentPlanConfig.paymentFrequency}
+                                                onChange={(e) => setPaymentPlanConfig({
+                                                    ...paymentPlanConfig,
+                                                    paymentFrequency: e.target.value as 'weekly' | 'biweekly' | 'monthly'
+                                                })}
+                                                className="input w-full"
+                                            >
+                                                <option value="weekly">Semanal</option>
+                                                <option value="biweekly">Quincenal</option>
+                                                <option value="monthly">Mensual</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Fecha Primer Pago
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={paymentPlanConfig.startDate}
+                                                onChange={(e) => setPaymentPlanConfig({
+                                                    ...paymentPlanConfig,
+                                                    startDate: e.target.value
+                                                })}
+                                                className="input w-full"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Bono Pago Anticipado (%)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="20"
+                                                step="0.5"
+                                                value={paymentPlanConfig.earlyPaymentBonus}
+                                                onChange={(e) => setPaymentPlanConfig({
+                                                    ...paymentPlanConfig,
+                                                    earlyPaymentBonus: parseFloat(e.target.value) || 0
+                                                })}
+                                                className="input w-full"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Payment Summary */}
+                                    <div className="p-4 bg-blue-50 rounded-lg">
+                                        <h4 className="font-medium text-sm mb-2">Resumen del Plan</h4>
+                                        <div className="grid grid-cols-3 gap-4 text-sm">
+                                            <div>
+                                                <span className="text-gray-600">Total:</span>
+                                                <div className="font-medium">${newDelivery.totalAmount.toFixed(2)}</div>
+                                            </div>
+                                            <div>
+                                                <span className="text-gray-600">Por Pago:</span>
+                                                <div className="font-medium">
+                                                    ${(newDelivery.totalAmount / paymentPlanConfig.numberOfPayments).toFixed(2)}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="text-gray-600">Fecha Final:</span>
+                                                <div className="font-medium text-xs">
+                                                    {(() => {
+                                                        const start = new Date(paymentPlanConfig.startDate)
+                                                        const freq = paymentPlanConfig.paymentFrequency
+                                                        const days = freq === 'weekly' ? 7 : freq === 'biweekly' ? 14 : 30
+                                                        const end = new Date(start)
+                                                        end.setDate(end.getDate() + (days * (paymentPlanConfig.numberOfPayments - 1)))
+                                                        return end.toLocaleDateString()
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {paymentPlanConfig.earlyPaymentBonus > 0 && (
+                                            <div className="mt-2 text-xs text-green-700">
+                                                💰 Con {paymentPlanConfig.earlyPaymentBonus}% de descuento si paga todo anticipado
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </Modal>
 
@@ -1548,7 +1723,7 @@ export default function Deliveries() {
                                                     let inventoryItem;
                                                     let isPresaleItem = false;
                                                     let preSaleItemData = null;
-                                                    
+
                                                     if (typeof item.inventoryItemId === 'string') {
                                                         // Check if it's a presale item
                                                         if (item.inventoryItemId.startsWith('presale_')) {
@@ -1565,12 +1740,12 @@ export default function Deliveries() {
                                                         // Already populated
                                                         inventoryItem = item.inventoryItemId;
                                                     }
-                                                    
+
                                                     // Get cost from presale item or inventory item
-                                                    const cost = isPresaleItem 
-                                                        ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0) 
+                                                    const cost = isPresaleItem
+                                                        ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0)
                                                         : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0);
-                                                    
+
                                                     if (cost > 0) {
                                                         totalCost += cost * item.quantity;
                                                         itemsWithCost++;
@@ -1699,7 +1874,7 @@ export default function Deliveries() {
                                         let inventoryItem;
                                         let isPresaleItem = false;
                                         let preSaleItemData = null;
-                                        
+
                                         if (typeof item.inventoryItemId === 'string') {
                                             // Check if it's a presale item
                                             if (item.inventoryItemId.startsWith('presale_')) {
@@ -1717,9 +1892,9 @@ export default function Deliveries() {
                                             // Already populated (legacy format)
                                             inventoryItem = item.inventoryItemId;
                                         }
-                                        
-                                        const cost = isPresaleItem 
-                                            ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0) 
+
+                                        const cost = isPresaleItem
+                                            ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0)
                                             : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0);
                                         const profit = item.unitPrice - cost;
 
