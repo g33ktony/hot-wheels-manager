@@ -147,7 +147,7 @@ export default function PreSaleEditPage() {
                         {/* Base Information - Read Only */}
                         <div className="bg-gray-50 p-4 rounded-lg space-y-4">
                             <h3 className="font-semibold text-gray-900">Item Information</h3>
-                            
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Car ID</label>
@@ -237,7 +237,7 @@ export default function PreSaleEditPage() {
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-700">Effective Markup:</span>
                                     <span className="font-bold text-blue-600">
-                                        {formData.basePricePerUnit === 0 
+                                        {formData.basePricePerUnit === 0
                                             ? '0'
                                             : (((formData.finalPricePerUnit! - formData.basePricePerUnit!) / formData.basePricePerUnit!) * 100).toFixed(1)
                                         }%

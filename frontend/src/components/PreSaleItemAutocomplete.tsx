@@ -50,7 +50,7 @@ const PreSaleItemAutocomplete: React.FC<PreSaleItemAutocompleteProps> = ({
     }
 
     const isOverdue = selectedItem?.endDate ? new Date(selectedItem.endDate) < new Date() : false
-    const isToday = selectedItem?.endDate 
+    const isToday = selectedItem?.endDate
         ? new Date(selectedItem.endDate).toDateString() === new Date().toDateString()
         : false
 
@@ -139,9 +139,8 @@ const PreSaleItemAutocomplete: React.FC<PreSaleItemAutocompleteProps> = ({
                             <button
                                 key={item._id}
                                 onClick={() => handleSelect(item)}
-                                className={`w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition ${
-                                    isItemToday ? 'bg-red-50' : ''
-                                }`}
+                                className={`w-full text-left px-4 py-3 hover:bg-blue-50 border-b border-gray-100 last:border-b-0 transition ${isItemToday ? 'bg-red-50' : ''
+                                    }`}
                             >
                                 <div className="flex items-center justify-between">
                                     <div>

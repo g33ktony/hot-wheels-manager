@@ -1,3 +1,5 @@
 # Vercel Deploy Trigger
 # This file forces a new deployment
-Timestamp: 2025-10-06T00:00:00Z
+Timestamp: 2025-10-29T21:30:00Z
+Build: presale-delivery-fix-deployment
+Status: ready-for-redeploy

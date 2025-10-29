@@ -205,9 +205,9 @@ const PreSaleDashboard: React.FC = () => {
             </div>
 
             {/* Detail Modal */}
-            <PreSaleDetailModal 
-                isOpen={showDetailModal} 
-                onClose={() => setShowDetailModal(false)} 
+            <PreSaleDetailModal
+                isOpen={showDetailModal}
+                onClose={() => setShowDetailModal(false)}
             />
         </div>
     )

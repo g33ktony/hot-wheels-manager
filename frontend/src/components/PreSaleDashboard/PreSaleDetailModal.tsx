@@ -66,8 +66,8 @@ const PreSaleDetailModal: React.FC<PreSaleDetailModalProps> = ({ isOpen, onClose
                 finalPricePerUnit: editedFinalPrice,
                 totalSaleAmount: editedFinalPrice * item.totalQuantity,
                 totalProfit: editedFinalPrice * item.totalQuantity - item.totalCostAmount,
-                markupPercentage: item.basePricePerUnit === 0 
-                    ? 0 
+                markupPercentage: item.basePricePerUnit === 0
+                    ? 0
                     : ((editedFinalPrice - item.basePricePerUnit) / item.basePricePerUnit) * 100
             })
             setIsEditingPrice(false)

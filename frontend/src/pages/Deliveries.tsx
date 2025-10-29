@@ -1189,9 +1189,8 @@ export default function Deliveries() {
                         <div className="space-y-4">
                             {newDelivery.items.map((item, index) => (
                                 <div key={index} className="space-y-2">
-                                    <div className={`flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg ${
-                                        item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : 'border-gray-300'
-                                    }`}>
+                                    <div className={`flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg ${item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : 'border-gray-300'
+                                        }`}>
                                         {/* Pre-Sale Badge */}
                                         {item.isSoldAsSeries && (
                                             <div className="absolute top-2 right-2">
@@ -1200,7 +1199,7 @@ export default function Deliveries() {
                                                 </span>
                                             </div>
                                         )}
-                                        
+
                                         <div className="flex-1">
                                             {item.isSoldAsSeries ? (
                                                 <div className="p-2 bg-white rounded border border-purple-200">

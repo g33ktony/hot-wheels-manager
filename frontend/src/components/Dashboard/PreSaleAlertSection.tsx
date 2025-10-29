@@ -47,11 +47,10 @@ const PreSaleAlertSection: React.FC = () => {
                     return (
                         <div
                             key={item._id}
-                            className={`p-3 rounded-lg border-2 transition ${
-                                isToday
+                            className={`p-3 rounded-lg border-2 transition ${isToday
                                     ? 'bg-red-50 border-red-300 scale-105'
                                     : 'bg-blue-50 border-blue-200 hover:border-blue-300'
-                            }`}
+                                }`}
                         >
                             <div className="flex items-start gap-3">
                                 {/* Photo */}
