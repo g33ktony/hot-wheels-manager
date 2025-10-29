@@ -24,6 +24,8 @@ import boxesRoutes from './routes/boxes'
 import pendingItemsRoutes from './routes/pendingItemsRoutes'
 import facebookRoutes from './routes/facebookRoutes'
 import deliveryLocationsRoutes from './routes/deliveryLocations'
+import presaleItemsRoutes from './routes/presaleItemsRoutes'
+import presalePaymentsRoutes from './routes/presalePaymentsRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -136,6 +138,8 @@ app.use('/api/boxes', authMiddleware, boxesRoutes)
 app.use('/api/pending-items', authMiddleware, pendingItemsRoutes)
 app.use('/api/facebook', authMiddleware, facebookRoutes)
 app.use('/api/delivery-locations', authMiddleware, deliveryLocationsRoutes)
+app.use('/api/presale/items', authMiddleware, presaleItemsRoutes)
+app.use('/api/presale/payments', authMiddleware, presalePaymentsRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)

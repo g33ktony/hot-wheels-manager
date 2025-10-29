@@ -52,6 +52,16 @@ export interface InventoryItem {
   seriesPosition?: number; // Position in series (1-5)
   seriesPrice?: number; // Price for complete series (editable)
   seriesDefaultPrice?: number; // Auto-calculated (85% of individual total)
+  // Box fields (for sealed boxes like 72-piece cases)
+  isBox?: boolean; // true if this is a sealed box
+  boxName?: string; // Display name (e.g., "Caja P", "Caja J")
+  boxSize?: number; // Total pieces in box (e.g., 24, 72)
+  boxPrice?: number; // Total price paid for the box
+  boxStatus?: 'sealed' | 'unpacking' | 'completed'; // Box unpacking status
+  registeredPieces?: number; // Number of pieces already registered (0 at start)
+  // Source box tracking (for pieces that came from a box)
+  sourceBox?: string; // Name of source box (e.g., "Caja P")
+  sourceBoxId?: string; // ID of source box for tracking
   // Relación poblada con el Hot Wheels
   hotWheelsCar?: HotWheelsCar;
 }
@@ -71,6 +81,13 @@ export interface Purchase {
   notes?: string;
   isReceived: boolean;
   receivedDate?: Date;
+  // Pending items tracking
+  hasPendingItems?: boolean;
+  pendingItemsCount?: number;
+  // Pre-sale fields
+  isPresale?: boolean;
+  preSaleScheduledDate?: Date;
+  preSaleStatus?: 'coming-soon' | 'purchased' | 'shipped' | 'received' | 'archived';
 }
 
 export interface PurchaseItem {
@@ -90,10 +107,50 @@ export interface PurchaseItem {
   seriesSize?: number;
   seriesPosition?: number;
   seriesPrice?: number;
+  // Box fields (for purchasing sealed boxes)
+  isBox?: boolean; // true if this purchase item is a sealed box
+  boxName?: string; // Display name (e.g., "Caja P", "Caja J")
+  boxSize?: number; // Total pieces in box (e.g., 24, 72)
+  boxPrice?: number; // Total price for the box
   // Photos and location
   photos?: string[];
   location?: string;
   notes?: string;
+}
+
+export interface PendingItem {
+  _id?: string;
+  originalPurchaseId: string;
+  originalPurchase?: Purchase;
+  
+  // Detalles del item
+  carId: string;
+  quantity: number;
+  unitPrice: number;
+  condition: 'mint' | 'good' | 'fair' | 'poor';
+  brand?: string;
+  pieceType?: 'basic' | 'premium' | 'rlc';
+  isTreasureHunt?: boolean;
+  isSuperTreasureHunt?: boolean;
+  isChase?: boolean;
+  photos?: string[];
+  
+  // Tracking
+  status: 'pending-reshipment' | 'requesting-refund' | 'refunded' | 'cancelled';
+  reportedDate: Date;
+  notes?: string;
+  
+  // Reenvío
+  linkedToPurchaseId?: string;
+  linkedToPurchase?: Purchase;
+  
+  // Reembolso
+  refundAmount?: number;
+  refundDate?: Date;
+  refundMethod?: string;
+  
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Customer {
@@ -359,6 +416,14 @@ export interface CustomBrand {
   name: string;
   createdAt?: Date;
   userId?: string; // In case we implement multi-user in the future
+}
+
+// Delivery locations saved by users
+export interface DeliveryLocation {
+  _id?: string;
+  name: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ActivityItem {
