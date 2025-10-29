@@ -55,13 +55,6 @@ const PreSaleDashboard: React.FC = () => {
         return true
     })
 
-    // Group by status for summary
-    const statusCounts = {
-        pending: preSales.filter((item: any) => item.status === 'pending').length,
-        'in-progress': preSales.filter((item: any) => item.status === 'in-progress').length,
-        completed: preSales.filter((item: any) => item.status === 'completed').length,
-    }
-
     const handleFilterChange = (newFilters: Partial<Filters>) => {
         setFilters((prev) => ({ ...prev, ...newFilters }))
     }
@@ -120,7 +113,7 @@ const PreSaleDashboard: React.FC = () => {
                 </div>
 
                 {/* Stats */}
-                <PreSaleStats statusCounts={statusCounts} totalItems={preSales.length} />
+                <PreSaleStats items={preSales} />
 
                 {/* Filters Section */}
                 <div className="bg-white rounded-lg shadow-md p-6 mb-6">

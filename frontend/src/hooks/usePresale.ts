@@ -111,6 +111,44 @@ export const useUpdatePreSaleStatus = () => {
   )
 }
 
+export const useAssignPreSaleUnits = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ id, deliveryId, quantity, purchaseId }: { id: string; deliveryId: string; quantity: number; purchaseId: string }) =>
+      presaleService.items.assignUnits(id, deliveryId, quantity, purchaseId),
+    {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries(['presaleItem', variables.id])
+        queryClient.invalidateQueries('presaleItems')
+        toast.success(`${variables.quantity} unidades asignadas exitosamente`)
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al asignar unidades')
+      },
+    }
+  )
+}
+
+export const useUnassignPreSaleUnits = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ id, unitIds }: { id: string; unitIds: string[] }) =>
+      presaleService.items.unassignUnits(id, unitIds),
+    {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries(['presaleItem', variables.id])
+        queryClient.invalidateQueries('presaleItems')
+        toast.success(`${variables.unitIds.length} unidades desasignadas exitosamente`)
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al desasignar unidades')
+      },
+    }
+  )
+}
+
 export const usePreSaleActiveSummary = () => {
   return useQuery(
     'presaleActiveSummary',
