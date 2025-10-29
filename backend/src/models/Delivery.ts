@@ -32,7 +32,7 @@ export interface Payment {
 }
 
 export interface DeliveryItem {
-  inventoryItemId?: mongoose.Types.ObjectId; // Optional for catalog items
+  inventoryItemId?: mongoose.Types.ObjectId | string; // ObjectId for inventory items, string for presale items (presale_xxx)
   hotWheelsCarId?: mongoose.Types.ObjectId; // For catalog items
   carId: string;
   carName: string;
@@ -46,8 +46,7 @@ export interface DeliveryItem {
 
 const DeliveryItemSchema = new Schema<DeliveryItem>({
   inventoryItemId: {
-    type: Schema.Types.ObjectId,
-    ref: 'InventoryItem',
+    type: Schema.Types.Mixed, // Can be ObjectId or string (for presale items)
     required: false // Optional for catalog items
   },
   hotWheelsCarId: {
