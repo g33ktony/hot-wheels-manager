@@ -4,6 +4,7 @@ import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsC
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
+import { usePreSaleItems } from '@/hooks/usePresale'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -78,6 +79,7 @@ export default function Deliveries() {
     })
     const inventoryItems = inventoryData?.items || []
     const { data: deliveryLocations } = useDeliveryLocations()
+    const { data: preSaleItems } = usePreSaleItems()
     const createDeliveryMutation = useCreateDelivery()
     const updateDeliveryMutation = useUpdateDelivery()
     const createCustomerMutation = useCreateCustomer()
@@ -1678,12 +1680,16 @@ export default function Deliveries() {
                                         // Find inventory item for cost information
                                         let inventoryItem;
                                         let isPresaleItem = false;
+                                        let preSaleItemData = null;
                                         
                                         if (typeof item.inventoryItemId === 'string') {
                                             // Check if it's a presale item
                                             if (item.inventoryItemId.startsWith('presale_')) {
                                                 isPresaleItem = true;
-                                                // For presale items, cost is the base price
+                                                // Extract presale item ID from "presale_xxx" format
+                                                const preSaleId = item.inventoryItemId.replace('presale_', '');
+                                                // Find the presale item in the list
+                                                preSaleItemData = preSaleItems?.find(ps => ps._id === preSaleId);
                                                 inventoryItem = null;
                                             } else {
                                                 // Regular inventory item - find in list
@@ -1694,7 +1700,9 @@ export default function Deliveries() {
                                             inventoryItem = item.inventoryItemId;
                                         }
                                         
-                                        const cost = isPresaleItem ? (item.basePricePerUnit || 0) : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0);
+                                        const cost = isPresaleItem 
+                                            ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0) 
+                                            : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0);
                                         const profit = item.unitPrice - cost;
 
                                         return (
