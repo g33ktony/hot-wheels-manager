@@ -363,8 +363,8 @@ export default function PreSalePurchaseForm({
                                 <span className="font-semibold">${formData.unitPrice.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-700">Final Price / Unit (+{formData.markupPercentage}%):</span>
-                                <span className="font-semibold text-blue-600">${finalPricePerUnit.toFixed(2)}</span>
+                                <span className="text-gray-700">Final Price / Unit {formData.finalPrice > 0 ? '(custom)' : `(+${formData.markupPercentage}%)`}:</span>
+                                <span className="font-semibold text-blue-600">${(formData.finalPrice > 0 ? formData.finalPrice : finalPricePerUnit).toFixed(2)}</span>
                             </div>
                             <div className="border-t border-blue-200 pt-2 flex justify-between">
                                 <span className="font-semibold">Total Sale Amount ({formData.quantity} units):</span>

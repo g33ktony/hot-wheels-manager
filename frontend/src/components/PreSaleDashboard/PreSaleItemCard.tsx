@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 import { Edit2, Trash2, CheckCircle, Clock, AlertCircle, Package, ChevronDown, CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import PreSaleAssignmentModal from './PreSaleAssignmentModal'
@@ -253,13 +252,19 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
                         Asignar
                     </button>
                 )}
-                <Link
-                    to={`/presale/${item._id}`}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center gap-2"
+                <button
+                    onClick={() => {
+                        // Store the selected item in session storage for later viewing
+                        sessionStorage.setItem('selectedPresaleItem', JSON.stringify(item))
+                        // Dispatch event to parent to show modal
+                        window.dispatchEvent(new CustomEvent('showPresaleDetail'))
+                    }}
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
+                    title={`View details for ${item.carModel || item.carId}`}
                 >
                     <Edit2 className="w-4 h-4" />
                     Ver Detalles
-                </Link>
+                </button>
                 <button className="flex-1 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition text-sm font-medium flex items-center justify-center gap-2">
                     <Trash2 className="w-4 h-4" />
                     Eliminar

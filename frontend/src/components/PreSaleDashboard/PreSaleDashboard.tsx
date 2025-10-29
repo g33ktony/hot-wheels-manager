@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { usePreSaleItems } from '@/hooks/usePresale'
 import PreSaleItemCard from './PreSaleItemCard'
 import PreSaleFilters from './PreSaleFilters'
 import PreSaleStats from './PreSaleStats'
+import PreSaleDetailModal from './PreSaleDetailModal'
 import { Filter, RefreshCw } from 'lucide-react'
 
 // Updated: 2025-10-28 - Photo feature and route fixes deployed
@@ -17,6 +18,7 @@ interface Filters {
 
 const PreSaleDashboard: React.FC = () => {
     const { data: preSalesData, isLoading, error, refetch } = usePreSaleItems()
+    const [showDetailModal, setShowDetailModal] = useState(false)
     const [filters, setFilters] = useState<Filters>({
         status: 'all',
         carId: '',
@@ -24,6 +26,15 @@ const PreSaleDashboard: React.FC = () => {
         searchTerm: '',
     })
     const [showFilters, setShowFilters] = useState(false)
+
+    // Listen for detail modal trigger
+    useEffect(() => {
+        const handleShowDetail = () => {
+            setShowDetailModal(true)
+        }
+        window.addEventListener('showPresaleDetail', handleShowDetail)
+        return () => window.removeEventListener('showPresaleDetail', handleShowDetail)
+    }, [])
 
     const preSales = preSalesData || []
 
@@ -192,6 +203,12 @@ const PreSaleDashboard: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Detail Modal */}
+            <PreSaleDetailModal 
+                isOpen={showDetailModal} 
+                onClose={() => setShowDetailModal(false)} 
+            />
         </div>
     )
 }
