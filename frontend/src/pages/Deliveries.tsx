@@ -1546,19 +1546,37 @@ export default function Deliveries() {
                                                 if (item.inventoryItemId) {
                                                     // item.inventoryItemId could be an ID string or populated object
                                                     let inventoryItem;
+                                                    let isPresaleItem = false;
+                                                    let preSaleItemData = null;
+                                                    
                                                     if (typeof item.inventoryItemId === 'string') {
-                                                        // Not populated, find in inventoryItems
-                                                        inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId);
+                                                        // Check if it's a presale item
+                                                        if (item.inventoryItemId.startsWith('presale_')) {
+                                                            isPresaleItem = true;
+                                                            // Extract presale item ID from "presale_xxx" format
+                                                            const preSaleId = item.inventoryItemId.replace('presale_', '');
+                                                            // Find the presale item in the list
+                                                            preSaleItemData = preSaleItems?.find(ps => ps._id === preSaleId);
+                                                        } else {
+                                                            // Not populated, find in inventoryItems
+                                                            inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId);
+                                                        }
                                                     } else {
                                                         // Already populated
                                                         inventoryItem = item.inventoryItemId;
                                                     }
-                                                    if (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0) {
-                                                        totalCost += inventoryItem.purchasePrice * item.quantity;
+                                                    
+                                                    // Get cost from presale item or inventory item
+                                                    const cost = isPresaleItem 
+                                                        ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0) 
+                                                        : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0);
+                                                    
+                                                    if (cost > 0) {
+                                                        totalCost += cost * item.quantity;
                                                         itemsWithCost++;
                                                     } else {
                                                         itemsWithoutCost++;
-                                                        console.warn('Item without valid purchase price:', item, inventoryItem);
+                                                        console.warn('Item without valid cost:', item, isPresaleItem ? preSaleItemData : inventoryItem);
                                                     }
                                                 } else if (item.hotWheelsCarId) {
                                                     // Catalog item - no cost
