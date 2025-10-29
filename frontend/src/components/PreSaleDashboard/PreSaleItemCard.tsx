@@ -254,13 +254,9 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
                 )}
                 <button
                     onClick={() => {
-                        // Store the selected item in session storage for later viewing
-                        sessionStorage.setItem('selectedPresaleItem', JSON.stringify(item))
-                        // Dispatch event to parent to show modal
-                        window.dispatchEvent(new CustomEvent('showPresaleDetail'))
+                        window.location.href = `/presale/${item._id}/edit`
                     }}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
-                    title={`View details for ${item.carModel || item.carId}`}
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-sm font-medium flex items-center justify-center gap-2"
                 >
                     <Edit2 className="w-4 h-4" />
                     Ver Detalles
