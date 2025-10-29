@@ -86,7 +86,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/presale/items - Create new pre-sale item from purchase
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { purchaseId, carId, quantity, unitPrice, markupPercentage } = req.body
+    const { purchaseId, carId, quantity, unitPrice, markupPercentage, finalPrice } = req.body
 
     if (!purchaseId || !carId || !quantity || unitPrice === undefined) {
       return res.status(400).json({
@@ -100,7 +100,8 @@ router.post('/', async (req: Request, res: Response) => {
       carId,
       quantity,
       unitPrice,
-      markupPercentage
+      markupPercentage,
+      finalPrice
     )
 
     res.status(201).json({
@@ -140,6 +141,34 @@ router.put('/:id/markup', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to update markup'
+    })
+  }
+})
+
+// PUT /api/presale/items/:id/final-price - Update final price per unit
+router.put('/:id/final-price', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const { finalPrice } = req.body
+
+    if (finalPrice === undefined || finalPrice === null) {
+      return res.status(400).json({
+        success: false,
+        error: 'finalPrice is required'
+      })
+    }
+
+    const item = await PreSaleItemService.updateFinalPrice(id, finalPrice)
+
+    res.json({
+      success: true,
+      message: 'Final price updated successfully',
+      data: item
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update final price'
     })
   }
 })

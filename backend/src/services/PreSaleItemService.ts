@@ -24,7 +24,8 @@ class PreSaleItemService {
     carId: string,
     quantity: number,
     unitPrice: number,
-    markupPercentage?: number
+    markupPercentage?: number,
+    finalPrice?: number
   ): Promise<PreSaleItemType> {
     // Check if pre-sale item already exists for this car
     let preSaleItem = await PreSaleItem.findOne({ carId })
@@ -46,6 +47,16 @@ class PreSaleItemService {
     } else {
       // Create new pre-sale item
       const markup = markupPercentage ?? 15
+      
+      // Use provided finalPrice if available, otherwise calculate from markup
+      let calculatedFinalPrice: number
+      if (finalPrice && finalPrice > 0) {
+        calculatedFinalPrice = finalPrice
+        // Recalculate markup percentage based on final price if not provided
+        // This ensures consistency: finalPrice takes precedence
+      } else {
+        calculatedFinalPrice = unitPrice * (1 + markup / 100)
+      }
 
       preSaleItem = new PreSaleItem({
         carId,
@@ -54,15 +65,15 @@ class PreSaleItemService {
         availableQuantity: quantity,
         basePricePerUnit: unitPrice,
         markupPercentage: markup,
-        finalPricePerUnit: unitPrice * (1 + markup / 100),
+        finalPricePerUnit: calculatedFinalPrice,
         status: 'active',
         startDate: new Date(),
         purchaseIds: [purchaseId],
         units: [], // Empty until first assignment
         deliveryAssignments: [],
-        totalSaleAmount: unitPrice * (1 + markup / 100) * quantity,
+        totalSaleAmount: calculatedFinalPrice * quantity,
         totalCostAmount: unitPrice * quantity,
-        totalProfit: unitPrice * (1 + markup / 100) * quantity - unitPrice * quantity
+        totalProfit: calculatedFinalPrice * quantity - unitPrice * quantity
       })
 
       // Try to get car metadata
@@ -205,8 +216,37 @@ class PreSaleItemService {
   }
 
   /**
-   * Get units assigned to a specific delivery
+   * Update final price per unit and recalculate derived values
    */
+  async updateFinalPrice(preSaleItemId: string, finalPrice: number): Promise<PreSaleItemType> {
+    const preSaleItem = await PreSaleItem.findById(preSaleItemId)
+
+    if (!preSaleItem) {
+      throw new Error(`PreSaleItem ${preSaleItemId} not found`)
+    }
+
+    if (finalPrice < 0) {
+      throw new Error('Final price cannot be negative')
+    }
+
+    if (finalPrice < preSaleItem.basePricePerUnit) {
+      throw new Error('Final price cannot be less than the base price')
+    }
+
+    preSaleItem.finalPricePerUnit = finalPrice
+    // Recalculate markup percentage based on new final price
+    preSaleItem.markupPercentage = 
+      preSaleItem.basePricePerUnit === 0 
+        ? 0 
+        : ((finalPrice - preSaleItem.basePricePerUnit) / preSaleItem.basePricePerUnit) * 100
+
+    preSaleItem.totalSaleAmount = preSaleItem.finalPricePerUnit * preSaleItem.totalQuantity
+    preSaleItem.totalProfit = preSaleItem.totalSaleAmount - preSaleItem.totalCostAmount
+
+    await preSaleItem.save()
+
+    return preSaleItem
+  }
   async getUnitsForDelivery(
     preSaleItemId: string,
     deliveryId: string

@@ -41,6 +41,7 @@ export default function PreSalePurchaseForm({
         quantity: 1,
         unitPrice: 0,
         markupPercentage: 15,
+        finalPrice: 0,
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         purchaseDate: new Date().toISOString().split('T')[0],
         preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -52,8 +53,16 @@ export default function PreSalePurchaseForm({
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [isLoading, setIsLoading] = useState(false)
 
-    // Calculate final price
-    const finalPricePerUnit = formData.unitPrice * (1 + formData.markupPercentage / 100)
+    // Calculate final price based on unit price and markup
+    const calculateFinalPrice = (unitPrice: number, markup: number): number => {
+        return unitPrice * (1 + markup / 100)
+    }
+
+    // Use either calculated or manually entered final price
+    const finalPricePerUnit = formData.finalPrice > 0
+        ? formData.finalPrice
+        : calculateFinalPrice(formData.unitPrice, formData.markupPercentage)
+
     const totalCost = finalPricePerUnit * formData.quantity
     const profit = (finalPricePerUnit - formData.unitPrice) * formData.quantity
 
@@ -117,12 +126,18 @@ export default function PreSalePurchaseForm({
             // For now, we'll use a placeholder purchaseId.
             const purchaseId = initialPurchaseId || `presale-${Date.now()}`
 
+            // Calculate final price based on whether it was manually edited
+            const finalPrice = formData.finalPrice > 0
+                ? formData.finalPrice
+                : calculateFinalPrice(formData.unitPrice, formData.markupPercentage)
+
             await createPreSaleItem.mutateAsync({
                 purchaseId,
                 carId: formData.carId,
                 quantity: formData.quantity,
                 unitPrice: formData.unitPrice,
-                markupPercentage: formData.markupPercentage
+                markupPercentage: formData.markupPercentage,
+                finalPrice: finalPrice
             })
 
             // Reset form
@@ -132,6 +147,7 @@ export default function PreSalePurchaseForm({
                 quantity: 1,
                 unitPrice: 0,
                 markupPercentage: 15,
+                finalPrice: 0,
                 condition: 'mint',
                 purchaseDate: new Date().toISOString().split('T')[0],
                 preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -274,23 +290,44 @@ export default function PreSalePurchaseForm({
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     <DollarSign className="inline-block w-4 h-4 mr-1" />
-                                    Markup %
+                                    Markup % (editable)
                                 </label>
                                 <Input
                                     type="number"
                                     value={formData.markupPercentage}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, markupPercentage: parseFloat(e.target.value) || 0 })
-                                    }
+                                    onChange={(e) => {
+                                        const markup = parseFloat(e.target.value) || 0
+                                        setFormData({ ...formData, markupPercentage: markup, finalPrice: 0 })
+                                    }}
                                     min="0"
-                                    max="100"
                                     step="0.1"
                                     placeholder="15"
                                 />
                                 {errors.markupPercentage && (
                                     <p className="text-sm text-red-500 mt-1">{errors.markupPercentage}</p>
                                 )}
+                                <p className="text-xs text-gray-500 mt-1">Edit to recalculate final price</p>
                             </div>
+                        </div>
+
+                        {/* Final Price - Editable */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <DollarSign className="inline-block w-4 h-4 mr-1" />
+                                Final Price Per Unit (editable)
+                            </label>
+                            <Input
+                                type="number"
+                                value={formData.finalPrice > 0 ? formData.finalPrice : finalPricePerUnit}
+                                onChange={(e) => {
+                                    const finalPrice = parseFloat(e.target.value) || 0
+                                    setFormData({ ...formData, finalPrice })
+                                }}
+                                min="0"
+                                step="0.01"
+                                placeholder={finalPricePerUnit.toFixed(2)}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Edit to set custom final price</p>
                         </div>
 
                         {/* Pricing Summary */}

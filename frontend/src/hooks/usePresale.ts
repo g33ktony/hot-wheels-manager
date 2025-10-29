@@ -73,6 +73,25 @@ export const useUpdatePreSaleMarkup = () => {
   )
 }
 
+export const useUpdatePreSaleFinalPrice = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ id, finalPrice }: { id: string; finalPrice: number }) =>
+      presaleService.items.updateFinalPrice(id, finalPrice),
+    {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries('presaleItems')
+        queryClient.invalidateQueries(['presaleItem', variables.id])
+        toast.success('Precio final actualizado exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al actualizar precio final')
+      },
+    }
+  )
+}
+
 export const useUpdatePreSaleStatus = () => {
   const queryClient = useQueryClient()
 

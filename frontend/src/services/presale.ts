@@ -27,6 +27,7 @@ export interface CreatePreSaleItemDto {
   quantity: number
   unitPrice: number
   markupPercentage?: number
+  finalPrice?: number
 }
 
 export interface PreSalePaymentPlan {
@@ -95,6 +96,18 @@ export const presaleService = {
       )
       if (!response.data.data) {
         throw new Error('Failed to update markup')
+      }
+      return response.data.data
+    },
+
+    // Update final price per unit
+    updateFinalPrice: async (id: string, finalPrice: number): Promise<PreSaleItem> => {
+      const response = await api.put<ApiResponse<PreSaleItem>>(
+        `/presale/items/${id}/final-price`,
+        { finalPrice }
+      )
+      if (!response.data.data) {
+        throw new Error('Failed to update final price')
       }
       return response.data.data
     },
