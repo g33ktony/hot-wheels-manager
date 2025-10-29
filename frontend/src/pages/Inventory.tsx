@@ -1268,810 +1268,810 @@ export default function Inventory() {
                     }
                 >
                     <div className="space-y-4">
-                            {/* Type Selection */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tipo de Compra
+                        {/* Type Selection */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Tipo de Compra
+                            </label>
+                            <div className="flex flex-col gap-2">
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="purchaseType"
+                                        checked={!newItem.isBox && !newItem.isMultipleCars}
+                                        onChange={() => {
+                                            setNewItem({
+                                                ...newItem,
+                                                isBox: false,
+                                                isMultipleCars: false,
+                                                quantity: 1,
+                                                pricePerPiece: 0,
+                                                cars: []
+                                            })
+                                        }}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-sm">Pieza Individual (1 modelo)</span>
                                 </label>
-                                <div className="flex flex-col gap-2">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="purchaseType"
-                                            checked={!newItem.isBox && !newItem.isMultipleCars}
-                                            onChange={() => {
-                                                setNewItem({
-                                                    ...newItem,
-                                                    isBox: false,
-                                                    isMultipleCars: false,
-                                                    quantity: 1,
-                                                    pricePerPiece: 0,
-                                                    cars: []
-                                                })
-                                            }}
-                                            className="mr-2"
-                                        />
-                                        <span className="text-sm">Pieza Individual (1 modelo)</span>
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="purchaseType"
-                                            checked={newItem.isBox && !newItem.isMultipleCars}
-                                            onChange={() => {
-                                                setNewItem({
-                                                    ...newItem,
-                                                    isBox: true,
-                                                    isMultipleCars: false,
-                                                    quantity: newItem.boxSize,
-                                                    pricePerPiece: newItem.purchasePrice / newItem.boxSize,
-                                                    cars: []
-                                                })
-                                            }}
-                                            className="mr-2"
-                                        />
-                                        <span className="text-sm">Caja del mismo modelo (ej: 10 del mismo)</span>
-                                    </label>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="radio"
-                                            name="purchaseType"
-                                            checked={newItem.isMultipleCars}
-                                            onChange={() => {
-                                                setNewItem({
-                                                    ...newItem,
-                                                    isBox: false,
-                                                    isMultipleCars: true,
-                                                    carId: '',
-                                                    quantity: 0,
-                                                    pricePerPiece: 0,
-                                                    cars: []
-                                                })
-                                            }}
-                                            className="mr-2"
-                                        />
-                                        <span className="text-sm">Serie/Caja con múltiples modelos diferentes</span>
-                                    </label>
-                                </div>
-                                {newItem.isMultipleCars && (
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        💡 Usa esta opción para series como Fast & Furious donde cada caja trae varios modelos diferentes
-                                    </p>
-                                )}
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="purchaseType"
+                                        checked={newItem.isBox && !newItem.isMultipleCars}
+                                        onChange={() => {
+                                            setNewItem({
+                                                ...newItem,
+                                                isBox: true,
+                                                isMultipleCars: false,
+                                                quantity: newItem.boxSize,
+                                                pricePerPiece: newItem.purchasePrice / newItem.boxSize,
+                                                cars: []
+                                            })
+                                        }}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-sm">Caja del mismo modelo (ej: 10 del mismo)</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        name="purchaseType"
+                                        checked={newItem.isMultipleCars}
+                                        onChange={() => {
+                                            setNewItem({
+                                                ...newItem,
+                                                isBox: false,
+                                                isMultipleCars: true,
+                                                carId: '',
+                                                quantity: 0,
+                                                pricePerPiece: 0,
+                                                cars: []
+                                            })
+                                        }}
+                                        className="mr-2"
+                                    />
+                                    <span className="text-sm">Serie/Caja con múltiples modelos diferentes</span>
+                                </label>
                             </div>
-
-                            {/* Multiple Cars Section (for series/boxes with different models) */}
                             {newItem.isMultipleCars && (
-                                <div className="border-2 border-blue-200 rounded-lg p-4 space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <h4 className="font-medium text-gray-900">Modelos en la caja/serie</h4>
-                                        <span className="text-sm text-gray-600">
-                                            {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas totales
-                                        </span>
-                                    </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    💡 Usa esta opción para series como Fast & Furious donde cada caja trae varios modelos diferentes
+                                </p>
+                            )}
+                        </div>
 
-                                    {/* Series Checkbox - ONLY shown when adding multiple cars */}
-                                    <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={!!newItem.seriesId}
-                                                onChange={(e) => {
-                                                    if (e.target.checked) {
-                                                        setNewItem({
-                                                            ...newItem,
-                                                            seriesId: `SERIES-${Date.now()}`,
-                                                            seriesName: '',
-                                                            seriesSize: 5,
-                                                            seriesPosition: 1,
-                                                            seriesPrice: 0,
-                                                            seriesDefaultPrice: 0
-                                                        })
-                                                    } else {
-                                                        setNewItem({
-                                                            ...newItem,
-                                                            seriesId: '',
-                                                            seriesName: '',
-                                                            seriesSize: 5,
-                                                            seriesPosition: 1,
-                                                            seriesPrice: 0,
-                                                            seriesDefaultPrice: 0
-                                                        })
-                                                    }
-                                                }}
-                                            />
-                                            <span className="font-medium text-purple-900">
-                                                🎁 Estos modelos pertenecen a una serie
-                                            </span>
-                                        </label>
-                                        <p className="text-xs text-purple-700 mt-1 ml-6">
-                                            Marca esto si los carros que vas a agregar son parte de una colección/serie vendible completa
-                                        </p>
-                                    </div>
+                        {/* Multiple Cars Section (for series/boxes with different models) */}
+                        {newItem.isMultipleCars && (
+                            <div className="border-2 border-blue-200 rounded-lg p-4 space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-medium text-gray-900">Modelos en la caja/serie</h4>
+                                    <span className="text-sm text-gray-600">
+                                        {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas totales
+                                    </span>
+                                </div>
 
-                                    {/* Series Configuration - ONLY shown when checkbox is marked */}
-                                    {newItem.seriesId && (
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
-                                            <div className="col-span-2">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    ID de Serie (auto-generado)
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    className="input w-full bg-gray-100"
-                                                    value={newItem.seriesId}
-                                                    readOnly
-                                                />
-                                            </div>
-
-                                            <div className="col-span-2">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Nombre de la Serie *
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    className="input w-full"
-                                                    placeholder="ej: Marvel Series 2024"
-                                                    value={newItem.seriesName}
-                                                    onChange={(e) => setNewItem({ ...newItem, seriesName: e.target.value })}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Total de Piezas en Serie *
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    className="input w-full"
-                                                    min="2"
-                                                    max="20"
-                                                    value={newItem.seriesSize}
-                                                    onChange={(e) => setNewItem({ ...newItem, seriesSize: parseInt(e.target.value) || 5 })}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Precio de Serie Completa (Opcional)
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    className="input w-full"
-                                                    placeholder="Auto (85% del total)"
-                                                    value={newItem.seriesPrice || ''}
-                                                    onChange={(e) => {
-                                                        const value = parseFloat(e.target.value) || 0
-                                                        setNewItem({ ...newItem, seriesPrice: value })
-                                                    }}
-                                                />
-                                            </div>
-
-                                            {newItem.suggestedPrice > 0 && newItem.seriesSize > 0 && (
-                                                <div className="col-span-2 text-xs bg-white p-2 rounded border border-purple-200">
-                                                    💡 Precio sugerido: <strong>${(newItem.suggestedPrice * newItem.seriesSize * 0.85).toFixed(2)}</strong>
-                                                    {' '}(85% de ${(newItem.suggestedPrice * newItem.seriesSize).toFixed(2)})
-                                                    {newItem.seriesPrice > 0 && (
-                                                        <span className="ml-2 text-green-600 font-medium">
-                                                            → ${(newItem.seriesPrice / newItem.seriesSize).toFixed(2)}/pieza
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Add car to list */}
-                                    <div className="flex gap-2">
+                                {/* Series Checkbox - ONLY shown when adding multiple cars */}
+                                <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3">
+                                    <label className="flex items-center gap-2 cursor-pointer">
                                         <input
-                                            type="text"
-                                            placeholder="Código (ej: FHY65)"
-                                            className="input flex-1"
-                                            value={newItem.carId}
-                                            onChange={(e) => setNewItem({ ...newItem, carId: e.target.value })}
-                                        />
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            placeholder="Cant."
-                                            className="input w-24"
-                                            value={newItem.quantity === 0 ? '' : newItem.quantity}
+                                            type="checkbox"
+                                            checked={!!newItem.seriesId}
                                             onChange={(e) => {
-                                                const value = e.target.value === '' ? 0 : parseInt(e.target.value)
-                                                setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
-                                            }}
-                                        />
-                                        <Button
-                                            size="sm"
-                                            onClick={() => {
-                                                if (newItem.carId && newItem.quantity > 0) {
+                                                if (e.target.checked) {
                                                     setNewItem({
                                                         ...newItem,
-                                                        cars: [...newItem.cars, { carId: newItem.carId, quantity: newItem.quantity }],
-                                                        carId: '',
-                                                        quantity: 1
+                                                        seriesId: `SERIES-${Date.now()}`,
+                                                        seriesName: '',
+                                                        seriesSize: 5,
+                                                        seriesPosition: 1,
+                                                        seriesPrice: 0,
+                                                        seriesDefaultPrice: 0
+                                                    })
+                                                } else {
+                                                    setNewItem({
+                                                        ...newItem,
+                                                        seriesId: '',
+                                                        seriesName: '',
+                                                        seriesSize: 5,
+                                                        seriesPosition: 1,
+                                                        seriesPrice: 0,
+                                                        seriesDefaultPrice: 0
                                                     })
                                                 }
                                             }}
-                                            disabled={!newItem.carId || newItem.quantity === 0}
-                                        >
-                                            <Plus size={16} />
-                                        </Button>
-                                    </div>
+                                        />
+                                        <span className="font-medium text-purple-900">
+                                            🎁 Estos modelos pertenecen a una serie
+                                        </span>
+                                    </label>
+                                    <p className="text-xs text-purple-700 mt-1 ml-6">
+                                        Marca esto si los carros que vas a agregar son parte de una colección/serie vendible completa
+                                    </p>
+                                </div>
 
-                                    {/* List of cars */}
-                                    {newItem.cars.length > 0 && (
-                                        <div className="space-y-2">
-                                            {newItem.cars.map((car, index) => (
-                                                <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                                                    <span className="text-sm">
-                                                        <span className="font-medium">{car.carId}</span>
-                                                        <span className="text-gray-600 ml-2">× {car.quantity}</span>
+                                {/* Series Configuration - ONLY shown when checkbox is marked */}
+                                {newItem.seriesId && (
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                                        <div className="col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                ID de Serie (auto-generado)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="input w-full bg-gray-100"
+                                                value={newItem.seriesId}
+                                                readOnly
+                                            />
+                                        </div>
+
+                                        <div className="col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Nombre de la Serie *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                className="input w-full"
+                                                placeholder="ej: Marvel Series 2024"
+                                                value={newItem.seriesName}
+                                                onChange={(e) => setNewItem({ ...newItem, seriesName: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Total de Piezas en Serie *
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="input w-full"
+                                                min="2"
+                                                max="20"
+                                                value={newItem.seriesSize}
+                                                onChange={(e) => setNewItem({ ...newItem, seriesSize: parseInt(e.target.value) || 5 })}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Precio de Serie Completa (Opcional)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                className="input w-full"
+                                                placeholder="Auto (85% del total)"
+                                                value={newItem.seriesPrice || ''}
+                                                onChange={(e) => {
+                                                    const value = parseFloat(e.target.value) || 0
+                                                    setNewItem({ ...newItem, seriesPrice: value })
+                                                }}
+                                            />
+                                        </div>
+
+                                        {newItem.suggestedPrice > 0 && newItem.seriesSize > 0 && (
+                                            <div className="col-span-2 text-xs bg-white p-2 rounded border border-purple-200">
+                                                💡 Precio sugerido: <strong>${(newItem.suggestedPrice * newItem.seriesSize * 0.85).toFixed(2)}</strong>
+                                                {' '}(85% de ${(newItem.suggestedPrice * newItem.seriesSize).toFixed(2)})
+                                                {newItem.seriesPrice > 0 && (
+                                                    <span className="ml-2 text-green-600 font-medium">
+                                                        → ${(newItem.seriesPrice / newItem.seriesSize).toFixed(2)}/pieza
                                                     </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setNewItem({
-                                                                ...newItem,
-                                                                cars: newItem.cars.filter((_, i) => i !== index)
-                                                            })
-                                                        }}
-                                                        className="text-red-600 hover:text-red-800"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
-                                    {newItem.cars.length === 0 && (
-                                        <p className="text-sm text-gray-500 text-center py-4">
-                                            Agrega los modelos que vienen en la caja/serie
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Box Size Selection */}
-                            {newItem.isBox && !newItem.isMultipleCars && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Tamaño de Caja
-                                    </label>
-                                    <select
-                                        className="input w-full"
-                                        value={newItem.boxSize}
-                                        onChange={(e) => {
-                                            const boxSize = parseInt(e.target.value) as 5 | 8 | 10
-                                            setNewItem({
-                                                ...newItem,
-                                                boxSize,
-                                                quantity: boxSize,
-                                                pricePerPiece: newItem.purchasePrice / boxSize
-                                            })
-                                        }}
-                                    >
-                                        <option value={5}>5 piezas</option>
-                                        <option value={8}>8 piezas</option>
-                                        <option value={10}>10 piezas</option>
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Single Car ID - Only for individual and box (same model) */}
-                            {!newItem.isMultipleCars && (
-                                <div className="relative">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Código de Hot Wheels
-                                    </label>
-                                    {existingItemToUpdate && (
-                                        <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-between">
-                                            <span className="text-sm text-yellow-800">
-                                                ✏️ Editando pieza existente
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={handleCancelUpdate}
-                                                className="text-yellow-600 hover:text-yellow-800 text-sm underline"
-                                            >
-                                                Cancelar
-                                            </button>
-                                        </div>
-                                    )}
+                                {/* Add car to list */}
+                                <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        className="input w-full"
-                                        placeholder="ej: FHY65"
+                                        placeholder="Código (ej: FHY65)"
+                                        className="input flex-1"
                                         value={newItem.carId}
-                                        onChange={(e) => handleCarIdChange(e.target.value)}
-                                        onFocus={() => newItem.carId.length > 0 && setShowSuggestions(true)}
+                                        onChange={(e) => setNewItem({ ...newItem, carId: e.target.value })}
                                     />
-
-                                    {/* Dropdown with suggestions */}
-                                    {showSuggestions && !existingItemToUpdate && getMatchingItems().length > 0 && (
-                                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                            <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
-                                                {getMatchingItems().length} pieza{getMatchingItems().length !== 1 ? 's' : ''} encontrada{getMatchingItems().length !== 1 ? 's' : ''}
-                                            </div>
-                                            {getMatchingItems().map((item: InventoryItem) => (
-                                                <button
-                                                    key={item._id}
-                                                    type="button"
-                                                    className="w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-b-0 transition-colors"
-                                                    onClick={() => handleSelectExistingItem(item)}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <div className="font-medium text-sm">{item.carId}</div>
-                                                            <div className="text-xs text-gray-600">
-                                                                {item.quantity} disponible{item.quantity !== 1 ? 's' : ''} • {item.condition} • ${item.suggestedPrice}
-                                                            </div>
-                                                        </div>
-                                                        <Edit size={14} className="text-blue-500" />
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Quantity - Only for individual and box (same model) */}
-                            {!newItem.isMultipleCars && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        {newItem.isBox ? 'Total de Piezas (automático)' : 'Cantidad'}
-                                    </label>
                                     <input
                                         type="number"
                                         min="1"
-                                        className="input w-full"
+                                        placeholder="Cant."
+                                        className="input w-24"
                                         value={newItem.quantity === 0 ? '' : newItem.quantity}
-                                        disabled={newItem.isBox}
                                         onChange={(e) => {
-                                            if (!newItem.isBox) {
-                                                const value = e.target.value === '' ? 0 : parseInt(e.target.value)
-                                                setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
-                                            }
+                                            const value = e.target.value === '' ? 0 : parseInt(e.target.value)
+                                            setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
                                         }}
                                     />
-                                    {newItem.isBox && (
-                                        <p className="text-xs text-gray-500 mt-1">
-                                            Se agregarán {newItem.quantity} piezas del mismo Hot Wheels
-                                        </p>
-                                    )}
-                                </div>
-                            )}                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {newItem.isMultipleCars || newItem.isBox ? 'Precio Total de la Caja/Serie' : 'Precio de Compra'}
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="0.00"
-                                    value={newItem.purchasePrice === 0 ? '' : newItem.purchasePrice}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/[^0-9.]/g, '')
-                                        const numValue = value === '' ? 0 : parseFloat(value)
-                                        const finalValue = isNaN(numValue) ? 0 : numValue
-
-                                        // For multiple cars, don't auto-calculate suggested price
-                                        if (newItem.isMultipleCars && newItem.cars.length > 0) {
-                                            setNewItem(prev => ({
-                                                ...prev,
-                                                purchasePrice: finalValue
-                                            }))
-                                        } else {
-                                            handlePurchasePriceChange(finalValue)
-
-                                            if (newItem.isBox) {
-                                                setNewItem(prev => ({
-                                                    ...prev,
-                                                    pricePerPiece: finalValue / newItem.boxSize
-                                                }))
+                                    <Button
+                                        size="sm"
+                                        onClick={() => {
+                                            if (newItem.carId && newItem.quantity > 0) {
+                                                setNewItem({
+                                                    ...newItem,
+                                                    cars: [...newItem.cars, { carId: newItem.carId, quantity: newItem.quantity }],
+                                                    carId: '',
+                                                    quantity: 1
+                                                })
                                             }
-                                        }
-                                    }}
-                                />
-                                {newItem.isMultipleCars && newItem.cars.length > 0 && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        💡 {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas total = ${newItem.purchasePrice > 0 ? (newItem.purchasePrice / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2) : '0.00'} por pieza
-                                    </p>
-                                )}
-                                {newItem.isBox && newItem.purchasePrice > 0 && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        ${(newItem.purchasePrice / newItem.boxSize).toFixed(2)} por pieza
-                                    </p>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                                    {newItem.isMultipleCars && newItem.seriesId
-                                        ? 'Precio Individual por Pieza (si se vende por separado)'
-                                        : newItem.isMultipleCars || newItem.isBox
-                                            ? 'Precio de Venta por Pieza'
-                                            : 'Precio Sugerido'}
-                                    {!newItem.isMultipleCars && (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
-                                            <TrendingUp size={12} />
-                                            {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ?
-                                                `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%`
-                                                : 'Auto'}
-                                        </span>
-                                    )}
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="0.00"
-                                    value={newItem.suggestedPrice === 0 ? '' : newItem.suggestedPrice}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/[^0-9.]/g, '')
-                                        const numValue = value === '' ? 0 : parseFloat(value)
-                                        setNewItem({ ...newItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
-                                    }}
-                                />
-                                {newItem.isMultipleCars && newItem.seriesId && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
-                                    <p className="text-xs text-yellow-600 mt-1">
-                                        ⚠️ Este es el precio si vendes cada pieza POR SEPARADO. El precio de serie completa se configura abajo.
-                                    </p>
-                                )}
-                                {newItem.isMultipleCars && !newItem.seriesId && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        💰 Si vendes todas por separado: ${(newItem.suggestedPrice * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)} total
-                                    </p>
-                                )}
-                                {!newItem.isMultipleCars && newItem.purchasePrice > 0 && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        💡 Sugerido: ${calculateSuggestedMargin(newItem.purchasePrice, newItem.condition).toFixed(2)}
-                                        {newItem.isBox && ` (Ganancia: $${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)} por caja)`}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Condición (afecta margen sugerido)
-                                </label>
-                                <select
-                                    className="input w-full"
-                                    value={newItem.condition}
-                                    onChange={(e) => handleConditionChange(e.target.value)}
-                                >
-                                    <option value="mint">Mint (+50% ganancia)</option>
-                                    <option value="good">Bueno (+40% ganancia)</option>
-                                    <option value="fair">Regular (+30% ganancia)</option>
-                                    <option value="poor">Malo (+20% ganancia)</option>
-                                </select>
-                            </div>
-
-                            {/* Brand Selection */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Marca
-                                </label>
-                                <select
-                                    className="input w-full"
-                                    value={showCustomBrandInput ? 'custom' : newItem.brand}
-                                    onChange={(e) => handleBrandChange(e.target.value)}
-                                >
-                                    <option value="">Seleccionar marca...</option>
-                                    {allBrands.map(brand => (
-                                        <option key={brand} value={brand}>{brand}</option>
-                                    ))}
-                                    <option value="custom">+ Agregar otra marca</option>
-                                </select>
-
-                                {showCustomBrandInput && (
-                                    <div className="mt-2 flex gap-2">
-                                        <input
-                                            type="text"
-                                            className="input flex-1"
-                                            placeholder="Nombre de la marca"
-                                            value={customBrandInput}
-                                            onChange={(e) => setCustomBrandInput(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    e.preventDefault()
-                                                    handleSaveCustomBrand()
-                                                }
-                                            }}
-                                        />
-                                        <Button
-                                            size="sm"
-                                            onClick={handleSaveCustomBrand}
-                                            disabled={!customBrandInput.trim()}
-                                        >
-                                            Guardar
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="secondary"
-                                            onClick={() => {
-                                                setShowCustomBrandInput(false)
-                                                setCustomBrandInput('')
-                                            }}
-                                        >
-                                            Cancelar
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Piece Type */}
-                            {newItem.brand && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Tipo de Pieza
-                                    </label>
-                                    <select
-                                        className="input w-full"
-                                        value={newItem.pieceType}
-                                        onChange={(e) => setNewItem({ ...newItem, pieceType: e.target.value as any })}
+                                        }}
+                                        disabled={!newItem.carId || newItem.quantity === 0}
                                     >
-                                        <option value="">Seleccionar tipo...</option>
-                                        <option value="basic">Básico</option>
-                                        <option value="premium">Premium</option>
-                                        <option value="rlc">RLC</option>
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Treasure Hunt (only for Hot Wheels Basic) */}
-                            {newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'basic' && (
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={newItem.isTreasureHunt}
-                                            disabled={newItem.isSuperTreasureHunt}
-                                            onChange={(e) => setNewItem({
-                                                ...newItem,
-                                                isTreasureHunt: e.target.checked,
-                                                isSuperTreasureHunt: false
-                                            })}
-                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                                        />
-                                        <span className={`text-sm font-medium ${newItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
-                                            🔍 Treasure Hunt (TH)
-                                        </span>
-                                    </label>
-
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={newItem.isSuperTreasureHunt}
-                                            disabled={newItem.isTreasureHunt}
-                                            onChange={(e) => setNewItem({
-                                                ...newItem,
-                                                isSuperTreasureHunt: e.target.checked,
-                                                isTreasureHunt: false
-                                            })}
-                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                                        />
-                                        <span className={`text-sm font-medium ${newItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
-                                            ⭐ Super Treasure Hunt (STH)
-                                        </span>
-                                    </label>
-                                </div>
-                            )}
-
-                            {/* Chase (only for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
-                            {(newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) ||
-                                (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium') ? (
-                                <div>
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={newItem.isChase}
-                                            onChange={(e) => setNewItem({ ...newItem, isChase: e.target.checked })}
-                                            className="rounded"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">
-                                            🌟 Chase
-                                        </span>
-                                    </label>
-                                </div>
-                            ) : null}
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                                    <MapPin size={16} />
-                                    Ubicación Física (Opcional)
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="ej: Caja 1, Estante A, Contenedor azul..."
-                                    value={newItem.location}
-                                    onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    📦 Indica dónde guardas esta pieza para encontrarla fácilmente
-                                </p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Notas (Opcional)
-                                </label>
-                                <textarea
-                                    className="input w-full h-20 resize-none"
-                                    placeholder="Notas adicionales..."
-                                    value={newItem.notes}
-                                    onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
-                                />
-                            </div>
-
-                            {/* Photos Section */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Fotos
-                                </label>
-
-                                {/* Photo Upload */}
-                                <div className="mb-3">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={(e) => handleFileUpload(e.target.files, false)}
-                                        className="hidden"
-                                        id="photo-upload"
-                                    />
-                                    <label
-                                        htmlFor="photo-upload"
-                                        className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
-                                    >
-                                        <Upload size={20} className="text-gray-400" />
-                                        <span className="text-sm text-gray-600">
-                                            Subir fotos (múltiples archivos)
-                                        </span>
-                                    </label>
+                                        <Plus size={16} />
+                                    </Button>
                                 </div>
 
-                                {/* Photo Preview */}
-                                {newItem.photos.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {newItem.photos.map((photo, index) => (
-                                            <div key={index} className="relative group">
-                                                <img
-                                                    src={photo}
-                                                    alt={`Foto ${index + 1}`}
-                                                    loading="lazy"
-                                                    className="w-full h-20 object-cover rounded border"
-                                                />
+                                {/* List of cars */}
+                                {newItem.cars.length > 0 && (
+                                    <div className="space-y-2">
+                                        {newItem.cars.map((car, index) => (
+                                            <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                                                <span className="text-sm">
+                                                    <span className="font-medium">{car.carId}</span>
+                                                    <span className="text-gray-600 ml-2">× {car.quantity}</span>
+                                                </span>
                                                 <button
                                                     type="button"
-                                                    onClick={() => removePhoto(index, false)}
-                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => {
+                                                        setNewItem({
+                                                            ...newItem,
+                                                            cars: newItem.cars.filter((_, i) => i !== index)
+                                                        })
+                                                    }}
+                                                    className="text-red-600 hover:text-red-800"
                                                 >
-                                                    <X size={12} />
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         ))}
                                     </div>
                                 )}
+
+                                {newItem.cars.length === 0 && (
+                                    <p className="text-sm text-gray-500 text-center py-4">
+                                        Agrega los modelos que vienen en la caja/serie
+                                    </p>
+                                )}
                             </div>
+                        )}
 
-                            {/* Summary Section */}
-                            {((newItem.carId || newItem.cars.length > 0) && (newItem.purchasePrice > 0 || newItem.suggestedPrice > 0)) && (
-                                <div className="border-t pt-4">
-                                    <h4 className="font-medium text-gray-900 mb-2">Resumen</h4>
-                                    <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
-                                        {/* Multiple Cars Summary */}
-                                        {newItem.isMultipleCars && newItem.cars.length > 0 && (
-                                            <>
-                                                <div className="flex justify-between">
-                                                    <span>Tipo:</span>
-                                                    <span className="font-medium">Serie/Caja con múltiples modelos</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Modelos diferentes:</span>
-                                                    <span className="font-medium">{newItem.cars.length}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Total de piezas:</span>
-                                                    <span className="font-medium">
-                                                        {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)}
-                                                    </span>
-                                                </div>
-                                                <div className="border-t pt-1 mt-1 space-y-1">
-                                                    {newItem.cars.map((car, idx) => (
-                                                        <div key={idx} className="flex justify-between text-xs">
-                                                            <span>{car.carId}</span>
-                                                            <span>× {car.quantity}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                <div className="flex justify-between border-t pt-1 mt-1">
-                                                    <span>Precio total:</span>
-                                                    <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Precio por pieza:</span>
-                                                    <span className="font-medium">
-                                                        ${(newItem.purchasePrice / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)}
-                                                    </span>
-                                                </div>
-                                                {newItem.suggestedPrice > 0 && (
-                                                    <>
-                                                        <div className="flex justify-between">
-                                                            <span>Precio sugerido (por pieza):</span>
-                                                            <span className="font-medium text-green-600">
-                                                                ${newItem.suggestedPrice.toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex justify-between border-t pt-1 mt-1">
-                                                            <span>Ganancia potencial total:</span>
-                                                            <span className="font-medium text-green-600">
-                                                                ${((newItem.suggestedPrice * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)) - newItem.purchasePrice).toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </>
-                                        )}
+                        {/* Box Size Selection */}
+                        {newItem.isBox && !newItem.isMultipleCars && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Tamaño de Caja
+                                </label>
+                                <select
+                                    className="input w-full"
+                                    value={newItem.boxSize}
+                                    onChange={(e) => {
+                                        const boxSize = parseInt(e.target.value) as 5 | 8 | 10
+                                        setNewItem({
+                                            ...newItem,
+                                            boxSize,
+                                            quantity: boxSize,
+                                            pricePerPiece: newItem.purchasePrice / boxSize
+                                        })
+                                    }}
+                                >
+                                    <option value={5}>5 piezas</option>
+                                    <option value={8}>8 piezas</option>
+                                    <option value={10}>10 piezas</option>
+                                </select>
+                            </div>
+                        )}
 
-                                        {/* Single Car or Box Summary */}
-                                        {!newItem.isMultipleCars && newItem.carId && (
-                                            <>
-                                                <div className="flex justify-between">
-                                                    <span>Hot Wheels:</span>
-                                                    <span className="font-medium">{newItem.carId}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Tipo:</span>
-                                                    <span className="font-medium">
-                                                        {newItem.isBox ? `Caja de ${newItem.boxSize} piezas` : 'Pieza individual'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Total de piezas:</span>
-                                                    <span className="font-medium">{newItem.quantity}</span>
-                                                </div>
-                                                {newItem.isBox && (
-                                                    <>
-                                                        <div className="flex justify-between">
-                                                            <span>Precio total caja:</span>
-                                                            <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
-                                                        </div>
-                                                        <div className="flex justify-between">
-                                                            <span>Precio por pieza:</span>
-                                                            <span className="font-medium">${(newItem.purchasePrice / newItem.boxSize).toFixed(2)}</span>
-                                                        </div>
-                                                    </>
-                                                )}
-                                                {!newItem.isBox && newItem.purchasePrice > 0 && (
-                                                    <div className="flex justify-between">
-                                                        <span>Precio de compra:</span>
-                                                        <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {newItem.suggestedPrice > 0 && (
-                                                    <div className="flex justify-between">
-                                                        <span>Precio sugerido{newItem.isBox ? ' (por pieza)' : ''}:</span>
-                                                        <span className="font-medium text-green-600">${newItem.suggestedPrice.toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                                {newItem.isBox && newItem.suggestedPrice > 0 && newItem.purchasePrice > 0 && (
-                                                    <div className="flex justify-between border-t pt-1 mt-1">
-                                                        <span>Ganancia potencial total:</span>
-                                                        <span className="font-medium text-green-600">
-                                                            ${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </>
-                                        )}
+                        {/* Single Car ID - Only for individual and box (same model) */}
+                        {!newItem.isMultipleCars && (
+                            <div className="relative">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Código de Hot Wheels
+                                </label>
+                                {existingItemToUpdate && (
+                                    <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-between">
+                                        <span className="text-sm text-yellow-800">
+                                            ✏️ Editando pieza existente
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelUpdate}
+                                            className="text-yellow-600 hover:text-yellow-800 text-sm underline"
+                                        >
+                                            Cancelar
+                                        </button>
                                     </div>
+                                )}
+                                <input
+                                    type="text"
+                                    className="input w-full"
+                                    placeholder="ej: FHY65"
+                                    value={newItem.carId}
+                                    onChange={(e) => handleCarIdChange(e.target.value)}
+                                    onFocus={() => newItem.carId.length > 0 && setShowSuggestions(true)}
+                                />
+
+                                {/* Dropdown with suggestions */}
+                                {showSuggestions && !existingItemToUpdate && getMatchingItems().length > 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                        <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
+                                            {getMatchingItems().length} pieza{getMatchingItems().length !== 1 ? 's' : ''} encontrada{getMatchingItems().length !== 1 ? 's' : ''}
+                                        </div>
+                                        {getMatchingItems().map((item: InventoryItem) => (
+                                            <button
+                                                key={item._id}
+                                                type="button"
+                                                className="w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-b-0 transition-colors"
+                                                onClick={() => handleSelectExistingItem(item)}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <div className="font-medium text-sm">{item.carId}</div>
+                                                        <div className="text-xs text-gray-600">
+                                                            {item.quantity} disponible{item.quantity !== 1 ? 's' : ''} • {item.condition} • ${item.suggestedPrice}
+                                                        </div>
+                                                    </div>
+                                                    <Edit size={14} className="text-blue-500" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Quantity - Only for individual and box (same model) */}
+                        {!newItem.isMultipleCars && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {newItem.isBox ? 'Total de Piezas (automático)' : 'Cantidad'}
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="input w-full"
+                                    value={newItem.quantity === 0 ? '' : newItem.quantity}
+                                    disabled={newItem.isBox}
+                                    onChange={(e) => {
+                                        if (!newItem.isBox) {
+                                            const value = e.target.value === '' ? 0 : parseInt(e.target.value)
+                                            setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
+                                        }
+                                    }}
+                                />
+                                {newItem.isBox && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Se agregarán {newItem.quantity} piezas del mismo Hot Wheels
+                                    </p>
+                                )}
+                            </div>
+                        )}                            <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {newItem.isMultipleCars || newItem.isBox ? 'Precio Total de la Caja/Serie' : 'Precio de Compra'}
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={newItem.purchasePrice === 0 ? '' : newItem.purchasePrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    const numValue = value === '' ? 0 : parseFloat(value)
+                                    const finalValue = isNaN(numValue) ? 0 : numValue
+
+                                    // For multiple cars, don't auto-calculate suggested price
+                                    if (newItem.isMultipleCars && newItem.cars.length > 0) {
+                                        setNewItem(prev => ({
+                                            ...prev,
+                                            purchasePrice: finalValue
+                                        }))
+                                    } else {
+                                        handlePurchasePriceChange(finalValue)
+
+                                        if (newItem.isBox) {
+                                            setNewItem(prev => ({
+                                                ...prev,
+                                                pricePerPiece: finalValue / newItem.boxSize
+                                            }))
+                                        }
+                                    }
+                                }}
+                            />
+                            {newItem.isMultipleCars && newItem.cars.length > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas total = ${newItem.purchasePrice > 0 ? (newItem.purchasePrice / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2) : '0.00'} por pieza
+                                </p>
+                            )}
+                            {newItem.isBox && newItem.purchasePrice > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    ${(newItem.purchasePrice / newItem.boxSize).toFixed(2)} por pieza
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                {newItem.isMultipleCars && newItem.seriesId
+                                    ? 'Precio Individual por Pieza (si se vende por separado)'
+                                    : newItem.isMultipleCars || newItem.isBox
+                                        ? 'Precio de Venta por Pieza'
+                                        : 'Precio Sugerido'}
+                                {!newItem.isMultipleCars && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                                        <TrendingUp size={12} />
+                                        {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ?
+                                            `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%`
+                                            : 'Auto'}
+                                    </span>
+                                )}
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={newItem.suggestedPrice === 0 ? '' : newItem.suggestedPrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    const numValue = value === '' ? 0 : parseFloat(value)
+                                    setNewItem({ ...newItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
+                                }}
+                            />
+                            {newItem.isMultipleCars && newItem.seriesId && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
+                                <p className="text-xs text-yellow-600 mt-1">
+                                    ⚠️ Este es el precio si vendes cada pieza POR SEPARADO. El precio de serie completa se configura abajo.
+                                </p>
+                            )}
+                            {newItem.isMultipleCars && !newItem.seriesId && newItem.cars.length > 0 && newItem.suggestedPrice > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💰 Si vendes todas por separado: ${(newItem.suggestedPrice * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)} total
+                                </p>
+                            )}
+                            {!newItem.isMultipleCars && newItem.purchasePrice > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 Sugerido: ${calculateSuggestedMargin(newItem.purchasePrice, newItem.condition).toFixed(2)}
+                                    {newItem.isBox && ` (Ganancia: $${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)} por caja)`}
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Condición (afecta margen sugerido)
+                            </label>
+                            <select
+                                className="input w-full"
+                                value={newItem.condition}
+                                onChange={(e) => handleConditionChange(e.target.value)}
+                            >
+                                <option value="mint">Mint (+50% ganancia)</option>
+                                <option value="good">Bueno (+40% ganancia)</option>
+                                <option value="fair">Regular (+30% ganancia)</option>
+                                <option value="poor">Malo (+20% ganancia)</option>
+                            </select>
+                        </div>
+
+                        {/* Brand Selection */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Marca
+                            </label>
+                            <select
+                                className="input w-full"
+                                value={showCustomBrandInput ? 'custom' : newItem.brand}
+                                onChange={(e) => handleBrandChange(e.target.value)}
+                            >
+                                <option value="">Seleccionar marca...</option>
+                                {allBrands.map(brand => (
+                                    <option key={brand} value={brand}>{brand}</option>
+                                ))}
+                                <option value="custom">+ Agregar otra marca</option>
+                            </select>
+
+                            {showCustomBrandInput && (
+                                <div className="mt-2 flex gap-2">
+                                    <input
+                                        type="text"
+                                        className="input flex-1"
+                                        placeholder="Nombre de la marca"
+                                        value={customBrandInput}
+                                        onChange={(e) => setCustomBrandInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                handleSaveCustomBrand()
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        size="sm"
+                                        onClick={handleSaveCustomBrand}
+                                        disabled={!customBrandInput.trim()}
+                                    >
+                                        Guardar
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={() => {
+                                            setShowCustomBrandInput(false)
+                                            setCustomBrandInput('')
+                                        }}
+                                    >
+                                        Cancelar
+                                    </Button>
                                 </div>
                             )}
                         </div>
-                    </Modal>
-                )}
+
+                        {/* Piece Type */}
+                        {newItem.brand && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Tipo de Pieza
+                                </label>
+                                <select
+                                    className="input w-full"
+                                    value={newItem.pieceType}
+                                    onChange={(e) => setNewItem({ ...newItem, pieceType: e.target.value as any })}
+                                >
+                                    <option value="">Seleccionar tipo...</option>
+                                    <option value="basic">Básico</option>
+                                    <option value="premium">Premium</option>
+                                    <option value="rlc">RLC</option>
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Treasure Hunt (only for Hot Wheels Basic) */}
+                        {newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'basic' && (
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={newItem.isTreasureHunt}
+                                        disabled={newItem.isSuperTreasureHunt}
+                                        onChange={(e) => setNewItem({
+                                            ...newItem,
+                                            isTreasureHunt: e.target.checked,
+                                            isSuperTreasureHunt: false
+                                        })}
+                                        className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <span className={`text-sm font-medium ${newItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                        🔍 Treasure Hunt (TH)
+                                    </span>
+                                </label>
+
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={newItem.isSuperTreasureHunt}
+                                        disabled={newItem.isTreasureHunt}
+                                        onChange={(e) => setNewItem({
+                                            ...newItem,
+                                            isSuperTreasureHunt: e.target.checked,
+                                            isTreasureHunt: false
+                                        })}
+                                        className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <span className={`text-sm font-medium ${newItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                        ⭐ Super Treasure Hunt (STH)
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
+                        {/* Chase (only for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
+                        {(newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) ||
+                            (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium') ? (
+                            <div>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={newItem.isChase}
+                                        onChange={(e) => setNewItem({ ...newItem, isChase: e.target.checked })}
+                                        className="rounded"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        🌟 Chase
+                                    </span>
+                                </label>
+                            </div>
+                        ) : null}
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                                <MapPin size={16} />
+                                Ubicación Física (Opcional)
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="ej: Caja 1, Estante A, Contenedor azul..."
+                                value={newItem.location}
+                                onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                📦 Indica dónde guardas esta pieza para encontrarla fácilmente
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Notas (Opcional)
+                            </label>
+                            <textarea
+                                className="input w-full h-20 resize-none"
+                                placeholder="Notas adicionales..."
+                                value={newItem.notes}
+                                onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Photos Section */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Fotos
+                            </label>
+
+                            {/* Photo Upload */}
+                            <div className="mb-3">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={(e) => handleFileUpload(e.target.files, false)}
+                                    className="hidden"
+                                    id="photo-upload"
+                                />
+                                <label
+                                    htmlFor="photo-upload"
+                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                >
+                                    <Upload size={20} className="text-gray-400" />
+                                    <span className="text-sm text-gray-600">
+                                        Subir fotos (múltiples archivos)
+                                    </span>
+                                </label>
+                            </div>
+
+                            {/* Photo Preview */}
+                            {newItem.photos.length > 0 && (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {newItem.photos.map((photo, index) => (
+                                        <div key={index} className="relative group">
+                                            <img
+                                                src={photo}
+                                                alt={`Foto ${index + 1}`}
+                                                loading="lazy"
+                                                className="w-full h-20 object-cover rounded border"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removePhoto(index, false)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Summary Section */}
+                        {((newItem.carId || newItem.cars.length > 0) && (newItem.purchasePrice > 0 || newItem.suggestedPrice > 0)) && (
+                            <div className="border-t pt-4">
+                                <h4 className="font-medium text-gray-900 mb-2">Resumen</h4>
+                                <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                                    {/* Multiple Cars Summary */}
+                                    {newItem.isMultipleCars && newItem.cars.length > 0 && (
+                                        <>
+                                            <div className="flex justify-between">
+                                                <span>Tipo:</span>
+                                                <span className="font-medium">Serie/Caja con múltiples modelos</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Modelos diferentes:</span>
+                                                <span className="font-medium">{newItem.cars.length}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Total de piezas:</span>
+                                                <span className="font-medium">
+                                                    {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)}
+                                                </span>
+                                            </div>
+                                            <div className="border-t pt-1 mt-1 space-y-1">
+                                                {newItem.cars.map((car, idx) => (
+                                                    <div key={idx} className="flex justify-between text-xs">
+                                                        <span>{car.carId}</span>
+                                                        <span>× {car.quantity}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="flex justify-between border-t pt-1 mt-1">
+                                                <span>Precio total:</span>
+                                                <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Precio por pieza:</span>
+                                                <span className="font-medium">
+                                                    ${(newItem.purchasePrice / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)}
+                                                </span>
+                                            </div>
+                                            {newItem.suggestedPrice > 0 && (
+                                                <>
+                                                    <div className="flex justify-between">
+                                                        <span>Precio sugerido (por pieza):</span>
+                                                        <span className="font-medium text-green-600">
+                                                            ${newItem.suggestedPrice.toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between border-t pt-1 mt-1">
+                                                        <span>Ganancia potencial total:</span>
+                                                        <span className="font-medium text-green-600">
+                                                            ${((newItem.suggestedPrice * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)) - newItem.purchasePrice).toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Single Car or Box Summary */}
+                                    {!newItem.isMultipleCars && newItem.carId && (
+                                        <>
+                                            <div className="flex justify-between">
+                                                <span>Hot Wheels:</span>
+                                                <span className="font-medium">{newItem.carId}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Tipo:</span>
+                                                <span className="font-medium">
+                                                    {newItem.isBox ? `Caja de ${newItem.boxSize} piezas` : 'Pieza individual'}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span>Total de piezas:</span>
+                                                <span className="font-medium">{newItem.quantity}</span>
+                                            </div>
+                                            {newItem.isBox && (
+                                                <>
+                                                    <div className="flex justify-between">
+                                                        <span>Precio total caja:</span>
+                                                        <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span>Precio por pieza:</span>
+                                                        <span className="font-medium">${(newItem.purchasePrice / newItem.boxSize).toFixed(2)}</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            {!newItem.isBox && newItem.purchasePrice > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span>Precio de compra:</span>
+                                                    <span className="font-medium">${newItem.purchasePrice.toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {newItem.suggestedPrice > 0 && (
+                                                <div className="flex justify-between">
+                                                    <span>Precio sugerido{newItem.isBox ? ' (por pieza)' : ''}:</span>
+                                                    <span className="font-medium text-green-600">${newItem.suggestedPrice.toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            {newItem.isBox && newItem.suggestedPrice > 0 && newItem.purchasePrice > 0 && (
+                                                <div className="flex justify-between border-t pt-1 mt-1">
+                                                    <span>Ganancia potencial total:</span>
+                                                    <span className="font-medium text-green-600">
+                                                        ${((newItem.suggestedPrice - (newItem.purchasePrice / newItem.boxSize)) * newItem.boxSize).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </Modal>
+            )}
 
             {/* Edit Item Modal */}
             <Modal
@@ -2106,243 +2106,243 @@ export default function Inventory() {
             >
                 {editingItem && (
                     <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Código/ID del Hot Wheels
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="ej: FHY65"
-                                    value={editingItem.carId}
-                                    onChange={(e) => setEditingItem({ ...editingItem, carId: e.target.value })}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Cantidad
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    className="input w-full"
-                                    value={editingItem.quantity === 0 ? '' : editingItem.quantity}
-                                    onChange={(e) => {
-                                        const value = e.target.value === '' ? 0 : parseInt(e.target.value)
-                                        setEditingItem({ ...editingItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
-                                    }}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Precio de Compra
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="0.00"
-                                    value={editingItem.purchasePrice === 0 ? '' : editingItem.purchasePrice}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/[^0-9.]/g, '')
-                                        const numValue = value === '' ? 0 : parseFloat(value)
-                                        setEditingItem({ ...editingItem, purchasePrice: isNaN(numValue) ? 0 : numValue })
-                                    }}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Precio Sugerido
-                                </label>
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="0.00"
-                                    value={editingItem.suggestedPrice === 0 ? '' : editingItem.suggestedPrice}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/[^0-9.]/g, '')
-                                        const numValue = value === '' ? 0 : parseFloat(value)
-                                        setEditingItem({ ...editingItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
-                                    }}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Condición
-                                </label>
-                                <select
-                                    className="input w-full"
-                                    value={editingItem.condition}
-                                    onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
-                                >
-                                    <option value="mint">Mint</option>
-                                    <option value="good">Bueno</option>
-                                    <option value="fair">Regular</option>
-                                    <option value="poor">Malo</option>
-                                </select>
-                            </div>
-
-                            {/* Brand Selection - Edit Mode */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Marca
-                                </label>
-                                <select
-                                    className="input w-full"
-                                    value={editingItem.brand || ''}
-                                    onChange={(e) => setEditingItem({ ...editingItem, brand: e.target.value })}
-                                >
-                                    <option value="">Sin marca</option>
-                                    {allBrands.map(brand => (
-                                        <option key={brand} value={brand}>{brand}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Piece Type - Edit Mode */}
-                            {editingItem.brand && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Tipo de Pieza
-                                    </label>
-                                    <select
-                                        className="input w-full"
-                                        value={editingItem.pieceType || ''}
-                                        onChange={(e) => setEditingItem({ ...editingItem, pieceType: e.target.value })}
-                                    >
-                                        <option value="">Sin tipo</option>
-                                        <option value="basic">Básico</option>
-                                        <option value="premium">Premium</option>
-                                        <option value="rlc">RLC</option>
-                                    </select>
-                                </div>
-                            )}
-
-                            {/* Treasure Hunt - Edit Mode */}
-                            {editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'basic' && (
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={editingItem.isTreasureHunt || false}
-                                            disabled={editingItem.isSuperTreasureHunt}
-                                            onChange={(e) => setEditingItem({
-                                                ...editingItem,
-                                                isTreasureHunt: e.target.checked,
-                                                isSuperTreasureHunt: false
-                                            })}
-                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                                        />
-                                        <span className={`text-sm font-medium ${editingItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
-                                            🔍 Treasure Hunt (TH)
-                                        </span>
-                                    </label>
-
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={editingItem.isSuperTreasureHunt || false}
-                                            disabled={editingItem.isTreasureHunt}
-                                            onChange={(e) => setEditingItem({
-                                                ...editingItem,
-                                                isSuperTreasureHunt: e.target.checked,
-                                                isTreasureHunt: false
-                                            })}
-                                            className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                                        />
-                                        <span className={`text-sm font-medium ${editingItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
-                                            ⭐ Super Treasure Hunt (STH)
-                                        </span>
-                                    </label>
-                                </div>
-                            )}
-
-                            {/* Chase - Edit Mode (for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
-                            {(editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase())) ||
-                                (editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'premium') ? (
-                                <div>
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={editingItem.isChase || false}
-                                            onChange={(e) => setEditingItem({ ...editingItem, isChase: e.target.checked })}
-                                            className="rounded"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">
-                                            🌟 Chase
-                                        </span>
-                                    </label>
-                                </div>
-                            ) : null}
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Notas (Opcional)
-                                </label>
-                                <textarea
-                                    className="input w-full h-20 resize-none"
-                                    placeholder="Notas adicionales..."
-                                    value={editingItem.notes}
-                                    onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
-                                />
-                            </div>
-
-                            {/* Photos Section */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Fotos
-                                </label>
-
-                                {/* Photo Upload */}
-                                <div className="mb-3">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={(e) => handleFileUpload(e.target.files, true)}
-                                        className="hidden"
-                                        id="photo-upload-edit"
-                                    />
-                                    <label
-                                        htmlFor="photo-upload-edit"
-                                        className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
-                                    >
-                                        <Upload size={20} className="text-gray-400" />
-                                        <span className="text-sm text-gray-600">
-                                            Subir fotos (múltiples archivos)
-                                        </span>
-                                    </label>
-                                </div>
-
-                                {/* Photo Preview */}
-                                {editingItem.photos && editingItem.photos.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {editingItem.photos.map((photo: string, index: number) => (
-                                            <div key={index} className="relative group">
-                                                <img
-                                                    src={photo}
-                                                    alt={`Foto ${index + 1}`}
-                                                    loading="lazy"
-                                                    className="w-full h-20 object-cover rounded border"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removePhoto(index, true)}
-                                                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X size={12} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Código/ID del Hot Wheels
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="ej: FHY65"
+                                value={editingItem.carId}
+                                onChange={(e) => setEditingItem({ ...editingItem, carId: e.target.value })}
+                            />
                         </div>
-                    )}
-                </Modal>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Cantidad
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                className="input w-full"
+                                value={editingItem.quantity === 0 ? '' : editingItem.quantity}
+                                onChange={(e) => {
+                                    const value = e.target.value === '' ? 0 : parseInt(e.target.value)
+                                    setEditingItem({ ...editingItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Precio de Compra
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={editingItem.purchasePrice === 0 ? '' : editingItem.purchasePrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    const numValue = value === '' ? 0 : parseFloat(value)
+                                    setEditingItem({ ...editingItem, purchasePrice: isNaN(numValue) ? 0 : numValue })
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Precio Sugerido
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={editingItem.suggestedPrice === 0 ? '' : editingItem.suggestedPrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    const numValue = value === '' ? 0 : parseFloat(value)
+                                    setEditingItem({ ...editingItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Condición
+                            </label>
+                            <select
+                                className="input w-full"
+                                value={editingItem.condition}
+                                onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
+                            >
+                                <option value="mint">Mint</option>
+                                <option value="good">Bueno</option>
+                                <option value="fair">Regular</option>
+                                <option value="poor">Malo</option>
+                            </select>
+                        </div>
+
+                        {/* Brand Selection - Edit Mode */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Marca
+                            </label>
+                            <select
+                                className="input w-full"
+                                value={editingItem.brand || ''}
+                                onChange={(e) => setEditingItem({ ...editingItem, brand: e.target.value })}
+                            >
+                                <option value="">Sin marca</option>
+                                {allBrands.map(brand => (
+                                    <option key={brand} value={brand}>{brand}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Piece Type - Edit Mode */}
+                        {editingItem.brand && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Tipo de Pieza
+                                </label>
+                                <select
+                                    className="input w-full"
+                                    value={editingItem.pieceType || ''}
+                                    onChange={(e) => setEditingItem({ ...editingItem, pieceType: e.target.value })}
+                                >
+                                    <option value="">Sin tipo</option>
+                                    <option value="basic">Básico</option>
+                                    <option value="premium">Premium</option>
+                                    <option value="rlc">RLC</option>
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Treasure Hunt - Edit Mode */}
+                        {editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'basic' && (
+                            <div className="space-y-2">
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isTreasureHunt || false}
+                                        disabled={editingItem.isSuperTreasureHunt}
+                                        onChange={(e) => setEditingItem({
+                                            ...editingItem,
+                                            isTreasureHunt: e.target.checked,
+                                            isSuperTreasureHunt: false
+                                        })}
+                                        className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <span className={`text-sm font-medium ${editingItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                        🔍 Treasure Hunt (TH)
+                                    </span>
+                                </label>
+
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isSuperTreasureHunt || false}
+                                        disabled={editingItem.isTreasureHunt}
+                                        onChange={(e) => setEditingItem({
+                                            ...editingItem,
+                                            isSuperTreasureHunt: e.target.checked,
+                                            isTreasureHunt: false
+                                        })}
+                                        className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <span className={`text-sm font-medium ${editingItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                        ⭐ Super Treasure Hunt (STH)
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
+                        {/* Chase - Edit Mode (for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
+                        {(editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase())) ||
+                            (editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'premium') ? (
+                            <div>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isChase || false}
+                                        onChange={(e) => setEditingItem({ ...editingItem, isChase: e.target.checked })}
+                                        className="rounded"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        🌟 Chase
+                                    </span>
+                                </label>
+                            </div>
+                        ) : null}
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Notas (Opcional)
+                            </label>
+                            <textarea
+                                className="input w-full h-20 resize-none"
+                                placeholder="Notas adicionales..."
+                                value={editingItem.notes}
+                                onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Photos Section */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Fotos
+                            </label>
+
+                            {/* Photo Upload */}
+                            <div className="mb-3">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={(e) => handleFileUpload(e.target.files, true)}
+                                    className="hidden"
+                                    id="photo-upload-edit"
+                                />
+                                <label
+                                    htmlFor="photo-upload-edit"
+                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                >
+                                    <Upload size={20} className="text-gray-400" />
+                                    <span className="text-sm text-gray-600">
+                                        Subir fotos (múltiples archivos)
+                                    </span>
+                                </label>
+                            </div>
+
+                            {/* Photo Preview */}
+                            {editingItem.photos && editingItem.photos.length > 0 && (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {editingItem.photos.map((photo: string, index: number) => (
+                                        <div key={index} className="relative group">
+                                            <img
+                                                src={photo}
+                                                alt={`Foto ${index + 1}`}
+                                                loading="lazy"
+                                                className="w-full h-20 object-cover rounded border"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removePhoto(index, true)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Image Viewer Modal */}
             {showImageModal && (

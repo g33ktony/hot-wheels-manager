@@ -601,7 +601,7 @@ export default function Deliveries() {
     const scheduledCount = filteredDeliveries.filter(d => d.status === 'scheduled').length
     const preparedCount = filteredDeliveries.filter(d => d.status === 'prepared').length
     const completedCount = filteredDeliveries.filter(d => d.status === 'completed').length
-    
+
     // Total active deliveries = scheduled + prepared (not completed)
     const totalDeliveries = scheduledCount + preparedCount
     const pendingDeliveries = scheduledCount + preparedCount
@@ -1023,239 +1023,239 @@ export default function Deliveries() {
                 }
             >
                 <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Cliente *
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <select
-                                            className="input flex-1"
-                                            value={newDelivery.customerId}
-                                            onChange={(e) => setNewDelivery({ ...newDelivery, customerId: e.target.value })}
-                                            required
-                                        >
-                                            <option value="">Seleccionar cliente</option>
-                                            {customers?.map((customer) => (
-                                                <option key={customer._id} value={customer._id}>
-                                                    {customer.name} - {customer.email}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <Button
-                                            type="button"
-                                            size="sm"
-                                            variant="secondary"
-                                            onClick={() => setShowCreateCustomerModal(true)}
-                                            className="flex items-center gap-1"
-                                        >
-                                            <UserPlus size={16} />
-                                            Crear
-                                        </Button>
-                                    </div>
-                                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Cliente *
+                            </label>
+                            <div className="flex gap-2">
+                                <select
+                                    className="input flex-1"
+                                    value={newDelivery.customerId}
+                                    onChange={(e) => setNewDelivery({ ...newDelivery, customerId: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Seleccionar cliente</option>
+                                    {customers?.map((customer) => (
+                                        <option key={customer._id} value={customer._id}>
+                                            {customer.name} - {customer.email}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => setShowCreateCustomerModal(true)}
+                                    className="flex items-center gap-1"
+                                >
+                                    <UserPlus size={16} />
+                                    Crear
+                                </Button>
+                            </div>
+                        </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Fecha Programada *
-                                    </label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Fecha Programada *
+                            </label>
+                            <Input
+                                type="date"
+                                value={newDelivery.scheduledDate}
+                                onChange={(e) => setNewDelivery({ ...newDelivery, scheduledDate: e.target.value })}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Hora Programada
+                            </label>
+                            <Input
+                                type="time"
+                                value={newDelivery.scheduledTime}
+                                onChange={(e) => setNewDelivery({ ...newDelivery, scheduledTime: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Ubicación *
+                            </label>
+                            {!showCustomLocationInput ? (
+                                <select
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    value={newDelivery.location}
+                                    onChange={(e) => handleLocationChange(e.target.value)}
+                                    required
+                                >
+                                    <option value="">Seleccionar ubicación</option>
+                                    {deliveryLocations?.map((loc) => (
+                                        <option key={loc._id} value={loc.name}>
+                                            {loc.name}
+                                        </option>
+                                    ))}
+                                    <option value="other">Otro...</option>
+                                </select>
+                            ) : (
+                                <div className="flex gap-2">
                                     <Input
-                                        type="date"
-                                        value={newDelivery.scheduledDate}
-                                        onChange={(e) => setNewDelivery({ ...newDelivery, scheduledDate: e.target.value })}
+                                        type="text"
+                                        placeholder="Nueva ubicación"
+                                        value={customLocation}
+                                        onChange={(e) => setCustomLocation(e.target.value)}
+                                        onBlur={handleCustomLocationBlur}
                                         required
+                                        autoFocus
                                     />
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => {
+                                            setShowCustomLocationInput(false)
+                                            setCustomLocation('')
+                                        }}
+                                    >
+                                        <X size={16} />
+                                    </Button>
                                 </div>
+                            )}
+                        </div>
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Hora Programada
-                                    </label>
-                                    <Input
-                                        type="time"
-                                        value={newDelivery.scheduledTime}
-                                        onChange={(e) => setNewDelivery({ ...newDelivery, scheduledTime: e.target.value })}
-                                    />
-                                </div>
+                    {/* Delivery Items */}
+                    <div>
+                        <div className="mb-4">
+                            <h3 className="text-lg font-medium text-gray-900">Items de la Entrega</h3>
+                        </div>
 
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Ubicación *
-                                    </label>
-                                    {!showCustomLocationInput ? (
-                                        <select
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                            value={newDelivery.location}
-                                            onChange={(e) => handleLocationChange(e.target.value)}
-                                            required
-                                        >
-                                            <option value="">Seleccionar ubicación</option>
-                                            {deliveryLocations?.map((loc) => (
-                                                <option key={loc._id} value={loc.name}>
-                                                    {loc.name}
-                                                </option>
-                                            ))}
-                                            <option value="other">Otro...</option>
-                                        </select>
-                                    ) : (
-                                        <div className="flex gap-2">
-                                            <Input
-                                                type="text"
-                                                placeholder="Nueva ubicación"
-                                                value={customLocation}
-                                                onChange={(e) => setCustomLocation(e.target.value)}
-                                                onBlur={handleCustomLocationBlur}
+                        <div className="space-y-4">
+                            {newDelivery.items.map((item, index) => (
+                                <div key={index} className="space-y-2">
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
+                                        <div className="flex-1">
+                                            <InventoryItemSelector
+                                                key={item.inventoryItemId || `empty-${index}`}
+                                                value={item.inventoryItemId || ''}
+                                                onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
+                                                excludeIds={newDelivery.items
+                                                    .filter((_, i) => i !== index)
+                                                    .map(item => item.inventoryItemId)
+                                                    .filter(Boolean) as string[]
+                                                }
+                                                placeholder="Buscar pieza en inventario..."
                                                 required
-                                                autoFocus
+                                                fallbackName={item.carName || undefined}
                                             />
+                                        </div>
+                                        <div className="flex gap-3 sm:gap-4 sm:w-auto">
+                                            <div className="w-20 min-w-[80px]">
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Qty"
+                                                    value={item.quantity}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                    min="1"
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
+                                            <div className="flex-1 sm:w-24 sm:flex-none">
+                                                <Input
+                                                    type="number"
+                                                    placeholder="Precio"
+                                                    value={item.unitPrice}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                    step="0.01"
+                                                    min="0"
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
                                             <Button
                                                 type="button"
-                                                variant="secondary"
                                                 size="sm"
-                                                onClick={() => {
-                                                    setShowCustomLocationInput(false)
-                                                    setCustomLocation('')
-                                                }}
+                                                variant="danger"
+                                                onClick={() => removeDeliveryItem(index)}
+                                                className="min-h-[44px] min-w-[44px] px-3"
                                             >
-                                                <X size={16} />
+                                                ×
                                             </Button>
+                                        </div>
+                                    </div>
+
+                                    {/* Complete Series Button */}
+                                    {(() => {
+                                        console.log('🔍 Item debug:', {
+                                            carName: item.carName,
+                                            seriesId: item.seriesId,
+                                            seriesName: item.seriesName,
+                                            seriesSize: item.seriesSize,
+                                            seriesPrice: item.seriesPrice,
+                                            isSoldAsSeries: item.isSoldAsSeries,
+                                            shouldShowButton: !!item.seriesId && !item.isSoldAsSeries
+                                        })
+
+                                        if (!item.seriesId || item.isSoldAsSeries) {
+                                            return null
+                                        }
+
+                                        // Count how many pieces from this series are already in the delivery
+                                        const seriesItemsInDelivery = newDelivery.items.filter(i => i.seriesId === item.seriesId).length
+                                        const missingPieces = (item.seriesSize || 0) - seriesItemsInDelivery
+
+                                        console.log('🔍 Series calculation:', {
+                                            seriesId: item.seriesId,
+                                            seriesItemsInDelivery,
+                                            seriesSize: item.seriesSize,
+                                            missingPieces
+                                        })
+
+                                        if (missingPieces > 0) {
+                                            return (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="secondary"
+                                                    onClick={() => completeSeries(item.seriesId!, item.seriesPrice || 0, item.seriesSize || 0)}
+                                                    className="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                                                >
+                                                    🎁 Completar Serie: {item.seriesName} ({missingPieces} {missingPieces === 1 ? 'pieza faltante' : 'piezas faltantes'}) - ${item.seriesPrice?.toFixed(2)}
+                                                </Button>
+                                            )
+                                        }
+                                        return null
+                                    })()}
+
+                                    {/* Series Badge */}
+                                    {item.isSoldAsSeries && (
+                                        <div className="px-3 py-2 bg-purple-100 text-purple-800 rounded text-sm font-medium">
+                                            ✨ Vendido como parte de serie: {item.seriesName} (${item.unitPrice?.toFixed(2)}/pieza)
                                         </div>
                                     )}
                                 </div>
-                            </div>
-
-                            {/* Delivery Items */}
-                            <div>
-                                <div className="mb-4">
-                                    <h3 className="text-lg font-medium text-gray-900">Items de la Entrega</h3>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {newDelivery.items.map((item, index) => (
-                                        <div key={index} className="space-y-2">
-                                            <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg">
-                                                <div className="flex-1">
-                                                    <InventoryItemSelector
-                                                        key={item.inventoryItemId || `empty-${index}`}
-                                                        value={item.inventoryItemId || ''}
-                                                        onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
-                                                        excludeIds={newDelivery.items
-                                                            .filter((_, i) => i !== index)
-                                                            .map(item => item.inventoryItemId)
-                                                            .filter(Boolean) as string[]
-                                                        }
-                                                        placeholder="Buscar pieza en inventario..."
-                                                        required
-                                                        fallbackName={item.carName || undefined}
-                                                    />
-                                                </div>
-                                                <div className="flex gap-3 sm:gap-4 sm:w-auto">
-                                                    <div className="w-20 min-w-[80px]">
-                                                        <Input
-                                                            type="number"
-                                                            placeholder="Qty"
-                                                            value={item.quantity}
-                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                                                            min="1"
-                                                            className="min-h-[44px]"
-                                                        />
-                                                    </div>
-                                                    <div className="flex-1 sm:w-24 sm:flex-none">
-                                                        <Input
-                                                            type="number"
-                                                            placeholder="Precio"
-                                                            value={item.unitPrice}
-                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                            step="0.01"
-                                                            min="0"
-                                                            className="min-h-[44px]"
-                                                        />
-                                                    </div>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="danger"
-                                                        onClick={() => removeDeliveryItem(index)}
-                                                        className="min-h-[44px] min-w-[44px] px-3"
-                                                    >
-                                                        ×
-                                                    </Button>
-                                                </div>
-                                            </div>
-
-                                            {/* Complete Series Button */}
-                                            {(() => {
-                                                console.log('🔍 Item debug:', {
-                                                    carName: item.carName,
-                                                    seriesId: item.seriesId,
-                                                    seriesName: item.seriesName,
-                                                    seriesSize: item.seriesSize,
-                                                    seriesPrice: item.seriesPrice,
-                                                    isSoldAsSeries: item.isSoldAsSeries,
-                                                    shouldShowButton: !!item.seriesId && !item.isSoldAsSeries
-                                                })
-
-                                                if (!item.seriesId || item.isSoldAsSeries) {
-                                                    return null
-                                                }
-
-                                                // Count how many pieces from this series are already in the delivery
-                                                const seriesItemsInDelivery = newDelivery.items.filter(i => i.seriesId === item.seriesId).length
-                                                const missingPieces = (item.seriesSize || 0) - seriesItemsInDelivery
-
-                                                console.log('🔍 Series calculation:', {
-                                                    seriesId: item.seriesId,
-                                                    seriesItemsInDelivery,
-                                                    seriesSize: item.seriesSize,
-                                                    missingPieces
-                                                })
-
-                                                if (missingPieces > 0) {
-                                                    return (
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="secondary"
-                                                            onClick={() => completeSeries(item.seriesId!, item.seriesPrice || 0, item.seriesSize || 0)}
-                                                            className="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
-                                                        >
-                                                            🎁 Completar Serie: {item.seriesName} ({missingPieces} {missingPieces === 1 ? 'pieza faltante' : 'piezas faltantes'}) - ${item.seriesPrice?.toFixed(2)}
-                                                        </Button>
-                                                    )
-                                                }
-                                                return null
-                                            })()}
-
-                                            {/* Series Badge */}
-                                            {item.isSoldAsSeries && (
-                                                <div className="px-3 py-2 bg-purple-100 text-purple-800 rounded text-sm font-medium">
-                                                    ✨ Vendido como parte de serie: {item.seriesName} (${item.unitPrice?.toFixed(2)}/pieza)
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {newDelivery.items.length > 0 && (
-                                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                                        <p className="text-lg font-semibold">Total: ${calculateTotal().toFixed(2)}</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Notas (Opcional)
-                                </label>
-                                <textarea
-                                    className="input w-full h-20 resize-none"
-                                    placeholder="Notas adicionales sobre la entrega..."
-                                    value={newDelivery.notes}
-                                    onChange={(e) => setNewDelivery({ ...newDelivery, notes: e.target.value })}
-                                />
-                            </div>
+                            ))}
                         </div>
-                    </Modal>
+
+                        {newDelivery.items.length > 0 && (
+                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                                <p className="text-lg font-semibold">Total: ${calculateTotal().toFixed(2)}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Notas (Opcional)
+                        </label>
+                        <textarea
+                            className="input w-full h-20 resize-none"
+                            placeholder="Notas adicionales sobre la entrega..."
+                            value={newDelivery.notes}
+                            onChange={(e) => setNewDelivery({ ...newDelivery, notes: e.target.value })}
+                        />
+                    </div>
+                </div>
+            </Modal>
 
             {/* Create Customer Modal */}
             <Modal
@@ -1285,56 +1285,56 @@ export default function Deliveries() {
                 }
             >
                 <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Nombre *
-                                    </label>
-                                    <Input
-                                        type="text"
-                                        value={newCustomer.name}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                                        placeholder="Nombre del cliente"
-                                        required
-                                    />
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre *
+                        </label>
+                        <Input
+                            type="text"
+                            value={newCustomer.name}
+                            onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                            placeholder="Nombre del cliente"
+                            required
+                        />
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Email
-                                    </label>
-                                    <Input
-                                        type="email"
-                                        value={newCustomer.email}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                                        placeholder="email@cliente.com"
-                                    />
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Email
+                        </label>
+                        <Input
+                            type="email"
+                            value={newCustomer.email}
+                            onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                            placeholder="email@cliente.com"
+                        />
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Teléfono
-                                    </label>
-                                    <Input
-                                        type="tel"
-                                        value={newCustomer.phone}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                                        placeholder="+1234567890"
-                                    />
-                                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Teléfono
+                        </label>
+                        <Input
+                            type="tel"
+                            value={newCustomer.phone}
+                            onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                            placeholder="+1234567890"
+                        />
+                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Dirección
-                                    </label>
-                                    <Input
-                                        type="text"
-                                        value={newCustomer.address}
-                                        onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
-                                        placeholder="Dirección del cliente"
-                                    />
-                                </div>
-                            </div>
-                        </Modal>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Dirección
+                        </label>
+                        <Input
+                            type="text"
+                            value={newCustomer.address}
+                            onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
+                            placeholder="Dirección del cliente"
+                        />
+                    </div>
+                </div>
+            </Modal>
 
             {/* Details Modal */}
             {showDetailsModal && selectedDelivery && (
@@ -1680,73 +1680,73 @@ export default function Deliveries() {
             >
                 {selectedDelivery && (
                     <div className="space-y-4">
-                                {/* Amount Info */}
-                                <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Total:</span>
-                                        <span className="font-medium">${selectedDelivery.totalAmount.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Pagado:</span>
-                                        <span className="text-green-600 font-medium">${(selectedDelivery.paidAmount || 0).toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between border-t pt-2">
-                                        <span className="text-gray-900 font-medium">Pendiente:</span>
-                                        <span className="text-orange-600 font-bold">${(selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)).toFixed(2)}</span>
-                                    </div>
-                                </div>
-
-                                {/* Amount Input */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Monto a Pagar *
-                                    </label>
-                                    <Input
-                                        type="number"
-                                        placeholder="0.00"
-                                        value={newPayment.amount || ''}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                            setNewPayment({ ...newPayment, amount: parseFloat(e.target.value) || 0 })
-                                        }
-                                        step="0.01"
-                                        min="0"
-                                        max={selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)}
-                                        className="min-h-[44px]"
-                                    />
-                                </div>
-
-                                {/* Payment Method */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Método de Pago *
-                                    </label>
-                                    <select
-                                        className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
-                                        value={newPayment.paymentMethod}
-                                        onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value as any })}
-                                    >
-                                        <option value="cash">Efectivo</option>
-                                        <option value="transfer">Transferencia</option>
-                                        <option value="card">Tarjeta</option>
-                                        <option value="other">Otro</option>
-                                    </select>
-                                </div>
-
-                                {/* Notes */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Notas (opcional)
-                                    </label>
-                                    <textarea
-                                        className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[80px] touch-manipulation"
-                                        placeholder="Detalles adicionales del pago..."
-                                        value={newPayment.notes}
-                                        onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })}
-                                    />
-                                </div>
+                        {/* Amount Info */}
+                        <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Total:</span>
+                                <span className="font-medium">${selectedDelivery.totalAmount.toFixed(2)}</span>
                             </div>
-                        )}
-                    </Modal>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Pagado:</span>
+                                <span className="text-green-600 font-medium">${(selectedDelivery.paidAmount || 0).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between border-t pt-2">
+                                <span className="text-gray-900 font-medium">Pendiente:</span>
+                                <span className="text-orange-600 font-bold">${(selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)).toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        {/* Amount Input */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Monto a Pagar *
+                            </label>
+                            <Input
+                                type="number"
+                                placeholder="0.00"
+                                value={newPayment.amount || ''}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                    setNewPayment({ ...newPayment, amount: parseFloat(e.target.value) || 0 })
+                                }
+                                step="0.01"
+                                min="0"
+                                max={selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)}
+                                className="min-h-[44px]"
+                            />
+                        </div>
+
+                        {/* Payment Method */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Método de Pago *
+                            </label>
+                            <select
+                                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
+                                value={newPayment.paymentMethod}
+                                onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value as any })}
+                            >
+                                <option value="cash">Efectivo</option>
+                                <option value="transfer">Transferencia</option>
+                                <option value="card">Tarjeta</option>
+                                <option value="other">Otro</option>
+                            </select>
+                        </div>
+
+                        {/* Notes */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Notas (opcional)
+                            </label>
+                            <textarea
+                                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[80px] touch-manipulation"
+                                placeholder="Detalles adicionales del pago..."
+                                value={newPayment.notes}
+                                onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                )}
+            </Modal>
 
             {/* Delivery Report Modal */}
             {showReportModal && selectedDelivery && (

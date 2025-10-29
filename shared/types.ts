@@ -84,6 +84,10 @@ export interface Purchase {
   // Pending items tracking
   hasPendingItems?: boolean;
   pendingItemsCount?: number;
+  // Pre-sale fields
+  isPresale?: boolean;
+  preSaleScheduledDate?: Date;
+  preSaleStatus?: 'coming-soon' | 'purchased' | 'shipped' | 'received' | 'archived';
 }
 
 export interface PurchaseItem {

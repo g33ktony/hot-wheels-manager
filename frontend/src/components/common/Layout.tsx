@@ -81,11 +81,11 @@ export default function Layout({ children }: LayoutProps) {
 
     const onTouchEnd = () => {
         if (!touchStart || !touchEnd) return
-        
+
         const distance = touchStart - touchEnd
         const isLeftSwipe = distance > minSwipeDistance
         const isRightSwipe = distance < -minSwipeDistance
-        
+
         // Swipe right from left edge to open sidebar
         if (isRightSwipe && touchStart < 50 && !sidebarOpen) {
             setSidebarOpen(true)
@@ -102,7 +102,7 @@ export default function Layout({ children }: LayoutProps) {
     }, [location.pathname])
 
     return (
-        <div 
+        <div
             className="min-h-screen bg-gray-50 flex overflow-x-hidden w-full max-w-full"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
@@ -120,7 +120,7 @@ export default function Layout({ children }: LayoutProps) {
             )}
 
             {/* Sidebar */}
-            <div 
+            <div
                 ref={sidebarRef}
                 className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden
@@ -146,60 +146,60 @@ export default function Layout({ children }: LayoutProps) {
                 {/* Scrollable Navigation */}
                 <div className="flex-1 overflow-y-auto">
                     <nav className="px-3 pt-4 pb-20 space-y-1">
-                    {navigationItems.map((item: any) => {
-                        const isActive = location.pathname === item.href
-                        return (
-                            <Link
-                                key={item.name}
-                                to={item.href}
-                                className={`
+                        {navigationItems.map((item: any) => {
+                            const isActive = location.pathname === item.href
+                            return (
+                                <Link
+                                    key={item.name}
+                                    to={item.href}
+                                    className={`
                   flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200
                   min-h-[44px] touch-manipulation relative select-none
                   ${isActive
-                                        ? item.highlight
-                                            ? 'bg-orange-100 text-orange-700 shadow-sm'
-                                            : 'bg-primary-100 text-primary-700 shadow-sm'
-                                        : item.highlight
-                                            ? 'text-orange-600 hover:bg-orange-50 hover:text-orange-700 active:bg-orange-100 border-2 border-orange-300'
-                                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200'
-                                    }
+                                            ? item.highlight
+                                                ? 'bg-orange-100 text-orange-700 shadow-sm'
+                                                : 'bg-primary-100 text-primary-700 shadow-sm'
+                                            : item.highlight
+                                                ? 'text-orange-600 hover:bg-orange-50 hover:text-orange-700 active:bg-orange-100 border-2 border-orange-300'
+                                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200'
+                                        }
                 `}
-                                style={{
-                                    WebkitTapHighlightColor: 'transparent',
-                                    WebkitTouchCallout: 'none',
-                                }}
-                                onClick={() => setSidebarOpen(false)}
-                            >
-                                <item.icon size={22} className="mr-3 flex-shrink-0" />
-                                <span className="flex-1">{item.name}</span>
-                                {item.badge && item.badge > 0 && (
-                                    <span className={`
+                                    style={{
+                                        WebkitTapHighlightColor: 'transparent',
+                                        WebkitTouchCallout: 'none',
+                                    }}
+                                    onClick={() => setSidebarOpen(false)}
+                                >
+                                    <item.icon size={22} className="mr-3 flex-shrink-0" />
+                                    <span className="flex-1">{item.name}</span>
+                                    {item.badge && item.badge > 0 && (
+                                        <span className={`
                     px-2 py-0.5 text-xs font-semibold rounded-full
                     ${isActive
-                                            ? 'bg-orange-200 text-orange-900'
-                                            : 'bg-orange-500 text-white'
-                                        }
+                                                ? 'bg-orange-200 text-orange-900'
+                                                : 'bg-orange-500 text-white'
+                                            }
                   `}>
-                                        {item.badge}
-                                    </span>
-                                )}
-                            </Link>
-                        )
-                    })}
+                                            {item.badge}
+                                        </span>
+                                    )}
+                                </Link>
+                            )
+                        })}
 
-                    {/* Logout button */}
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation text-red-600 hover:bg-red-50 active:bg-red-100 mt-4"
-                        style={{
-                            WebkitTapHighlightColor: 'transparent',
-                            WebkitTouchCallout: 'none',
-                        }}
-                    >
-                        <LogOut size={22} className="mr-3 flex-shrink-0" />
-                        <span className="flex-1 select-none">Cerrar sesión</span>
-                    </button>
-                </nav>
+                        {/* Logout button */}
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation text-red-600 hover:bg-red-50 active:bg-red-100 mt-4"
+                            style={{
+                                WebkitTapHighlightColor: 'transparent',
+                                WebkitTouchCallout: 'none',
+                            }}
+                        >
+                            <LogOut size={22} className="mr-3 flex-shrink-0" />
+                            <span className="flex-1 select-none">Cerrar sesión</span>
+                        </button>
+                    </nav>
                 </div>
             </div>
 

@@ -59,7 +59,15 @@ const PurchaseSchema = new Schema<Purchase & Document>({
   receivedDate: { type: Date },
   // Pending items tracking
   hasPendingItems: { type: Boolean, default: false },
-  pendingItemsCount: { type: Number, default: 0, min: 0 }
+  pendingItemsCount: { type: Number, default: 0, min: 0 },
+  // Pre-sale fields
+  isPresale: { type: Boolean, default: false },
+  preSaleScheduledDate: { type: Date },
+  preSaleStatus: {
+    type: String,
+    enum: ['coming-soon', 'purchased', 'shipped', 'received', 'archived'],
+    default: 'coming-soon'
+  }
 }, {
   timestamps: true,
   collection: 'purchases'
@@ -70,5 +78,17 @@ PurchaseSchema.index({ supplierId: 1 })
 PurchaseSchema.index({ status: 1 })
 PurchaseSchema.index({ purchaseDate: -1 })
 PurchaseSchema.index({ 'items.carId': 1 })
+PurchaseSchema.index({ isPresale: 1 })
+PurchaseSchema.index({ preSaleStatus: 1 })
+
+// Pre-save validation
+PurchaseSchema.pre('save', function(next) {
+  // If isPresale is true, ensure preSaleStatus exists
+  const doc = this as any
+  if (doc.isPresale && !doc.preSaleStatus) {
+    doc.preSaleStatus = 'coming-soon'
+  }
+  next()
+})
 
 export default mongoose.model<Purchase & Document>('Purchase', PurchaseSchema)

@@ -15,6 +15,10 @@ export interface IDelivery extends Document {
   notes?: string;
   status: 'scheduled' | 'prepared' | 'completed' | 'cancelled' | 'rescheduled';
   completedDate?: Date;
+  // Pre-sale fields
+  hasPresaleItems?: boolean; // true if delivery includes pre-sale items
+  preSalePaymentPlanId?: string; // Reference to PreSalePaymentPlan if applicable
+  preSaleStatus?: 'pending' | 'in-progress' | 'completed' | 'overdue' | 'paused' | 'cancelled';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +38,10 @@ export interface DeliveryItem {
   carName: string;
   quantity: number;
   unitPrice: number;
+  // Pre-sale fields
+  isPresaleItem?: boolean; // true if this item comes from a pre-sale
+  preSaleItemId?: string; // Reference to PreSaleItem
+  unitIds?: string[]; // Array of specific unit IDs from PreSaleItem
 }
 
 const DeliveryItemSchema = new Schema<DeliveryItem>({
@@ -64,7 +72,16 @@ const DeliveryItemSchema = new Schema<DeliveryItem>({
     type: Number,
     required: true,
     min: 0
-  }
+  },
+  // Pre-sale fields
+  isPresaleItem: {
+    type: Boolean,
+    default: false
+  },
+  preSaleItemId: {
+    type: String
+  },
+  unitIds: [String]
 }, { _id: false })
 
 const PaymentSchema = new Schema<Payment>({
@@ -144,6 +161,18 @@ const DeliverySchema = new Schema<IDelivery>({
   },
   completedDate: {
     type: Date
+  },
+  // Pre-sale fields
+  hasPresaleItems: {
+    type: Boolean,
+    default: false
+  },
+  preSalePaymentPlanId: {
+    type: String
+  },
+  preSaleStatus: {
+    type: String,
+    enum: ['pending', 'in-progress', 'completed', 'overdue', 'paused', 'cancelled']
   }
 }, {
   timestamps: true,
@@ -154,5 +183,8 @@ const DeliverySchema = new Schema<IDelivery>({
 DeliverySchema.index({ customerId: 1 })
 DeliverySchema.index({ status: 1 })
 DeliverySchema.index({ scheduledDate: -1 })
+DeliverySchema.index({ hasPresaleItems: 1 })
+DeliverySchema.index({ preSalePaymentPlanId: 1 })
+DeliverySchema.index({ preSaleStatus: 1 })
 
 export const DeliveryModel = mongoose.model<IDelivery>('Delivery', DeliverySchema)

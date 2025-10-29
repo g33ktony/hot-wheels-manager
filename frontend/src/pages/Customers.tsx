@@ -226,40 +226,40 @@ export default function Customers() {
                     }
                 >
                     <form onSubmit={handleSubmit} className="space-y-4">
-                            <Input
-                                label="Nombre *"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                            />
+                        <Input
+                            label="Nombre *"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            required
+                        />
 
-                            <Input
-                                label="Email"
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            />
+                        <Input
+                            label="Email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        />
 
-                            <Input
-                                label="Teléfono"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            />
+                        <Input
+                            label="Teléfono"
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        />
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Método de Contacto
-                                </label>
-                                <select
-                                    value={formData.contactMethod}
-                                    onChange={(e) => setFormData({ ...formData, contactMethod: e.target.value as any })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                >
-                                    <option value="email">Email</option>
-                                    <option value="phone">Teléfono</option>
-                                    <option value="whatsapp">WhatsApp</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Método de Contacto
+                            </label>
+                            <select
+                                value={formData.contactMethod}
+                                onChange={(e) => setFormData({ ...formData, contactMethod: e.target.value as any })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            >
+                                <option value="email">Email</option>
+                                <option value="phone">Teléfono</option>
+                                <option value="whatsapp">WhatsApp</option>
+                            </select>
+                        </div>
 
                         <Input
                             label="Dirección"
