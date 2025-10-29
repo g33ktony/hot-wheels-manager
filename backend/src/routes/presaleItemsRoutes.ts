@@ -17,6 +17,48 @@ router.get('/test/debug', async (req: Request, res: Response) => {
   })
 })
 
+// GET /api/presale/items/summary/active - Get summary of active pre-sales (MUST BE BEFORE /:id)
+router.get('/summary/active', async (req: Request, res: Response) => {
+  try {
+    const summary = await PreSaleItemService.getActiveSalesSummary()
+
+    res.json({
+      success: true,
+      data: summary
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch summary'
+    })
+  }
+})
+
+// GET /api/presale/items/car/:carId - Get pre-sale item by car ID (MUST BE BEFORE /:id)
+router.get('/car/:carId', async (req: Request, res: Response) => {
+  try {
+    const { carId } = req.params
+    const item = await PreSaleItemService.getPreSaleItemByCarId(carId)
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        error: 'Pre-sale item not found for this car'
+      })
+    }
+
+    res.json({
+      success: true,
+      data: item
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to fetch pre-sale item'
+    })
+  }
+})
+
 // GET /api/presale/items - Get all pre-sale items with optional filters
 router.get('/', async (req: Request, res: Response) => {
   try {
@@ -48,32 +90,7 @@ router.get('/', async (req: Request, res: Response) => {
   }
 })
 
-// GET /api/presale/items/car/:carId - Get pre-sale item by car ID
-router.get('/car/:carId', async (req: Request, res: Response) => {
-  try {
-    const { carId } = req.params
-    const item = await PreSaleItemService.getPreSaleItemByCarId(carId)
-
-    if (!item) {
-      return res.status(404).json({
-        success: false,
-        error: 'Pre-sale item not found for this car'
-      })
-    }
-
-    res.json({
-      success: true,
-      data: item
-    })
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to fetch pre-sale item'
-    })
-  }
-})
-
-// GET /api/presale/items/:id - Get specific pre-sale item
+// GET /api/presale/items/:id - Get specific pre-sale item (MUST BE AFTER /summary/active and /car/:carId)
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
@@ -330,23 +347,6 @@ router.delete('/:id', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to cancel pre-sale item'
-    })
-  }
-})
-
-// GET /api/presale/items/summary/active - Get summary of active pre-sales
-router.get('/summary/active', async (req: Request, res: Response) => {
-  try {
-    const summary = await PreSaleItemService.getActiveSalesSummary()
-
-    res.json({
-      success: true,
-      data: summary
-    })
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to fetch summary'
     })
   }
 })
