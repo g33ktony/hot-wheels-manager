@@ -8,17 +8,30 @@ const router = Router()
  * Handles CRUD and business logic for pre-sale item aggregation
  */
 
+// Debug route to test if presale route is loaded
+router.get('/test/debug', async (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: 'Presale items route is loaded',
+    timestamp: new Date().toISOString()
+  })
+})
+
 // GET /api/presale/items - Get all pre-sale items with optional filters
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { status, carId, onlyActive } = req.query
+
+    console.log('📌 GET /presale/items - Filters:', { status, carId, onlyActive })
 
     const filters: any = {}
     if (status) filters.status = status
     if (carId) filters.carId = carId
     if (onlyActive === 'true') filters.onlyActive = true
 
+    console.log('📌 Calling PreSaleItemService.getPreSaleItems with filters:', filters)
     const items = await PreSaleItemService.getPreSaleItems(filters)
+    console.log('✅ Successfully retrieved presale items:', items.length)
 
     res.json({
       success: true,
@@ -26,9 +39,11 @@ router.get('/', async (req: Request, res: Response) => {
       count: items.length
     })
   } catch (error: any) {
+    console.error('❌ Error in GET /presale/items:', error.message, error.stack)
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to fetch pre-sale items'
+      error: error.message || 'Failed to fetch pre-sale items',
+      details: error.stack
     })
   }
 })
