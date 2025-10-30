@@ -111,10 +111,32 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
             icon: AlertCircle,
             label: 'Cancelado',
         },
+        // Legacy states for backward compatibility
+        active: {
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
+            badge: 'bg-blue-100 text-blue-800',
+            icon: Clock,
+            label: 'Activo (Legacy)',
+        },
+        completed: {
+            bg: 'bg-green-50',
+            border: 'border-green-200',
+            badge: 'bg-green-100 text-green-800',
+            icon: CheckCircle,
+            label: 'Completado (Legacy)',
+        },
+        paused: {
+            bg: 'bg-yellow-50',
+            border: 'border-yellow-200',
+            badge: 'bg-yellow-100 text-yellow-800',
+            icon: Clock,
+            label: 'En Pausa (Legacy)',
+        },
     }
 
-    const config = statusConfig[item.status]
-    const StatusIcon = config.icon
+    const config = statusConfig[item.status] || statusConfig['purchased']
+    const StatusIcon = config?.icon || Clock
 
     const daysUntilEnd = item.endDate ? Math.ceil(
         (new Date(item.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)

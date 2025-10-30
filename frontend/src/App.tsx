@@ -35,8 +35,8 @@ function App() {
                                     <Route path="/inventory" element={<Inventory />} />
                                     <Route path="/sales" element={<Sales />} />
                                     <Route path="/purchases" element={<Purchases />} />
-                                    <Route path="/presale/*" element={<PreSaleHub />} />
                                     <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
+                                    <Route path="/presale" element={<PreSaleHub />} />
                                     <Route path="/pending-items" element={<PendingItemsPage />} />
                                     <Route path="/deliveries" element={<Deliveries />} />
                                     <Route path="/customers" element={<Customers />} />
