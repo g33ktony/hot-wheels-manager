@@ -15,7 +15,6 @@ import PendingItemsPage from './pages/PendingItemsPage'
 import PreSalePurchase from './pages/PreSalePurchase'
 import PreSaleDashboardPage from './pages/PreSaleDashboardPage'
 import PreSaleEditPage from './pages/PreSaleEditPage'
-import PaymentManagementPage from './pages/PaymentManagementPage'
 import PreSalePayments from './pages/PreSalePayments'
 
 // Test: Deployment optimization - only frontend changes
@@ -41,7 +40,6 @@ function App() {
                                     <Route path="/presale/purchase" element={<PreSalePurchase />} />
                                     <Route path="/presale/dashboard" element={<PreSaleDashboardPage />} />
                                     <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
-                                    <Route path="/presale/payments" element={<PaymentManagementPage />} />
                                     <Route path="/presale-payments" element={<PreSalePayments />} />
                                     <Route path="/pending-items" element={<PendingItemsPage />} />
                                     <Route path="/deliveries" element={<Deliveries />} />

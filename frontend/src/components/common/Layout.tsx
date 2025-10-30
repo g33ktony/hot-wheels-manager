@@ -13,7 +13,6 @@ import {
     LogOut,
     PackageOpen,
     AlertCircle,
-    DollarSign,
     CreditCard
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
@@ -49,7 +48,6 @@ export default function Layout({ children }: LayoutProps) {
         { name: 'Compras', href: '/purchases', icon: ShoppingBag },
         { name: 'Pre-Ventas', href: '/presale/purchase', icon: Package },
         { name: 'Panel Pre-Ventas', href: '/presale/dashboard', icon: LayoutDashboard },
-        { name: 'Pagos Pre-Venta', href: '/presale/payments', icon: DollarSign },
         { name: 'Planes de Pago', href: '/presale-payments', icon: CreditCard },
         // Conditional: Only show if there are pending items
         ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
