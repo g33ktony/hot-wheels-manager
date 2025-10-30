@@ -96,7 +96,7 @@ export const useUpdatePreSaleStatus = () => {
   const queryClient = useQueryClient()
 
   return useMutation(
-    ({ id, status }: { id: string; status: 'active' | 'completed' | 'cancelled' | 'paused' }) =>
+    ({ id, status }: { id: string; status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled' }) =>
       presaleService.items.updateStatus(id, status),
     {
       onSuccess: (_, variables) => {

@@ -10,7 +10,7 @@ export interface PreSaleItem {
   basePricePerUnit: number
   markupPercentage: number
   finalPricePerUnit: number
-  status: 'active' | 'completed' | 'cancelled' | 'paused'
+  status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
   startDate: Date
   endDate?: Date
   purchaseIds: string[]
@@ -117,7 +117,7 @@ export const presaleService = {
     // Update status
     updateStatus: async (
       id: string,
-      status: 'active' | 'completed' | 'cancelled' | 'paused'
+      status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
     ): Promise<PreSaleItem> => {
       const response = await api.put<ApiResponse<PreSaleItem>>(
         `/presale/items/${id}/status`,

@@ -32,8 +32,8 @@ export interface PreSaleItem extends Document {
   markupPercentage: number; // Default: 15%
   finalPricePerUnit: number; // Calculated: basePricePerUnit * (1 + markupPercentage/100)
 
-  // Status & Lifecycle
-  status: 'active' | 'completed' | 'cancelled' | 'paused'
+  // Status & Lifecycle - Updated to match actual workflow
+  status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
   startDate: Date; // When pre-sale collection started
   endDate?: Date; // When pre-sale ended or completed
   notes?: string;
@@ -143,11 +143,21 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
       }
     },
 
-    // Status
+    // Status - Updated to match actual workflow
     status: {
       type: String,
-      enum: ['active', 'completed', 'cancelled', 'paused'],
-      default: 'active'
+      enum: [
+        'purchased',      // Comprado - Initial state after purchase
+        'shipped',        // Enviado - In transit from supplier
+        'received',       // Recibido - Arrived, ready to add to inventory
+        'reserved',       // Apartado - Customer reserved it
+        'payment-plan',   // Plan de pagos - Customer paying in installments
+        'payment-pending',// Pago pendiente - Single payment pending
+        'ready',          // Listo para entregar - Fully paid, ready to deliver
+        'delivered',      // Entregado - Completed delivery
+        'cancelled'       // Cancelado - Cancelled at any stage
+      ],
+      default: 'purchased'
     },
     startDate: {
       type: Date,
