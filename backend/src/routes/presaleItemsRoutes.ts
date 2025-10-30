@@ -210,16 +210,45 @@ router.put('/:id/final-price', async (req: Request, res: Response) => {
   }
 })
 
+// PUT /api/presale/items/:id/photo - Update photo
+router.put('/:id/photo', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const { photo } = req.body
+
+    if (!photo) {
+      return res.status(400).json({
+        success: false,
+        error: 'Photo is required'
+      })
+    }
+
+    const item = await PreSaleItemService.updatePhoto(id, photo)
+
+    res.json({
+      success: true,
+      message: 'Photo updated successfully',
+      data: item
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update photo'
+    })
+  }
+})
+
 // PUT /api/presale/items/:id/status - Update status
 router.put('/:id/status', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { status } = req.body
 
-    if (!status || !['active', 'completed', 'cancelled', 'paused'].includes(status)) {
+    const validStatuses = ['purchased', 'shipped', 'received', 'reserved', 'payment-plan', 'payment-pending', 'ready', 'delivered', 'cancelled', 'active', 'completed', 'paused']
+    if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid status. Must be: active, completed, cancelled, or paused'
+        error: 'Invalid status'
       })
     }
 

@@ -92,6 +92,25 @@ export const useUpdatePreSaleFinalPrice = () => {
   )
 }
 
+export const useUpdatePreSalePhoto = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ id, photo }: { id: string; photo: string }) =>
+      presaleService.items.updatePhoto(id, photo),
+    {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries('presaleItems')
+        queryClient.invalidateQueries(['presaleItem', variables.id])
+        toast.success('Foto actualizada exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al actualizar foto')
+      },
+    }
+  )
+}
+
 export const useUpdatePreSaleStatus = () => {
   const queryClient = useQueryClient()
 

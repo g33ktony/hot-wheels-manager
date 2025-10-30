@@ -331,7 +331,7 @@ class PreSaleItemService {
    */
   async updateStatus(
     preSaleItemId: string,
-    status: 'active' | 'completed' | 'cancelled' | 'paused'
+    status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
   ): Promise<PreSaleItemType> {
     const preSaleItem = await PreSaleItem.findById(preSaleItemId)
 
@@ -341,10 +341,29 @@ class PreSaleItemService {
 
     preSaleItem.status = status
 
-    if (status === 'completed' || status === 'cancelled') {
+    if (status === 'delivered' || status === 'cancelled') {
       preSaleItem.endDate = new Date()
     }
 
+    await preSaleItem.save()
+
+    return preSaleItem
+  }
+
+  /**
+   * Update pre-sale item photo
+   */
+  async updatePhoto(
+    preSaleItemId: string,
+    photo: string
+  ): Promise<PreSaleItemType> {
+    const preSaleItem = await PreSaleItem.findById(preSaleItemId)
+
+    if (!preSaleItem) {
+      throw new Error(`PreSaleItem ${preSaleItemId} not found`)
+    }
+
+    preSaleItem.photo = photo
     await preSaleItem.save()
 
     return preSaleItem

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePreSaleItem } from '@/hooks/usePresale'
-import { useUpdatePreSaleFinalPrice } from '@/hooks/usePresale'
+import { useUpdatePreSaleFinalPrice, useUpdatePreSalePhoto } from '@/hooks/usePresale'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
-import { DollarSign, Calendar, ArrowLeft } from 'lucide-react'
+import { DollarSign, Calendar, ArrowLeft, Upload, X } from 'lucide-react'
 import LoadingSpinner from '@/components/common/Loading'
 
 interface PreSaleEditItem {
@@ -24,6 +24,8 @@ export default function PreSaleEditPage() {
     const navigate = useNavigate()
     const { data: item, isLoading, error } = usePreSaleItem(id || '')
     const updateFinalPrice = useUpdatePreSaleFinalPrice()
+    const updatePhoto = useUpdatePreSalePhoto()
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [formData, setFormData] = useState<Partial<PreSaleEditItem>>({
         finalPricePerUnit: 0,
@@ -32,6 +34,8 @@ export default function PreSaleEditPage() {
         endDate: '',
     })
     const [isSaving, setIsSaving] = useState(false)
+    const [photo, setPhoto] = useState<string>('')
+    const [photoPreview, setPhotoPreview] = useState<string>('')
 
     useEffect(() => {
         if (item) {
@@ -54,8 +58,48 @@ export default function PreSaleEditPage() {
                 startDate: formatDate(item.startDate),
                 endDate: formatDate((item as any).endDate),
             })
+
+            // Load existing photo
+            if ((item as any).photo) {
+                setPhoto((item as any).photo)
+                setPhotoPreview((item as any).photo)
+            }
         }
     }, [item])
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            const base64 = reader.result as string
+            setPhoto(base64)
+            setPhotoPreview(base64)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const handleRemovePhoto = () => {
+        setPhoto('')
+        setPhotoPreview('')
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ''
+        }
+    }
+
+    const handleSavePhoto = async () => {
+        if (!formData._id || !photo) return
+
+        try {
+            await updatePhoto.mutateAsync({
+                id: formData._id,
+                photo
+            })
+        } catch (error) {
+            console.error('Error updating photo:', error)
+        }
+    }
 
     const handleSave = async () => {
         if (!formData._id || !formData.finalPricePerUnit) {
@@ -64,11 +108,18 @@ export default function PreSaleEditPage() {
 
         setIsSaving(true)
         try {
+            // Save final price
             await updateFinalPrice.mutateAsync({
                 id: formData._id,
                 finalPrice: formData.finalPricePerUnit
             })
-            navigate('/presale/dashboard')
+
+            // Save photo if changed
+            if (photo && photo !== (item as any)?.photo) {
+                await handleSavePhoto()
+            }
+
+            navigate('/presale')
         } catch (error) {
             console.error('Error updating presale:', error)
         } finally {
@@ -83,7 +134,7 @@ export default function PreSaleEditPage() {
                     <h3 className="text-red-800 font-semibold mb-2">Error loading presale item</h3>
                     <p className="text-red-700">{error instanceof Error ? error.message : 'Unknown error'}</p>
                     <button
-                        onClick={() => navigate('/presale/dashboard')}
+                        onClick={() => navigate('/presale')}
                         className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
                     >
                         Back to Dashboard
@@ -110,7 +161,7 @@ export default function PreSaleEditPage() {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
                     <h3 className="text-yellow-800 font-semibold mb-2">Presale item not found</h3>
                     <button
-                        onClick={() => navigate('/presale/dashboard')}
+                        onClick={() => navigate('/presale')}
                         className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition"
                     >
                         Back to Dashboard
@@ -127,7 +178,7 @@ export default function PreSaleEditPage() {
         <div className="max-w-2xl mx-auto">
             <div className="mb-6">
                 <button
-                    onClick={() => navigate('/presale/dashboard')}
+                    onClick={() => navigate('/presale')}
                     className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4"
                 >
                     <ArrowLeft className="w-5 h-5" />
@@ -144,6 +195,64 @@ export default function PreSaleEditPage() {
 
                 <CardContent>
                     <form onSubmit={(e) => { e.preventDefault(); handleSave() }} className="space-y-6">
+                        {/* Photo Section */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                            <h3 className="font-semibold text-gray-900 mb-4">Foto del Item</h3>
+                            
+                            {photoPreview ? (
+                                <div className="space-y-3">
+                                    <div className="relative inline-block">
+                                        <img
+                                            src={photoPreview}
+                                            alt="Preview"
+                                            className="w-full max-w-xs rounded-lg shadow-md"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleRemovePhoto}
+                                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm"
+                                    >
+                                        Cambiar Foto
+                                    </button>
+                                </div>
+                            ) : (
+                                <div>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition flex flex-col items-center gap-2 text-gray-600 hover:text-blue-600"
+                                    >
+                                        <Upload size={32} />
+                                        <span className="font-medium">Subir Foto</span>
+                                        <span className="text-sm">Click para seleccionar una imagen</span>
+                                    </button>
+                                </div>
+                            )}
+                            
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePhotoChange}
+                                className="hidden"
+                            />
+                        </div>
+
                         {/* Base Information - Read Only */}
                         <div className="bg-gray-50 p-4 rounded-lg space-y-4">
                             <h3 className="font-semibold text-gray-900">Item Information</h3>
@@ -289,7 +398,7 @@ export default function PreSaleEditPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => navigate('/presale/dashboard')}
+                                onClick={() => navigate('/presale')}
                                 className="flex-1 px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
                             >
                                 Cancel

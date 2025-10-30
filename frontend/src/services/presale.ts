@@ -114,6 +114,18 @@ export const presaleService = {
       return response.data.data
     },
 
+    // Update photo
+    updatePhoto: async (id: string, photo: string): Promise<PreSaleItem> => {
+      const response = await api.put<ApiResponse<PreSaleItem>>(
+        `/presale/items/${id}/photo`,
+        { photo }
+      )
+      if (!response.data.data) {
+        throw new Error('Failed to update photo')
+      }
+      return response.data.data
+    },
+
     // Update status
     updateStatus: async (
       id: string,
