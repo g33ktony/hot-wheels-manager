@@ -338,6 +338,7 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
                 availableQuantity={item.availableQuantity}
                 carId={item.carId}
                 purchaseId={item.purchaseIds?.[0] || ''}
+                pricePerUnit={item.finalPricePerUnit}
             />
 
             {/* Payment Modal */}
