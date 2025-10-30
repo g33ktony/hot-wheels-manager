@@ -12,8 +12,7 @@ import {
     Building2,
     LogOut,
     PackageOpen,
-    AlertCircle,
-    CreditCard
+    AlertCircle
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -46,9 +45,7 @@ export default function Layout({ children }: LayoutProps) {
         { name: 'Inventario', href: '/inventory', icon: Package },
         { name: 'Ventas', href: '/sales', icon: ShoppingCart },
         { name: 'Compras', href: '/purchases', icon: ShoppingBag },
-        { name: 'Pre-Ventas', href: '/presale/purchase', icon: Package },
-        { name: 'Panel Pre-Ventas', href: '/presale/dashboard', icon: LayoutDashboard },
-        { name: 'Planes de Pago', href: '/presale-payments', icon: CreditCard },
+        { name: 'Pre-Ventas', href: '/presale', icon: Package },
         // Conditional: Only show if there are pending items
         ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
             name: 'Items Pendientes',
