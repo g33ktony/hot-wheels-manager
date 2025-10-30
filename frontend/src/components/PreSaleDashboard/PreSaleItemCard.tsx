@@ -17,7 +17,7 @@ interface PreSaleItem {
     totalSaleAmount: number
     totalCostAmount: number
     totalProfit: number
-    status: 'active' | 'completed' | 'cancelled' | 'paused'
+    status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
     startDate: string
     endDate?: string
     condition?: string
@@ -41,20 +41,68 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
     const [showStatusMenu, setShowStatusMenu] = useState(false)
     const updateStatus = useUpdatePreSaleStatus()
 
-    const statusConfig = {
-        active: {
+    const statusConfig: Record<string, {
+        bg: string
+        border: string
+        badge: string
+        icon: any
+        label: string
+    }> = {
+        purchased: {
             bg: 'bg-blue-50',
             border: 'border-blue-200',
             badge: 'bg-blue-100 text-blue-800',
             icon: Clock,
-            label: 'Activo',
+            label: 'Comprado',
         },
-        completed: {
+        shipped: {
+            bg: 'bg-purple-50',
+            border: 'border-purple-200',
+            badge: 'bg-purple-100 text-purple-800',
+            icon: Package,
+            label: 'Enviado',
+        },
+        received: {
+            bg: 'bg-cyan-50',
+            border: 'border-cyan-200',
+            badge: 'bg-cyan-100 text-cyan-800',
+            icon: CheckCircle,
+            label: 'Recibido',
+        },
+        reserved: {
+            bg: 'bg-yellow-50',
+            border: 'border-yellow-200',
+            badge: 'bg-yellow-100 text-yellow-800',
+            icon: AlertCircle,
+            label: 'Apartado',
+        },
+        'payment-plan': {
+            bg: 'bg-indigo-50',
+            border: 'border-indigo-200',
+            badge: 'bg-indigo-100 text-indigo-800',
+            icon: CreditCard,
+            label: 'Plan de Pagos',
+        },
+        'payment-pending': {
+            bg: 'bg-orange-50',
+            border: 'border-orange-200',
+            badge: 'bg-orange-100 text-orange-800',
+            icon: Clock,
+            label: 'Pago Pendiente',
+        },
+        ready: {
+            bg: 'bg-teal-50',
+            border: 'border-teal-200',
+            badge: 'bg-teal-100 text-teal-800',
+            icon: CheckCircle,
+            label: 'Listo para Entregar',
+        },
+        delivered: {
             bg: 'bg-green-50',
             border: 'border-green-200',
             badge: 'bg-green-100 text-green-800',
             icon: CheckCircle,
-            label: 'Completado',
+            label: 'Entregado',
         },
         cancelled: {
             bg: 'bg-red-50',
@@ -62,13 +110,6 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
             badge: 'bg-red-100 text-red-800',
             icon: AlertCircle,
             label: 'Cancelado',
-        },
-        paused: {
-            bg: 'bg-yellow-50',
-            border: 'border-yellow-200',
-            badge: 'bg-yellow-100 text-yellow-800',
-            icon: AlertCircle,
-            label: 'En Pausa',
         },
     }
 
@@ -105,8 +146,8 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
 
                     {/* Status Dropdown Menu */}
                     {showStatusMenu && (
-                        <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-40">
-                            {(['active', 'completed', 'paused', 'cancelled'] as const).map((status) => (
+                        <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-48 max-h-80 overflow-y-auto">
+                            {(['purchased', 'shipped', 'received', 'reserved', 'payment-plan', 'payment-pending', 'ready', 'delivered', 'cancelled'] as const).map((status) => (
                                 <button
                                     key={status}
                                     onClick={async () => {

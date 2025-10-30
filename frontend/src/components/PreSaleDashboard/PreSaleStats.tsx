@@ -2,7 +2,7 @@ import React from 'react'
 import { TrendingUp, Package, Clock, CheckCircle, AlertCircle, Zap } from 'lucide-react'
 
 interface PreSaleItem {
-    status: 'active' | 'completed' | 'cancelled' | 'paused'
+    status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
     totalQuantity: number
     assignedQuantity: number
     availableQuantity: number
@@ -17,9 +17,9 @@ interface PreSaleStatsProps {
 
 const PreSaleStats: React.FC<PreSaleStatsProps> = ({ items = [] }) => {
     // Calculate metrics
-    const activeItems = items.filter((item) => item.status === 'active').length
-    const completedItems = items.filter((item) => item.status === 'completed').length
-    const pausedItems = items.filter((item) => item.status === 'paused').length
+    const activeItems = items.filter((item) => ['purchased', 'shipped', 'received', 'reserved', 'payment-plan', 'payment-pending', 'ready'].includes(item.status)).length
+    const completedItems = items.filter((item) => item.status === 'delivered').length
+    const inTransitItems = items.filter((item) => ['purchased', 'shipped'].includes(item.status)).length
     const cancelledItems = items.filter((item) => item.status === 'cancelled').length
 
     const totalSaleAmount = items.reduce((sum, item) => sum + item.totalSaleAmount, 0)
@@ -47,8 +47,8 @@ const PreSaleStats: React.FC<PreSaleStatsProps> = ({ items = [] }) => {
             valueColor: 'text-green-900',
         },
         {
-            label: 'En Pausa',
-            value: pausedItems,
+            label: 'En Tránsito',
+            value: inTransitItems,
             icon: Clock,
             bgColor: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
             borderColor: 'border-yellow-200',
