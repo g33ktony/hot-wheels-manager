@@ -120,7 +120,10 @@ export const receivePurchaseWithVerification = async (req: Request, res: Respons
 
     // Recalculate total cost based on received items
     purchase.totalCost = purchase.items.reduce(
-      (sum, item) => sum + (item.quantity * item.unitPrice),
+      (sum, item) => {
+        const price = item.isBox && item.boxPrice ? item.boxPrice : item.unitPrice
+        return sum + (item.quantity * price)
+      },
       0
     ) + (purchase.shippingCost || 0)
 
@@ -174,7 +177,10 @@ export const createPurchase = async (req: Request, res: Response) => {
     // Calculate total cost from items if not provided
     if (!purchaseData.totalCost && purchaseData.items) {
       purchaseData.totalCost = purchaseData.items.reduce(
-        (sum: number, item: any) => sum + (item.quantity * item.unitPrice),
+        (sum: number, item: any) => {
+          const price = item.isBox && item.boxPrice ? item.boxPrice : item.unitPrice
+          return sum + (item.quantity * price)
+        },
         0
       ) + (purchaseData.shippingCost || 0)
     }
@@ -368,7 +374,10 @@ export const updatePurchase = async (req: Request, res: Response) => {
     // Recalculate total cost if items changed
     if (updateData.items) {
       purchase.totalCost = updateData.items.reduce(
-        (sum: number, item: any) => sum + (item.quantity * item.unitPrice),
+        (sum: number, item: any) => {
+          const price = item.isBox && item.boxPrice ? item.boxPrice : item.unitPrice
+          return sum + (item.quantity * price)
+        },
         0
       ) + (purchase.shippingCost || 0)
     }
