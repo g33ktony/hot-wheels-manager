@@ -22,6 +22,7 @@ export const connectDB = async (mongoURI?: string) => {
   try {
     // Get the MongoDB URI from parameter or environment variable
     const uri = mongoURI || process.env.MONGODB_URI || 'mongodb://localhost:27017/hot-wheels-manager'
+    console.log("🚀 ~ connectDB ~ uri:", uri)
     
     // Extract database name from URI for logging
     const dbNameMatch = uri.match(/\/([^/?]+)(\?|$)/)
