@@ -7,7 +7,7 @@ import readline from 'readline';
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 // Import all models to ensure they're registered
-import User from '../models/User';
+import { UserModel } from '../models/User';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -30,11 +30,16 @@ async function resetDatabase() {
     console.log('✅ Conectado a MongoDB');
     
     // Show current database
-    const dbName = mongoose.connection.db.databaseName;
+    const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('Database connection not established');
+    }
+    
+    const dbName = db.databaseName;
     console.log(`\n📊 Base de datos actual: ${dbName}`);
     
     // Get all collections
-    const collections = await mongoose.connection.db.collections();
+    const collections = await db.collections();
     console.log(`\n📦 Colecciones encontradas (${collections.length}):`);
     
     for (const collection of collections) {
@@ -74,24 +79,24 @@ async function resetDatabase() {
     const createAdmin = await question('¿Deseas crear un usuario administrador? (s/n): ');
     
     if (createAdmin.toLowerCase() === 's') {
-      const username = await question('Nombre de usuario: ');
-      const password = await question('Contraseña: ');
       const email = await question('Email: ');
+      const password = await question('Contraseña: ');
+      const name = await question('Nombre completo: ');
       
-      const bcrypt = await import('bcrypt');
+      const bcrypt = await import('bcryptjs');
       const hashedPassword = await bcrypt.hash(password, 10);
       
-      const adminUser = new User({
-        username,
-        password: hashedPassword,
+      const adminUser = new UserModel({
         email,
+        password: hashedPassword,
+        name,
         role: 'admin'
       });
       
       await adminUser.save();
       console.log('\n✅ Usuario administrador creado exitosamente!');
-      console.log(`   Username: ${username}`);
       console.log(`   Email: ${email}`);
+      console.log(`   Nombre: ${name}`);
       console.log(`   Role: admin`);
     }
     
