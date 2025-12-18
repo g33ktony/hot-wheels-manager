@@ -26,6 +26,9 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/scripts/reset-database.ts",
+    "src/scripts/check-users.ts",
+    "src/scripts/create-admin-interactive.ts"
   ]
 }
