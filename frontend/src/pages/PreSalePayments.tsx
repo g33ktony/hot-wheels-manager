@@ -164,7 +164,7 @@ export default function PreSalePayments() {
             <Card>
                 <div className="p-6">
                     <h2 className="text-lg font-bold mb-4">Planes de Pago Activos</h2>
-                    
+
                     {activePlans.length === 0 ? (
                         <div className="text-center py-12">
                             <DollarSign size={48} className="mx-auto text-gray-400 mb-4" />
@@ -187,8 +187,8 @@ export default function PreSalePayments() {
                                                 </h3>
                                                 <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                                                     <Calendar size={14} />
-                                                    <span>Entrega: {delivery?.scheduledDate 
-                                                        ? new Date(delivery.scheduledDate).toLocaleDateString() 
+                                                    <span>Entrega: {delivery?.scheduledDate
+                                                        ? new Date(delivery.scheduledDate).toLocaleDateString()
                                                         : 'Sin fecha'}
                                                     </span>
                                                 </div>
@@ -203,10 +203,9 @@ export default function PreSalePayments() {
                                                 <span className="font-medium">{progressPercent.toFixed(0)}%</span>
                                             </div>
                                             <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                                <div 
-                                                    className={`h-2.5 rounded-full transition-all ${
-                                                        plan.hasOverduePayments ? 'bg-red-600' : 'bg-blue-600'
-                                                    }`}
+                                                <div
+                                                    className={`h-2.5 rounded-full transition-all ${plan.hasOverduePayments ? 'bg-red-600' : 'bg-blue-600'
+                                                        }`}
                                                     style={{ width: `${progressPercent}%` }}
                                                 />
                                             </div>
@@ -302,8 +301,8 @@ export default function PreSalePayments() {
                                     <div>
                                         <p className="font-medium">{getCustomerName(plan.customerId)}</p>
                                         <p className="text-sm text-gray-600">
-                                            ${plan.totalAmount.toFixed(2)} - Completado el {plan.actualCompletionDate 
-                                                ? new Date(plan.actualCompletionDate).toLocaleDateString() 
+                                            ${plan.totalAmount.toFixed(2)} - Completado el {plan.actualCompletionDate
+                                                ? new Date(plan.actualCompletionDate).toLocaleDateString()
                                                 : 'N/A'}
                                         </p>
                                     </div>
@@ -473,7 +472,7 @@ export default function PreSalePayments() {
                                             <div className="flex-1">
                                                 <p className="font-medium">Pago #{index + 1}</p>
                                                 <p className="text-sm text-gray-600">
-                                                    {payment.actualDate 
+                                                    {payment.actualDate
                                                         ? new Date(payment.actualDate).toLocaleDateString()
                                                         : `Programado: ${new Date(payment.scheduledDate).toLocaleDateString()}`}
                                                 </p>

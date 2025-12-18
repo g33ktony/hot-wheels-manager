@@ -43,12 +43,12 @@ export default function PreSaleReports() {
         totalProfit: filteredItems.reduce((sum, item) => sum + (item.totalProfit || 0), 0),
         totalUnits: filteredItems.reduce((sum, item) => sum + item.totalQuantity, 0),
         deliveredItems: filteredItems.filter(item => item.status === 'delivered').length,
-        activeItems: filteredItems.filter(item => 
+        activeItems: filteredItems.filter(item =>
             ['purchased', 'shipped', 'received', 'reserved', 'payment-plan', 'payment-pending', 'ready'].includes(item.status)
         ).length,
     }
 
-    const averageMargin = metrics.totalSales > 0 
+    const averageMargin = metrics.totalSales > 0
         ? ((metrics.totalProfit / metrics.totalSales) * 100).toFixed(1)
         : '0.0'
 

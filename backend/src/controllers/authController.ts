@@ -11,8 +11,16 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body
 
+    // DEBUG: Log datos recibidos
+    console.log('🔐 LOGIN ATTEMPT:')
+    console.log('  - Email recibido:', email)
+    console.log('  - Password recibido (length):', password?.length || 0)
+    console.log('  - Email type:', typeof email)
+    console.log('  - Password type:', typeof password)
+
     // Validar campos
     if (!email || !password) {
+      console.log('❌ Login failed: Missing email or password')
       return res.status(400).json({
         success: false,
         message: 'Email and password are required'
@@ -20,19 +28,32 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Buscar usuario
-    const user = await UserModel.findOne({ email: email.toLowerCase() })
+    const emailLower = email.toLowerCase().trim()
+    console.log('  - Buscando email:', emailLower)
+    const user = await UserModel.findOne({ email: emailLower })
 
     if (!user) {
+      console.log('❌ Login failed: User not found for email:', emailLower)
+      // Verificar todos los emails en la BD para debug
+      const allUsers = await UserModel.find({}).select('email')
+      console.log('  - Emails en BD:', allUsers.map(u => u.email))
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       })
     }
 
+    console.log('✅ User found:', user.email)
+    console.log('  - User ID:', user._id)
+    console.log('  - Password hash (first 20):', user.password.substring(0, 20))
+
     // Verificar contraseña
+    console.log('  - Comparing passwords...')
     const isPasswordValid = await bcrypt.compare(password, user.password)
+    console.log('  - Password valid:', isPasswordValid)
 
     if (!isPasswordValid) {
+      console.log('❌ Login failed: Invalid password')
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -61,6 +82,8 @@ export const login = async (req: Request, res: Response) => {
     console.log('  - iat (issued at):', new Date(decoded.iat * 1000).toISOString())
     console.log('  - exp (expires at):', new Date(decoded.exp * 1000).toISOString())
     console.log('  - Tiempo hasta expiración:', Math.floor((decoded.exp - decoded.iat) / 3600), 'horas')
+
+    console.log('✅ Login successful for:', user.email)
 
     res.json({
       success: true,

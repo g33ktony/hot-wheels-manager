@@ -167,12 +167,12 @@ export default function Deliveries() {
 
         try {
             // Check if delivery has presale items
-            const hasPresaleItems = newDelivery.items.some(item => 
+            const hasPresaleItems = newDelivery.items.some(item =>
                 item.inventoryItemId?.startsWith('presale_')
             )
 
             let createdDelivery: any
-            
+
             if (isEditMode && editingDelivery) {
                 // Update existing delivery
                 await updateDeliveryMutation.mutateAsync({
@@ -208,8 +208,8 @@ export default function Deliveries() {
                             numberOfPayments: paymentPlanConfig.numberOfPayments,
                             paymentFrequency: paymentPlanConfig.paymentFrequency,
                             startDate: new Date(paymentPlanConfig.startDate),
-                            earlyPaymentBonus: paymentPlanConfig.earlyPaymentBonus > 0 
-                                ? paymentPlanConfig.earlyPaymentBonus 
+                            earlyPaymentBonus: paymentPlanConfig.earlyPaymentBonus > 0
+                                ? paymentPlanConfig.earlyPaymentBonus
                                 : undefined
                         })
                     } catch (paymentPlanError) {

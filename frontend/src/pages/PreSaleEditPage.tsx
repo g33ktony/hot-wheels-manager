@@ -198,7 +198,7 @@ export default function PreSaleEditPage() {
                         {/* Photo Section */}
                         <div className="bg-gray-50 p-4 rounded-lg">
                             <h3 className="font-semibold text-gray-900 mb-4">Foto del Item</h3>
-                            
+
                             {photoPreview ? (
                                 <div className="space-y-3">
                                     <div className="relative inline-block">
@@ -243,7 +243,7 @@ export default function PreSaleEditPage() {
                                     </button>
                                 </div>
                             )}
-                            
+
                             <input
                                 ref={fileInputRef}
                                 type="file"

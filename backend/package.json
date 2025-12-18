@@ -11,7 +11,10 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "seed": "tsx src/scripts/seedDatabase.ts",
     "seed:locations": "tsx src/scripts/seedDeliveryLocations.ts",
-    "migrate:presale-statuses": "tsx src/scripts/migrate-presale-statuses.ts"
+    "migrate:presale-statuses": "tsx src/scripts/migrate-presale-statuses.ts",
+    "reset-db": "tsx src/scripts/reset-database.ts",
+    "create-admin": "tsx src/scripts/create-admin-interactive.ts",
+    "check-users": "tsx src/scripts/check-users.ts"
   },
   "keywords": [
     "hot-wheels",

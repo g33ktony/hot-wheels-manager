@@ -31,7 +31,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
     const [quantity, setQuantity] = useState(1)
     const [selectedDeliveryId, setSelectedDeliveryId] = useState('')
     const [errors, setErrors] = useState<Record<string, string>>({})
-    
+
     // Payment plan configuration
     const [enablePaymentPlan, setEnablePaymentPlan] = useState(false)
     const [numberOfPayments, setNumberOfPayments] = useState(3)
@@ -46,11 +46,11 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
     // Get selected delivery details
     const selectedDelivery = deliveries.find((d: any) => d._id === selectedDeliveryId)
     const customer = customers.find((c: any) => c._id === selectedDelivery?.customerId)
-    
+
     // Calculate totals
     const totalAmount = quantity * pricePerUnit
-    const paymentAmount = enablePaymentPlan && numberOfPayments > 0 
-        ? totalAmount / numberOfPayments 
+    const paymentAmount = enablePaymentPlan && numberOfPayments > 0
+        ? totalAmount / numberOfPayments
         : totalAmount
 
     useEffect(() => {
@@ -147,15 +147,15 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                         {deliveries.map((delivery: any) => {
                             const deliveryCustomer = customers.find((c: any) => c._id === delivery.customerId)
                             const customerName = deliveryCustomer?.name || 'Sin cliente'
-                            const dateStr = delivery.scheduledDate 
-                                ? new Date(delivery.scheduledDate).toLocaleDateString('es-MX', { 
-                                    day: '2-digit', 
-                                    month: '2-digit', 
-                                    year: 'numeric' 
-                                  })
+                            const dateStr = delivery.scheduledDate
+                                ? new Date(delivery.scheduledDate).toLocaleDateString('es-MX', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                })
                                 : 'Sin fecha'
                             const location = delivery.location || ''
-                            
+
                             return (
                                 <option key={delivery._id} value={delivery._id}>
                                     {customerName} - {dateStr} {location && `- ${location}`}
@@ -180,13 +180,13 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Fecha:</span>
                                 <span className="font-medium text-gray-900">
-                                    {selectedDelivery.scheduledDate 
+                                    {selectedDelivery.scheduledDate
                                         ? new Date(selectedDelivery.scheduledDate).toLocaleDateString('es-MX', {
                                             weekday: 'long',
                                             year: 'numeric',
                                             month: 'long',
                                             day: 'numeric'
-                                          })
+                                        })
                                         : 'Sin fecha'}
                                 </span>
                             </div>
@@ -287,33 +287,30 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => setPaymentFrequency('weekly')}
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                                                paymentFrequency === 'weekly'
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${paymentFrequency === 'weekly'
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
+                                                }`}
                                         >
                                             Semanal
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setPaymentFrequency('biweekly')}
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                                                paymentFrequency === 'biweekly'
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${paymentFrequency === 'biweekly'
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
+                                                }`}
                                         >
                                             Quincenal
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setPaymentFrequency('monthly')}
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
-                                                paymentFrequency === 'monthly'
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${paymentFrequency === 'monthly'
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
+                                                }`}
                                         >
                                             Mensual
                                         </button>
@@ -358,8 +355,8 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                         <div className="flex justify-between">
                                             <span className="text-blue-700">Frecuencia:</span>
                                             <span className="font-bold text-blue-900">
-                                                {paymentFrequency === 'weekly' ? 'Semanal' : 
-                                                 paymentFrequency === 'biweekly' ? 'Quincenal' : 'Mensual'}
+                                                {paymentFrequency === 'weekly' ? 'Semanal' :
+                                                    paymentFrequency === 'biweekly' ? 'Quincenal' : 'Mensual'}
                                             </span>
                                         </div>
                                         {earlyPaymentBonus > 0 && (
