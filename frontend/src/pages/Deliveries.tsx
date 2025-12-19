@@ -146,21 +146,40 @@ export default function Deliveries() {
             return
         }
 
-        // Validate that non-presale items exist in inventory
+        // Validate that non-presale items exist in inventory and have sufficient quantity
         const inventoryItems_toValidate = newDelivery.items.filter(item => {
             // Skip presale items (they start with "presale_")
             if (item.inventoryItemId?.startsWith('presale_')) {
                 return false
             }
-            return item.inventoryItemId && !item.isSoldAsSeries
+            return item.inventoryItemId // Include all inventory items, even those sold as series
         })
 
         if (inventoryItems_toValidate.length > 0) {
+            // Check if items still exist in inventory
             const invalidItems = inventoryItems_toValidate.filter(item =>
                 !inventoryItems.some(inv => inv._id === item.inventoryItemId)
             )
             if (invalidItems.length > 0) {
                 alert('Algunos items del inventario ya no están disponibles. Por favor, selecciona otros items.')
+                return
+            }
+
+            // Check if items have sufficient available quantity
+            const insufficientItems = inventoryItems_toValidate.filter(item => {
+                const inventoryItem = inventoryItems.find((inv: InventoryItem) => inv._id === item.inventoryItemId)
+                if (!inventoryItem) return true
+                const availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0)
+                return availableQuantity < item.quantity
+            })
+
+            if (insufficientItems.length > 0) {
+                const itemDetails = insufficientItems.map(item => {
+                    const inventoryItem = inventoryItems.find((inv: InventoryItem) => inv._id === item.inventoryItemId)
+                    const availableQuantity = inventoryItem ? inventoryItem.quantity - (inventoryItem.reservedQuantity || 0) : 0
+                    return `• ${item.carName}: disponible ${availableQuantity}, solicitado ${item.quantity}`
+                }).join('\n')
+                alert(`❌ Cantidad insuficiente para los siguientes items:\n\n${itemDetails}`)
                 return
             }
         }
@@ -563,10 +582,17 @@ export default function Deliveries() {
             })))
 
             // Check if we have all pieces available
-            const unavailableItems = seriesItems.filter((item: InventoryItem) => (item.quantity - (item.reservedQuantity || 0)) < 1)
+            const unavailableItems = seriesItems.filter((item: InventoryItem) => {
+                const availableQuantity = item.quantity - (item.reservedQuantity || 0)
+                return availableQuantity < 1
+            })
+
             if (unavailableItems.length > 0) {
-                const itemNames = unavailableItems.map((i: InventoryItem) => i.hotWheelsCar?.model || i.carId).join(', ')
-                alert(`❌ No hay suficiente inventario para completar la serie.\nPiezas faltantes: ${itemNames}`)
+                const itemDetails = unavailableItems.map((i: InventoryItem) => {
+                    const availableQuantity = i.quantity - (i.reservedQuantity || 0)
+                    return `• ${i.hotWheelsCar?.model || i.carId}: disponible ${availableQuantity}, necesario 1`
+                }).join('\n')
+                alert(`❌ No hay suficiente inventario para completar la serie.\n\nPiezas con inventario insuficiente:\n${itemDetails}`)
                 return
             }
 
