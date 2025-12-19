@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 interface InventoryItem {
@@ -22,7 +21,6 @@ interface CartItem extends InventoryItem {
 }
 
 const POS: React.FC = () => {
-  const navigate = useNavigate();
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,16 +123,13 @@ const POS: React.FC = () => {
         throw new Error(error.message || 'Error al procesar la venta');
       }
 
-      const result = await response.json();
+      await response.json();
       
       toast.success(`¡Venta completada! Total: $${calculateTotal().toFixed(2)}`);
       
       // Limpiar carrito y recargar inventario
       setCart([]);
       await fetchInventory();
-      
-      // Opcional: navegar a la venta creada
-      // navigate(`/sales/${result.data._id}`);
       
     } catch (error: any) {
       console.error('Error:', error);
