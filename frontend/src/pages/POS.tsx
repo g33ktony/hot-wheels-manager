@@ -3,18 +3,28 @@ import { toast } from 'react-hot-toast';
 
 interface InventoryItem {
   _id: string;
-  carId: string;
-  carName: string;
+  carId: string | {
+    _id: string;
+    name: string;
+    year?: number;
+    color?: string;
+    series?: string;
+  }; // Puede ser string (ID) o objeto poblado
+  carName?: string; // Puede venir del populate
   brand: string;
-  year: number;
-  color: string;
-  series: string;
+  year?: number; // Puede venir del populate
+  color?: string; // Puede venir del populate
+  series?: string; // Puede venir del populate
   pieceType: string;
-  salePrice: number;
+  salePrice?: number; // Campo calculado
+  suggestedPrice: number;
+  actualPrice?: number;
   purchasePrice: number;
-  status: string;
+  status?: string;
   quantity?: number;
   reservedQuantity?: number;
+  notes?: string;
+  location?: string;
   imageUrl?: string;
 }
 
@@ -80,13 +90,18 @@ const POS: React.FC = () => {
       return;
     }
 
+    // Extraer datos del carId si está poblado
+    const carData = typeof item.carId === 'object' ? item.carId : null;
+    const displayName = carData?.name || item.carName || 'Sin nombre';
+    const price = item.actualPrice || item.suggestedPrice || 0;
+
     const cartItem: CartItem = {
       ...item,
-      customPrice: item.salePrice
+      customPrice: price
     };
 
     setCart([...cart, cartItem]);
-    toast.success(`${item.carName} agregado al carrito`);
+    toast.success(`${displayName} agregado al carrito`);
   };
 
   // Remover item del carrito
@@ -157,19 +172,30 @@ const POS: React.FC = () => {
     }
   };
 
-  // Filtrar inventario
+  // Filtrar inventario - buscar solo en campos que existen en el modelo
   const filteredInventory = inventory.filter(item => {
     if (!searchTerm) return true; // Si no hay búsqueda, mostrar todo
     
     const search = searchTerm.toLowerCase();
+    
+    // Extraer datos del carId si está poblado
+    const carData = typeof item.carId === 'object' ? item.carId : null;
+    const carName = carData?.name || item.carName || '';
+    const carYear = carData?.year || item.year;
+    const carColor = carData?.color || item.color || '';
+    const carSeries = carData?.series || item.series || '';
+    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+    
     return (
-      item.carName?.toLowerCase().includes(search) ||
-      item.carId?.toLowerCase().includes(search) ||
+      carIdStr.toLowerCase().includes(search) ||
+      carName.toLowerCase().includes(search) ||
       item.brand?.toLowerCase().includes(search) ||
-      item.series?.toLowerCase().includes(search) ||
-      item.color?.toLowerCase().includes(search) ||
       item.pieceType?.toLowerCase().includes(search) ||
-      item.year?.toString().includes(search)
+      item.notes?.toLowerCase().includes(search) ||
+      item.location?.toLowerCase().includes(search) ||
+      carSeries.toLowerCase().includes(search) ||
+      carColor.toLowerCase().includes(search) ||
+      carYear?.toString().includes(search)
     );
   });
 
@@ -209,40 +235,59 @@ const POS: React.FC = () => {
                 </p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredInventory.map(item => (
-                    <div
-                      key={item._id}
-                      className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                    >
-                      {item.imageUrl && (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.carName}
-                          className="w-full h-32 object-cover rounded mb-2"
-                        />
-                      )}
-                      <h3 className="font-semibold text-lg">{item.carName}</h3>
-                      <p className="text-sm text-gray-600">{item.carId}</p>
-                      <p className="text-sm text-gray-600">{item.brand} • {item.year}</p>
-                      <p className="text-sm text-gray-600">{item.pieceType}</p>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-xl font-bold text-green-600">
-                          ${item.salePrice.toFixed(2)}
-                        </span>
-                        <button
-                          onClick={() => addToCart(item)}
-                          disabled={cart.some(cartItem => cartItem._id === item._id)}
-                          className={`px-4 py-2 rounded-lg font-medium ${
-                            cart.some(cartItem => cartItem._id === item._id)
-                              ? 'bg-gray-300 cursor-not-allowed'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
-                          }`}
-                        >
-                          {cart.some(cartItem => cartItem._id === item._id) ? 'En carrito' : 'Agregar'}
-                        </button>
+                  {filteredInventory.map(item => {
+                    // Extraer datos del carId si está poblado
+                    const carData = typeof item.carId === 'object' ? item.carId : null;
+                    const displayName = carData?.name || item.carName || 'Sin nombre';
+                    const displayYear = carData?.year || item.year || '';
+                    const displayColor = carData?.color || item.color || '';
+                    const displaySeries = carData?.series || item.series || '';
+                    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+                    const price = item.actualPrice || item.suggestedPrice || 0;
+                    
+                    return (
+                      <div
+                        key={item._id}
+                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt={displayName}
+                            className="w-full h-32 object-cover rounded mb-2"
+                          />
+                        )}
+                        <h3 className="font-semibold text-lg">{displayName}</h3>
+                        <p className="text-sm text-gray-600">{carIdStr}</p>
+                        <p className="text-sm text-gray-600">
+                          {item.brand} {displayYear && `• ${displayYear}`}
+                        </p>
+                        {displayColor && (
+                          <p className="text-sm text-gray-600">Color: {displayColor}</p>
+                        )}
+                        {displaySeries && (
+                          <p className="text-sm text-gray-600">Serie: {displaySeries}</p>
+                        )}
+                        <p className="text-sm text-gray-600">{item.pieceType}</p>
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-xl font-bold text-green-600">
+                            ${price.toFixed(2)}
+                          </span>
+                          <button
+                            onClick={() => addToCart(item)}
+                            disabled={cart.some(cartItem => cartItem._id === item._id)}
+                            className={`px-4 py-2 rounded-lg font-medium ${
+                              cart.some(cartItem => cartItem._id === item._id)
+                                ? 'bg-gray-300 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                          >
+                            {cart.some(cartItem => cartItem._id === item._id) ? 'En carrito' : 'Agregar'}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -260,36 +305,44 @@ const POS: React.FC = () => {
                   Carrito vacío
                 </p>
               ) : (
-                cart.map(item => (
-                  <div key={item._id} className="border rounded p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm">{item.carName}</p>
-                        <p className="text-xs text-gray-600">{item.carId}</p>
+                cart.map(item => {
+                  // Extraer datos del carId si está poblado
+                  const carData = typeof item.carId === 'object' ? item.carId : null;
+                  const displayName = carData?.name || item.carName || 'Sin nombre';
+                  const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+                  const originalPrice = item.actualPrice || item.suggestedPrice || 0;
+                  
+                  return (
+                    <div key={item._id} className="border rounded p-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm">{displayName}</p>
+                          <p className="text-xs text-gray-600">{carIdStr}</p>
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item._id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          ✕
+                        </button>
                       </div>
-                      <button
-                        onClick={() => removeFromCart(item._id)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        ✕
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600">Precio:</span>
+                        <span className="text-xs text-gray-400 line-through">
+                          ${originalPrice.toFixed(2)}
+                        </span>
+                        <input
+                          type="number"
+                          value={item.customPrice}
+                          onChange={(e) => updatePrice(item._id, parseFloat(e.target.value) || 0)}
+                          className="flex-1 px-2 py-1 border rounded text-sm"
+                          step="0.01"
+                          min="0"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600">Precio:</span>
-                      <span className="text-xs text-gray-400 line-through">
-                        ${item.salePrice.toFixed(2)}
-                      </span>
-                      <input
-                        type="number"
-                        value={item.customPrice}
-                        onChange={(e) => updatePrice(item._id, parseFloat(e.target.value) || 0)}
-                        className="flex-1 px-2 py-1 border rounded text-sm"
-                        step="0.01"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 

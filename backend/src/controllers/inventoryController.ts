@@ -83,6 +83,11 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     // Get filtered inventory items with optimization
     const inventoryItems = await InventoryItemModel.find(query)
       .select('-__v -updatedAt') // Excluir campos innecesarios para reducir payload
+      .populate({
+        path: 'carId',
+        select: 'name year color series _id', // Traer solo los campos necesarios
+        options: { lean: true }
+      })
       .lean() // Retorna objetos planos JS (30-40% más rápido que documentos Mongoose)
       .limit(limit)
       .skip(skip)
