@@ -5,7 +5,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 if (!GEMINI_API_KEY) {
   console.warn('⚠️  GEMINI_API_KEY no está configurado. El análisis de imágenes no estará disponible.');
 } else {
-  console.log('✅ GEMINI_API_KEY configurado correctamente');
+  console.log('✅ GEMINI_API_KEY configurado correctamente - modelo gemini-1.5-flash');
 }
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
