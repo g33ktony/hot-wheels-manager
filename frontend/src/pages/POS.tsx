@@ -158,11 +158,20 @@ const POS: React.FC = () => {
   };
 
   // Filtrar inventario
-  const filteredInventory = inventory.filter(item =>
-    item.carName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.carId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.brand.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInventory = inventory.filter(item => {
+    if (!searchTerm) return true; // Si no hay búsqueda, mostrar todo
+    
+    const search = searchTerm.toLowerCase();
+    return (
+      item.carName?.toLowerCase().includes(search) ||
+      item.carId?.toLowerCase().includes(search) ||
+      item.brand?.toLowerCase().includes(search) ||
+      item.series?.toLowerCase().includes(search) ||
+      item.color?.toLowerCase().includes(search) ||
+      item.pieceType?.toLowerCase().includes(search) ||
+      item.year?.toString().includes(search)
+    );
+  });
 
   if (loading) {
     return (
