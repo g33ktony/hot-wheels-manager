@@ -15,6 +15,7 @@ import PendingItemsPage from './pages/PendingItemsPage'
 import PreSaleHub from './pages/PreSaleHub'
 import PreSaleEditPage from './pages/PreSaleEditPage'
 import POS from './pages/POS'
+import GeminiTest from './pages/GeminiTest'
 
 // Test: Deployment optimization - only frontend changes
 function App() {
@@ -35,6 +36,7 @@ function App() {
                                     <Route path="/dashboard" element={<Dashboard />} />
                                     <Route path="/inventory" element={<Inventory />} />
                                     <Route path="/pos" element={<POS />} />
+                                    <Route path="/gemini-test" element={<GeminiTest />} />
                                     <Route path="/sales" element={<Sales />} />
                                     <Route path="/purchases" element={<Purchases />} />
                                     <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
