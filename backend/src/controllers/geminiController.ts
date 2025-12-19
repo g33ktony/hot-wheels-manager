@@ -20,9 +20,13 @@ try {
  */
 export const analyzeImage = async (req: Request, res: Response) => {
   try {
+    console.log('📸 Received analyze-image request');
+    console.log('📦 Request body keys:', Object.keys(req.body));
+    
     const { image, mimeType = 'image/jpeg' } = req.body;
 
     if (!image) {
+      console.log('❌ No image provided');
       return res.status(400).json({
         success: false,
         message: 'Imagen requerida'
@@ -31,6 +35,7 @@ export const analyzeImage = async (req: Request, res: Response) => {
 
     // La imagen debe venir en base64 (sin el prefijo data:image/...)
     const imageBase64 = image.replace(/^data:image\/\w+;base64,/, '');
+    console.log('✅ Image size:', imageBase64.length, 'chars');
 
     console.log('🔍 Iniciando análisis de imagen...');
 
@@ -55,6 +60,8 @@ export const analyzeImage = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error('❌ Error analyzing image:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error message:', error.message);
     
     // Manejar errores específicos de Gemini
     if (error.message?.includes('GEMINI_API_KEY')) {
@@ -66,7 +73,8 @@ export const analyzeImage = async (req: Request, res: Response) => {
 
     res.status(500).json({
       success: false,
-      message: 'Error al analizar la imagen'
+      message: error.message || 'Error al analizar la imagen',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
