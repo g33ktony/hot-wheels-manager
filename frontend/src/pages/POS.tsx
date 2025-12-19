@@ -13,6 +13,8 @@ interface InventoryItem {
   salePrice: number;
   purchasePrice: number;
   status: string;
+  quantity?: number;
+  reservedQuantity?: number;
   imageUrl?: string;
 }
 
@@ -36,7 +38,7 @@ const POS: React.FC = () => {
   const fetchInventory = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/inventory?status=available`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/inventory`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -45,7 +47,15 @@ const POS: React.FC = () => {
       if (!response.ok) throw new Error('Error al cargar inventario');
 
       const data = await response.json();
-      setInventory(Array.isArray(data.data) ? data.data : []);
+      // Filtrar items que tengan cantidad disponible (quantity - reservedQuantity > 0)
+      const availableItems = Array.isArray(data.data) 
+        ? data.data.filter((item: InventoryItem) => {
+            const quantity = item.quantity || 0;
+            const reserved = item.reservedQuantity || 0;
+            return (quantity - reserved) > 0;
+          })
+        : [];
+      setInventory(availableItems);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Error al cargar el inventario');
