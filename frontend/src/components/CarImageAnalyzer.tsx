@@ -86,6 +86,12 @@ const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({
 
       if (!response.ok) {
         const error = await response.json();
+        
+        // Mensaje específico si falta la API key
+        if (response.status === 503 || error.message?.includes('no disponible')) {
+          throw new Error('⚠️ El servicio de IA no está configurado. Falta configurar GEMINI_API_KEY en Railway.');
+        }
+        
         throw new Error(error.message || 'Error al analizar la imagen');
       }
 
