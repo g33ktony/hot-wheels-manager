@@ -8,6 +8,8 @@ import Inventory from './pages/Inventory'
 import Sales from './pages/Sales'
 import Purchases from './pages/Purchases'
 import Deliveries from './pages/Deliveries'
+
+// POS y Gemini Vision integrados
 import Customers from './pages/Customers'
 import Suppliers from './pages/Suppliers'
 import Boxes from './pages/Boxes'
