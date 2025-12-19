@@ -47,14 +47,21 @@ const POS: React.FC = () => {
       if (!response.ok) throw new Error('Error al cargar inventario');
 
       const data = await response.json();
+      console.log('📦 Inventario recibido:', data.data?.length, 'items');
+      console.log('📦 Primer item:', data.data?.[0]);
+      
       // Filtrar items que tengan cantidad disponible (quantity - reservedQuantity > 0)
       const availableItems = Array.isArray(data.data) 
         ? data.data.filter((item: InventoryItem) => {
             const quantity = item.quantity || 0;
             const reserved = item.reservedQuantity || 0;
-            return (quantity - reserved) > 0;
+            const available = quantity - reserved;
+            console.log(`  - ${item.carName}: qty=${quantity}, reserved=${reserved}, available=${available}`);
+            return available > 0;
           })
         : [];
+      
+      console.log('✅ Items disponibles para POS:', availableItems.length);
       setInventory(availableItems);
     } catch (error) {
       console.error('Error:', error);
