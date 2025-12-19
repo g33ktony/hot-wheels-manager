@@ -108,7 +108,8 @@ const POS: React.FC = () => {
 
     // Extraer datos del carId si está poblado
     const carData = typeof item.carId === 'object' ? item.carId : null;
-    const displayName = carData?.name || item.carName || 'Sin nombre';
+    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+    const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
     const price = item.actualPrice || item.suggestedPrice || 0;
 
     const cartItem: CartItem = {
@@ -254,11 +255,11 @@ const POS: React.FC = () => {
                   {filteredInventory.map(item => {
                     // Extraer datos del carId si está poblado
                     const carData = typeof item.carId === 'object' ? item.carId : null;
-                    const displayName = carData?.name || item.carName || 'Sin nombre';
+                    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+                    const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
                     const displayYear = carData?.year || item.year || '';
                     const displayColor = carData?.color || item.color || '';
                     const displaySeries = carData?.series || item.series || '';
-                    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
                     const price = item.actualPrice || item.suggestedPrice || 0;
                     
                     return (
@@ -324,8 +325,8 @@ const POS: React.FC = () => {
                 cart.map(item => {
                   // Extraer datos del carId si está poblado
                   const carData = typeof item.carId === 'object' ? item.carId : null;
-                  const displayName = carData?.name || item.carName || 'Sin nombre';
                   const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+                  const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
                   const originalPrice = item.actualPrice || item.suggestedPrice || 0;
                   
                   return (
