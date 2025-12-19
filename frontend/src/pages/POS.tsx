@@ -159,6 +159,8 @@ const POS: React.FC = () => {
         notes: `Venta POS - ${cart.length} artículo(s)`
       };
 
+      console.log('📤 Enviando venta POS:', saleData);
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/sales/pos`, {
         method: 'POST',
         headers: {
@@ -170,10 +172,13 @@ const POS: React.FC = () => {
 
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ Error del servidor:', error);
+        console.error('❌ Status:', response.status);
         throw new Error(error.message || 'Error al procesar la venta');
       }
 
-      await response.json();
+      const result = await response.json();
+      console.log('✅ Venta creada:', result);
       
       toast.success(`¡Venta completada! Total: $${calculateTotal().toFixed(2)}`);
       
