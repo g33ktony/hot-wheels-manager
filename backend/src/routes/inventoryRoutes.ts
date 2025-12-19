@@ -8,8 +8,12 @@ import {
   checkSeriesAvailability,
   getMissingSeriesPieces,
 } from '../controllers/inventoryController'
+import { analyzeImage } from '../controllers/geminiController'
 
 const router = Router()
+
+// POST /api/inventory/analyze-image - Analyze Hot Wheels image with AI
+router.post('/analyze-image', analyzeImage)
 
 // GET /api/inventory - Get all inventory items
 router.get('/', getInventoryItems)
