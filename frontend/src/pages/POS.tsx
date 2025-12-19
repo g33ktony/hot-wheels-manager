@@ -45,10 +45,11 @@ const POS: React.FC = () => {
       if (!response.ok) throw new Error('Error al cargar inventario');
 
       const data = await response.json();
-      setInventory(data.data || []);
+      setInventory(Array.isArray(data.data) ? data.data : []);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Error al cargar el inventario');
+      setInventory([]); // Asegurar que siempre sea un array
     } finally {
       setLoading(false);
     }
