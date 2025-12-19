@@ -57,21 +57,35 @@ const POS: React.FC = () => {
       if (!response.ok) throw new Error('Error al cargar inventario');
 
       const data = await response.json();
-      console.log('📦 Inventario recibido:', data.data?.length, 'items');
-      console.log('📦 Primer item completo:', JSON.stringify(data.data?.[0], null, 2));
-      console.log('🔍 carId es objeto?:', typeof data.data?.[0]?.carId === 'object');
-      console.log('🔍 carId tiene name?:', data.data?.[0]?.carId?.name);
+      console.log('📦 Respuesta completa del API:', JSON.stringify(data, null, 2));
+      console.log('📦 data.data:', data.data);
+      console.log('📦 data.data.items:', data.data?.items);
+      console.log('📦 Es array data.data?:', Array.isArray(data.data));
+      console.log('📦 Es array data.data.items?:', Array.isArray(data.data?.items));
+      
+      // Detectar estructura correcta
+      let items = [];
+      if (data.success && data.data) {
+        if (Array.isArray(data.data)) {
+          items = data.data;
+        } else if (data.data.items && Array.isArray(data.data.items)) {
+          items = data.data.items;
+        }
+      }
+      
+      console.log('📦 Items extraídos:', items.length);
+      console.log('📦 Primer item completo:', JSON.stringify(items[0], null, 2));
+      console.log('🔍 carId es objeto?:', typeof items[0]?.carId === 'object');
+      console.log('🔍 carId tiene name?:', items[0]?.carId?.name);
       
       // Filtrar items que tengan cantidad disponible (quantity - reservedQuantity > 0)
-      const availableItems = Array.isArray(data.data) 
-        ? data.data.filter((item: InventoryItem) => {
+      const availableItems = items.filter((item: InventoryItem) => {
             const quantity = item.quantity || 0;
             const reserved = item.reservedQuantity || 0;
             const available = quantity - reserved;
             console.log(`  - Item: qty=${quantity}, reserved=${reserved}, available=${available}, carId type:${typeof item.carId}`);
             return available > 0;
-          })
-        : [];
+          });
       
       console.log('✅ Items disponibles para POS:', availableItems.length);
       setInventory(availableItems);
