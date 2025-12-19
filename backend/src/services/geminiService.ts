@@ -38,7 +38,7 @@ export async function analyzeHotWheelsImage(
     }
 
     // Usar el modelo Gemini Flash (más rápido y económico)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
     const prompt = `Analiza esta imagen de un Hot Wheels o auto de colección y extrae la siguiente información:
 
