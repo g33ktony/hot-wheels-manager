@@ -284,35 +284,41 @@ export const createPOSSale = async (req: Request, res: Response) => {
         });
       }
 
-      // Verificar que está disponible
-      if (inventoryItem.status !== 'available') {
+      // Verificar que hay cantidad disponible
+      const availableQty = (inventoryItem.quantity || 0) - (inventoryItem.reservedQuantity || 0);
+      if (availableQty <= 0) {
         return res.status(400).json({
           success: false,
           data: null,
-          message: `El item ${inventoryItem.carName} no está disponible para venta`
+          message: `El item de inventario no tiene unidades disponibles para venta`
         });
       }
 
-      // Usar precio personalizado o el precio de venta del inventario
-      const finalPrice = customPrice !== undefined ? customPrice : inventoryItem.salePrice;
+      // Usar precio personalizado o el precio actual/sugerido del inventario
+      const itemPrice = inventoryItem.actualPrice || inventoryItem.suggestedPrice || 0;
+      const finalPrice = customPrice !== undefined ? customPrice : itemPrice;
+      
+      // Extraer carName del carId si está poblado
+      const carIdStr = typeof inventoryItem.carId === 'string' ? inventoryItem.carId : (inventoryItem.carId as any)?._id?.toString();
+      const carName = typeof inventoryItem.carId === 'object' ? (inventoryItem.carId as any)?.name : undefined;
       
       saleItems.push({
         inventoryItemId: inventoryItem._id,
-        carId: inventoryItem.carId,
-        carName: inventoryItem.carName,
+        carId: carIdStr || inventoryItem.carId,
+        carName: carName,
         quantity: 1,
         unitPrice: finalPrice,
-        originalPrice: inventoryItem.salePrice // Guardar el precio original
+        originalPrice: itemPrice // Guardar el precio original
       });
 
       totalAmount += finalPrice;
 
-      // Marcar el item como vendido
-      inventoryItem.status = 'sold';
-      inventoryItem.salePrice = finalPrice; // Actualizar con el precio final
+      // Reducir cantidad disponible
+      inventoryItem.quantity = (inventoryItem.quantity || 1) - 1;
+      inventoryItem.actualPrice = finalPrice; // Actualizar con el precio final de venta
       await inventoryItem.save();
 
-      console.log(`✅ Item ${inventoryItem.carName} marcado como vendido por $${finalPrice}`);
+      console.log(`✅ Item de inventario actualizado, vendido por $${finalPrice}`);
     }
 
     // Crear la venta
