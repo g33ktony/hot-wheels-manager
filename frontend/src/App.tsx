@@ -14,6 +14,7 @@ import Boxes from './pages/Boxes'
 import PendingItemsPage from './pages/PendingItemsPage'
 import PreSaleHub from './pages/PreSaleHub'
 import PreSaleEditPage from './pages/PreSaleEditPage'
+import POS from './pages/POS'
 
 // Test: Deployment optimization - only frontend changes
 function App() {
@@ -33,6 +34,7 @@ function App() {
                                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                     <Route path="/dashboard" element={<Dashboard />} />
                                     <Route path="/inventory" element={<Inventory />} />
+                                    <Route path="/pos" element={<POS />} />
                                     <Route path="/sales" element={<Sales />} />
                                     <Route path="/purchases" element={<Purchases />} />
                                     <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />

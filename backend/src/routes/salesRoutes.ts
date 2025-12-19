@@ -9,6 +9,9 @@ router.get('/', salesController.getSales)
 // POST /api/sales - Create a new sale
 router.post('/', salesController.createSale)
 
+// POST /api/sales/pos - Create a POS (Point of Sale) quick sale
+router.post('/pos', salesController.createPOSSale)
+
 // GET /api/sales/stats - Get sales statistics
 router.get('/stats', salesController.getSalesStats)
 

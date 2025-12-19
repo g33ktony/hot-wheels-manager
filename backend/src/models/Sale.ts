@@ -6,7 +6,8 @@ export interface SaleItem {
   carId: string
   carName: string
   quantity: number
-  unitPrice: number
+  unitPrice: number // Precio final de venta (puede ser modificado en POS)
+  originalPrice?: number // Precio original del inventario (para tracking)
 }
 
 export interface ISale extends Document {
@@ -19,6 +20,7 @@ export interface ISale extends Document {
   delivery?: any // Populated delivery data
   paymentMethod: 'cash' | 'transfer' | 'paypal' | 'mercadopago' | 'other'
   status: 'pending' | 'completed' | 'cancelled'
+  saleType: 'delivery' | 'pos' // delivery = venta con entrega, pos = venta en sitio
   notes: string
   createdAt: Date
   updatedAt: Date
@@ -51,6 +53,11 @@ const SaleItemSchema = new Schema<SaleItem>({
   unitPrice: {
     type: Number,
     required: true,
+    min: 0
+  },
+  originalPrice: {
+    type: Number,
+    required: false,
     min: 0
   }
 })
@@ -90,6 +97,12 @@ const SaleSchema = new Schema<ISale>({
     type: String,
     enum: ['pending', 'completed', 'cancelled'],
     default: 'pending'
+  },
+  saleType: {
+    type: String,
+    enum: ['delivery', 'pos'],
+    required: true,
+    default: 'delivery'
   },
   notes: {
     type: String,

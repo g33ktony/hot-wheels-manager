@@ -43,6 +43,7 @@ export default function Layout({ children }: LayoutProps) {
     const navigationItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Inventario', href: '/inventory', icon: Package },
+        { name: '🛒 POS', href: '/pos', icon: ShoppingCart },
         { name: 'Ventas', href: '/sales', icon: ShoppingCart },
         { name: 'Compras', href: '/purchases', icon: ShoppingBag },
         { name: 'Pre-Ventas', href: '/presale', icon: Package },

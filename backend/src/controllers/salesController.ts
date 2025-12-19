@@ -241,3 +241,106 @@ export const deleteSale = async (req: Request, res: Response) => {
     });
   }
 };
+
+// Create POS (Point of Sale) - Venta rápida en sitio
+export const createPOSSale = async (req: Request, res: Response) => {
+  try {
+    const { items, paymentMethod = 'cash', notes = '' } = req.body;
+
+    // Validar que hay items
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Debe incluir al menos un artículo'
+      });
+    }
+
+    console.log('🛒 POS Sale Request:', { items, paymentMethod, notes });
+
+    const saleItems = [];
+    let totalAmount = 0;
+
+    // Procesar cada item
+    for (const item of items) {
+      const { inventoryItemId, customPrice } = item;
+
+      if (!inventoryItemId) {
+        return res.status(400).json({
+          success: false,
+          data: null,
+          message: 'Cada item debe tener un inventoryItemId'
+        });
+      }
+
+      // Buscar el item en el inventario
+      const inventoryItem = await InventoryItemModel.findById(inventoryItemId);
+      
+      if (!inventoryItem) {
+        return res.status(404).json({
+          success: false,
+          data: null,
+          message: `Item de inventario ${inventoryItemId} no encontrado`
+        });
+      }
+
+      // Verificar que está disponible
+      if (inventoryItem.status !== 'available') {
+        return res.status(400).json({
+          success: false,
+          data: null,
+          message: `El item ${inventoryItem.carName} no está disponible para venta`
+        });
+      }
+
+      // Usar precio personalizado o el precio de venta del inventario
+      const finalPrice = customPrice !== undefined ? customPrice : inventoryItem.salePrice;
+      
+      saleItems.push({
+        inventoryItemId: inventoryItem._id,
+        carId: inventoryItem.carId,
+        carName: inventoryItem.carName,
+        quantity: 1,
+        unitPrice: finalPrice,
+        originalPrice: inventoryItem.salePrice // Guardar el precio original
+      });
+
+      totalAmount += finalPrice;
+
+      // Marcar el item como vendido
+      inventoryItem.status = 'sold';
+      inventoryItem.salePrice = finalPrice; // Actualizar con el precio final
+      await inventoryItem.save();
+
+      console.log(`✅ Item ${inventoryItem.carName} marcado como vendido por $${finalPrice}`);
+    }
+
+    // Crear la venta
+    const sale = new SaleModel({
+      items: saleItems,
+      totalAmount,
+      saleDate: new Date(),
+      paymentMethod,
+      status: 'completed', // Ventas POS siempre son completadas inmediatamente
+      saleType: 'pos',
+      notes: notes || 'Venta en sitio (POS)'
+    });
+
+    await sale.save();
+
+    console.log('✅ POS Sale created:', sale._id);
+
+    res.status(201).json({
+      success: true,
+      data: sale,
+      message: `Venta completada exitosamente. Total: $${totalAmount.toFixed(2)}`
+    });
+  } catch (error) {
+    console.error('❌ Error creating POS sale:', error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al crear la venta POS'
+    });
+  }
+};
