@@ -37,8 +37,8 @@ export async function analyzeHotWheelsImage(
       throw new Error('GEMINI_API_KEY no está configurado');
     }
 
-    // Usar Gemini 2.0 Flash experimental - compatible con API v1beta
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    // Usar Gemini 1.5 Pro - disponible en free tier v1beta
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
     const prompt = `Analiza esta imagen de un Hot Wheels o auto de colección y extrae la siguiente información:
 
