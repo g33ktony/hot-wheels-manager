@@ -298,13 +298,25 @@ export const createPOSSale = async (req: Request, res: Response) => {
       const itemPrice = inventoryItem.actualPrice || inventoryItem.suggestedPrice || 0;
       const finalPrice = customPrice !== undefined ? customPrice : itemPrice;
       
-      // Extraer carName del carId si está poblado
-      const carIdStr = typeof inventoryItem.carId === 'string' ? inventoryItem.carId : (inventoryItem.carId as any)?._id?.toString();
-      const carName = typeof inventoryItem.carId === 'object' ? (inventoryItem.carId as any)?.name : undefined;
+      // Extraer carId y carName correctamente
+      let carIdStr: string;
+      let carName: string;
+      
+      if (typeof inventoryItem.carId === 'object' && inventoryItem.carId !== null) {
+        // carId está poblado
+        carIdStr = (inventoryItem.carId as any)._id?.toString() || '';
+        carName = (inventoryItem.carId as any).name || carIdStr;
+      } else {
+        // carId es string
+        carIdStr = inventoryItem.carId?.toString() || '';
+        carName = carIdStr; // Usar el ID como nombre si no hay populate
+      }
+      
+      console.log(`📦 Item: carIdStr=${carIdStr}, carName=${carName}, price=${finalPrice}`);
       
       saleItems.push({
         inventoryItemId: inventoryItem._id,
-        carId: carIdStr || inventoryItem.carId,
+        carId: carIdStr,
         carName: carName,
         quantity: 1,
         unitPrice: finalPrice,
