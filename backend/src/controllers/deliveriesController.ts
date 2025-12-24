@@ -240,7 +240,8 @@ export const createDelivery = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Error al crear la entrega'
+      message: 'Error al crear la entrega',
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
