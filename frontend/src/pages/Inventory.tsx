@@ -80,6 +80,7 @@ export default function Inventory() {
         quantity: 1,
         purchasePrice: 0,
         suggestedPrice: 0,
+        actualPrice: undefined as number | undefined,
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         notes: '',
         photos: [] as string[],
@@ -340,6 +341,7 @@ export default function Inventory() {
                         quantity: car.quantity,
                         purchasePrice: pricePerPiece,
                         suggestedPrice: suggestedPricePerPiece,
+                        actualPrice: newItem.actualPrice,
                         condition: newItem.condition,
                         notes: newItem.notes,
                         photos: newItem.photos,
@@ -372,6 +374,7 @@ export default function Inventory() {
                     quantity: newItem.quantity,
                     purchasePrice: finalPurchasePrice,
                     suggestedPrice: finalSuggestedPrice,
+                    actualPrice: newItem.actualPrice,
                     condition: newItem.condition,
                     notes: newItem.notes,
                     photos: newItem.photos,
@@ -405,6 +408,7 @@ export default function Inventory() {
             quantity: 1,
             purchasePrice: 0,
             suggestedPrice: 0,
+            actualPrice: undefined,
             condition: 'mint',
             notes: '',
             photos: [],
@@ -440,14 +444,21 @@ export default function Inventory() {
             quantity: item.quantity || 1,
             purchasePrice: item.purchasePrice || 0,
             suggestedPrice: item.suggestedPrice || 0,
+            actualPrice: item.actualPrice,
             condition: item.condition || 'mint',
             notes: item.notes || '',
             photos: item.photos || [],
+            location: item.location || '',
+            brand: item.brand || '',
+            pieceType: item.pieceType || '',
+            isTreasureHunt: item.isTreasureHunt || false,
+            isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+            isChase: item.isChase || false,
             seriesId: item.seriesId || '',
             seriesName: item.seriesName || '',
-            seriesSize: item.seriesSize || 5,
-            seriesPosition: item.seriesPosition || 1,
-            seriesPrice: item.seriesPrice || 0,
+            seriesSize: item.seriesSize,
+            seriesPosition: item.seriesPosition,
+            seriesPrice: item.seriesPrice,
             seriesDefaultPrice: item.seriesDefaultPrice || 0
         })
         setShowEditModal(true)
@@ -464,14 +475,22 @@ export default function Inventory() {
                     quantity: editingItem.quantity,
                     purchasePrice: editingItem.purchasePrice,
                     suggestedPrice: editingItem.suggestedPrice,
+                    actualPrice: editingItem.actualPrice,
                     condition: editingItem.condition,
                     notes: editingItem.notes,
                     photos: editingItem.photos || [],
+                    location: editingItem.location,
                     brand: editingItem.brand,
                     pieceType: editingItem.pieceType || undefined,
                     isTreasureHunt: editingItem.isTreasureHunt,
                     isSuperTreasureHunt: editingItem.isSuperTreasureHunt,
-                    isChase: editingItem.isChase
+                    isChase: editingItem.isChase,
+                    // Series fields
+                    seriesId: editingItem.seriesId,
+                    seriesName: editingItem.seriesName,
+                    seriesSize: editingItem.seriesSize,
+                    seriesPosition: editingItem.seriesPosition,
+                    seriesPrice: editingItem.seriesPrice
                 }
             })
 
@@ -569,6 +588,7 @@ export default function Inventory() {
             quantity: item.quantity,
             purchasePrice: item.purchasePrice,
             suggestedPrice: item.suggestedPrice,
+            actualPrice: item.actualPrice,
             condition: item.condition,
             notes: item.notes || '',
             photos: item.photos || [],
@@ -1733,6 +1753,26 @@ export default function Inventory() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Precio Actual (Opcional)
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={newItem.actualPrice === undefined ? '' : newItem.actualPrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    const numValue = value === '' ? undefined : parseFloat(value)
+                                    setNewItem({ ...newItem, actualPrice: numValue === undefined || isNaN(numValue) ? undefined : numValue })
+                                }}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Precio al que se vende actualmente (diferente al sugerido)
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Condición (afecta margen sugerido)
                             </label>
                             <select
@@ -1745,6 +1785,23 @@ export default function Inventory() {
                                 <option value="fair">Regular (+30% ganancia)</option>
                                 <option value="poor">Malo (+20% ganancia)</option>
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                <MapPin size={14} />
+                                Ubicación Física (Opcional)
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="ej: Caja A, Estante 3, Vitrina 2"
+                                value={newItem.location}
+                                onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                Dónde guardas físicamente esta pieza
+                            </p>
                         </div>
 
                         {/* Brand Selection */}
@@ -2171,6 +2228,23 @@ export default function Inventory() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Precio Actual (Opcional)
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={editingItem.actualPrice === 0 || editingItem.actualPrice === undefined ? '' : editingItem.actualPrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    const numValue = value === '' ? undefined : parseFloat(value)
+                                    setEditingItem({ ...editingItem, actualPrice: numValue === undefined || isNaN(numValue) ? undefined : numValue })
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Condición
                             </label>
                             <select
@@ -2183,6 +2257,19 @@ export default function Inventory() {
                                 <option value="fair">Regular</option>
                                 <option value="poor">Malo</option>
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Ubicación Física (Opcional)
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="ej: Caja A, Estante 3"
+                                value={editingItem.location || ''}
+                                onChange={(e) => setEditingItem({ ...editingItem, location: e.target.value })}
+                            />
                         </div>
 
                         {/* Brand Selection - Edit Mode */}
@@ -2277,6 +2364,100 @@ export default function Inventory() {
                                 </label>
                             </div>
                         ) : null}
+
+                        {/* Series Information Section */}
+                        <div className="pt-4 border-t border-gray-200">
+                            <h3 className="text-sm font-semibold text-gray-900 mb-3">Información de Serie (Opcional)</h3>
+                            
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            ID de Serie
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="input w-full text-sm"
+                                            placeholder="ej: MARVEL-2024-001"
+                                            value={editingItem.seriesId || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, seriesId: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Nombre de Serie
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="input w-full text-sm"
+                                            placeholder="ej: Marvel Series 2024"
+                                            value={editingItem.seriesName || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, seriesName: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Tamaño Serie
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            className="input w-full text-sm"
+                                            placeholder="5"
+                                            value={editingItem.seriesSize || ''}
+                                            onChange={(e) => {
+                                                const value = parseInt(e.target.value) || undefined
+                                                setEditingItem({ ...editingItem, seriesSize: value })
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Posición
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            className="input w-full text-sm"
+                                            placeholder="1"
+                                            value={editingItem.seriesPosition || ''}
+                                            onChange={(e) => {
+                                                const value = parseInt(e.target.value) || undefined
+                                                setEditingItem({ ...editingItem, seriesPosition: value })
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Precio Serie
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="input w-full text-sm"
+                                            placeholder="0.00"
+                                            value={editingItem.seriesPrice || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/[^0-9.]/g, '')
+                                                const numValue = value === '' ? undefined : parseFloat(value)
+                                                setEditingItem({ ...editingItem, seriesPrice: numValue })
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {editingItem.seriesId && (
+                                    <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                                        💡 Los items con el mismo ID de serie se pueden vender como set completo
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">

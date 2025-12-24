@@ -294,6 +294,7 @@ export interface CreateInventoryItemDto {
   quantity: number;
   purchasePrice: number;
   suggestedPrice: number;
+  actualPrice?: number;
   condition: 'mint' | 'good' | 'fair' | 'poor';
   photos: string[];
   location?: string;
