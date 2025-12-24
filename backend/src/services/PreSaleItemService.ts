@@ -90,7 +90,7 @@ class PreSaleItemService {
         basePricePerUnit: unitPrice,
         markupPercentage: calculatedMarkup,
         finalPricePerUnit: calculatedFinalPrice,
-        status: 'active',
+        status: 'purchased',
         startDate: new Date(),
         purchaseIds: [purchaseId],
         units: [], // Empty until first assignment
@@ -381,7 +381,9 @@ class PreSaleItemService {
     totalPotentialProfit: number
     averageMarkupPercentage: number
   }> {
-    const activeItems = await PreSaleItem.find({ status: 'active' })
+    const activeItems = await PreSaleItem.find({ 
+      status: { $in: ['purchased', 'received', 'ready', 'reserved', 'payment-plan', 'payment-pending'] }
+    })
 
     let totalQuantityAvailable = 0
     let totalQuantityAssigned = 0
