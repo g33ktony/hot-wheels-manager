@@ -1544,10 +1544,6 @@ export default function Deliveries() {
                                                 className="input w-full"
                                             />
                                         </div>
-                                                })}
-                                                className="input w-full"
-                                            />
-                                        </div>
                                     </div>
 
                                     {/* Payment Summary */}

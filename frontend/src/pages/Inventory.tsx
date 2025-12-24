@@ -1691,8 +1691,6 @@ export default function Inventory() {
                                             setNewItem({ ...newItem, quantity: 1 })
                                         }
                                     }}
-                                        }
-                                    }}
                                 />
                                 {newItem.isBox && (
                                     <p className="text-xs text-gray-500 mt-1">
@@ -1700,7 +1698,8 @@ export default function Inventory() {
                                     </p>
                                 )}
                             </div>
-                        )}                            <div>
+                        )}
+                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {newItem.isMultipleCars || newItem.isBox ? 'Precio Total de la Caja/Serie' : 'Precio de Compra'}
                             </label>
