@@ -43,6 +43,15 @@ export const createPaymentPlan = async (req: Request, res: Response) => {
       earlyPaymentBonus
     } = req.body
 
+    console.log('📋 CREATE PAYMENT PLAN REQUEST:', {
+      deliveryId,
+      customerId,
+      totalAmount,
+      numberOfPayments,
+      paymentFrequency,
+      startDate
+    });
+
     // Validate required fields
     if (!deliveryId || !totalAmount || !numberOfPayments || !paymentFrequency || !startDate) {
       return res.status(400).json({ 
@@ -70,10 +79,19 @@ export const createPaymentPlan = async (req: Request, res: Response) => {
       status: 'pending'
     })
 
+    console.log('✅ PAYMENT PLAN CREATED:', {
+      _id: plan._id,
+      deliveryId: plan.deliveryId,
+      totalAmount: plan.totalAmount
+    });
+
     res.status(201).json(plan)
   } catch (error) {
-    console.error('Error creating payment plan:', error)
-    res.status(500).json({ message: 'Error creating payment plan' })
+    console.error('❌ Error creating payment plan:', error)
+    res.status(500).json({ 
+      message: 'Error creating payment plan',
+      error: error instanceof Error ? error.message : String(error)
+    })
   }
 }
 

@@ -144,14 +144,21 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
             if (enablePaymentPlan && numberOfPayments > 1 && finalDeliveryId) {
                 const startDate = new Date()
                 
-                await createPaymentPlan.mutateAsync({
-                    deliveryId: finalDeliveryId,
-                    customerId: createNewDelivery ? selectedCustomerId : selectedDelivery?.customerId,
-                    totalAmount,
-                    numberOfPayments,
-                    paymentFrequency,
-                    startDate,
-                })
+                try {
+                  await createPaymentPlan.mutateAsync({
+                      deliveryId: finalDeliveryId,
+                      customerId: createNewDelivery ? selectedCustomerId : selectedDelivery?.customerId,
+                      totalAmount,
+                      numberOfPayments,
+                      paymentFrequency,
+                      startDate,
+                  })
+                  console.log('✅ Payment plan created successfully')
+                } catch (paymentError) {
+                  console.error('❌ Error creating payment plan:', paymentError)
+                  // Don't fail the entire operation, just notify the user
+                  alert('⚠️ La pre-venta fue asignada pero hubo un error al crear el plan de pagos. Puedes crearlo manualmente desde la sección de Pagos.')
+                }
             }
 
             onClose()
