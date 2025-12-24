@@ -127,6 +127,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
           monthlySales: 0,
           totalRevenue: 0,
           monthlyRevenue: 0,
+          dailyRevenue: 0,
           recentActivity: [
             {
               id: 'activity1',
@@ -180,6 +181,42 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       { $match: { saleDate: { $gte: currentMonth } } },
       { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
+
+    // Calculate daily revenue from all sources
+    console.log('💸 Calculating daily revenue...');
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    // Daily revenue from completed sales (POS)
+    const dailySalesRevenue = await SaleModel.aggregate([
+      { 
+        $match: { 
+          saleDate: { $gte: startOfToday, $lte: endOfToday },
+          status: 'completed'
+        } 
+      },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+    ]);
+
+    // Daily revenue from delivery payments made today
+    const dailyDeliveryPayments = await DeliveryModel.aggregate([
+      {
+        $match: {
+          'paymentHistory.date': { $gte: startOfToday, $lte: endOfToday }
+        }
+      },
+      { $unwind: '$paymentHistory' },
+      {
+        $match: {
+          'paymentHistory.date': { $gte: startOfToday, $lte: endOfToday }
+        }
+      },
+      { $group: { _id: null, total: { $sum: '$paymentHistory.amount' } } }
+    ]);
+
+    const dailyRevenue = (dailySalesRevenue[0]?.total || 0) + (dailyDeliveryPayments[0]?.total || 0);
 
     // Calculate REAL profit by looking up purchase prices from inventory
     console.log('💵 Calculating profits...');
@@ -261,6 +298,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       monthlySales,
       totalRevenue: totalRevenue[0]?.total || 0,
       monthlyRevenue: monthlyRevenue[0]?.total || 0,
+      dailyRevenue,
       todaysDeliveries: todaysDeliveries.map(delivery => ({
         id: delivery._id,
         customerName: (delivery.customerId as any)?.name || 'Cliente desconocido',

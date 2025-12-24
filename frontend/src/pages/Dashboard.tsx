@@ -5,7 +5,7 @@ import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
-import { Package, ShoppingCart, Truck, TrendingUp, AlertTriangle, Calendar, Clock, MapPin, AlertCircle } from 'lucide-react'
+import { Package, ShoppingCart, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
@@ -98,15 +98,19 @@ export default function Dashboard() {
             icon: TrendingUp,
             color: 'text-green-600',
             bgColor: 'bg-green-100',
-        },
-        {
-            title: 'Ganancia Total',
-            value: `$${metrics.totalProfit.toLocaleString()}`,
-            icon: TrendingUp,
-            color: 'text-indigo-600',
-            bgColor: 'bg-indigo-100',
-        },
+        }
     ]
+
+    // Add daily revenue card only if there are sales today
+    if (metrics.dailyRevenue > 0) {
+        metricCards.splice(2, 0, {
+            title: 'Ventas del Día',
+            value: `$${metrics.dailyRevenue.toLocaleString()}`,
+            icon: DollarSign,
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-100',
+        })
+    }
 
     return (
         <div className="space-y-4 lg:space-y-6">
@@ -156,7 +160,7 @@ export default function Dashboard() {
                                             case 'inventory':
                                                 return '/inventory'
                                             case 'sale':
-                                                return '/pos'
+                                                return '/sales'
                                             default:
                                                 return null
                                         }

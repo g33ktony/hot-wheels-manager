@@ -401,6 +401,7 @@ export interface DashboardMetrics {
   monthlySales: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  dailyRevenue: number;
   recentActivity: RecentActivity[];
   todaysDeliveries: TodaysDelivery[];
 }
