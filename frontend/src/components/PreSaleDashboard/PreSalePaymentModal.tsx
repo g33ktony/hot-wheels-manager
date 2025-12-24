@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { X, CheckCircle, AlertCircle, Calendar } from 'lucide-react'
 import { useCreatePreSalePayment, useRecordPreSalePayment } from '@/hooks/usePresale'
 import { presaleService } from '@/services/presale'
+import { useDeliveries } from '@/hooks/useDeliveries'
+import { usePaymentPlans } from '@/hooks/usePaymentPlans'
 
 interface PreSalePaymentModalProps {
     isOpen: boolean
@@ -18,9 +20,20 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
 }) => {
     const [activeTab, setActiveTab] = useState<'create' | 'record' | 'view'>('view')
     const [selectedDelivery, setSelectedDelivery] = useState<string>('')
-    const [deliveries, setDeliveries] = useState<any[]>([])
     const [paymentPlanId, setPaymentPlanId] = useState<string>('')
     const [existingPlan, setExistingPlan] = useState<any>(null)
+
+    // Fetch real deliveries and payment plans
+    const { data: allDeliveries = [] } = useDeliveries()
+    const { data: paymentPlans = [] } = usePaymentPlans()
+
+    // Filter to show only deliveries that:
+    // 1. Are marked with forPreSale flag, OR
+    // 2. Don't have a payment plan yet (available for new plan creation)
+    const deliveries = allDeliveries.filter((delivery: any) => {
+        const hasPaymentPlan = paymentPlans.some((plan: any) => plan.deliveryId === delivery._id)
+        return !hasPaymentPlan || delivery.forPreSale
+    })
 
     // Form state for creating payment plan
     const [numberOfPayments, setNumberOfPayments] = useState('4')
@@ -35,25 +48,6 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
 
     const createPayment = useCreatePreSalePayment()
     const recordPayment = useRecordPreSalePayment()
-
-    // Fetch deliveries on mount
-    useEffect(() => {
-        const fetchDeliveries = async () => {
-            try {
-                // TODO: Get deliveries from API - for now, mock this
-                setDeliveries([
-                    { _id: 'deliv1', customer: 'Customer A', date: '2024-01-15' },
-                    { _id: 'deliv2', customer: 'Customer B', date: '2024-01-20' },
-                ])
-            } catch (error) {
-                console.error('Error fetching deliveries:', error)
-            }
-        }
-
-        if (isOpen) {
-            fetchDeliveries()
-        }
-    }, [isOpen])
 
     // Fetch existing payment plan when delivery is selected
     useEffect(() => {
@@ -152,11 +146,15 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="">-- Selecciona una entrega --</option>
-                            {deliveries.map((d) => (
-                                <option key={d._id} value={d._id}>
-                                    {d.customer} - {d.date}
-                                </option>
-                            ))}
+                            {deliveries.map((d: any) => {
+                                const customerName = typeof d.customerId === 'object' ? d.customerId?.name : d.customer?.name || 'Sin nombre'
+                                const deliveryDate = d.scheduledDate ? new Date(d.scheduledDate).toLocaleDateString() : 'Sin fecha'
+                                return (
+                                    <option key={d._id} value={d._id}>
+                                        {customerName} - {deliveryDate}
+                                    </option>
+                                )
+                            })}
                         </select>
                     </div>
 
