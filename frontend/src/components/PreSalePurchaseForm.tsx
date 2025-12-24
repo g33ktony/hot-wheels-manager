@@ -363,7 +363,7 @@ export default function PreSalePurchaseForm({
                                             setFormData({ 
                                                 ...formData, 
                                                 normalPrice: customNormalPrice,
-                                                markupPercentage: Math.max(0, calculatedMarkup) // Ensure non-negative
+                                                markupPercentage: Math.max(0, parseFloat(calculatedMarkup.toFixed(2))) // Round to 2 decimals
                                             })
                                         } else {
                                             setFormData({ ...formData, normalPrice: customNormalPrice })
