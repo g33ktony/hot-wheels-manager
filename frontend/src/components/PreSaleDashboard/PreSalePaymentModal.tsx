@@ -36,10 +36,10 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
     })
 
     // Form state for creating payment plan
+    const [editableTotalAmount, setEditableTotalAmount] = useState(totalAmount)
     const [numberOfPayments, setNumberOfPayments] = useState('4')
     const [paymentFrequency, setPaymentFrequency] = useState<'weekly' | 'biweekly' | 'monthly'>('weekly')
     const [startDate, setStartDate] = useState('')
-    const [earlyBonus, setEarlyBonus] = useState('')
 
     // Form state for recording payment
     const [paymentAmount, setPaymentAmount] = useState('')
@@ -48,6 +48,11 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
 
     const createPayment = useCreatePreSalePayment()
     const recordPayment = useRecordPreSalePayment()
+
+    // Update editable total when prop changes
+    useEffect(() => {
+        setEditableTotalAmount(totalAmount)
+    }, [totalAmount])
 
     // Fetch existing payment plan when delivery is selected
     useEffect(() => {
@@ -76,17 +81,16 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
         try {
             await createPayment.mutateAsync({
                 deliveryId: selectedDelivery,
-                totalAmount,
+                totalAmount: editableTotalAmount,
                 numberOfPayments: parseInt(numberOfPayments),
                 paymentFrequency,
                 startDate: startDate ? new Date(startDate) : undefined,
-                earlyPaymentBonus: earlyBonus ? parseFloat(earlyBonus) : undefined,
             })
             // Reset form
+            setEditableTotalAmount(totalAmount)
             setNumberOfPayments('4')
             setPaymentFrequency('weekly')
             setStartDate('')
-            setEarlyBonus('')
             // Refresh payment plan view
             setActiveTab('view')
         } catch (error) {
@@ -303,9 +307,12 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                         </label>
                                         <input
                                             type="number"
-                                            value={totalAmount}
-                                            disabled
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
+                                            step="0.01"
+                                            min="0"
+                                            value={editableTotalAmount}
+                                            onChange={(e) => setEditableTotalAmount(parseFloat(e.target.value) || 0)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required
                                         />
                                     </div>
 
@@ -328,7 +335,7 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                             </label>
                                             <input
                                                 type="number"
-                                                value={numberOfPayments ? (totalAmount / parseInt(numberOfPayments)).toFixed(2) : '0.00'}
+                                                value={numberOfPayments ? (editableTotalAmount / parseInt(numberOfPayments)).toFixed(2) : '0.00'}
                                                 disabled
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
                                             />
@@ -350,33 +357,16 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                         </select>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Fecha de Inicio
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={startDate}
-                                                onChange={(e) => setStartDate(e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Bono por Pago Anticipado (%)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                step="0.5"
-                                                value={earlyBonus}
-                                                onChange={(e) => setEarlyBonus(e.target.value)}
-                                                placeholder="Ej: 5"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Fecha de Inicio
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(e) => setStartDate(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        />
                                     </div>
 
                                     <div className="flex gap-3 pt-4">
@@ -384,10 +374,10 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                             type="button"
                                             onClick={() => {
                                                 setActiveTab('view')
+                                                setEditableTotalAmount(totalAmount)
                                                 setNumberOfPayments('4')
                                                 setPaymentFrequency('weekly')
                                                 setStartDate('')
-                                                setEarlyBonus('')
                                             }}
                                             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                                         >
