@@ -333,6 +333,7 @@ export interface CreateDeliveryDto {
   location: string;
   totalAmount: number;
   notes?: string;
+  forPreSale?: boolean; // Flag to indicate this delivery is for PreSale items (allows empty items array)
 }
 
 export interface UpdateDeliveryDto {
