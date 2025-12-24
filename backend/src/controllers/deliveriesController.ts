@@ -216,16 +216,21 @@ export const createDelivery = async (req: Request, res: Response) => {
       }
     }
 
+    const resolvedLocation = location || 'Por definir';
+    const resolvedTotalAmount = totalAmount ?? 0;
+    const hasPresaleItems = !!forPreSale || (items && items.some((item: any) => item.inventoryItemId?.startsWith('presale_')));
+
     const delivery = new DeliveryModel({
       customerId,
       customer,
       items,
       scheduledDate: scheduledDate || new Date(),
       scheduledTime,
-      location,
-      totalAmount,
+      location: resolvedLocation,
+      totalAmount: resolvedTotalAmount,
       status: 'scheduled', // Changed from 'pending' to 'scheduled'
-      notes
+      notes,
+      hasPresaleItems
     });
 
     await delivery.save();

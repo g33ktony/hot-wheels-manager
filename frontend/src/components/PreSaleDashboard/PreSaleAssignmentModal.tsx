@@ -124,7 +124,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                 const newDelivery = await createDelivery.mutateAsync({
                     customerId: selectedCustomerId,
                     scheduledDate: new Date(deliveryDate),
-                    location: '', // Can be added later
+                    location: 'Por definir', // Placeholder; can be edited later
                     items: [],
                     totalAmount: 0, // Will be updated when units are assigned
                     forPreSale: true // Flag to indicate this is for PreSale items
