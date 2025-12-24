@@ -356,7 +356,18 @@ export default function PreSalePurchaseForm({
                                     value={formData.normalPrice || calculatedNormalPrice}
                                     onChange={(e) => {
                                         const customNormalPrice = parseFloat(e.target.value) || 0
-                                        setFormData({ ...formData, normalPrice: customNormalPrice })
+                                        
+                                        // Calculate the markup percentage based on the new normal price
+                                        if (customNormalPrice > 0 && formData.unitPrice > 0) {
+                                            const calculatedMarkup = ((customNormalPrice / formData.unitPrice) - 1) * 100
+                                            setFormData({ 
+                                                ...formData, 
+                                                normalPrice: customNormalPrice,
+                                                markupPercentage: Math.max(0, calculatedMarkup) // Ensure non-negative
+                                            })
+                                        } else {
+                                            setFormData({ ...formData, normalPrice: customNormalPrice })
+                                        }
                                     }}
                                     min="0"
                                     step="0.01"
@@ -364,10 +375,10 @@ export default function PreSalePurchaseForm({
                                     className="mb-2 font-bold text-lg"
                                 />
                                 <p className="text-xs text-green-700 mt-1">
-                                    Auto-calculated: ${calculatedNormalPrice.toFixed(2)} (Base ${formData.unitPrice.toFixed(2)} + {formData.markupPercentage}% markup)
+                                    Auto-calculated: ${calculatedNormalPrice.toFixed(2)} (Base ${formData.unitPrice.toFixed(2)} + {formData.markupPercentage.toFixed(1)}% markup)
                                 </p>
                                 <p className="text-xs text-gray-600 mt-1">
-                                    You can edit this if the calculated value doesn't match your exact target price
+                                    Al editar este precio, el markup se ajustará automáticamente
                                 </p>
                             </div>
 
