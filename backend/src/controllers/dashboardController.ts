@@ -68,13 +68,17 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
   const recentSales = await SaleModel.find()
     .sort({ saleDate: -1 })
     .limit(3)
-    .select('totalAmount saleDate items');
+    .select('totalAmount saleDate items deliveryId');
 
   recentSales.forEach(sale => {
+    const description = sale.deliveryId 
+      ? `Venta completada (${sale.items?.length || 0} items)`
+      : `Venta directa de ${sale.items?.length || 0} items`;
+    
     recentActivity.push({
       id: `sale-${sale._id}`,
       type: 'sale',
-      description: `Venta realizada de ${sale.items?.length || 0} items`,
+      description,
       date: sale.saleDate,
       amount: sale.totalAmount,
       resourceId: sale._id?.toString()
