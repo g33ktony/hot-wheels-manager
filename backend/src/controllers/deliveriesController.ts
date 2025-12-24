@@ -129,7 +129,7 @@ export const getDeliveryById = async (req: Request, res: Response) => {
 // Create a new delivery
 export const createDelivery = async (req: Request, res: Response) => {
   try {
-    const { customerId, items, scheduledDate, scheduledTime, location, notes, forPreSale } = req.body;
+    const { customerId, items, scheduledDate, scheduledTime, location, notes, forPreSale, totalAmount: requestTotalAmount } = req.body;
 
     // Validate required fields
     // Allow empty items array if creating for PreSale (items will be added during assignment)
@@ -160,8 +160,10 @@ export const createDelivery = async (req: Request, res: Response) => {
     }
 
         // Validate items and calculate total
-    let totalAmount = 0;
+    let totalAmount = requestTotalAmount ?? 0;
     if (items && items.length > 0) {
+      // Calculate from items if they exist (overrides requestTotalAmount)
+      totalAmount = 0;
       for (const item of items) {
         let itemExists = false;
         
