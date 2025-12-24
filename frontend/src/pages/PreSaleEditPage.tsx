@@ -1,18 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { usePreSaleItem } from '@/hooks/usePresale'
-import { useUpdatePreSaleFinalPrice, useUpdatePreSalePhoto } from '@/hooks/usePresale'
+import { usePreSaleItem, useUpdatePreSaleItem } from '@/hooks/usePresale'
+import { useUpdatePreSalePhoto } from '@/hooks/usePresale'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
-import { DollarSign, Calendar, ArrowLeft, Upload, X } from 'lucide-react'
+import { DollarSign, Calendar, ArrowLeft, Upload, X, Package } from 'lucide-react'
 import LoadingSpinner from '@/components/common/Loading'
 
 interface PreSaleEditItem {
     _id: string
     carId: string
     carModel?: string
+    totalQuantity: number
     basePricePerUnit: number
     markupPercentage: number
     finalPricePerUnit: number
+    preSalePrice?: number
+    normalPrice?: number
     condition?: string
     notes?: string
     startDate: string
@@ -23,12 +26,17 @@ export default function PreSaleEditPage() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
     const { data: item, isLoading, error } = usePreSaleItem(id || '')
-    const updateFinalPrice = useUpdatePreSaleFinalPrice()
+    const updatePreSaleItem = useUpdatePreSaleItem()
     const updatePhoto = useUpdatePreSalePhoto()
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [formData, setFormData] = useState<Partial<PreSaleEditItem>>({
+        totalQuantity: 1,
+        basePricePerUnit: 0,
+        markupPercentage: 15,
         finalPricePerUnit: 0,
+        preSalePrice: 0,
+        normalPrice: 0,
         condition: 'mint',
         notes: '',
         endDate: '',
@@ -50,9 +58,12 @@ export default function PreSaleEditPage() {
                 _id: item._id,
                 carId: item.carId,
                 carModel: (item as any).carModel,
+                totalQuantity: item.totalQuantity,
                 basePricePerUnit: item.basePricePerUnit,
                 markupPercentage: item.markupPercentage,
                 finalPricePerUnit: item.finalPricePerUnit,
+                preSalePrice: (item as any).preSalePrice || 0,
+                normalPrice: (item as any).normalPrice || 0,
                 condition: (item as any).condition || 'mint',
                 notes: (item as any).notes || '',
                 startDate: formatDate(item.startDate),
@@ -102,16 +113,25 @@ export default function PreSaleEditPage() {
     }
 
     const handleSave = async () => {
-        if (!formData._id || !formData.finalPricePerUnit) {
+        if (!formData._id) {
             return
         }
 
         setIsSaving(true)
         try {
-            // Save final price
-            await updateFinalPrice.mutateAsync({
+            // Save all changes
+            await updatePreSaleItem.mutateAsync({
                 id: formData._id,
-                finalPrice: formData.finalPricePerUnit
+                data: {
+                    totalQuantity: formData.totalQuantity,
+                    basePricePerUnit: formData.basePricePerUnit,
+                    markupPercentage: formData.markupPercentage,
+                    preSalePrice: formData.preSalePrice && formData.preSalePrice > 0 ? formData.preSalePrice : undefined,
+                    normalPrice: formData.normalPrice && formData.normalPrice > 0 ? formData.normalPrice : undefined,
+                    condition: formData.condition,
+                    notes: formData.notes,
+                    endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+                }
             })
 
             // Save photo if changed
@@ -170,9 +190,6 @@ export default function PreSaleEditPage() {
             </div>
         )
     }
-
-    const calculatedFinalPrice = formData.basePricePerUnit! * (1 + (formData.markupPercentage || 0) / 100)
-    const showCustomPrice = formData.finalPricePerUnit !== calculatedFinalPrice
 
     return (
         <div className="max-w-2xl mx-auto">
@@ -253,9 +270,9 @@ export default function PreSaleEditPage() {
                             />
                         </div>
 
-                        {/* Base Information - Read Only */}
+                        {/* Base Information */}
                         <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                            <h3 className="font-semibold text-gray-900">Item Information</h3>
+                            <h3 className="font-semibold text-gray-900">Información del Item</h3>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -263,7 +280,23 @@ export default function PreSaleEditPage() {
                                     <p className="text-lg font-semibold text-gray-900">{formData.carId}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                                        <Package className="w-4 h-4" />
+                                        Cantidad Total
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={formData.totalQuantity || 0}
+                                        onChange={(e) => setFormData({ ...formData, totalQuantity: parseInt(e.target.value) || 0 })}
+                                        min="1"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Condición</label>
                                     <select
                                         value={formData.condition || 'mint'}
                                         onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
@@ -278,13 +311,13 @@ export default function PreSaleEditPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
                                 <textarea
                                     value={formData.notes || ''}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                     rows={3}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Add notes about this presale item..."
+                                    placeholder="Agrega notas sobre este item de pre-venta..."
                                 />
                             </div>
                         </div>
@@ -293,64 +326,86 @@ export default function PreSaleEditPage() {
                         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg space-y-4">
                             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                                 <DollarSign className="w-5 h-5" />
-                                Pricing Information
+                                Información de Precios
                             </h3>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Base Price / Unit</label>
-                                    <p className="text-lg font-bold text-gray-900">${formData.basePricePerUnit?.toFixed(2)}</p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Markup %</label>
-                                    <p className="text-lg font-bold text-blue-600">{formData.markupPercentage?.toFixed(1)}%</p>
-                                </div>
-                            </div>
-
-                            {/* Final Price - Editable */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Final Sell Price / Unit {showCustomPrice && <span className="text-green-600 font-bold">(custom)</span>}
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <div className="relative flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Precio Base / Unidad</label>
+                                    <div className="relative">
                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
                                         <input
                                             type="number"
-                                            value={formData.finalPricePerUnit || 0}
-                                            onChange={(e) => setFormData({ ...formData, finalPricePerUnit: parseFloat(e.target.value) || 0 })}
+                                            value={formData.basePricePerUnit || 0}
+                                            onChange={(e) => {
+                                                const basePrice = parseFloat(e.target.value) || 0
+                                                setFormData({ ...formData, basePricePerUnit: basePrice })
+                                            }}
                                             step="0.01"
-                                            min={formData.basePricePerUnit || 0}
+                                            min="0"
                                             className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
-                                    {showCustomPrice && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, finalPricePerUnit: calculatedFinalPrice })}
-                                            className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition text-sm font-medium"
-                                        >
-                                            Reset to Calculated
-                                        </button>
-                                    )}
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">Calculated value: ${calculatedFinalPrice.toFixed(2)}</p>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Markup %</label>
+                                    <input
+                                        type="number"
+                                        value={formData.markupPercentage || 0}
+                                        onChange={(e) => {
+                                            const markup = parseFloat(e.target.value) || 0
+                                            setFormData({ ...formData, markupPercentage: parseFloat(markup.toFixed(2)) })
+                                        }}
+                                        step="0.1"
+                                        min="0"
+                                        max="100"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
                             </div>
 
-                            {/* Summary */}
-                            <div className="bg-white rounded p-3 space-y-2 border border-blue-300">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-700">Suggested Sell Price:</span>
-                                    <span className="font-bold text-green-600">${formData.finalPricePerUnit?.toFixed(2)}</span>
+                            {/* Dual Pricing System */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                                    <label className="block text-sm font-medium text-green-800 mb-2">
+                                        Precio Normal
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                        <input
+                                            type="number"
+                                            value={formData.normalPrice || 0}
+                                            onChange={(e) => {
+                                                const normalPrice = parseFloat(e.target.value) || 0
+                                                setFormData({ ...formData, normalPrice: normalPrice })
+                                            }}
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full pl-8 pr-4 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-green-700 mt-1">Después de recibir</p>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-700">Effective Markup:</span>
-                                    <span className="font-bold text-blue-600">
-                                        {formData.basePricePerUnit === 0
-                                            ? '0'
-                                            : (((formData.finalPricePerUnit! - formData.basePricePerUnit!) / formData.basePricePerUnit!) * 100).toFixed(1)
-                                        }%
-                                    </span>
+
+                                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                                    <label className="block text-sm font-medium text-blue-800 mb-2">
+                                        Precio Pre-Venta (Opcional)
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                                        <input
+                                            type="number"
+                                            value={formData.preSalePrice || 0}
+                                            onChange={(e) => {
+                                                const preSalePrice = parseFloat(e.target.value) || 0
+                                                setFormData({ ...formData, preSalePrice: preSalePrice })
+                                            }}
+                                            step="0.01"
+                                            min="0"
+                                            className="w-full pl-8 pr-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-blue-700 mt-1">Durante status 'active'</p>
                                 </div>
                             </div>
                         </div>
@@ -384,16 +439,16 @@ export default function PreSaleEditPage() {
                         <div className="flex gap-4 pt-6 border-t border-gray-200">
                             <button
                                 type="submit"
-                                disabled={isSaving || updateFinalPrice.isLoading}
+                                disabled={isSaving || updatePreSaleItem.isLoading}
                                 className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                {isSaving || updateFinalPrice.isLoading ? (
+                                {isSaving || updatePreSaleItem.isLoading ? (
                                     <>
                                         <LoadingSpinner size="sm" />
-                                        Saving...
+                                        Guardando...
                                     </>
                                 ) : (
-                                    'Save Changes'
+                                    'Guardar Cambios'
                                 )}
                             </button>
                             <button
@@ -401,7 +456,7 @@ export default function PreSaleEditPage() {
                                 onClick={() => navigate('/presale')}
                                 className="flex-1 px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium"
                             >
-                                Cancel
+                                Cancelar
                             </button>
                         </div>
                     </form>

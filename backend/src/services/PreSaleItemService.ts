@@ -360,6 +360,81 @@ class PreSaleItemService {
   }
 
   /**
+   * General update method for pre-sale items
+   * Accepts partial updates and validates business rules
+   */
+  async updatePreSaleItem(
+    preSaleItemId: string,
+    updates: {
+      totalQuantity?: number
+      basePricePerUnit?: number
+      markupPercentage?: number
+      preSalePrice?: number
+      normalPrice?: number
+      condition?: string
+      notes?: string
+      endDate?: Date
+    }
+  ): Promise<PreSaleItemType> {
+    const preSaleItem = await PreSaleItem.findById(preSaleItemId)
+
+    if (!preSaleItem) {
+      throw new Error(`PreSaleItem ${preSaleItemId} not found`)
+    }
+
+    // Apply updates
+    if (updates.totalQuantity !== undefined) {
+      if (updates.totalQuantity < 0) {
+        throw new Error('Total quantity cannot be negative')
+      }
+      preSaleItem.totalQuantity = updates.totalQuantity
+    }
+
+    if (updates.basePricePerUnit !== undefined) {
+      if (updates.basePricePerUnit < 0) {
+        throw new Error('Base price cannot be negative')
+      }
+      preSaleItem.basePricePerUnit = updates.basePricePerUnit
+    }
+
+    if (updates.markupPercentage !== undefined) {
+      if (updates.markupPercentage < 0) {
+        throw new Error('Markup percentage cannot be negative')
+      }
+      preSaleItem.markupPercentage = updates.markupPercentage
+    }
+
+    if (updates.preSalePrice !== undefined) {
+      preSaleItem.preSalePrice = updates.preSalePrice
+    }
+
+    if (updates.normalPrice !== undefined) {
+      preSaleItem.normalPrice = updates.normalPrice
+    }
+
+    if (updates.condition !== undefined) {
+      const validConditions = ['mint', 'good', 'fair', 'poor']
+      if (!validConditions.includes(updates.condition)) {
+        throw new Error('Invalid condition value')
+      }
+      preSaleItem.condition = updates.condition as 'mint' | 'good' | 'fair' | 'poor'
+    }
+
+    if (updates.notes !== undefined) {
+      preSaleItem.notes = updates.notes
+    }
+
+    if (updates.endDate !== undefined) {
+      preSaleItem.endDate = updates.endDate
+    }
+
+    // Save will trigger pre-save hooks for validation and calculations
+    await preSaleItem.save()
+
+    return preSaleItem
+  }
+
+  /**
    * Update pre-sale item photo
    */
   async updatePhoto(

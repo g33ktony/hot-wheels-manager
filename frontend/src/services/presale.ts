@@ -32,6 +32,7 @@ export interface CreatePreSaleItemDto {
   markupPercentage?: number
   preSalePrice?: number
   normalPrice?: number
+  endDate?: Date
   photo?: string | null
 }
 
@@ -125,6 +126,18 @@ export const presaleService = {
       )
       if (!response.data.data) {
         throw new Error('Failed to update photo')
+      }
+      return response.data.data
+    },
+
+    // Update pre-sale item (general update)
+    update: async (id: string, data: Partial<PreSaleItem>): Promise<PreSaleItem> => {
+      const response = await api.put<ApiResponse<PreSaleItem>>(
+        `/presale/items/${id}`,
+        data
+      )
+      if (!response.data.data) {
+        throw new Error('Failed to update pre-sale item')
       }
       return response.data.data
     },

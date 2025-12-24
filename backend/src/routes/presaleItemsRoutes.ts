@@ -155,6 +155,27 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
+// PUT /api/presale/items/:id - General update endpoint
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const updates = req.body
+
+    const updatedItem = await PreSaleItemService.updatePreSaleItem(id, updates)
+
+    res.json({
+      success: true,
+      message: 'Pre-sale item updated successfully',
+      data: updatedItem
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update pre-sale item'
+    })
+  }
+})
+
 // PUT /api/presale/items/:id/markup - Update markup percentage
 router.put('/:id/markup', async (req: Request, res: Response) => {
   try {

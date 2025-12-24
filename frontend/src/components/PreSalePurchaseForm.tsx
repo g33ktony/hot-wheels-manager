@@ -164,6 +164,7 @@ export default function PreSalePurchaseForm({
                 markupPercentage: formData.markupPercentage,
                 preSalePrice: formData.preSalePrice > 0 ? formData.preSalePrice : undefined,
                 normalPrice: formData.normalPrice > 0 ? formData.normalPrice : calculatedNormalPrice, // Send custom or calculated
+                endDate: formData.preSaleScheduledDate ? new Date(formData.preSaleScheduledDate) : undefined,
                 photo: formData.photo
             })
 

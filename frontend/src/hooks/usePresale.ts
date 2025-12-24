@@ -111,6 +111,25 @@ export const useUpdatePreSalePhoto = () => {
   )
 }
 
+export const useUpdatePreSaleItem = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation(
+    ({ id, data }: { id: string; data: any }) =>
+      presaleService.items.update(id, data),
+    {
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries('presaleItems')
+        queryClient.invalidateQueries(['presaleItem', variables.id])
+        toast.success('Pre-sale actualizado exitosamente')
+      },
+      onError: (error: any) => {
+        toast.error(error.message || 'Error al actualizar pre-sale')
+      },
+    }
+  )
+}
+
 export const useUpdatePreSaleStatus = () => {
   const queryClient = useQueryClient()
 
