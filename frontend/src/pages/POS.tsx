@@ -30,6 +30,7 @@ interface InventoryItem {
 
 interface CartItem extends InventoryItem {
   customPrice: number;
+  cartQuantity: number; // Cantidad en el carrito
 }
 
 const POS: React.FC = () => {
@@ -99,10 +100,18 @@ const POS: React.FC = () => {
   };
 
   // Agregar item al carrito
-  const addToCart = (item: InventoryItem) => {
-    const existsInCart = cart.find(cartItem => cartItem._id === item._id);
-    if (existsInCart) {
-      toast.error('Este artículo ya está en el carrito');
+  const addToCart = (item: InventoryItem, quantity: number = 1) => {
+    const existingItem = cart.find(cartItem => cartItem._id === item._id);
+    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+    
+    if (existingItem) {
+      // Si ya existe, incrementar cantidad
+      const newQuantity = existingItem.cartQuantity + quantity;
+      if (newQuantity > availableQty) {
+        toast.error('No hay suficiente inventario disponible');
+        return;
+      }
+      updateCartQuantity(item._id, newQuantity);
       return;
     }
 
@@ -114,7 +123,8 @@ const POS: React.FC = () => {
 
     const cartItem: CartItem = {
       ...item,
-      customPrice: price
+      customPrice: price,
+      cartQuantity: quantity
     };
 
     setCart([...cart, cartItem]);
@@ -133,9 +143,31 @@ const POS: React.FC = () => {
     ));
   };
 
+  // Actualizar cantidad en el carrito
+  const updateCartQuantity = (itemId: string, newQuantity: number) => {
+    const item = cart.find(c => c._id === itemId);
+    if (!item) return;
+    
+    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+    
+    if (newQuantity < 1) {
+      removeFromCart(itemId);
+      return;
+    }
+    
+    if (newQuantity > availableQty) {
+      toast.error('No hay suficiente inventario disponible');
+      return;
+    }
+    
+    setCart(cart.map(cartItem => 
+      cartItem._id === itemId ? { ...cartItem, cartQuantity: newQuantity } : cartItem
+    ));
+  };
+
   // Calcular total
   const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + item.customPrice, 0);
+    return cart.reduce((sum, item) => sum + (item.customPrice * item.cartQuantity), 0);
   };
 
   // Procesar venta
@@ -153,6 +185,7 @@ const POS: React.FC = () => {
       const saleData = {
         items: cart.map(item => ({
           inventoryItemId: item._id,
+          quantity: item.cartQuantity,
           customPrice: item.customPrice
         })),
         paymentMethod,
@@ -266,6 +299,11 @@ const POS: React.FC = () => {
                     const displayColor = carData?.color || item.color || '';
                     const displaySeries = carData?.series || item.series || '';
                     const price = item.actualPrice || item.suggestedPrice || 0;
+                    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+                    const cartItem = cart.find(c => c._id === item._id);
+                    const cartQty = cartItem?.cartQuantity || 0;
+                    const isInCart = !!cartItem;
+                    const isSingleItem = availableQty === 1;
                     
                     return (
                       <div
@@ -291,21 +329,49 @@ const POS: React.FC = () => {
                           <p className="text-sm text-gray-600">Serie: {displaySeries}</p>
                         )}
                         <p className="text-sm text-gray-600">{item.pieceType}</p>
+                        <p className="text-sm text-gray-500">Disponible: {availableQty}</p>
                         <div className="flex items-center justify-between mt-3">
                           <span className="text-xl font-bold text-green-600">
                             ${price.toFixed(2)}
                           </span>
-                          <button
-                            onClick={() => addToCart(item)}
-                            disabled={cart.some(cartItem => cartItem._id === item._id)}
-                            className={`px-4 py-2 rounded-lg font-medium ${
-                              cart.some(cartItem => cartItem._id === item._id)
-                                ? 'bg-gray-300 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
-                          >
-                            {cart.some(cartItem => cartItem._id === item._id) ? 'En carrito' : 'Agregar'}
-                          </button>
+                          {isSingleItem ? (
+                            <button
+                              onClick={() => addToCart(item)}
+                              disabled={isInCart}
+                              className={`px-4 py-2 rounded-lg font-medium ${
+                                isInCart
+                                  ? 'bg-gray-300 cursor-not-allowed'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                              }`}
+                            >
+                              {isInCart ? 'En carrito' : 'Agregar'}
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              {isInCart && (
+                                <>
+                                  <button
+                                    onClick={() => updateCartQuantity(item._id, cartQty - 1)}
+                                    className="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold"
+                                  >
+                                    −
+                                  </button>
+                                  <span className="font-semibold min-w-[2rem] text-center">{cartQty}</span>
+                                </>
+                              )}
+                              <button
+                                onClick={() => addToCart(item, 1)}
+                                disabled={cartQty >= availableQty}
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${
+                                  cartQty >= availableQty
+                                    ? 'bg-gray-300 cursor-not-allowed'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                }`}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -333,6 +399,7 @@ const POS: React.FC = () => {
                   const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
                   const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
                   const originalPrice = item.actualPrice || item.suggestedPrice || 0;
+                  const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
                   
                   return (
                     <div key={item._id} className="border rounded p-3">
@@ -340,6 +407,9 @@ const POS: React.FC = () => {
                         <div className="flex-1">
                           <p className="font-semibold text-sm">{displayName}</p>
                           <p className="text-xs text-gray-600">{carIdStr}</p>
+                          {item.cartQuantity > 1 && (
+                            <p className="text-xs text-blue-600 font-semibold">Cantidad: {item.cartQuantity}</p>
+                          )}
                         </div>
                         <button
                           onClick={() => removeFromCart(item._id)}
@@ -348,7 +418,7 @@ const POS: React.FC = () => {
                           ✕
                         </button>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-2">
                         <span className="text-xs text-gray-600">Precio:</span>
                         <span className="text-xs text-gray-400 line-through">
                           ${originalPrice.toFixed(2)}
@@ -362,6 +432,29 @@ const POS: React.FC = () => {
                           min="0"
                         />
                       </div>
+                      {availableQty > 1 && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateCartQuantity(item._id, item.cartQuantity - 1)}
+                            className="w-7 h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded font-bold text-sm"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-semibold min-w-[2rem] text-center">{item.cartQuantity}</span>
+                          <button
+                            onClick={() => updateCartQuantity(item._id, item.cartQuantity + 1)}
+                            disabled={item.cartQuantity >= availableQty}
+                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${
+                              item.cartQuantity >= availableQty
+                                ? 'bg-gray-300 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                          >
+                            +
+                          </button>
+                          <span className="text-xs text-gray-500 ml-auto">Subtotal: ${(item.customPrice * item.cartQuantity).toFixed(2)}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })
