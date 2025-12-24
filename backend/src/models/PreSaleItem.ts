@@ -194,7 +194,8 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
     },
     condition: {
       type: String,
-      enum: ['mint', 'good', 'fair', 'poor']
+      enum: ['mint', 'good', 'fair', 'poor'],
+      default: 'mint'
     },
     photo: {
       type: String,
