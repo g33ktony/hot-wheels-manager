@@ -28,7 +28,6 @@ export interface CreatePreSaleItemDto {
   quantity: number
   unitPrice: number
   markupPercentage?: number
-  finalPrice?: number
   preSalePrice?: number
   normalPrice?: number
   photo?: string | null

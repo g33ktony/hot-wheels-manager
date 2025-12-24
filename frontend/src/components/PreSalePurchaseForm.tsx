@@ -152,18 +152,12 @@ export default function PreSalePurchaseForm({
             // For now, we'll use a placeholder purchaseId.
             const purchaseId = initialPurchaseId || `presale-${Date.now()}`
 
-            // Calculate final price based on whether it was manually edited
-            const finalPrice = formData.finalPrice > 0
-                ? formData.finalPrice
-                : calculateFinalPrice(formData.unitPrice, formData.markupPercentage)
-
             await createPreSaleItem.mutateAsync({
                 purchaseId,
                 carId: formData.carId,
                 quantity: formData.quantity,
                 unitPrice: formData.unitPrice,
                 markupPercentage: formData.markupPercentage,
-                finalPrice: finalPrice,
                 preSalePrice: formData.preSalePrice,
                 normalPrice: formData.normalPrice,
                 photo: formData.photo
@@ -342,31 +336,11 @@ export default function PreSalePurchaseForm({
                             </div>
                         </div>
 
-                        {/* Final Price - Editable */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                <DollarSign className="inline-block w-4 h-4 mr-1" />
-                                Final Price Per Unit (editable)
-                            </label>
-                            <Input
-                                type="number"
-                                value={formData.finalPrice > 0 ? formData.finalPrice : finalPricePerUnit}
-                                onChange={(e) => {
-                                    const finalPrice = parseFloat(e.target.value) || 0
-                                    setFormData({ ...formData, finalPrice })
-                                }}
-                                min="0"
-                                step="0.01"
-                                placeholder={finalPricePerUnit.toFixed(2)}
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Edit to set custom final price</p>
-                        </div>
-
                         {/* Pre-Sale Price */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 <DollarSign className="inline-block w-4 h-4 mr-1" />
-                                Pre-Sale Price (while active)
+                                Pre-Sale Price (while active - optional)
                             </label>
                             <Input
                                 type="number"
@@ -386,7 +360,7 @@ export default function PreSalePurchaseForm({
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 <DollarSign className="inline-block w-4 h-4 mr-1" />
-                                Normal Price (after received)
+                                Normal Price (required)
                             </label>
                             <Input
                                 type="number"
@@ -398,8 +372,9 @@ export default function PreSalePurchaseForm({
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00"
+                                required
                             />
-                            <p className="text-xs text-gray-500 mt-1">Regular price when item is received</p>
+                            <p className="text-xs text-gray-500 mt-1">Regular price when item is received and for all other items</p>
                         </div>
 
                         {/* Pricing Summary */}

@@ -239,6 +239,25 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
   }
 )
 
+// Pre-save middleware: Update finalPricePerUnit based on status
+PreSaleItemSchema.pre('save', function(next) {
+  // Update finalPricePerUnit based on current status
+  if (this.status === 'active' && this.preSalePrice && this.preSalePrice > 0) {
+    // Use pre-sale price when status is active
+    this.finalPricePerUnit = this.preSalePrice
+  } else if (this.normalPrice && this.normalPrice > 0) {
+    // Use normal price for all other statuses
+    this.finalPricePerUnit = this.normalPrice
+  }
+  // If neither is set, keep the calculated finalPricePerUnit from markup
+  
+  // Recalculate totals
+  this.totalSaleAmount = this.finalPricePerUnit * this.totalQuantity
+  this.totalProfit = this.totalSaleAmount - this.totalCostAmount
+  
+  next()
+})
+
 // Indexes for better query performance
 PreSaleItemSchema.index({ carId: 1 })
 PreSaleItemSchema.index({ status: 1 })

@@ -25,7 +25,6 @@ class PreSaleItemService {
     quantity: number,
     unitPrice: number,
     markupPercentage?: number,
-    finalPrice?: number,
     preSalePrice?: number,
     normalPrice?: number,
     photo?: string | null
@@ -43,17 +42,17 @@ class PreSaleItemService {
         preSaleItem.purchaseIds.push(purchaseId)
       }
 
-      // If a custom finalPrice is provided, update it (takes precedence over markup)
-      if (finalPrice && finalPrice > 0) {
-        preSaleItem.finalPricePerUnit = finalPrice
-        preSaleItem.markupPercentage = 
-          preSaleItem.basePricePerUnit === 0 
-            ? 0 
-            : ((finalPrice - preSaleItem.basePricePerUnit) / preSaleItem.basePricePerUnit) * 100
-      } else if (markupPercentage !== undefined && markupPercentage !== null) {
-        // Update markup if provided
+      // Update prices if provided
+      if (preSalePrice && preSalePrice > 0) {
+        preSaleItem.preSalePrice = preSalePrice
+      }
+      if (normalPrice && normalPrice > 0) {
+        preSaleItem.normalPrice = normalPrice
+      }
+
+      // Update markup if provided
+      if (markupPercentage !== undefined && markupPercentage !== null) {
         preSaleItem.markupPercentage = markupPercentage
-        preSaleItem.finalPricePerUnit = preSaleItem.basePricePerUnit * (1 + markupPercentage / 100)
       }
 
       // Update photo if provided
@@ -61,26 +60,32 @@ class PreSaleItemService {
         preSaleItem.photo = photo
       }
 
-      // Recalculate totals
-      preSaleItem.totalSaleAmount = preSaleItem.finalPricePerUnit * preSaleItem.totalQuantity
+      // Recalculate totals - finalPricePerUnit will be updated by pre-save middleware
       preSaleItem.totalCostAmount = preSaleItem.basePricePerUnit * preSaleItem.totalQuantity
       preSaleItem.totalProfit = preSaleItem.totalSaleAmount - preSaleItem.totalCostAmount
     } else {
       // Create new pre-sale item
       const defaultMarkup = markupPercentage ?? 15
       
-      // Use provided finalPrice if available, otherwise calculate from markup
+      // Calculate final price based on status and available prices
+      // Priority: preSalePrice (if active) > normalPrice > calculated from markup
       let calculatedFinalPrice: number
-      let calculatedMarkup: number
+      let calculatedMarkup: number = defaultMarkup
       
-      if (finalPrice && finalPrice > 0) {
-        calculatedFinalPrice = finalPrice
-        // Recalculate markup percentage based on custom final price
+      if (preSalePrice && preSalePrice > 0) {
+        // Use pre-sale price for active items
+        calculatedFinalPrice = preSalePrice
         calculatedMarkup = unitPrice === 0 
           ? 0 
-          : ((finalPrice - unitPrice) / unitPrice) * 100
+          : ((preSalePrice - unitPrice) / unitPrice) * 100
+      } else if (normalPrice && normalPrice > 0) {
+        // Use normal price as default
+        calculatedFinalPrice = normalPrice
+        calculatedMarkup = unitPrice === 0 
+          ? 0 
+          : ((normalPrice - unitPrice) / unitPrice) * 100
       } else {
-        calculatedMarkup = defaultMarkup
+        // Calculate from markup percentage
         calculatedFinalPrice = unitPrice * (1 + defaultMarkup / 100)
       }
 
