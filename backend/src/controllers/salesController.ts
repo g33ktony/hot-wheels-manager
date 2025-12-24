@@ -263,7 +263,7 @@ export const createPOSSale = async (req: Request, res: Response) => {
 
     // Procesar cada item
     for (const item of items) {
-      const { inventoryItemId, customPrice } = item;
+      const { inventoryItemId, customPrice, quantity = 1 } = item;
 
       if (!inventoryItemId) {
         return res.status(400).json({
@@ -286,11 +286,11 @@ export const createPOSSale = async (req: Request, res: Response) => {
 
       // Verificar que hay cantidad disponible
       const availableQty = (inventoryItem.quantity || 0) - (inventoryItem.reservedQuantity || 0);
-      if (availableQty <= 0) {
+      if (availableQty < quantity) {
         return res.status(400).json({
           success: false,
           data: null,
-          message: `El item de inventario no tiene unidades disponibles para venta`
+          message: `El item de inventario solo tiene ${availableQty} unidades disponibles`
         });
       }
 
@@ -312,25 +312,25 @@ export const createPOSSale = async (req: Request, res: Response) => {
         carName = carIdStr; // Usar el ID como nombre si no hay populate
       }
       
-      console.log(`📦 Item: carIdStr=${carIdStr}, carName=${carName}, price=${finalPrice}`);
+      console.log(`📦 Item: carIdStr=${carIdStr}, carName=${carName}, price=${finalPrice}, quantity=${quantity}`);
       
       saleItems.push({
         inventoryItemId: inventoryItem._id,
         carId: carIdStr,
         carName: carName,
-        quantity: 1,
+        quantity: quantity,
         unitPrice: finalPrice,
         originalPrice: itemPrice // Guardar el precio original
       });
 
-      totalAmount += finalPrice;
+      totalAmount += finalPrice * quantity;
 
       // Reducir cantidad disponible
-      inventoryItem.quantity = (inventoryItem.quantity || 1) - 1;
+      inventoryItem.quantity = (inventoryItem.quantity || quantity) - quantity;
       inventoryItem.actualPrice = finalPrice; // Actualizar con el precio final de venta
       await inventoryItem.save();
 
-      console.log(`✅ Item de inventario actualizado, vendido por $${finalPrice}`);
+      console.log(`✅ Item de inventario actualizado, ${quantity} vendido(s) por $${finalPrice} c/u (Total: $${finalPrice * quantity})`);
     }
 
     // Crear la venta
