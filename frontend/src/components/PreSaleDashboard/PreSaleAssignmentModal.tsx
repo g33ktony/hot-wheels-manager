@@ -126,7 +126,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                     scheduledDate: new Date(deliveryDate),
                     location: 'Por definir', // Placeholder; can be edited later
                     items: [],
-                    totalAmount: 0, // Will be updated when units are assigned
+                    totalAmount, // Use calculated total so payments have pending balance
                     forPreSale: true // Flag to indicate this is for PreSale items
                 })
                 finalDeliveryId = newDelivery._id || ''
