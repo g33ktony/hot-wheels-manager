@@ -11,9 +11,15 @@ import { DollarSign, Calendar, TrendingUp, CheckCircle, AlertTriangle } from 'lu
 export default function PreSalePayments() {
     const { data: paymentPlans, isLoading } = usePaymentPlans()
     const { data: customers } = useCustomers()
-    const { data: deliveries } = useDeliveries()
+    const { data: allDeliveries } = useDeliveries()
     const recordPaymentMutation = useRecordPayment()
     // const updateStatusMutation = useUpdatePaymentPlanStatus() // Future use
+
+    // Filter deliveries to only show those related to payment plans
+    const deliveries = allDeliveries?.filter(delivery => {
+        // Check if this delivery has an associated payment plan
+        return paymentPlans?.some(plan => plan.deliveryId === delivery._id)
+    })
 
     const [selectedPlan, setSelectedPlan] = useState<any>(null)
     const [paymentAmount, setPaymentAmount] = useState('')

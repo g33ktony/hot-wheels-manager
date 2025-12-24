@@ -50,9 +50,10 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
     const createDelivery = useCreateDelivery()
     const createPaymentPlan = useCreatePaymentPlan()
 
-    // Get normalPrice from preSaleItem for payment plans
-    const normalPrice = preSaleItem?.normalPrice || pricePerUnit
-    const effectivePrice = customPrice > 0 ? customPrice : normalPrice
+    // Get the appropriate price based on status
+    // When assigning (post-PreSale period), use normalPrice if available, otherwise preSalePrice
+    const basePrice = preSaleItem?.normalPrice || preSaleItem?.preSalePrice || pricePerUnit
+    const effectivePrice = customPrice > 0 ? customPrice : basePrice
 
     // Get selected delivery details
     const selectedDelivery = deliveries.find((d: any) => d._id === selectedDeliveryId)
@@ -401,17 +402,17 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                         <div className="flex-1">
                                             <Input
                                                 type="number"
-                                                value={customPrice || normalPrice}
+                                                value={customPrice || basePrice}
                                                 onChange={(e) => {
                                                     const price = parseFloat(e.target.value) || 0
                                                     setCustomPrice(price)
                                                 }}
                                                 min="0"
                                                 step="0.01"
-                                                placeholder={normalPrice.toFixed(2)}
+                                                placeholder={basePrice.toFixed(2)}
                                             />
                                         </div>
-                                        {customPrice > 0 && customPrice !== normalPrice && (
+                                        {customPrice > 0 && customPrice !== basePrice && (
                                             <button
                                                 type="button"
                                                 onClick={() => setCustomPrice(0)}
@@ -422,7 +423,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                         )}
                                     </div>
                                     <p className="text-xs text-green-700 mt-1">
-                                        Normal Price: ${normalPrice.toFixed(2)} (Se usa el normal price por defecto para planes de pago)
+                                        Precio Base: ${basePrice.toFixed(2)} (precio usado para calcular el plan de pagos)
                                     </p>
                                 </div>
 
@@ -573,7 +574,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                             <span className="text-gray-600">Precio unitario:</span>
                             <span className="font-bold text-gray-900">${effectivePrice.toFixed(2)}</span>
                         </div>
-                        {enablePaymentPlan && customPrice > 0 && customPrice !== normalPrice && (
+                        {enablePaymentPlan && customPrice > 0 && customPrice !== basePrice && (
                             <div className="flex justify-between text-xs">
                                 <span className="text-blue-600">Precio personalizado:</span>
                                 <span className="font-semibold text-blue-600">Aplicado</span>
