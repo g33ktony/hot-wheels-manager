@@ -27,7 +27,8 @@ class PreSaleItemService {
     markupPercentage?: number,
     preSalePrice?: number,
     normalPrice?: number,
-    photo?: string | null
+    photo?: string | null,
+    endDate?: string | Date
   ): Promise<PreSaleItemType> {
     // Check if pre-sale item already exists for this car
     let preSaleItem = await PreSaleItem.findOne({ carId })
@@ -101,6 +102,7 @@ class PreSaleItemService {
         normalPrice,
         status: 'active',
         startDate: new Date(),
+        endDate: endDate ? new Date(endDate) : undefined,
         purchaseIds: [purchaseId],
         units: [], // Empty until first assignment
         deliveryAssignments: [],
