@@ -31,9 +31,11 @@ export interface PreSaleItem extends Document {
   basePricePerUnit: number; // Price from original purchase(s)
   markupPercentage: number; // Default: 15%
   finalPricePerUnit: number; // Calculated: basePricePerUnit * (1 + markupPercentage/100)
+  preSalePrice?: number; // Price while in pre-sale (active status)
+  normalPrice?: number; // Price after receiving the item (received status)
 
   // Status & Lifecycle - Updated to match actual workflow
-  status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
+  status: 'active' | 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
   startDate: Date; // When pre-sale collection started
   endDate?: Date; // When pre-sale ended or completed
   notes?: string;
@@ -142,11 +144,20 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
         return this.basePricePerUnit * (1 + this.markupPercentage / 100)
       }
     },
+    preSalePrice: {
+      type: Number,
+      min: 0
+    },
+    normalPrice: {
+      type: Number,
+      min: 0
+    },
 
     // Status - Updated to match actual workflow
     status: {
       type: String,
       enum: [
+        'active',         // Activo - Pre-sale, not yet received
         'purchased',      // Comprado - Initial state after purchase
         'shipped',        // Enviado - In transit from supplier
         'received',       // Recibido - Arrived, ready to add to inventory
@@ -157,7 +168,7 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
         'delivered',      // Entregado - Completed delivery
         'cancelled'       // Cancelado - Cancelled at any stage
       ],
-      default: 'purchased'
+      default: 'active'
     },
     startDate: {
       type: Date,

@@ -26,6 +26,8 @@ class PreSaleItemService {
     unitPrice: number,
     markupPercentage?: number,
     finalPrice?: number,
+    preSalePrice?: number,
+    normalPrice?: number,
     photo?: string | null
   ): Promise<PreSaleItemType> {
     // Check if pre-sale item already exists for this car
@@ -90,7 +92,9 @@ class PreSaleItemService {
         basePricePerUnit: unitPrice,
         markupPercentage: calculatedMarkup,
         finalPricePerUnit: calculatedFinalPrice,
-        status: 'purchased',
+        preSalePrice,
+        normalPrice,
+        status: 'active',
         startDate: new Date(),
         purchaseIds: [purchaseId],
         units: [], // Empty until first assignment
@@ -381,9 +385,7 @@ class PreSaleItemService {
     totalPotentialProfit: number
     averageMarkupPercentage: number
   }> {
-    const activeItems = await PreSaleItem.find({ 
-      status: { $in: ['purchased', 'received', 'ready', 'reserved', 'payment-plan', 'payment-pending'] }
-    })
+    const activeItems = await PreSaleItem.find({ status: 'active' })
 
     let totalQuantityAvailable = 0
     let totalQuantityAssigned = 0

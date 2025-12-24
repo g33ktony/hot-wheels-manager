@@ -122,7 +122,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST /api/presale/items - Create new pre-sale item from purchase
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { purchaseId, carId, quantity, unitPrice, markupPercentage, finalPrice, photo } = req.body
+    const { purchaseId, carId, quantity, unitPrice, markupPercentage, finalPrice, preSalePrice, normalPrice, photo } = req.body
 
     if (!purchaseId || !carId || !quantity || unitPrice === undefined) {
       return res.status(400).json({
@@ -138,6 +138,8 @@ router.post('/', async (req: Request, res: Response) => {
       unitPrice,
       markupPercentage,
       finalPrice,
+      preSalePrice,
+      normalPrice,
       photo
     )
 

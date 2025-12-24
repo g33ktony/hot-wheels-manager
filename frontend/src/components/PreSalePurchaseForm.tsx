@@ -42,6 +42,8 @@ export default function PreSalePurchaseForm({
         unitPrice: 0,
         markupPercentage: 15,
         finalPrice: 0,
+        preSalePrice: 0,
+        normalPrice: 0,
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         purchaseDate: new Date().toISOString().split('T')[0],
         preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -162,6 +164,8 @@ export default function PreSalePurchaseForm({
                 unitPrice: formData.unitPrice,
                 markupPercentage: formData.markupPercentage,
                 finalPrice: finalPrice,
+                preSalePrice: formData.preSalePrice,
+                normalPrice: formData.normalPrice,
                 photo: formData.photo
             })
 
@@ -173,6 +177,8 @@ export default function PreSalePurchaseForm({
                 unitPrice: 0,
                 markupPercentage: 15,
                 finalPrice: 0,
+                preSalePrice: 0,
+                normalPrice: 0,
                 condition: 'mint',
                 purchaseDate: new Date().toISOString().split('T')[0],
                 preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -354,6 +360,46 @@ export default function PreSalePurchaseForm({
                                 placeholder={finalPricePerUnit.toFixed(2)}
                             />
                             <p className="text-xs text-gray-500 mt-1">Edit to set custom final price</p>
+                        </div>
+
+                        {/* Pre-Sale Price */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <DollarSign className="inline-block w-4 h-4 mr-1" />
+                                Pre-Sale Price (while active)
+                            </label>
+                            <Input
+                                type="number"
+                                value={formData.preSalePrice}
+                                onChange={(e) => {
+                                    const preSalePrice = parseFloat(e.target.value) || 0
+                                    setFormData({ ...formData, preSalePrice })
+                                }}
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Special price during pre-sale period</p>
+                        </div>
+
+                        {/* Normal Price */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <DollarSign className="inline-block w-4 h-4 mr-1" />
+                                Normal Price (after received)
+                            </label>
+                            <Input
+                                type="number"
+                                value={formData.normalPrice}
+                                onChange={(e) => {
+                                    const normalPrice = parseFloat(e.target.value) || 0
+                                    setFormData({ ...formData, normalPrice })
+                                }}
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Regular price when item is received</p>
                         </div>
 
                         {/* Pricing Summary */}
