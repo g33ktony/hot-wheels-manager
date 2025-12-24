@@ -2182,12 +2182,23 @@ export default function Inventory() {
                             </label>
                             <input
                                 type="number"
+                                inputMode="numeric"
                                 min="1"
                                 className="input w-full"
-                                value={editingItem.quantity === 0 ? '' : editingItem.quantity}
+                                value={editingItem.quantity || ''}
                                 onChange={(e) => {
-                                    const value = e.target.value === '' ? 0 : parseInt(e.target.value)
-                                    setEditingItem({ ...editingItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
+                                    const value = e.target.value
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, quantity: '' as any })
+                                    } else {
+                                        const numValue = parseInt(value)
+                                        setEditingItem({ ...editingItem, quantity: isNaN(numValue) ? 1 : Math.max(1, numValue) })
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                                        setEditingItem({ ...editingItem, quantity: 1 })
+                                    }
                                 }}
                             />
                         </div>
@@ -2198,13 +2209,24 @@ export default function Inventory() {
                             </label>
                             <input
                                 type="text"
+                                inputMode="decimal"
                                 className="input w-full"
                                 placeholder="0.00"
-                                value={editingItem.purchasePrice === 0 ? '' : editingItem.purchasePrice}
+                                value={editingItem.purchasePrice === 0 || editingItem.purchasePrice === '' ? '' : editingItem.purchasePrice}
                                 onChange={(e) => {
                                     const value = e.target.value.replace(/[^0-9.]/g, '')
-                                    const numValue = value === '' ? 0 : parseFloat(value)
-                                    setEditingItem({ ...editingItem, purchasePrice: isNaN(numValue) ? 0 : numValue })
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, purchasePrice: '' as any })
+                                    } else {
+                                        const numValue = parseFloat(value)
+                                        setEditingItem({ ...editingItem, purchasePrice: isNaN(numValue) ? 0 : numValue })
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, purchasePrice: 0 })
+                                    }
                                 }}
                             />
                         </div>
@@ -2215,13 +2237,24 @@ export default function Inventory() {
                             </label>
                             <input
                                 type="text"
+                                inputMode="decimal"
                                 className="input w-full"
                                 placeholder="0.00"
-                                value={editingItem.suggestedPrice === 0 ? '' : editingItem.suggestedPrice}
+                                value={editingItem.suggestedPrice === 0 || editingItem.suggestedPrice === '' ? '' : editingItem.suggestedPrice}
                                 onChange={(e) => {
                                     const value = e.target.value.replace(/[^0-9.]/g, '')
-                                    const numValue = value === '' ? 0 : parseFloat(value)
-                                    setEditingItem({ ...editingItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, suggestedPrice: '' as any })
+                                    } else {
+                                        const numValue = parseFloat(value)
+                                        setEditingItem({ ...editingItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, suggestedPrice: 0 })
+                                    }
                                 }}
                             />
                         </div>
@@ -2405,13 +2438,19 @@ export default function Inventory() {
                                         </label>
                                         <input
                                             type="number"
+                                            inputMode="numeric"
                                             min="1"
                                             className="input w-full text-sm"
                                             placeholder="5"
                                             value={editingItem.seriesSize || ''}
                                             onChange={(e) => {
-                                                const value = parseInt(e.target.value) || undefined
-                                                setEditingItem({ ...editingItem, seriesSize: value })
+                                                const value = e.target.value
+                                                if (value === '') {
+                                                    setEditingItem({ ...editingItem, seriesSize: undefined })
+                                                } else {
+                                                    const numValue = parseInt(value)
+                                                    setEditingItem({ ...editingItem, seriesSize: isNaN(numValue) ? undefined : numValue })
+                                                }
                                             }}
                                         />
                                     </div>
@@ -2422,13 +2461,19 @@ export default function Inventory() {
                                         </label>
                                         <input
                                             type="number"
+                                            inputMode="numeric"
                                             min="1"
                                             className="input w-full text-sm"
                                             placeholder="1"
                                             value={editingItem.seriesPosition || ''}
                                             onChange={(e) => {
-                                                const value = parseInt(e.target.value) || undefined
-                                                setEditingItem({ ...editingItem, seriesPosition: value })
+                                                const value = e.target.value
+                                                if (value === '') {
+                                                    setEditingItem({ ...editingItem, seriesPosition: undefined })
+                                                } else {
+                                                    const numValue = parseInt(value)
+                                                    setEditingItem({ ...editingItem, seriesPosition: isNaN(numValue) ? undefined : numValue })
+                                                }
                                             }}
                                         />
                                     </div>
@@ -2439,13 +2484,18 @@ export default function Inventory() {
                                         </label>
                                         <input
                                             type="text"
+                                            inputMode="decimal"
                                             className="input w-full text-sm"
                                             placeholder="0.00"
                                             value={editingItem.seriesPrice || ''}
                                             onChange={(e) => {
                                                 const value = e.target.value.replace(/[^0-9.]/g, '')
-                                                const numValue = value === '' ? undefined : parseFloat(value)
-                                                setEditingItem({ ...editingItem, seriesPrice: numValue })
+                                                if (value === '') {
+                                                    setEditingItem({ ...editingItem, seriesPrice: undefined })
+                                                } else {
+                                                    const numValue = parseFloat(value)
+                                                    setEditingItem({ ...editingItem, seriesPrice: isNaN(numValue) ? undefined : numValue })
+                                                }
                                             }}
                                         />
                                     </div>
