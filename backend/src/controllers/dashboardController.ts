@@ -25,7 +25,8 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
       type: 'delivery',
       description: `Entrega completada para ${(delivery.customerId as any)?.name || 'cliente'}`,
       date: delivery.completedDate || delivery.updatedAt,
-      amount: delivery.totalAmount
+      amount: delivery.totalAmount,
+      resourceId: delivery._id?.toString()
     });
   });
 
@@ -42,7 +43,8 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
       type: 'purchase',
       description: `Compra realizada de ${purchase.items?.length || 0} items`,
       date: purchase.purchaseDate,
-      amount: purchase.totalCost
+      amount: purchase.totalCost,
+      resourceId: purchase._id?.toString()
     });
   });
 
@@ -57,7 +59,25 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
       id: `inventory-${item._id}`,
       type: 'inventory',
       description: `${item.quantity} ${item.carId} agregado${item.quantity > 1 ? 's' : ''} al inventario`,
-      date: item.dateAdded
+      date: item.dateAdded,
+      resourceId: item._id?.toString()
+    });
+  });
+
+  // Recent sales
+  const recentSales = await SaleModel.find()
+    .sort({ saleDate: -1 })
+    .limit(3)
+    .select('totalAmount saleDate items');
+
+  recentSales.forEach(sale => {
+    recentActivity.push({
+      id: `sale-${sale._id}`,
+      type: 'sale',
+      description: `Venta realizada de ${sale.items?.length || 0} items`,
+      date: sale.saleDate,
+      amount: sale.totalAmount,
+      resourceId: sale._id?.toString()
     });
   });
 

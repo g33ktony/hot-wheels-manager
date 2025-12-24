@@ -146,27 +146,53 @@ export default function Dashboard() {
                     <CardContent>
                         <div className="space-y-3">
                             {metrics.recentActivity.length > 0 ? (
-                                metrics.recentActivity.map((activity) => (
-                                    <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <div>
-                                            <p className="text-sm font-medium text-gray-900">{activity.description}</p>
-                                            <p className="text-xs text-gray-500">
-                                                {new Date(activity.date).toLocaleDateString('es-ES', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })}
-                                            </p>
+                                metrics.recentActivity.map((activity) => {
+                                    const getNavigationPath = () => {
+                                        switch (activity.type) {
+                                            case 'delivery':
+                                                return '/deliveries'
+                                            case 'purchase':
+                                                return '/purchases'
+                                            case 'inventory':
+                                                return '/inventory'
+                                            case 'sale':
+                                                return '/pos'
+                                            default:
+                                                return null
+                                        }
+                                    }
+
+                                    const path = getNavigationPath()
+                                    const isClickable = path && activity.type !== 'system'
+
+                                    return (
+                                        <div
+                                            key={activity.id}
+                                            onClick={() => isClickable && navigate(path)}
+                                            className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg ${
+                                                isClickable ? 'cursor-pointer hover:bg-gray-100 hover:shadow-sm transition-all' : ''
+                                            }`}
+                                        >
+                                            <div className="flex-1">
+                                                <p className="text-sm font-medium text-gray-900">{activity.description}</p>
+                                                <p className="text-xs text-gray-500">
+                                                    {new Date(activity.date).toLocaleDateString('es-ES', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })}
+                                                </p>
+                                            </div>
+                                            {activity.amount && (
+                                                <span className="text-sm font-semibold text-green-600">
+                                                    ${activity.amount.toLocaleString()}
+                                                </span>
+                                            )}
                                         </div>
-                                        {activity.amount && (
-                                            <span className="text-sm font-semibold text-green-600">
-                                                ${activity.amount.toLocaleString()}
-                                            </span>
-                                        )}
-                                    </div>
-                                ))
+                                    )
+                                })
                             ) : (
                                 <p className="text-gray-500 text-center py-4">No hay actividad reciente</p>
                             )}

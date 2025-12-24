@@ -23,6 +23,7 @@ export interface RecentActivity {
   description: string;
   date: Date;
   amount?: number;
+  resourceId?: string; // ID del recurso relacionado (deliveryId, purchaseId, inventoryItemId, saleId)
 }
 
 export interface InventoryItem {
