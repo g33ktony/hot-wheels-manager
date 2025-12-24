@@ -228,6 +228,32 @@ class PreSaleItemService {
   }
 
   /**
+   * Reset all assignments for a pre-sale item and return units to available
+   * Useful when a delivery/payment was created por error and we need to reassign
+   */
+  async resetAssignments(preSaleItemId: string): Promise<PreSaleItemType> {
+    const preSaleItem = await PreSaleItem.findById(preSaleItemId)
+
+    if (!preSaleItem) {
+      throw new Error(`PreSaleItem ${preSaleItemId} not found`)
+    }
+
+    // Clear unit tracking and delivery assignments
+    preSaleItem.units = []
+    preSaleItem.assignedQuantity = 0
+    preSaleItem.availableQuantity = preSaleItem.totalQuantity
+    preSaleItem.deliveryAssignments = []
+
+    // Restore status to active so it can be reassigned
+    preSaleItem.status = 'active'
+    preSaleItem.endDate = undefined
+
+    await preSaleItem.save()
+
+    return preSaleItem
+  }
+
+  /**
    * Update markup percentage and recalculate pricing
    */
   async updateMarkup(preSaleItemId: string, markupPercentage: number): Promise<PreSaleItemType> {

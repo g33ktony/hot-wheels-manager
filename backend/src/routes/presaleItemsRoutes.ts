@@ -351,6 +351,25 @@ router.post('/:id/unassign', async (req: Request, res: Response) => {
   }
 })
 
+// POST /api/presale/items/:id/reset-assignments - Unassign all units and reopen presale
+router.post('/:id/reset-assignments', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const item = await PreSaleItemService.resetAssignments(id)
+
+    res.json({
+      success: true,
+      message: 'Pre-sale assignments reset successfully',
+      data: item
+    })
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      error: error.message || 'Failed to reset assignments'
+    })
+  }
+})
+
 // GET /api/presale/items/:id/units/:deliveryId - Get units for delivery
 router.get('/:id/units/:deliveryId', async (req: Request, res: Response) => {
   try {
