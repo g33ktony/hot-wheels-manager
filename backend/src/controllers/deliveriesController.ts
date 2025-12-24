@@ -129,10 +129,19 @@ export const getDeliveryById = async (req: Request, res: Response) => {
 // Create a new delivery
 export const createDelivery = async (req: Request, res: Response) => {
   try {
-    const { customerId, items, scheduledDate, scheduledTime, location, notes } = req.body;
+    const { customerId, items, scheduledDate, scheduledTime, location, notes, forPreSale } = req.body;
 
     // Validate required fields
-    if (!customerId || !items || items.length === 0) {
+    // Allow empty items array if creating for PreSale (items will be added during assignment)
+    if (!customerId) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'customerId es requerido'
+      });
+    }
+
+    if (!forPreSale && (!items || items.length === 0)) {
       return res.status(400).json({
         success: false,
         data: null,
@@ -152,54 +161,58 @@ export const createDelivery = async (req: Request, res: Response) => {
 
         // Validate items and calculate total
     let totalAmount = 0;
-    for (const item of items) {
-      let itemExists = false;
-      
-      // Skip validation for presale items (they start with "presale_")
-      if (item.inventoryItemId?.startsWith('presale_')) {
-        // Presale items are pre-validated on the frontend
-        itemExists = true;
-      } else if (item.inventoryItemId) {
-        // Check if it's a real inventory item
-        const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
-        if (inventoryItem) {
+    if (items && items.length > 0) {
+      for (const item of items) {
+        let itemExists = false;
+        
+        // Skip validation for presale items (they start with "presale_")
+        if (item.inventoryItemId?.startsWith('presale_')) {
+          // Presale items are pre-validated on the frontend
           itemExists = true;
-          // Validate available quantity for real inventory items (quantity - reservedQuantity)
-          const availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0);
-          if (availableQuantity < item.quantity) {
-            return res.status(400).json({
-              success: false,
-              data: null,
-              message: `Cantidad insuficiente para el artículo ${inventoryItem.carId}: disponible ${availableQuantity}, solicitado ${item.quantity}`
-            });
+        } else if (item.inventoryItemId) {
+          // Check if it's a real inventory item
+          const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
+          if (inventoryItem) {
+            itemExists = true;
+            // Validate available quantity for real inventory items (quantity - reservedQuantity)
+            const availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0);
+            if (availableQuantity < item.quantity) {
+              return res.status(400).json({
+                success: false,
+                data: null,
+                message: `Cantidad insuficiente para el artículo ${inventoryItem.carId}: disponible ${availableQuantity}, solicitado ${item.quantity}`
+              });
+            }
+          }
+        } else if (item.hotWheelsCarId) {
+          // Check if it's a catalog item
+          const hotWheelsCar = await HotWheelsCarModel.findById(item.hotWheelsCarId);
+          if (hotWheelsCar) {
+            itemExists = true;
           }
         }
-      } else if (item.hotWheelsCarId) {
-        // Check if it's a catalog item
-        const hotWheelsCar = await HotWheelsCarModel.findById(item.hotWheelsCarId);
-        if (hotWheelsCar) {
-          itemExists = true;
+        
+        if (!itemExists) {
+          return res.status(404).json({
+            success: false,
+            data: null,
+            message: `Pieza no encontrada: ${item.inventoryItemId || item.hotWheelsCarId}`
+          });
         }
+        
+        totalAmount += item.unitPrice * item.quantity;
       }
-      
-      if (!itemExists) {
-        return res.status(404).json({
-          success: false,
-          data: null,
-          message: `Pieza no encontrada: ${item.inventoryItemId || item.hotWheelsCarId}`
-        });
-      }
-      
-      totalAmount += item.unitPrice * item.quantity;
     }
 
     // Reserve inventory items (skip presale items)
-    for (const item of items) {
-      if (item.inventoryItemId && !item.inventoryItemId.startsWith('presale_')) {
-        await InventoryItemModel.findByIdAndUpdate(
-          item.inventoryItemId,
-          { $inc: { reservedQuantity: item.quantity } }
-        );
+    if (items && items.length > 0) {
+      for (const item of items) {
+        if (item.inventoryItemId && !item.inventoryItemId.startsWith('presale_')) {
+          await InventoryItemModel.findByIdAndUpdate(
+            item.inventoryItemId,
+            { $inc: { reservedQuantity: item.quantity } }
+          );
+        }
       }
     }
 

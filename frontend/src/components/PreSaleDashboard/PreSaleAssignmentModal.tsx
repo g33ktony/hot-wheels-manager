@@ -127,6 +127,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                     location: '', // Can be added later
                     items: [],
                     totalAmount: 0, // Will be updated when units are assigned
+                    forPreSale: true // Flag to indicate this is for PreSale items
                 })
                 finalDeliveryId = newDelivery._id || ''
             }
