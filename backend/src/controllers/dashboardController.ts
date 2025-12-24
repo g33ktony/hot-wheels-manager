@@ -64,21 +64,17 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
     });
   });
 
-  // Recent sales
-  const recentSales = await SaleModel.find()
+  // Recent sales (only direct sales, not from deliveries to avoid duplication)
+  const recentSales = await SaleModel.find({ deliveryId: { $exists: false } })
     .sort({ saleDate: -1 })
     .limit(3)
-    .select('totalAmount saleDate items deliveryId');
+    .select('totalAmount saleDate items');
 
   recentSales.forEach(sale => {
-    const description = sale.deliveryId 
-      ? `Venta completada (${sale.items?.length || 0} items)`
-      : `Venta directa de ${sale.items?.length || 0} items`;
-    
     recentActivity.push({
       id: `sale-${sale._id}`,
       type: 'sale',
-      description,
+      description: `Venta directa de ${sale.items?.length || 0} items`,
       date: sale.saleDate,
       amount: sale.totalAmount,
       resourceId: sale._id?.toString()
