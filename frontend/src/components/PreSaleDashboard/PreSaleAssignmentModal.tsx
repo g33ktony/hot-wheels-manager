@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { useAssignPreSaleUnits } from '@/hooks/usePresale'
-import { useDeliveries } from '@/hooks/useDeliveries'
+import { useAssignPreSaleUnits, usePreSaleItem } from '@/hooks/usePresale'
+import { useDeliveries, useCreateDelivery } from '@/hooks/useDeliveries'
 import { useCustomers } from '@/hooks/useCustomers'
 import { useCreatePaymentPlan } from '@/hooks/usePaymentPlans'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import LoadingSpinner from '@/components/common/Loading'
-import { AlertCircle, CreditCard, DollarSign } from 'lucide-react'
+import { AlertCircle, CreditCard, Calendar, UserPlus } from 'lucide-react'
 
 interface PreSaleAssignmentModalProps {
     isOpen: boolean
@@ -30,45 +30,73 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
 }) => {
     const [quantity, setQuantity] = useState(1)
     const [selectedDeliveryId, setSelectedDeliveryId] = useState('')
+    const [createNewDelivery, setCreateNewDelivery] = useState(false)
+    const [selectedCustomerId, setSelectedCustomerId] = useState('')
+    const [deliveryDate, setDeliveryDate] = useState('')
     const [errors, setErrors] = useState<Record<string, string>>({})
 
     // Payment plan configuration
     const [enablePaymentPlan, setEnablePaymentPlan] = useState(false)
+    const [customPrice, setCustomPrice] = useState(0) // For manual price adjustment
     const [numberOfPayments, setNumberOfPayments] = useState(3)
-    const [paymentFrequency, setPaymentFrequency] = useState<'weekly' | 'biweekly' | 'monthly'>('biweekly')
-    const [earlyPaymentBonus, setEarlyPaymentBonus] = useState(0)
+    const [paymentFrequency, setPaymentFrequency] = useState<'weekly' | 'monthly'>('weekly')
+    const [paymentDayOfWeek, setPaymentDayOfWeek] = useState(5) // Friday = 5
+    const [paymentDayOfMonth, setPaymentDayOfMonth] = useState(25)
 
     const { data: deliveries = [], isLoading: deliveriesLoading } = useDeliveries()
     const { data: customers = [] } = useCustomers()
+    const { data: preSaleItem } = usePreSaleItem(preSaleItemId)
     const assignUnits = useAssignPreSaleUnits()
+    const createDelivery = useCreateDelivery()
     const createPaymentPlan = useCreatePaymentPlan()
+
+    // Get normalPrice from preSaleItem for payment plans
+    const normalPrice = preSaleItem?.normalPrice || pricePerUnit
+    const effectivePrice = customPrice > 0 ? customPrice : normalPrice
 
     // Get selected delivery details
     const selectedDelivery = deliveries.find((d: any) => d._id === selectedDeliveryId)
-    const customer = customers.find((c: any) => c._id === selectedDelivery?.customerId)
+    const customer = customers.find((c: any) => c._id === (createNewDelivery ? selectedCustomerId : selectedDelivery?.customerId))
 
     // Calculate totals
-    const totalAmount = quantity * pricePerUnit
+    const totalAmount = quantity * effectivePrice
     const paymentAmount = enablePaymentPlan && numberOfPayments > 0
         ? totalAmount / numberOfPayments
         : totalAmount
 
+    // Set default delivery date to preSaleItem endDate
+    useEffect(() => {
+        if (preSaleItem?.endDate && !deliveryDate) {
+            setDeliveryDate(new Date(preSaleItem.endDate).toISOString().split('T')[0])
+        }
+    }, [preSaleItem, deliveryDate])
+
     useEffect(() => {
         // Reset payment plan when delivery changes
-        if (selectedDeliveryId) {
+        if (selectedDeliveryId || createNewDelivery) {
             setEnablePaymentPlan(false)
+            setCustomPrice(0)
             setNumberOfPayments(3)
-            setPaymentFrequency('biweekly')
-            setEarlyPaymentBonus(0)
+            setPaymentFrequency('weekly')
+            setPaymentDayOfWeek(5)
+            setPaymentDayOfMonth(25)
         }
-    }, [selectedDeliveryId])
+    }, [selectedDeliveryId, createNewDelivery])
 
     const handleAssign = async () => {
         // Validate
         const newErrors: Record<string, string> = {}
 
-        if (!selectedDeliveryId) {
-            newErrors.delivery = 'Debes seleccionar una entrega'
+        if (!createNewDelivery && !selectedDeliveryId) {
+            newErrors.delivery = 'Debes seleccionar una entrega o crear una nueva'
+        }
+
+        if (createNewDelivery && !selectedCustomerId) {
+            newErrors.customer = 'Debes seleccionar un cliente'
+        }
+
+        if (createNewDelivery && !deliveryDate) {
+            newErrors.deliveryDate = 'Debes especificar una fecha de entrega'
         }
 
         if (quantity < 1 || quantity > availableQuantity) {
@@ -79,30 +107,49 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
             newErrors.payments = 'Debe haber al menos 2 pagos para un plan de pagos'
         }
 
+        if (enablePaymentPlan && customPrice > 0 && customPrice < 0) {
+            newErrors.customPrice = 'El precio debe ser mayor a 0'
+        }
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors)
             return
         }
 
         try {
-            // 1. Assign units to delivery
+            let finalDeliveryId = selectedDeliveryId
+
+            // 1. Create new delivery if needed
+            if (createNewDelivery && selectedCustomerId && deliveryDate) {
+                const newDelivery = await createDelivery.mutateAsync({
+                    customerId: selectedCustomerId,
+                    scheduledDate: new Date(deliveryDate),
+                    location: '', // Can be added later
+                    items: [],
+                    totalAmount: 0, // Will be updated when units are assigned
+                })
+                finalDeliveryId = newDelivery._id || ''
+            }
+
+            // 2. Assign units to delivery
             await assignUnits.mutateAsync({
                 id: preSaleItemId,
-                deliveryId: selectedDeliveryId,
+                deliveryId: finalDeliveryId,
                 quantity,
                 purchaseId,
             })
 
-            // 2. Create payment plan if enabled and multiple payments
-            if (enablePaymentPlan && numberOfPayments > 1 && selectedDelivery) {
+            // 3. Create payment plan if enabled
+            if (enablePaymentPlan && numberOfPayments > 1 && finalDeliveryId) {
+                const startDate = new Date()
+                
                 await createPaymentPlan.mutateAsync({
-                    deliveryId: selectedDeliveryId,
-                    customerId: selectedDelivery.customerId,
+                    deliveryId: finalDeliveryId,
+                    customerId: createNewDelivery ? selectedCustomerId : selectedDelivery?.customerId,
                     totalAmount,
                     numberOfPayments,
                     paymentFrequency,
-                    startDate: new Date(),
-                    earlyPaymentBonus: earlyPaymentBonus > 0 ? earlyPaymentBonus : undefined,
+                    startDate,
                 })
             }
 
@@ -129,42 +176,117 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                     </div>
                 </div>
 
-                {/* Delivery Selection */}
+                {/* Delivery Selection or Creation */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Entrega
-                    </label>
-                    <select
-                        value={selectedDeliveryId}
-                        onChange={(e) => {
-                            setSelectedDeliveryId(e.target.value)
-                            setErrors({ ...errors, deliveryId: '' })
-                        }}
-                        className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.deliveryId ? 'border-red-500' : 'border-gray-300'
-                            }`}
-                    >
-                        <option value="">Selecciona una entrega...</option>
-                        {deliveries.map((delivery: any) => {
-                            const deliveryCustomer = customers.find((c: any) => c._id === delivery.customerId)
-                            const customerName = deliveryCustomer?.name || 'Sin cliente'
-                            const dateStr = delivery.scheduledDate
-                                ? new Date(delivery.scheduledDate).toLocaleDateString('es-MX', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric'
-                                })
-                                : 'Sin fecha'
-                            const location = delivery.location || ''
+                    <div className="flex items-center gap-3 mb-3">
+                        <input
+                            type="checkbox"
+                            id="createNewDelivery"
+                            checked={createNewDelivery}
+                            onChange={(e) => {
+                                setCreateNewDelivery(e.target.checked)
+                                setSelectedDeliveryId('')
+                                setErrors({ ...errors, delivery: '', customer: '' })
+                            }}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="createNewDelivery" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                            <UserPlus className="w-4 h-4" />
+                            Crear Nueva Entrega
+                        </label>
+                    </div>
 
-                            return (
-                                <option key={delivery._id} value={delivery._id}>
-                                    {customerName} - {dateStr} {location && `- ${location}`}
-                                </option>
-                            )
-                        })}
-                    </select>
-                    {errors.deliveryId && (
-                        <p className="text-sm text-red-500 mt-1">{errors.deliveryId}</p>
+                    {!createNewDelivery ? (
+                        // Select existing delivery
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Entrega Existente
+                            </label>
+                            <select
+                                value={selectedDeliveryId}
+                                onChange={(e) => {
+                                    setSelectedDeliveryId(e.target.value)
+                                    setErrors({ ...errors, delivery: '' })
+                                }}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.delivery ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                            >
+                                <option value="">Selecciona una entrega...</option>
+                                {deliveries.map((delivery: any) => {
+                                    const deliveryCustomer = customers.find((c: any) => c._id === delivery.customerId)
+                                    const customerName = deliveryCustomer?.name || 'Sin cliente'
+                                    const dateStr = delivery.scheduledDate
+                                        ? new Date(delivery.scheduledDate).toLocaleDateString('es-MX', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        })
+                                        : 'Sin fecha'
+                                    const location = delivery.location || ''
+
+                                    return (
+                                        <option key={delivery._id} value={delivery._id}>
+                                            {customerName} - {dateStr} {location && `- ${location}`}
+                                        </option>
+                                    )
+                                })}
+                            </select>
+                            {errors.delivery && (
+                                <p className="text-sm text-red-500 mt-1">{errors.delivery}</p>
+                            )}
+                        </div>
+                    ) : (
+                        // Create new delivery
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Cliente
+                                </label>
+                                <select
+                                    value={selectedCustomerId}
+                                    onChange={(e) => {
+                                        setSelectedCustomerId(e.target.value)
+                                        setErrors({ ...errors, customer: '' })
+                                    }}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.customer ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                >
+                                    <option value="">Selecciona un cliente...</option>
+                                    {customers.map((cust: any) => (
+                                        <option key={cust._id} value={cust._id}>
+                                            {cust.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.customer && (
+                                    <p className="text-sm text-red-500 mt-1">{errors.customer}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                                    <Calendar className="w-4 h-4" />
+                                    Fecha de Entrega
+                                </label>
+                                <Input
+                                    type="date"
+                                    value={deliveryDate}
+                                    onChange={(e) => {
+                                        setDeliveryDate(e.target.value)
+                                        setErrors({ ...errors, deliveryDate: '' })
+                                    }}
+                                    className={errors.deliveryDate ? 'border-red-500' : ''}
+                                />
+                                {errors.deliveryDate && (
+                                    <p className="text-sm text-red-500 mt-1">{errors.deliveryDate}</p>
+                                )}
+                                {preSaleItem?.endDate && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Default: Fin de Pre-Sale ({new Date(preSaleItem.endDate).toLocaleDateString('es-MX')})
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
 
@@ -239,7 +361,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                 </div>
 
                 {/* Payment Plan Configuration */}
-                {selectedDeliveryId && (
+                {(selectedDeliveryId || createNewDelivery) && (
                     <div className="border border-gray-200 rounded-lg p-4 space-y-3">
                         <div className="flex items-center gap-2">
                             <CreditCard className="w-5 h-5 text-blue-600" />
@@ -256,12 +378,46 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                             />
                             <label htmlFor="enablePaymentPlan" className="text-sm font-medium text-gray-700">
-                                Crear plan de pagos (pagos en parcialidades)
+                                Asignar con plan de pagos (a plazos)
                             </label>
                         </div>
 
                         {enablePaymentPlan && (
                             <>
+                                {/* Custom Price */}
+                                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                                    <label className="block text-sm font-medium text-green-800 mb-2">
+                                        Precio por Unidad
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1">
+                                            <Input
+                                                type="number"
+                                                value={customPrice || normalPrice}
+                                                onChange={(e) => {
+                                                    const price = parseFloat(e.target.value) || 0
+                                                    setCustomPrice(price)
+                                                }}
+                                                min="0"
+                                                step="0.01"
+                                                placeholder={normalPrice.toFixed(2)}
+                                            />
+                                        </div>
+                                        {customPrice > 0 && customPrice !== normalPrice && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setCustomPrice(0)}
+                                                className="text-xs text-blue-600 hover:text-blue-800"
+                                            >
+                                                Resetear
+                                            </button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-green-700 mt-1">
+                                        Normal Price: ${normalPrice.toFixed(2)} (Se usa el normal price por defecto para planes de pago)
+                                    </p>
+                                </div>
+
                                 {/* Number of Payments */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -283,7 +439,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Periodicidad
                                     </label>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-2 gap-2">
                                         <button
                                             type="button"
                                             onClick={() => setPaymentFrequency('weekly')}
@@ -293,16 +449,6 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                                 }`}
                                         >
                                             Semanal
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setPaymentFrequency('biweekly')}
-                                            className={`px-3 py-2 rounded-lg text-sm font-medium transition ${paymentFrequency === 'biweekly'
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            Quincenal
                                         </button>
                                         <button
                                             type="button"
@@ -317,30 +463,62 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                     </div>
                                 </div>
 
-                                {/* Early Payment Bonus */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Bonificación por Pronto Pago (opcional)
-                                    </label>
-                                    <div className="relative">
-                                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <Input
-                                            type="number"
-                                            value={earlyPaymentBonus}
-                                            onChange={(e) => setEarlyPaymentBonus(parseFloat(e.target.value) || 0)}
-                                            min="0"
-                                            step="10"
-                                            className="pl-9"
-                                            placeholder="0"
-                                        />
+                                {/* Payment Day Selection */}
+                                {paymentFrequency === 'weekly' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Día de Pago (Semanal)
+                                        </label>
+                                        <select
+                                            value={paymentDayOfWeek}
+                                            onChange={(e) => setPaymentDayOfWeek(parseInt(e.target.value))}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value={0}>Domingo</option>
+                                            <option value={1}>Lunes</option>
+                                            <option value={2}>Martes</option>
+                                            <option value={3}>Miércoles</option>
+                                            <option value={4}>Jueves</option>
+                                            <option value={5}>Viernes</option>
+                                            <option value={6}>Sábado</option>
+                                        </select>
                                     </div>
-                                </div>
+                                )}
+
+                                {paymentFrequency === 'monthly' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                                            <Calendar className="w-4 h-4" />
+                                            Día del Mes
+                                        </label>
+                                        <select
+                                            value={paymentDayOfMonth}
+                                            onChange={(e) => setPaymentDayOfMonth(parseInt(e.target.value))}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                                                <option key={day} value={day}>Día {day}</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Los pagos se harán el día {paymentDayOfMonth} de cada mes
+                                        </p>
+                                    </div>
+                                )}
 
                                 {/* Payment Preview */}
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                                     <p className="text-xs font-semibold text-blue-900 mb-2">Vista Previa del Plan</p>
                                     <div className="space-y-1 text-sm">
                                         <div className="flex justify-between">
+                                            <span className="text-blue-700">Precio por unidad:</span>
+                                            <span className="font-bold text-blue-900">${effectivePrice.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-blue-700">Cantidad:</span>
+                                            <span className="font-bold text-blue-900">{quantity}</span>
+                                        </div>
+                                        <div className="flex justify-between border-t border-blue-300 pt-1">
                                             <span className="text-blue-700">Monto total:</span>
                                             <span className="font-bold text-blue-900">${totalAmount.toFixed(2)}</span>
                                         </div>
@@ -355,16 +533,11 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                         <div className="flex justify-between">
                                             <span className="text-blue-700">Frecuencia:</span>
                                             <span className="font-bold text-blue-900">
-                                                {paymentFrequency === 'weekly' ? 'Semanal' :
-                                                    paymentFrequency === 'biweekly' ? 'Quincenal' : 'Mensual'}
+                                                {paymentFrequency === 'weekly' 
+                                                    ? `Semanal (${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][paymentDayOfWeek]})` 
+                                                    : `Mensual (día ${paymentDayOfMonth})`}
                                             </span>
                                         </div>
-                                        {earlyPaymentBonus > 0 && (
-                                            <div className="flex justify-between">
-                                                <span className="text-blue-700">Bonificación:</span>
-                                                <span className="font-bold text-green-600">${earlyPaymentBonus.toFixed(2)}</span>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             </>
@@ -388,17 +561,25 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                             <span className="text-gray-600">Unidades:</span>
                             <span className="font-bold text-gray-900">{quantity}</span>
                         </div>
-                        {pricePerUnit > 0 && (
-                            <>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Precio unitario:</span>
-                                    <span className="font-bold text-gray-900">${pricePerUnit.toFixed(2)}</span>
-                                </div>
-                                <div className="border-t border-gray-300 pt-2 flex justify-between text-sm">
-                                    <span className="text-gray-700 font-medium">Monto Total:</span>
-                                    <span className="font-bold text-blue-600 text-lg">${totalAmount.toFixed(2)}</span>
-                                </div>
-                            </>
+                        <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Precio unitario:</span>
+                            <span className="font-bold text-gray-900">${effectivePrice.toFixed(2)}</span>
+                        </div>
+                        {enablePaymentPlan && customPrice > 0 && customPrice !== normalPrice && (
+                            <div className="flex justify-between text-xs">
+                                <span className="text-blue-600">Precio personalizado:</span>
+                                <span className="font-semibold text-blue-600">Aplicado</span>
+                            </div>
+                        )}
+                        <div className="border-t border-gray-300 pt-2 flex justify-between text-sm">
+                            <span className="text-gray-700 font-medium">Monto Total:</span>
+                            <span className="font-bold text-blue-600 text-lg">${totalAmount.toFixed(2)}</span>
+                        </div>
+                        {enablePaymentPlan && (
+                            <div className="flex justify-between text-xs text-green-600">
+                                <span>Plan de pagos:</span>
+                                <span className="font-semibold">{numberOfPayments} pagos de ${paymentAmount.toFixed(2)}</span>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -413,13 +594,14 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                     </button>
                     <Button
                         onClick={handleAssign}
-                        disabled={assignUnits.isLoading || createPaymentPlan.isLoading || deliveriesLoading}
+                        disabled={assignUnits.isLoading || createPaymentPlan.isLoading || createDelivery.isLoading || deliveriesLoading}
                         className="flex-1"
                     >
-                        {(assignUnits.isLoading || createPaymentPlan.isLoading) ? (
+                        {(assignUnits.isLoading || createPaymentPlan.isLoading || createDelivery.isLoading) ? (
                             <div className="flex items-center gap-2">
                                 <LoadingSpinner size="sm" />
-                                {createPaymentPlan.isLoading ? 'Creando plan...' : 'Asignando...'}
+                                {createDelivery.isLoading ? 'Creando entrega...' :
+                                 createPaymentPlan.isLoading ? 'Creando plan...' : 'Asignando...'}
                             </div>
                         ) : (
                             'Asignar Unidades'

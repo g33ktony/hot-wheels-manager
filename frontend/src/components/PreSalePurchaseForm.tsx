@@ -42,6 +42,7 @@ export default function PreSalePurchaseForm({
         unitPrice: 0,
         markupPercentage: 15,
         preSalePrice: 0,
+        normalPrice: 0, // Can be manually edited
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         purchaseDate: new Date().toISOString().split('T')[0],
         preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -82,11 +83,12 @@ export default function PreSalePurchaseForm({
         return unitPrice * (1 + markup / 100)
     }
 
-    // Normal price is always calculated from markup
-    const normalPrice = calculateNormalPrice(formData.unitPrice, formData.markupPercentage)
+    // Normal price is always calculated from markup (but can be overridden)
+    const calculatedNormalPrice = calculateNormalPrice(formData.unitPrice, formData.markupPercentage)
+    const finalNormalPrice = formData.normalPrice > 0 ? formData.normalPrice : calculatedNormalPrice
     
     // Use pre-sale price if set, otherwise use normal price
-    const effectivePrice = formData.preSalePrice > 0 ? formData.preSalePrice : normalPrice
+    const effectivePrice = formData.preSalePrice > 0 ? formData.preSalePrice : finalNormalPrice
 
     const totalCost = effectivePrice * formData.quantity
     const profit = (effectivePrice - formData.unitPrice) * formData.quantity
@@ -110,8 +112,8 @@ export default function PreSalePurchaseForm({
         if (formData.markupPercentage < 0 || formData.markupPercentage > 100) {
             newErrors.markupPercentage = 'Markup must be between 0 and 100'
         }
-        if (formData.preSalePrice > 0 && formData.preSalePrice >= normalPrice) {
-            newErrors.preSalePrice = `Pre-sale price must be lower than normal price ($${normalPrice.toFixed(2)})`
+        if (formData.preSalePrice > 0 && formData.preSalePrice >= (formData.normalPrice || calculatedNormalPrice)) {
+            newErrors.preSalePrice = `Pre-sale price must be lower than normal price ($${(formData.normalPrice || calculatedNormalPrice).toFixed(2)})`
         }
 
         setErrors(newErrors)
@@ -161,7 +163,7 @@ export default function PreSalePurchaseForm({
                 unitPrice: formData.unitPrice,
                 markupPercentage: formData.markupPercentage,
                 preSalePrice: formData.preSalePrice > 0 ? formData.preSalePrice : undefined,
-                normalPrice: normalPrice, // Always send calculated normal price
+                normalPrice: formData.normalPrice > 0 ? formData.normalPrice : calculatedNormalPrice, // Send custom or calculated
                 photo: formData.photo
             })
 
@@ -173,6 +175,7 @@ export default function PreSalePurchaseForm({
                 unitPrice: 0,
                 markupPercentage: 15,
                 preSalePrice: 0,
+                normalPrice: 0,
                 condition: 'mint',
                 purchaseDate: new Date().toISOString().split('T')[0],
                 preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -343,19 +346,28 @@ export default function PreSalePurchaseForm({
                                 Pricing Strategy
                             </h3>
                             
-                            {/* Normal Price (Auto-calculated from markup) */}
+                            {/* Normal Price (Auto-calculated from markup but editable) */}
                             <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                                 <label className="block text-sm font-medium text-green-800 mb-2">
-                                    Normal Price (Auto-calculated)
+                                    Normal Price (Editable)
                                 </label>
-                                <div className="text-2xl font-bold text-green-900">
-                                    ${normalPrice.toFixed(2)}
-                                </div>
+                                <Input
+                                    type="number"
+                                    value={formData.normalPrice || calculatedNormalPrice}
+                                    onChange={(e) => {
+                                        const customNormalPrice = parseFloat(e.target.value) || 0
+                                        setFormData({ ...formData, normalPrice: customNormalPrice })
+                                    }}
+                                    min="0"
+                                    step="0.01"
+                                    placeholder={calculatedNormalPrice.toFixed(2)}
+                                    className="mb-2 font-bold text-lg"
+                                />
                                 <p className="text-xs text-green-700 mt-1">
-                                    Base ${formData.unitPrice.toFixed(2)} + {formData.markupPercentage}% markup
+                                    Auto-calculated: ${calculatedNormalPrice.toFixed(2)} (Base ${formData.unitPrice.toFixed(2)} + {formData.markupPercentage}% markup)
                                 </p>
                                 <p className="text-xs text-gray-600 mt-1">
-                                    This price applies after receiving the item and for all statuses except 'active'
+                                    You can edit this if the calculated value doesn't match your exact target price
                                 </p>
                             </div>
 
@@ -377,11 +389,11 @@ export default function PreSalePurchaseForm({
                                     className="mb-2"
                                 />
                                 <p className="text-xs text-blue-700 mt-1">
-                                    Special discounted price during pre-sale period (must be lower than ${normalPrice.toFixed(2)})
+                                    Special discounted price during pre-sale period (must be lower than ${(formData.normalPrice || calculatedNormalPrice).toFixed(2)})
                                 </p>
-                                {formData.preSalePrice > 0 && formData.preSalePrice < normalPrice && (
+                                {formData.preSalePrice > 0 && formData.preSalePrice < (formData.normalPrice || calculatedNormalPrice) && (
                                     <div className="mt-2 text-xs text-green-600 font-medium">
-                                        ✓ Discount: ${(normalPrice - formData.preSalePrice).toFixed(2)} ({(((normalPrice - formData.preSalePrice) / normalPrice) * 100).toFixed(1)}% off)
+                                        ✓ Discount: ${((formData.normalPrice || calculatedNormalPrice) - formData.preSalePrice).toFixed(2)} ({((((formData.normalPrice || calculatedNormalPrice) - formData.preSalePrice) / (formData.normalPrice || calculatedNormalPrice)) * 100).toFixed(1)}% off)
                                     </div>
                                 )}
                             </div>
@@ -405,7 +417,7 @@ export default function PreSalePurchaseForm({
                             <div className="border-t border-purple-200 pt-3 space-y-2">
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm text-gray-700">Normal Price / Unit:</span>
-                                    <span className="font-semibold text-green-700">${normalPrice.toFixed(2)}</span>
+                                    <span className="font-semibold text-green-700">${finalNormalPrice.toFixed(2)}</span>
                                 </div>
                                 {formData.preSalePrice > 0 && (
                                     <div className="flex justify-between items-center">

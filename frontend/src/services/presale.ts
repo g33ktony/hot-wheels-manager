@@ -10,7 +10,9 @@ export interface PreSaleItem {
   basePricePerUnit: number
   markupPercentage: number
   finalPricePerUnit: number
-  status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
+  preSalePrice?: number
+  normalPrice?: number
+  status: 'active' | 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
   startDate: Date
   endDate?: Date
   purchaseIds: string[]
