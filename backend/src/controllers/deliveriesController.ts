@@ -131,6 +131,15 @@ export const createDelivery = async (req: Request, res: Response) => {
   try {
     const { customerId, items, scheduledDate, scheduledTime, location, notes, forPreSale, totalAmount: requestTotalAmount } = req.body;
 
+    console.log('📦 CREATE DELIVERY REQUEST:', {
+      customerId,
+      itemsCount: items?.length || 0,
+      requestTotalAmount,
+      forPreSale,
+      location,
+      scheduledDate
+    });
+
     // Validate required fields
     // Allow empty items array if creating for PreSale (items will be added during assignment)
     if (!customerId) {
@@ -222,6 +231,13 @@ export const createDelivery = async (req: Request, res: Response) => {
     const resolvedTotalAmount = totalAmount ?? 0;
     const hasPresaleItems = !!forPreSale || (items && items.some((item: any) => item.inventoryItemId?.startsWith('presale_')));
 
+    console.log('📦 DELIVERY CREATION DETAILS:', {
+      calculatedTotalAmount: totalAmount,
+      resolvedTotalAmount,
+      hasPresaleItems,
+      location: resolvedLocation
+    });
+
     const delivery = new DeliveryModel({
       customerId,
       customer,
@@ -236,6 +252,13 @@ export const createDelivery = async (req: Request, res: Response) => {
     });
 
     await delivery.save();
+
+    console.log('✅ DELIVERY SAVED:', {
+      _id: delivery._id,
+      totalAmount: delivery.totalAmount,
+      paidAmount: delivery.paidAmount,
+      paymentStatus: delivery.paymentStatus
+    });
 
     res.status(201).json({
       success: true,
