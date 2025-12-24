@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, CheckCircle, AlertCircle, Calendar } from 'lucide-react'
-import { useCreatePreSalePayment, useRecordPreSalePayment } from '@/hooks/usePresale'
-import { presaleService } from '@/services/presale'
 import { useDeliveries } from '@/hooks/useDeliveries'
-import { usePaymentPlans } from '@/hooks/usePaymentPlans'
+import { usePaymentPlans, useCreatePaymentPlan, useRecordPayment } from '@/hooks/usePaymentPlans'
 
 interface PreSalePaymentModalProps {
     isOpen: boolean
@@ -27,12 +25,10 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
     const { data: allDeliveries = [] } = useDeliveries()
     const { data: paymentPlans = [] } = usePaymentPlans()
 
-    // Filter to show only deliveries that:
-    // 1. Are marked with forPreSale flag, OR
-    // 2. Don't have a payment plan yet (available for new plan creation)
+    // Filter to show only deliveries that don't have a payment plan yet
     const deliveries = allDeliveries.filter((delivery: any) => {
         const hasPaymentPlan = paymentPlans.some((plan: any) => plan.deliveryId === delivery._id)
-        return !hasPaymentPlan || delivery.forPreSale
+        return !hasPaymentPlan
     })
 
     // Form state for creating payment plan
@@ -46,45 +42,41 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
     const [paymentDate, setPaymentDate] = useState('')
     const [paymentNotes, setPaymentNotes] = useState('')
 
-    const createPayment = useCreatePreSalePayment()
-    const recordPayment = useRecordPreSalePayment()
+    const createPaymentPlan = useCreatePaymentPlan()
+    const recordPayment = useRecordPayment()
 
     // Update editable total when prop changes
     useEffect(() => {
         setEditableTotalAmount(totalAmount)
     }, [totalAmount])
 
-    // Fetch existing payment plan when delivery is selected
+    // Find existing payment plan when delivery is selected
     useEffect(() => {
-        const fetchPaymentPlan = async () => {
-            if (selectedDelivery) {
-                try {
-                    const plan = await presaleService.payments.getByDelivery(selectedDelivery)
-                    setExistingPlan(plan)
-                    setPaymentPlanId(plan._id || '')
-                    setActiveTab('view')
-                } catch (error) {
-                    setExistingPlan(null)
-                    setPaymentPlanId('')
-                    setActiveTab('create')
-                }
+        if (selectedDelivery) {
+            const plan = paymentPlans.find((p: any) => p.deliveryId === selectedDelivery)
+            if (plan) {
+                setExistingPlan(plan)
+                setPaymentPlanId(plan._id || '')
+                setActiveTab('view')
+            } else {
+                setExistingPlan(null)
+                setPaymentPlanId('')
+                setActiveTab('create')
             }
         }
-
-        fetchPaymentPlan()
-    }, [selectedDelivery])
+    }, [selectedDelivery, paymentPlans])
 
     const handleCreatePaymentPlan = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!selectedDelivery || !numberOfPayments) return
 
         try {
-            await createPayment.mutateAsync({
+            await createPaymentPlan.mutateAsync({
                 deliveryId: selectedDelivery,
                 totalAmount: editableTotalAmount,
                 numberOfPayments: parseInt(numberOfPayments),
                 paymentFrequency,
-                startDate: startDate ? new Date(startDate) : undefined,
+                startDate: startDate ? new Date(startDate) : new Date(),
             })
             // Reset form
             setEditableTotalAmount(totalAmount)
@@ -104,9 +96,8 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
 
         try {
             await recordPayment.mutateAsync({
-                id: paymentPlanId,
+                planId: paymentPlanId,
                 amount: parseFloat(paymentAmount),
-                paymentDate: paymentDate ? new Date(paymentDate) : undefined,
                 notes: paymentNotes,
             })
             // Reset form
@@ -385,10 +376,10 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                         </button>
                                         <button
                                             type="submit"
-                                            disabled={createPayment.isLoading}
+                                            disabled={createPaymentPlan.isLoading}
                                             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition font-medium"
                                         >
-                                            {createPayment.isLoading ? 'Creando...' : 'Crear Plan'}
+                                            {createPaymentPlan.isLoading ? 'Creando...' : 'Crear Plan'}
                                         </button>
                                     </div>
                                 </form>
