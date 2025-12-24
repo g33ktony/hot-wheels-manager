@@ -2,7 +2,7 @@ import React from 'react'
 import { TrendingUp, Package, Clock, CheckCircle, AlertCircle, Zap } from 'lucide-react'
 
 interface PreSaleItem {
-    status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
+    status: 'active' | 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
     totalQuantity: number
     assignedQuantity: number
     availableQuantity: number
@@ -17,7 +17,7 @@ interface PreSaleStatsProps {
 
 const PreSaleStats: React.FC<PreSaleStatsProps> = ({ items = [] }) => {
     // Calculate metrics
-    const activeItems = items.filter((item) => ['purchased', 'shipped', 'received', 'reserved', 'payment-plan', 'payment-pending', 'ready'].includes(item.status)).length
+    const activeItems = items.filter((item) => ['active', 'purchased', 'shipped', 'received', 'reserved', 'payment-plan', 'payment-pending', 'ready'].includes(item.status)).length
     const completedItems = items.filter((item) => item.status === 'delivered').length
     const inTransitItems = items.filter((item) => ['purchased', 'shipped'].includes(item.status)).length
     const cancelledItems = items.filter((item) => item.status === 'cancelled').length
