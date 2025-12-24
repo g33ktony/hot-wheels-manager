@@ -1443,11 +1443,25 @@ export default function Inventory() {
                                             </label>
                                             <input
                                                 type="number"
+                                                inputMode="numeric"
                                                 className="input w-full"
                                                 min="2"
                                                 max="20"
-                                                value={newItem.seriesSize}
-                                                onChange={(e) => setNewItem({ ...newItem, seriesSize: parseInt(e.target.value) || 5 })}
+                                                value={newItem.seriesSize || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value
+                                                    if (val === '') {
+                                                        setNewItem({ ...newItem, seriesSize: '' as any })
+                                                    } else {
+                                                        const num = parseInt(val)
+                                                        setNewItem({ ...newItem, seriesSize: isNaN(num) ? 5 : num })
+                                                    }
+                                                }}
+                                                onBlur={(e) => {
+                                                    if (e.target.value === '') {
+                                                        setNewItem({ ...newItem, seriesSize: 5 })
+                                                    }
+                                                }}
                                             />
                                         </div>
 
@@ -1457,12 +1471,23 @@ export default function Inventory() {
                                             </label>
                                             <input
                                                 type="number"
+                                                inputMode="decimal"
                                                 className="input w-full"
                                                 placeholder="Auto (85% del total)"
                                                 value={newItem.seriesPrice || ''}
                                                 onChange={(e) => {
-                                                    const value = parseFloat(e.target.value) || 0
-                                                    setNewItem({ ...newItem, seriesPrice: value })
+                                                    const val = e.target.value
+                                                    if (val === '') {
+                                                        setNewItem({ ...newItem, seriesPrice: '' as any })
+                                                    } else {
+                                                        const num = parseFloat(val)
+                                                        setNewItem({ ...newItem, seriesPrice: isNaN(num) ? 0 : num })
+                                                    }
+                                                }}
+                                                onBlur={(e) => {
+                                                    if (e.target.value === '') {
+                                                        setNewItem({ ...newItem, seriesPrice: 0 })
+                                                    }
                                                 }}
                                             />
                                         </div>
@@ -1645,14 +1670,27 @@ export default function Inventory() {
                                 </label>
                                 <input
                                     type="number"
+                                    inputMode="numeric"
                                     min="1"
                                     className="input w-full"
-                                    value={newItem.quantity === 0 ? '' : newItem.quantity}
+                                    value={newItem.quantity || ''}
                                     disabled={newItem.isBox}
                                     onChange={(e) => {
                                         if (!newItem.isBox) {
-                                            const value = e.target.value === '' ? 0 : parseInt(e.target.value)
-                                            setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
+                                            const val = e.target.value
+                                            if (val === '') {
+                                                setNewItem({ ...newItem, quantity: '' as any })
+                                            } else {
+                                                const num = parseInt(val)
+                                                setNewItem({ ...newItem, quantity: isNaN(num) ? 1 : Math.max(1, num) })
+                                            }
+                                        }
+                                    }}
+                                    onBlur={(e) => {
+                                        if (!newItem.isBox && (e.target.value === '' || parseInt(e.target.value) < 1)) {
+                                            setNewItem({ ...newItem, quantity: 1 })
+                                        }
+                                    }}
                                         }
                                     }}
                                 />

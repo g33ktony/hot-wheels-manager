@@ -1301,9 +1301,23 @@ export default function Deliveries() {
                                             <div className="w-20 min-w-[80px]">
                                                 <Input
                                                     type="number"
+                                                    inputMode="numeric"
                                                     placeholder="Qty"
-                                                    value={item.quantity}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                                                    value={item.quantity || ''}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                        const val = e.target.value
+                                                        if (val === '') {
+                                                            updateDeliveryItem(index, 'quantity', '')
+                                                        } else {
+                                                            const num = parseInt(val)
+                                                            updateDeliveryItem(index, 'quantity', isNaN(num) ? 1 : Math.max(1, num))
+                                                        }
+                                                    }}
+                                                    onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                                                        if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                                                            updateDeliveryItem(index, 'quantity', 1)
+                                                        }
+                                                    }}
                                                     min="1"
                                                     disabled={item.isSoldAsSeries}
                                                     className="min-h-[44px]"
@@ -1312,9 +1326,23 @@ export default function Deliveries() {
                                             <div className="flex-1 sm:w-24 sm:flex-none">
                                                 <Input
                                                     type="number"
+                                                    inputMode="decimal"
                                                     placeholder="Precio"
-                                                    value={item.unitPrice}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateDeliveryItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                    value={item.unitPrice || ''}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                        const val = e.target.value
+                                                        if (val === '') {
+                                                            updateDeliveryItem(index, 'unitPrice', '')
+                                                        } else {
+                                                            const num = parseFloat(val)
+                                                            updateDeliveryItem(index, 'unitPrice', isNaN(num) ? 0 : num)
+                                                        }
+                                                    }}
+                                                    onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                                                        if (e.target.value === '' || parseFloat(e.target.value) < 0) {
+                                                            updateDeliveryItem(index, 'unitPrice', 0)
+                                                        }
+                                                    }}
                                                     step="0.01"
                                                     min="0"
                                                     disabled={item.isSoldAsSeries}
@@ -1433,13 +1461,24 @@ export default function Deliveries() {
                                             </label>
                                             <input
                                                 type="number"
+                                                inputMode="numeric"
                                                 min="2"
                                                 max="12"
-                                                value={paymentPlanConfig.numberOfPayments}
-                                                onChange={(e) => setPaymentPlanConfig({
-                                                    ...paymentPlanConfig,
-                                                    numberOfPayments: parseInt(e.target.value) || 2
-                                                })}
+                                                value={paymentPlanConfig.numberOfPayments || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value
+                                                    if (val === '') {
+                                                        setPaymentPlanConfig({ ...paymentPlanConfig, numberOfPayments: '' as any })
+                                                    } else {
+                                                        const num = parseInt(val)
+                                                        setPaymentPlanConfig({ ...paymentPlanConfig, numberOfPayments: isNaN(num) ? 2 : Math.max(2, Math.min(12, num)) })
+                                                    }
+                                                }}
+                                                onBlur={(e) => {
+                                                    if (e.target.value === '' || parseInt(e.target.value) < 2) {
+                                                        setPaymentPlanConfig({ ...paymentPlanConfig, numberOfPayments: 2 })
+                                                    }
+                                                }}
                                                 className="input w-full"
                                             />
                                         </div>
@@ -1483,13 +1522,28 @@ export default function Deliveries() {
                                             </label>
                                             <input
                                                 type="number"
+                                                inputMode="decimal"
                                                 min="0"
                                                 max="20"
                                                 step="0.5"
-                                                value={paymentPlanConfig.earlyPaymentBonus}
-                                                onChange={(e) => setPaymentPlanConfig({
-                                                    ...paymentPlanConfig,
-                                                    earlyPaymentBonus: parseFloat(e.target.value) || 0
+                                                value={paymentPlanConfig.earlyPaymentBonus || ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value
+                                                    if (val === '') {
+                                                        setPaymentPlanConfig({ ...paymentPlanConfig, earlyPaymentBonus: '' as any })
+                                                    } else {
+                                                        const num = parseFloat(val)
+                                                        setPaymentPlanConfig({ ...paymentPlanConfig, earlyPaymentBonus: isNaN(num) ? 0 : Math.max(0, Math.min(20, num)) })
+                                                    }
+                                                }}
+                                                onBlur={(e) => {
+                                                    if (e.target.value === '' || parseFloat(e.target.value) < 0) {
+                                                        setPaymentPlanConfig({ ...paymentPlanConfig, earlyPaymentBonus: 0 })
+                                                    }
+                                                }}
+                                                className="input w-full"
+                                            />
+                                        </div>
                                                 })}
                                                 className="input w-full"
                                             />
@@ -2017,11 +2071,23 @@ export default function Deliveries() {
                             </label>
                             <Input
                                 type="number"
+                                inputMode="decimal"
                                 placeholder="0.00"
                                 value={newPayment.amount || ''}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                    setNewPayment({ ...newPayment, amount: parseFloat(e.target.value) || 0 })
-                                }
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    const val = e.target.value
+                                    if (val === '') {
+                                        setNewPayment({ ...newPayment, amount: 0 })
+                                    } else {
+                                        const num = parseFloat(val)
+                                        setNewPayment({ ...newPayment, amount: isNaN(num) ? 0 : num })
+                                    }
+                                }}
+                                onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                                    if (e.target.value === '') {
+                                        setNewPayment({ ...newPayment, amount: 0 })
+                                    }
+                                }}
                                 step="0.01"
                                 min="0"
                                 max={selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)}
