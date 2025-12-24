@@ -239,17 +239,26 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
   }
 )
 
-// Pre-save middleware: Update finalPricePerUnit based on status
+// Pre-save middleware: Calculate prices and update totals
 PreSaleItemSchema.pre('save', function(next) {
+  // Always calculate normalPrice from basePricePerUnit and markupPercentage if not set
+  if (!this.normalPrice || this.normalPrice === 0) {
+    this.normalPrice = this.basePricePerUnit * (1 + this.markupPercentage / 100)
+  }
+  
+  // Validate that preSalePrice (if set) is lower than normalPrice
+  if (this.preSalePrice && this.preSalePrice > 0 && this.preSalePrice >= this.normalPrice) {
+    throw new Error(`Pre-sale price ($${this.preSalePrice}) must be lower than normal price ($${this.normalPrice})`)
+  }
+  
   // Update finalPricePerUnit based on current status
   if (this.status === 'active' && this.preSalePrice && this.preSalePrice > 0) {
     // Use pre-sale price when status is active
     this.finalPricePerUnit = this.preSalePrice
-  } else if (this.normalPrice && this.normalPrice > 0) {
+  } else {
     // Use normal price for all other statuses
     this.finalPricePerUnit = this.normalPrice
   }
-  // If neither is set, keep the calculated finalPricePerUnit from markup
   
   // Recalculate totals
   this.totalSaleAmount = this.finalPricePerUnit * this.totalQuantity

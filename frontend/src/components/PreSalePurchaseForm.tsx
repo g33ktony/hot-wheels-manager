@@ -41,9 +41,7 @@ export default function PreSalePurchaseForm({
         quantity: 1,
         unitPrice: 0,
         markupPercentage: 15,
-        finalPrice: 0,
         preSalePrice: 0,
-        normalPrice: 0,
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         purchaseDate: new Date().toISOString().split('T')[0],
         preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -79,18 +77,19 @@ export default function PreSalePurchaseForm({
         setFormData({ ...formData, photo: null })
     }
 
-    // Calculate final price based on unit price and markup
-    const calculateFinalPrice = (unitPrice: number, markup: number): number => {
+    // Calculate normal price based on unit price and markup (this is the max profit price)
+    const calculateNormalPrice = (unitPrice: number, markup: number): number => {
         return unitPrice * (1 + markup / 100)
     }
 
-    // Use either calculated or manually entered final price
-    const finalPricePerUnit = formData.finalPrice > 0
-        ? formData.finalPrice
-        : calculateFinalPrice(formData.unitPrice, formData.markupPercentage)
+    // Normal price is always calculated from markup
+    const normalPrice = calculateNormalPrice(formData.unitPrice, formData.markupPercentage)
+    
+    // Use pre-sale price if set, otherwise use normal price
+    const effectivePrice = formData.preSalePrice > 0 ? formData.preSalePrice : normalPrice
 
-    const totalCost = finalPricePerUnit * formData.quantity
-    const profit = (finalPricePerUnit - formData.unitPrice) * formData.quantity
+    const totalCost = effectivePrice * formData.quantity
+    const profit = (effectivePrice - formData.unitPrice) * formData.quantity
 
     // Validation
     const validateForm = (): boolean => {
@@ -110,6 +109,9 @@ export default function PreSalePurchaseForm({
         }
         if (formData.markupPercentage < 0 || formData.markupPercentage > 100) {
             newErrors.markupPercentage = 'Markup must be between 0 and 100'
+        }
+        if (formData.preSalePrice > 0 && formData.preSalePrice >= normalPrice) {
+            newErrors.preSalePrice = `Pre-sale price must be lower than normal price ($${normalPrice.toFixed(2)})`
         }
 
         setErrors(newErrors)
@@ -158,8 +160,8 @@ export default function PreSalePurchaseForm({
                 quantity: formData.quantity,
                 unitPrice: formData.unitPrice,
                 markupPercentage: formData.markupPercentage,
-                preSalePrice: formData.preSalePrice,
-                normalPrice: formData.normalPrice,
+                preSalePrice: formData.preSalePrice > 0 ? formData.preSalePrice : undefined,
+                normalPrice: normalPrice, // Always send calculated normal price
                 photo: formData.photo
             })
 
@@ -170,9 +172,7 @@ export default function PreSalePurchaseForm({
                 quantity: 1,
                 unitPrice: 0,
                 markupPercentage: 15,
-                finalPrice: 0,
                 preSalePrice: 0,
-                normalPrice: 0,
                 condition: 'mint',
                 purchaseDate: new Date().toISOString().split('T')[0],
                 preSaleScheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -323,7 +323,7 @@ export default function PreSalePurchaseForm({
                                     value={formData.markupPercentage}
                                     onChange={(e) => {
                                         const markup = parseFloat(e.target.value) || 0
-                                        setFormData({ ...formData, markupPercentage: markup, finalPrice: 0 })
+                                        setFormData({ ...formData, markupPercentage: markup })
                                     }}
                                     min="0"
                                     step="0.1"
@@ -336,64 +336,98 @@ export default function PreSalePurchaseForm({
                             </div>
                         </div>
 
-                        {/* Pre-Sale Price */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                <DollarSign className="inline-block w-4 h-4 mr-1" />
-                                Pre-Sale Price (while active - optional)
-                            </label>
-                            <Input
-                                type="number"
-                                value={formData.preSalePrice}
-                                onChange={(e) => {
-                                    const preSalePrice = parseFloat(e.target.value) || 0
-                                    setFormData({ ...formData, preSalePrice })
-                                }}
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Special price during pre-sale period</p>
-                        </div>
+                        {/* Pre-Sale Price and Normal Price Section */}
+                        <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-gray-300 rounded-lg p-4 space-y-4">
+                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                <DollarSign className="w-5 h-5" />
+                                Pricing Strategy
+                            </h3>
+                            
+                            {/* Normal Price (Auto-calculated from markup) */}
+                            <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                                <label className="block text-sm font-medium text-green-800 mb-2">
+                                    Normal Price (Auto-calculated)
+                                </label>
+                                <div className="text-2xl font-bold text-green-900">
+                                    ${normalPrice.toFixed(2)}
+                                </div>
+                                <p className="text-xs text-green-700 mt-1">
+                                    Base ${formData.unitPrice.toFixed(2)} + {formData.markupPercentage}% markup
+                                </p>
+                                <p className="text-xs text-gray-600 mt-1">
+                                    This price applies after receiving the item and for all statuses except 'active'
+                                </p>
+                            </div>
 
-                        {/* Normal Price */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                <DollarSign className="inline-block w-4 h-4 mr-1" />
-                                Normal Price (required)
-                            </label>
-                            <Input
-                                type="number"
-                                value={formData.normalPrice}
-                                onChange={(e) => {
-                                    const normalPrice = parseFloat(e.target.value) || 0
-                                    setFormData({ ...formData, normalPrice })
-                                }}
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                required
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Regular price when item is received and for all other items</p>
+                            {/* Pre-Sale Price (Optional - must be lower) */}
+                            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                                <label className="block text-sm font-medium text-blue-800 mb-2">
+                                    Pre-Sale Price (Optional - During 'Active' Status)
+                                </label>
+                                <Input
+                                    type="number"
+                                    value={formData.preSalePrice || ''}
+                                    onChange={(e) => {
+                                        const preSalePrice = parseFloat(e.target.value) || 0
+                                        setFormData({ ...formData, preSalePrice })
+                                    }}
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    className="mb-2"
+                                />
+                                <p className="text-xs text-blue-700 mt-1">
+                                    Special discounted price during pre-sale period (must be lower than ${normalPrice.toFixed(2)})
+                                </p>
+                                {formData.preSalePrice > 0 && formData.preSalePrice < normalPrice && (
+                                    <div className="mt-2 text-xs text-green-600 font-medium">
+                                        ✓ Discount: ${(normalPrice - formData.preSalePrice).toFixed(2)} ({(((normalPrice - formData.preSalePrice) / normalPrice) * 100).toFixed(1)}% off)
+                                    </div>
+                                )}
+                            </div>
+                            {errors.preSalePrice && <p className="text-sm text-red-500">{errors.preSalePrice}</p>}
                         </div>
 
                         {/* Pricing Summary */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-                            <div className="flex justify-between">
-                                <span className="text-gray-700">Base Price / Unit:</span>
-                                <span className="font-semibold">${formData.unitPrice.toFixed(2)}</span>
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 space-y-3">
+                            <h4 className="font-semibold text-gray-900">Pricing Summary</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs text-gray-600 uppercase">Base Price / Unit</p>
+                                    <p className="text-lg font-semibold text-gray-900">${formData.unitPrice.toFixed(2)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-600 uppercase">Markup</p>
+                                    <p className="text-lg font-semibold text-purple-600">{formData.markupPercentage.toFixed(1)}%</p>
+                                </div>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-700">Final Price / Unit {formData.finalPrice > 0 ? '(custom)' : `(+${formData.markupPercentage}%)`}:</span>
-                                <span className="font-semibold text-blue-600">${(formData.finalPrice > 0 ? formData.finalPrice : finalPricePerUnit).toFixed(2)}</span>
+                            
+                            <div className="border-t border-purple-200 pt-3 space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-700">Normal Price / Unit:</span>
+                                    <span className="font-semibold text-green-700">${normalPrice.toFixed(2)}</span>
+                                </div>
+                                {formData.preSalePrice > 0 && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-gray-700">Pre-Sale Price / Unit:</span>
+                                        <span className="font-semibold text-blue-700">${formData.preSalePrice.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center pt-2 border-t border-purple-200">
+                                    <span className="font-semibold text-gray-900">Effective Price / Unit:</span>
+                                    <span className="text-xl font-bold text-purple-600">${effectivePrice.toFixed(2)}</span>
+                                </div>
                             </div>
-                            <div className="border-t border-blue-200 pt-2 flex justify-between">
-                                <span className="font-semibold">Total Sale Amount ({formData.quantity} units):</span>
-                                <span className="text-lg font-bold text-blue-600">${totalCost.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-green-600">
-                                <span className="font-semibold">Total Profit:</span>
-                                <span className="text-lg font-bold">${profit.toFixed(2)}</span>
+                            
+                            <div className="border-t border-purple-200 pt-3">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="font-semibold text-gray-900">Total Sale ({formData.quantity} units):</span>
+                                    <span className="text-xl font-bold text-blue-600">${totalCost.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold text-gray-900">Total Profit:</span>
+                                    <span className="text-xl font-bold text-green-600">${profit.toFixed(2)}</span>
+                                </div>
                             </div>
                         </div>
 

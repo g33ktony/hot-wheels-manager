@@ -14,10 +14,12 @@ interface PreSaleItem {
     basePricePerUnit: number
     markupPercentage: number
     finalPricePerUnit: number
+    preSalePrice?: number
+    normalPrice?: number
     totalSaleAmount: number
     totalCostAmount: number
     totalProfit: number
-    status: 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
+    status: 'active' | 'purchased' | 'shipped' | 'received' | 'reserved' | 'payment-plan' | 'payment-pending' | 'ready' | 'delivered' | 'cancelled'
     startDate: string
     endDate?: string
     condition?: string
@@ -228,19 +230,45 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
             </div>
 
             {/* Pricing */}
-            <div className="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-gray-200">
-                <div>
-                    <p className="text-xs text-gray-600 uppercase tracking-wide">Precio Base/U</p>
-                    <p className="text-lg font-semibold text-gray-900">${item.basePricePerUnit.toFixed(2)}</p>
+            <div className="mb-4 pb-4 border-b border-gray-200">
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                    <div>
+                        <p className="text-xs text-gray-600 uppercase tracking-wide">Precio Base/U</p>
+                        <p className="text-lg font-semibold text-gray-900">${item.basePricePerUnit.toFixed(2)}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-600 uppercase tracking-wide">Markup</p>
+                        <p className="text-lg font-semibold text-blue-600">{item.markupPercentage.toFixed(1)}%</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-600 uppercase tracking-wide">Precio Final/U</p>
+                        <p className="text-lg font-semibold text-green-600">${item.finalPricePerUnit.toFixed(2)}</p>
+                    </div>
                 </div>
-                <div>
-                    <p className="text-xs text-gray-600 uppercase tracking-wide">Markup</p>
-                    <p className="text-lg font-semibold text-blue-600">{item.markupPercentage.toFixed(1)}%</p>
-                </div>
-                <div>
-                    <p className="text-xs text-gray-600 uppercase tracking-wide">Precio Final/U</p>
-                    <p className="text-lg font-semibold text-green-600">${item.finalPricePerUnit.toFixed(2)}</p>
-                </div>
+                
+                {/* Pre-Sale and Normal Price Display */}
+                {(item.preSalePrice || item.normalPrice) && (
+                    <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-300">
+                        {item.preSalePrice && (
+                            <div className="bg-blue-50 rounded-lg p-2">
+                                <p className="text-xs text-blue-700 uppercase tracking-wide font-medium">Precio Pre-Venta</p>
+                                <p className="text-lg font-bold text-blue-900">${item.preSalePrice.toFixed(2)}</p>
+                                {item.status === 'active' && (
+                                    <p className="text-xs text-blue-600 mt-1">✓ Precio actual</p>
+                                )}
+                            </div>
+                        )}
+                        {item.normalPrice && (
+                            <div className="bg-green-50 rounded-lg p-2">
+                                <p className="text-xs text-green-700 uppercase tracking-wide font-medium">Precio Normal</p>
+                                <p className="text-lg font-bold text-green-900">${item.normalPrice.toFixed(2)}</p>
+                                {item.status !== 'active' && (
+                                    <p className="text-xs text-green-600 mt-1">✓ Precio actual</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Profit */}
