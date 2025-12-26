@@ -36,11 +36,16 @@ export default function InventoryItemSelector({
     // Fetch specific item by ID when editing (more efficient than loading all items)
     const { data: initialItem } = useInventoryItem(value)
 
-    // Filter to show only items with available stock
+    // Filter to show items with available stock or reserved items
     const availableItems = (inventoryData?.items || []).filter((item: InventoryItem) => {
-        const available = item.quantity - (item.reservedQuantity || 0)
+        const quantity = item.quantity || 0
+        const reservedQuantity = item.reservedQuantity || 0
+        
+        // Hide only if both quantity and reservedQuantity are 0
+        const hasStockOrReservations = !(quantity === 0 && reservedQuantity === 0)
+        
         // Exclude already selected items in other rows
-        return available > 0 && item._id && !excludeIds.includes(item._id)
+        return hasStockOrReservations && item._id && !excludeIds.includes(item._id)
     })
 
     // Initialize with the selected item from parent value

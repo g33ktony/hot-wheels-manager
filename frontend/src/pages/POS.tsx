@@ -229,22 +229,28 @@ const POS: React.FC = () => {
 
   // Filtrar inventario - buscar solo en campos que existen en el modelo
   const filteredInventory = inventory.filter(item => {
-    // First filter: only show items with available quantity
-    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
-    if (availableQty <= 0) return false;
+    // First filter: hide items only if BOTH quantity and reservedQuantity are 0
+    // Show items if: 
+    // - They have available stock (quantity > reservedQuantity)
+    // - OR they have reserved items (reservedQuantity > 0) even if quantity is 0
+    const quantity = item.quantity || 0
+    const reservedQuantity = item.reservedQuantity || 0
+    
+    // Hide only if both are zero (no stock and no reservations)
+    if (quantity === 0 && reservedQuantity === 0) return false
 
     // Second filter: search term
-    if (!searchTerm) return true; // Si no hay búsqueda, mostrar todos los disponibles
+    if (!searchTerm) return true // Si no hay búsqueda, mostrar todos los que tienen stock o reservas
 
-    const search = searchTerm.toLowerCase();
+    const search = searchTerm.toLowerCase()
 
     // Extraer datos del carId si está poblado
-    const carData = typeof item.carId === 'object' ? item.carId : null;
-    const carName = carData?.name || item.carName || '';
-    const carYear = carData?.year || item.year;
-    const carColor = carData?.color || item.color || '';
-    const carSeries = carData?.series || item.series || '';
-    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+    const carData = typeof item.carId === 'object' ? item.carId : null
+    const carName = carData?.name || item.carName || ''
+    const carYear = carData?.year || item.year
+    const carColor = carData?.color || item.color || ''
+    const carSeries = carData?.series || item.series || ''
+    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || ''
 
     return (
       carIdStr.toLowerCase().includes(search) ||
@@ -256,7 +262,7 @@ const POS: React.FC = () => {
       carSeries.toLowerCase().includes(search) ||
       carColor.toLowerCase().includes(search) ||
       carYear?.toString().includes(search)
-    );
+    )
   });
 
   if (loading) {
