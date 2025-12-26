@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
 import Tesseract from 'tesseract.js'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
@@ -13,11 +13,18 @@ interface OCRScannerProps {
     buttonClassName?: string
 }
 
+// Detect if device is mobile
+const isMobileDevice = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (window.innerWidth <= 768)
+}
+
 export default function OCRScanner({ 
     onTextExtracted, 
     buttonText = 'Escanear nombre',
     buttonClassName = ''
 }: OCRScannerProps) {
+    const [isMobile, setIsMobile] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
     const [showCropModal, setShowCropModal] = useState(false)
     const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -28,13 +35,26 @@ export default function OCRScanner({
     const [croppedImage, setCroppedImage] = useState<string | null>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
-        width: 90,
-        height: 30,
-        x: 5,
-        y: 35
+        width: 85,
+        height: 25,
+        x: 7.5,
+        y: 37.5
     })
     const imageRef = useRef<HTMLImageElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    // Check if mobile on mount and window resize
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(isMobileDevice())
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
+    // Don't render on desktop
+    if (!isMobile) {
+        return null
+    }
 
     const processImage = async (imageData: string) => {
         setIsProcessing(true)
@@ -155,10 +175,10 @@ export default function OCRScanner({
         setProgress(0)
         setCrop({
             unit: '%',
-            width: 90,
-            height: 30,
-            x: 5,
-            y: 35
+            width: 85,
+            height: 25,
+            x: 7.5,
+            y: 37.5
         })
         // Reset file input
         if (fileInputRef.current) {
@@ -174,17 +194,19 @@ export default function OCRScanner({
                 variant="secondary"
                 onClick={handleCapture}
                 disabled={isProcessing}
-                className={`flex items-center gap-2 ${buttonClassName}`}
+                className={`flex items-center gap-1 text-xs ${buttonClassName}`}
             >
                 {isProcessing ? (
                     <>
-                        <Loader className="w-4 h-4 animate-spin" />
-                        <span>Procesando {progress}%...</span>
+                        <Loader className="w-3 h-3 animate-spin" />
+                        <span className="hidden sm:inline">Procesando {progress}%...</span>
+                        <span className="sm:hidden">{progress}%</span>
                     </>
                 ) : (
                     <>
-                        <Camera className="w-4 h-4" />
-                        <span>{buttonText}</span>
+                        <Camera className="w-3 h-3" />
+                        <span className="hidden sm:inline">{buttonText}</span>
+                        <span className="sm:hidden">OCR</span>
                     </>
                 )}
             </Button>
@@ -199,20 +221,20 @@ export default function OCRScanner({
                 className="hidden"
             />
 
-            {/* Crop Modal */}
+            {/* Crop Modal - Optimized for mobile */}
             <Modal
                 isOpen={showCropModal}
                 onClose={handleClose}
-                title="✂️ Recorta el área del texto"
-                maxWidth="2xl"
+                title="✂️ Recorta el texto"
+                maxWidth="4xl"
                 footer={
-                    <div className="flex gap-3">
+                    <div className="flex gap-2 w-full">
                         <Button
                             variant="secondary"
                             className="flex-1"
                             onClick={handleClose}
                         >
-                            <X className="w-4 h-4 mr-2" />
+                            <X className="w-4 h-4 mr-1" />
                             Cancelar
                         </Button>
                         <Button
@@ -222,49 +244,52 @@ export default function OCRScanner({
                         >
                             {isProcessing ? (
                                 <>
-                                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                                    Procesando {progress}%
+                                    <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                    <span className="hidden sm:inline">Procesando {progress}%</span>
+                                    <span className="sm:hidden">{progress}%</span>
                                 </>
                             ) : (
                                 <>
-                                    <Crop className="w-4 h-4 mr-2" />
-                                    Escanear área seleccionada
+                                    <Crop className="w-4 h-4 mr-1" />
+                                    <span className="hidden sm:inline">Escanear área</span>
+                                    <span className="sm:hidden">Escanear</span>
                                 </>
                             )}
                         </Button>
                     </div>
                 }
             >
-                <div className="space-y-4">
-                    {/* Instructions */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="space-y-3">
+                    {/* Instructions - More compact for mobile */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                         <div className="flex gap-2">
-                            <Crop className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <Crop className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-sm font-medium text-blue-900">
-                                    Ajusta el área de recorte
+                                <p className="text-xs font-medium text-blue-900">
+                                    Ajusta el área
                                 </p>
-                                <p className="text-xs text-blue-700 mt-1">
-                                    Arrastra los bordes para seleccionar solo el nombre del auto. 
-                                    Esto mejorará la precisión del reconocimiento de texto.
+                                <p className="text-xs text-blue-700">
+                                    Selecciona solo el nombre del auto
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Crop area */}
+                    {/* Crop area - Full width on mobile */}
                     {capturedImage && (
-                        <div className="max-h-[60vh] overflow-auto bg-gray-100 rounded-lg p-2">
+                        <div className="w-full overflow-auto bg-gray-100 rounded-lg">
                             <ReactCrop
                                 crop={crop}
                                 onChange={(c) => setCrop(c)}
                                 aspect={undefined}
+                                className="max-h-[60vh] w-full"
                             >
                                 <img
                                     ref={imageRef}
                                     src={capturedImage}
                                     alt="Imagen para recortar"
-                                    className="max-w-full"
+                                    className="w-full h-auto"
+                                    style={{ maxHeight: '60vh', objectFit: 'contain' }}
                                 />
                             </ReactCrop>
                         </div>
@@ -272,20 +297,20 @@ export default function OCRScanner({
                 </div>
             </Modal>
 
-            {/* Confirmation Modal */}
+            {/* Confirmation Modal - Optimized for mobile */}
             <Modal
                 isOpen={showConfirmModal}
                 onClose={handleClose}
-                title="📸 Texto Escaneado"
-                maxWidth="lg"
+                title="📸 Texto Detectado"
+                maxWidth="2xl"
                 footer={
-                    <div className="flex gap-3">
+                    <div className="flex gap-2 w-full">
                         <Button
                             variant="secondary"
                             className="flex-1"
                             onClick={handleClose}
                         >
-                            <X className="w-4 h-4 mr-2" />
+                            <X className="w-4 h-4 mr-1" />
                             Cancelar
                         </Button>
                         <Button
@@ -293,34 +318,34 @@ export default function OCRScanner({
                             onClick={handleConfirm}
                             disabled={!editedText.trim()}
                         >
-                            <Check className="w-4 h-4 mr-2" />
+                            <Check className="w-4 h-4 mr-1" />
                             Confirmar
                         </Button>
                     </div>
                 }
             >
-                <div className="space-y-4">
-                    {/* Show cropped image */}
+                <div className="space-y-3">
+                    {/* Show cropped image - Smaller on mobile */}
                     {croppedImage && (
                         <div className="relative">
                             <img
                                 src={croppedImage}
                                 alt="Área escaneada"
-                                className="w-full h-48 object-contain bg-gray-100 rounded-lg"
+                                className="w-full h-32 sm:h-48 object-contain bg-gray-100 rounded-lg"
                             />
                         </div>
                     )}
 
-                    {/* Info message */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    {/* Info message - More compact */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                         <div className="flex gap-2">
-                            <Edit3 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <Edit3 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-sm font-medium text-blue-900">
-                                    Verifica y edita si es necesario
+                                <p className="text-xs font-medium text-blue-900">
+                                    Verifica el texto
                                 </p>
-                                <p className="text-xs text-blue-700 mt-1">
-                                    El texto detectado se puede editar antes de confirmar
+                                <p className="text-xs text-blue-700">
+                                    Edita si es necesario
                                 </p>
                             </div>
                         </div>
@@ -328,20 +353,20 @@ export default function OCRScanner({
 
                     {/* Editable text field */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs font-medium text-gray-700 mb-1">
                             Texto Detectado
                         </label>
                         <Input
                             type="text"
                             value={editedText}
                             onChange={(e) => setEditedText(e.target.value)}
-                            placeholder="Edita el texto si es necesario..."
-                            className="text-lg font-medium"
+                            placeholder="Edita el texto..."
+                            className="text-base font-medium"
                             autoFocus
                         />
                         {extractedText && editedText !== extractedText && (
                             <p className="text-xs text-gray-500 mt-1">
-                                Original: <span className="font-mono">{extractedText}</span>
+                                Original: <span className="font-mono text-xs">{extractedText}</span>
                             </p>
                         )}
                     </div>
