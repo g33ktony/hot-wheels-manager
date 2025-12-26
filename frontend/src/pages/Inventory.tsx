@@ -12,6 +12,7 @@ import FacebookPublishModal from '@/components/FacebookPublishModal'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import debounce from 'lodash.debounce'
+import OCRScanner from '@/components/OCRScanner'
 import type { InventoryItem } from '../../../shared/types'
 
 // Predefined brands
@@ -1607,9 +1608,16 @@ export default function Inventory() {
                         {/* Single Car ID - Only for individual and box (same model) */}
                         {!newItem.isMultipleCars && (
                             <div className="relative">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Código de Hot Wheels
-                                </label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Código de Hot Wheels
+                                    </label>
+                                    <OCRScanner
+                                        onTextExtracted={(text) => handleCarIdChange(text)}
+                                        buttonText="📷 Escanear"
+                                        buttonClassName="!py-1 !px-2 text-xs"
+                                    />
+                                </div>
                                 {existingItemToUpdate && (
                                     <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded flex items-center justify-between">
                                         <span className="text-sm text-yellow-800">
