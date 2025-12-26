@@ -90,8 +90,10 @@ export default function OCRScanner({
 
         try {
             const result = await Tesseract.recognize(imageData, 'eng', {
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -',
-                psm: 6, // Assume a block of text, not full page
+                // Additional config keys are not in the TS defs; cast to any
+                // to pass whitelist and page segmentation mode.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...( { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -', psm: 6 } as any ),
                 logger: (m) => {
                     if (m.status === 'recognizing text') {
                         setProgress(Math.round(m.progress * 100))
