@@ -86,7 +86,7 @@ export default function PreSalePurchaseForm({
     // Normal price is always calculated from markup (but can be overridden)
     const calculatedNormalPrice = calculateNormalPrice(formData.unitPrice, formData.markupPercentage)
     const finalNormalPrice = formData.normalPrice > 0 ? formData.normalPrice : calculatedNormalPrice
-    
+
     // Use pre-sale price if set, otherwise use normal price
     const effectivePrice = formData.preSalePrice > 0 ? formData.preSalePrice : finalNormalPrice
 
@@ -346,7 +346,7 @@ export default function PreSalePurchaseForm({
                                 <DollarSign className="w-5 h-5" />
                                 Pricing Strategy
                             </h3>
-                            
+
                             {/* Normal Price (Auto-calculated from markup but editable) */}
                             <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                                 <label className="block text-sm font-medium text-green-800 mb-2">
@@ -357,12 +357,12 @@ export default function PreSalePurchaseForm({
                                     value={formData.normalPrice || calculatedNormalPrice}
                                     onChange={(e) => {
                                         const customNormalPrice = parseFloat(e.target.value) || 0
-                                        
+
                                         // Calculate the markup percentage based on the new normal price
                                         if (customNormalPrice > 0 && formData.unitPrice > 0) {
                                             const calculatedMarkup = ((customNormalPrice / formData.unitPrice) - 1) * 100
-                                            setFormData({ 
-                                                ...formData, 
+                                            setFormData({
+                                                ...formData,
                                                 normalPrice: customNormalPrice,
                                                 markupPercentage: Math.max(0, parseFloat(calculatedMarkup.toFixed(2))) // Round to 2 decimals
                                             })
@@ -425,7 +425,7 @@ export default function PreSalePurchaseForm({
                                     <p className="text-lg font-semibold text-purple-600">{formData.markupPercentage.toFixed(1)}%</p>
                                 </div>
                             </div>
-                            
+
                             <div className="border-t border-purple-200 pt-3 space-y-2">
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm text-gray-700">Normal Price / Unit:</span>
@@ -442,7 +442,7 @@ export default function PreSalePurchaseForm({
                                     <span className="text-xl font-bold text-purple-600">${effectivePrice.toFixed(2)}</span>
                                 </div>
                             </div>
-                            
+
                             <div className="border-t border-purple-200 pt-3">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="font-semibold text-gray-900">Total Sale ({formData.quantity} units):</span>

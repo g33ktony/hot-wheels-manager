@@ -160,8 +160,8 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                 <button
                                     onClick={() => setActiveTab('view')}
                                     className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'view'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-600 hover:text-gray-900'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-600 hover:text-gray-900'
                                         }`}
                                 >
                                     Ver Plan
@@ -170,8 +170,8 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                     <button
                                         onClick={() => setActiveTab('create')}
                                         className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'create'
-                                                ? 'border-blue-500 text-blue-600'
-                                                : 'border-transparent text-gray-600 hover:text-gray-900'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-600 hover:text-gray-900'
                                             }`}
                                     >
                                         Crear Plan
@@ -181,8 +181,8 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                     <button
                                         onClick={() => setActiveTab('record')}
                                         className={`px-4 py-2 font-medium border-b-2 transition ${activeTab === 'record'
-                                                ? 'border-blue-500 text-blue-600'
-                                                : 'border-transparent text-gray-600 hover:text-gray-900'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-600 hover:text-gray-900'
                                             }`}
                                     >
                                         Registrar Pago
@@ -210,16 +210,16 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                                     <p className="text-2xl font-bold text-orange-900">${existingPlan.remainingAmount?.toFixed(2) || '0.00'}</p>
                                                 </div>
                                                 <div className={`${existingPlan.status === 'completed' ? 'bg-green-50 border-green-200' :
-                                                        existingPlan.hasOverduePayments ? 'bg-red-50 border-red-200' :
-                                                            'bg-gray-50 border-gray-200'
+                                                    existingPlan.hasOverduePayments ? 'bg-red-50 border-red-200' :
+                                                        'bg-gray-50 border-gray-200'
                                                     } border rounded-lg p-4`}>
                                                     <p className={`text-xs font-semibold uppercase ${existingPlan.status === 'completed' ? 'text-green-600' :
-                                                            existingPlan.hasOverduePayments ? 'text-red-600' :
-                                                                'text-gray-600'
+                                                        existingPlan.hasOverduePayments ? 'text-red-600' :
+                                                            'text-gray-600'
                                                         }`}>Estado</p>
                                                     <p className={`text-lg font-bold ${existingPlan.status === 'completed' ? 'text-green-900' :
-                                                            existingPlan.hasOverduePayments ? 'text-red-900' :
-                                                                'text-gray-900'
+                                                        existingPlan.hasOverduePayments ? 'text-red-900' :
+                                                            'text-gray-900'
                                                         }`}>
                                                         {existingPlan.status === 'completed' ? '✓ Completado' :
                                                             existingPlan.hasOverduePayments ? '⚠ Vencido' :
@@ -234,8 +234,8 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
                                                 <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
                                                     <div
                                                         className={`h-full transition-all ${existingPlan.status === 'completed' ? 'bg-green-500' :
-                                                                existingPlan.hasOverduePayments ? 'bg-red-500' :
-                                                                    'bg-blue-500'
+                                                            existingPlan.hasOverduePayments ? 'bg-red-500' :
+                                                                'bg-blue-500'
                                                             }`}
                                                         style={{
                                                             width: `${((existingPlan.totalPaid || 0) / (existingPlan.totalAmount || 1)) * 100}%`

@@ -2438,7 +2438,7 @@ export default function Inventory() {
                         {/* Series Information Section */}
                         <div className="pt-4 border-t border-gray-200">
                             <h3 className="text-sm font-semibold text-gray-900 mb-3">Información de Serie (Opcional)</h3>
-                            
+
                             <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>

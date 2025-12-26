@@ -63,7 +63,7 @@ const POS: React.FC = () => {
       console.log('📦 data.data.items:', data.data?.items);
       console.log('📦 Es array data.data?:', Array.isArray(data.data));
       console.log('📦 Es array data.data.items?:', Array.isArray(data.data?.items));
-      
+
       // Detectar estructura correcta
       let items = [];
       if (data.success && data.data) {
@@ -73,21 +73,21 @@ const POS: React.FC = () => {
           items = data.data.items;
         }
       }
-      
+
       console.log('📦 Items extraídos:', items.length);
       console.log('📦 Primer item completo:', JSON.stringify(items[0], null, 2));
       console.log('🔍 carId es objeto?:', typeof items[0]?.carId === 'object');
       console.log('🔍 carId tiene name?:', items[0]?.carId?.name);
-      
+
       // Filtrar items que tengan cantidad disponible (quantity - reservedQuantity > 0)
       const availableItems = items.filter((item: InventoryItem) => {
-            const quantity = item.quantity || 0;
-            const reserved = item.reservedQuantity || 0;
-            const available = quantity - reserved;
-            console.log(`  - Item: qty=${quantity}, reserved=${reserved}, available=${available}, carId type:${typeof item.carId}`);
-            return available > 0;
-          });
-      
+        const quantity = item.quantity || 0;
+        const reserved = item.reservedQuantity || 0;
+        const available = quantity - reserved;
+        console.log(`  - Item: qty=${quantity}, reserved=${reserved}, available=${available}, carId type:${typeof item.carId}`);
+        return available > 0;
+      });
+
       console.log('✅ Items disponibles para POS:', availableItems.length);
       setInventory(availableItems);
     } catch (error) {
@@ -103,7 +103,7 @@ const POS: React.FC = () => {
   const addToCart = (item: InventoryItem, quantity: number = 1) => {
     const existingItem = cart.find(cartItem => cartItem._id === item._id);
     const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
-    
+
     if (existingItem) {
       // Si ya existe, incrementar cantidad
       const newQuantity = existingItem.cartQuantity + quantity;
@@ -138,7 +138,7 @@ const POS: React.FC = () => {
 
   // Actualizar precio personalizado
   const updatePrice = (itemId: string, newPrice: number) => {
-    setCart(cart.map(item => 
+    setCart(cart.map(item =>
       item._id === itemId ? { ...item, customPrice: newPrice } : item
     ));
   };
@@ -147,20 +147,20 @@ const POS: React.FC = () => {
   const updateCartQuantity = (itemId: string, newQuantity: number) => {
     const item = cart.find(c => c._id === itemId);
     if (!item) return;
-    
+
     const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
-    
+
     if (newQuantity < 1) {
       removeFromCart(itemId);
       return;
     }
-    
+
     if (newQuantity > availableQty) {
       toast.error('No hay suficiente inventario disponible');
       return;
     }
-    
-    setCart(cart.map(cartItem => 
+
+    setCart(cart.map(cartItem =>
       cartItem._id === itemId ? { ...cartItem, cartQuantity: newQuantity } : cartItem
     ));
   };
@@ -181,7 +181,7 @@ const POS: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      
+
       const saleData = {
         items: cart.map(item => ({
           inventoryItemId: item._id,
@@ -212,13 +212,13 @@ const POS: React.FC = () => {
 
       const result = await response.json();
       console.log('✅ Venta creada:', result);
-      
+
       toast.success(`¡Venta completada! Total: $${calculateTotal().toFixed(2)}`);
-      
+
       // Limpiar carrito y recargar inventario
       setCart([]);
       await fetchInventory();
-      
+
     } catch (error: any) {
       console.error('Error:', error);
       toast.error(error.message || 'Error al procesar la venta');
@@ -229,10 +229,15 @@ const POS: React.FC = () => {
 
   // Filtrar inventario - buscar solo en campos que existen en el modelo
   const filteredInventory = inventory.filter(item => {
-    if (!searchTerm) return true; // Si no hay búsqueda, mostrar todo
-    
+    // First filter: only show items with available quantity
+    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+    if (availableQty <= 0) return false;
+
+    // Second filter: search term
+    if (!searchTerm) return true; // Si no hay búsqueda, mostrar todos los disponibles
+
     const search = searchTerm.toLowerCase();
-    
+
     // Extraer datos del carId si está poblado
     const carData = typeof item.carId === 'object' ? item.carId : null;
     const carName = carData?.name || item.carName || '';
@@ -240,7 +245,7 @@ const POS: React.FC = () => {
     const carColor = carData?.color || item.color || '';
     const carSeries = carData?.series || item.series || '';
     const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-    
+
     return (
       carIdStr.toLowerCase().includes(search) ||
       carName.toLowerCase().includes(search) ||
@@ -304,7 +309,7 @@ const POS: React.FC = () => {
                     const cartQty = cartItem?.cartQuantity || 0;
                     const isInCart = !!cartItem;
                     const isSingleItem = availableQty === 1;
-                    
+
                     return (
                       <div
                         key={item._id}
@@ -338,11 +343,10 @@ const POS: React.FC = () => {
                             <button
                               onClick={() => addToCart(item)}
                               disabled={isInCart}
-                              className={`px-4 py-2 rounded-lg font-medium ${
-                                isInCart
+                              className={`px-4 py-2 rounded-lg font-medium ${isInCart
                                   ? 'bg-gray-300 cursor-not-allowed'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white'
-                              }`}
+                                }`}
                             >
                               {isInCart ? 'En carrito' : 'Agregar'}
                             </button>
@@ -362,11 +366,10 @@ const POS: React.FC = () => {
                               <button
                                 onClick={() => addToCart(item, 1)}
                                 disabled={cartQty >= availableQty}
-                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${
-                                  cartQty >= availableQty
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${cartQty >= availableQty
                                     ? 'bg-gray-300 cursor-not-allowed'
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                }`}
+                                  }`}
                               >
                                 +
                               </button>
@@ -400,7 +403,7 @@ const POS: React.FC = () => {
                   const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
                   const originalPrice = item.actualPrice || item.suggestedPrice || 0;
                   const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
-                  
+
                   return (
                     <div key={item._id} className="border rounded p-3">
                       <div className="flex justify-between items-start mb-2">
@@ -444,11 +447,10 @@ const POS: React.FC = () => {
                           <button
                             onClick={() => updateCartQuantity(item._id, item.cartQuantity + 1)}
                             disabled={item.cartQuantity >= availableQty}
-                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${
-                              item.cartQuantity >= availableQty
+                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${item.cartQuantity >= availableQty
                                 ? 'bg-gray-300 cursor-not-allowed'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
+                              }`}
                           >
                             +
                           </button>
@@ -489,11 +491,10 @@ const POS: React.FC = () => {
               <button
                 onClick={processSale}
                 disabled={cart.length === 0 || processing}
-                className={`w-full py-3 rounded-lg font-bold text-lg ${
-                  cart.length === 0 || processing
+                className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
                     ? 'bg-gray-300 cursor-not-allowed'
                     : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
+                  }`}
               >
                 {processing ? 'Procesando...' : 'Completar Venta'}
               </button>

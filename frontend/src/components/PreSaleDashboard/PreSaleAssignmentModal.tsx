@@ -144,21 +144,21 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
             // 3. Create payment plan if enabled
             if (enablePaymentPlan && numberOfPayments > 1 && finalDeliveryId) {
                 const startDate = new Date()
-                
+
                 try {
-                  await createPaymentPlan.mutateAsync({
-                      deliveryId: finalDeliveryId,
-                      customerId: createNewDelivery ? selectedCustomerId : selectedDelivery?.customerId,
-                      totalAmount,
-                      numberOfPayments,
-                      paymentFrequency,
-                      startDate,
-                  })
-                  console.log('✅ Payment plan created successfully')
+                    await createPaymentPlan.mutateAsync({
+                        deliveryId: finalDeliveryId,
+                        customerId: createNewDelivery ? selectedCustomerId : selectedDelivery?.customerId,
+                        totalAmount,
+                        numberOfPayments,
+                        paymentFrequency,
+                        startDate,
+                    })
+                    console.log('✅ Payment plan created successfully')
                 } catch (paymentError) {
-                  console.error('❌ Error creating payment plan:', paymentError)
-                  // Don't fail the entire operation, just notify the user
-                  alert('⚠️ La pre-venta fue asignada pero hubo un error al crear el plan de pagos. Puedes crearlo manualmente desde la sección de Pagos.')
+                    console.error('❌ Error creating payment plan:', paymentError)
+                    // Don't fail the entire operation, just notify the user
+                    alert('⚠️ La pre-venta fue asignada pero hubo un error al crear el plan de pagos. Puedes crearlo manualmente desde la sección de Pagos.')
                 }
             }
 
@@ -453,8 +453,8 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                             type="button"
                                             onClick={() => setPaymentFrequency('weekly')}
                                             className={`px-3 py-2 rounded-lg text-sm font-medium transition ${paymentFrequency === 'weekly'
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}
                                         >
                                             Semanal
@@ -463,8 +463,8 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                             type="button"
                                             onClick={() => setPaymentFrequency('monthly')}
                                             className={`px-3 py-2 rounded-lg text-sm font-medium transition ${paymentFrequency === 'monthly'
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}
                                         >
                                             Mensual
@@ -542,8 +542,8 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                                         <div className="flex justify-between">
                                             <span className="text-blue-700">Frecuencia:</span>
                                             <span className="font-bold text-blue-900">
-                                                {paymentFrequency === 'weekly' 
-                                                    ? `Semanal (${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][paymentDayOfWeek]})` 
+                                                {paymentFrequency === 'weekly'
+                                                    ? `Semanal (${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][paymentDayOfWeek]})`
                                                     : `Mensual (día ${paymentDayOfMonth})`}
                                             </span>
                                         </div>
@@ -610,7 +610,7 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
                             <div className="flex items-center gap-2">
                                 <LoadingSpinner size="sm" />
                                 {createDelivery.isLoading ? 'Creando entrega...' :
-                                 createPaymentPlan.isLoading ? 'Creando plan...' : 'Asignando...'}
+                                    createPaymentPlan.isLoading ? 'Creando plan...' : 'Asignando...'}
                             </div>
                         ) : (
                             'Asignar Unidades'

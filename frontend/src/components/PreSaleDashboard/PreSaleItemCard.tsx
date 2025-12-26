@@ -245,7 +245,7 @@ const PreSaleItemCard: React.FC<PreSaleItemCardProps> = ({ item }) => {
                         <p className="text-lg font-semibold text-green-600">${item.finalPricePerUnit.toFixed(2)}</p>
                     </div>
                 </div>
-                
+
                 {/* Pre-Sale and Normal Price Display */}
                 {(item.preSalePrice || item.normalPrice) && (
                     <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-300">

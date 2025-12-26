@@ -173,9 +173,8 @@ export default function Dashboard() {
                                         <div
                                             key={activity.id}
                                             onClick={() => isClickable && navigate(path)}
-                                            className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg ${
-                                                isClickable ? 'cursor-pointer hover:bg-gray-100 hover:shadow-sm transition-all' : ''
-                                            }`}
+                                            className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg ${isClickable ? 'cursor-pointer hover:bg-gray-100 hover:shadow-sm transition-all' : ''
+                                                }`}
                                         >
                                             <div className="flex-1">
                                                 <p className="text-sm font-medium text-gray-900">{activity.description}</p>
