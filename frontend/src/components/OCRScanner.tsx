@@ -68,28 +68,41 @@ export default function OCRScanner({
                     return
                 }
 
-                const scale = 1.5 // enlarge to improve OCR accuracy
+                // Target 300 DPI equivalent with proper character height (13-24px ideal)
+                // Scale to make text around 20px height for optimal recognition
+                const scale = 3.0
                 canvas.width = img.naturalWidth * scale
                 canvas.height = img.naturalHeight * scale
 
-                ctx.imageSmoothingEnabled = true
-                ctx.imageSmoothingQuality = 'high'
-                ctx.filter = 'grayscale(100%) contrast(200%) brightness(120%)'
+                // Draw with sharp edges (no smoothing for embossed text)
+                ctx.imageSmoothingEnabled = false
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-
-                // Apply binary threshold and INVERT for dark background with embossed text
-                // Dark backgrounds need to be white, embossed text needs to be black for OCR
+                
+                // Get image data for processing
                 const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height)
                 const data = imageDataObj.data
-                const threshold = 100  // Lower for dark backgrounds
+                
+                // Step 1: Convert to grayscale with high contrast
                 for (let i = 0; i < data.length; i += 4) {
-                    const gray = data[i] // already grayscale
-                    // INVERT: dark becomes white, light (embossed) becomes black
-                    const value = gray > threshold ? 0 : 255
-                    data[i] = value
-                    data[i + 1] = value
-                    data[i + 2] = value
+                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
+                    data[i] = avg
+                    data[i + 1] = avg
+                    data[i + 2] = avg
                 }
+                
+                // Step 2: Apply Otsu's binarization (automatic threshold)
+                // For embossed text on dark background, we need to invert
+                const threshold = 140 // Adjusted for embossed text visibility
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    const gray = data[i]
+                    // INVERT: dark background -> white, light embossed text -> black
+                    const binarized = gray > threshold ? 0 : 255
+                    data[i] = binarized
+                    data[i + 1] = binarized
+                    data[i + 2] = binarized
+                }
+                
                 ctx.putImageData(imageDataObj, 0, 0)
 
                 resolve(canvas.toDataURL('image/png', 1.0))
@@ -105,10 +118,10 @@ export default function OCRScanner({
 
         try {
             const result = await Tesseract.recognize(imageData, 'eng', {
-                // No whitelist - allow full car names with any characters
-                // PSM 11: sparse text with OSD (good for embossed text)
+                // PSM 8: Treat image as a single word (best for short car names)
+                // PSM 7: Treat as a single text line (alternative if PSM 8 fails)
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ...( { psm: 11 } as any ),
+                ...( { psm: 8 } as any ),
                 logger: (m) => {
                     if (m.status === 'recognizing text') {
                         setProgress(Math.round(m.progress * 100))
