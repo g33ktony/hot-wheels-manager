@@ -82,7 +82,7 @@ export default function OCRScanner({
                 const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height)
                 const data = imageDataObj.data
                 
-                // Step 1: Convert to grayscale with high contrast
+                // Step 1: Convert to grayscale
                 for (let i = 0; i < data.length; i += 4) {
                     const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
                     data[i] = avg
@@ -90,17 +90,17 @@ export default function OCRScanner({
                     data[i + 2] = avg
                 }
                 
-                // Step 2: Apply Otsu's binarization (automatic threshold)
-                // For embossed text on dark background, we need to invert
-                const threshold = 140 // Adjusted for embossed text visibility
+                // Step 2: Enhance contrast for embossed text
+                const contrast = 2.0
+                const factor = (259 * (contrast + 1)) / (255 * (259 - contrast))
                 
                 for (let i = 0; i < data.length; i += 4) {
                     const gray = data[i]
-                    // INVERT: dark background -> white, light embossed text -> black
-                    const binarized = gray > threshold ? 0 : 255
-                    data[i] = binarized
-                    data[i + 1] = binarized
-                    data[i + 2] = binarized
+                    const enhanced = factor * (gray - 128) + 128
+                    const clamped = Math.max(0, Math.min(255, enhanced))
+                    data[i] = clamped
+                    data[i + 1] = clamped
+                    data[i + 2] = clamped
                 }
                 
                 ctx.putImageData(imageDataObj, 0, 0)
@@ -118,10 +118,9 @@ export default function OCRScanner({
 
         try {
             const result = await Tesseract.recognize(imageData, 'eng', {
-                // PSM 8: Treat image as a single word (best for short car names)
-                // PSM 7: Treat as a single text line (alternative if PSM 8 fails)
+                // PSM 6: Assume a single uniform block of text (best for 2-3 lines)
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ...( { psm: 8 } as any ),
+                ...( { psm: 6 } as any ),
                 logger: (m) => {
                     if (m.status === 'recognizing text') {
                         setProgress(Math.round(m.progress * 100))
@@ -129,11 +128,14 @@ export default function OCRScanner({
                 }
             })
 
-            // Clean up the extracted text (remove extra spaces, newlines, etc.)
+            // Clean up the extracted text
             const cleanedText = result.data.text
                 .trim()
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0)
+                .join(' ')
                 .replace(/\s+/g, ' ') // Multiple spaces to single space
-                .replace(/[^a-zA-Z0-9\s-]/g, '') // Keep only letters, numbers, spaces, hyphens
 
             setExtractedText(cleanedText)
             setEditedText(cleanedText)
