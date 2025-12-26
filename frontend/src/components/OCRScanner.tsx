@@ -56,22 +56,48 @@ export default function OCRScanner({
         return null
     }
 
+    const preprocessImage = async (imageData: string): Promise<string> => {
+        return new Promise((resolve) => {
+            const img = new Image()
+            img.onload = () => {
+                const canvas = document.createElement('canvas')
+                const ctx = canvas.getContext('2d')
+
+                if (!ctx) {
+                    resolve(imageData)
+                    return
+                }
+
+                const scale = 1.5 // enlarge to improve OCR accuracy
+                canvas.width = img.naturalWidth * scale
+                canvas.height = img.naturalHeight * scale
+
+                ctx.imageSmoothingEnabled = true
+                ctx.imageSmoothingQuality = 'high'
+                ctx.filter = 'grayscale(100%) contrast(180%) brightness(110%)'
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+                resolve(canvas.toDataURL('image/png', 1.0))
+            }
+            img.onerror = () => resolve(imageData)
+            img.src = imageData
+        })
+    }
+
     const processImage = async (imageData: string) => {
         setIsProcessing(true)
         setProgress(0)
 
         try {
-            const result = await Tesseract.recognize(
-                imageData,
-                'eng', // English language for better Hot Wheels name recognition
-                {
-                    logger: (m) => {
-                        if (m.status === 'recognizing text') {
-                            setProgress(Math.round(m.progress * 100))
-                        }
+            const result = await Tesseract.recognize(imageData, 'eng', {
+                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -',
+                psm: 6, // Assume a block of text, not full page
+                logger: (m) => {
+                    if (m.status === 'recognizing text') {
+                        setProgress(Math.round(m.progress * 100))
                     }
                 }
-            )
+            })
 
             // Clean up the extracted text (remove extra spaces, newlines, etc.)
             const cleanedText = result.data.text
@@ -128,7 +154,8 @@ export default function OCRScanner({
     const handleCropConfirm = async () => {
         const croppedImageData = await getCroppedImage()
         setCroppedImage(croppedImageData)
-        await processImage(croppedImageData)
+        const preprocessedImage = await preprocessImage(croppedImageData)
+        await processImage(preprocessedImage)
     }
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,7 +304,7 @@ export default function OCRScanner({
 
                     {/* Crop area - Full width on mobile */}
                     {capturedImage && (
-                        <div className="w-full overflow-auto bg-gray-100 rounded-lg">
+                        <div className="relative w-full overflow-auto bg-gray-100 rounded-lg">
                             <ReactCrop
                                 crop={crop}
                                 onChange={(c) => setCrop(c)}
@@ -292,6 +319,29 @@ export default function OCRScanner({
                                     style={{ maxHeight: '60vh', objectFit: 'contain' }}
                                 />
                             </ReactCrop>
+
+                            {/* Inline action bar to make the next step obvious */}
+                            <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+                                <p className="text-[11px] text-gray-700">Ajusta y toca Escanear</p>
+                                <Button
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
+                                    onClick={handleCropConfirm}
+                                    disabled={isProcessing}
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                            {progress}%
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Crop className="w-4 h-4 mr-1" />
+                                            Escanear
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </div>
