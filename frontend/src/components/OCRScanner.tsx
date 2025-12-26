@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
-import { Camera, X, Check, Loader, Edit3 } from 'lucide-react'
+import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
 import Tesseract from 'tesseract.js'
+import ReactCrop, { Crop as CropType } from 'react-image-crop'
+import 'react-image-crop/dist/ReactCrop.css'
 import Modal from './common/Modal'
 import Button from './common/Button'
 import Input from './common/Input'
@@ -17,17 +19,26 @@ export default function OCRScanner({
     buttonClassName = ''
 }: OCRScannerProps) {
     const [isProcessing, setIsProcessing] = useState(false)
+    const [showCropModal, setShowCropModal] = useState(false)
     const [showConfirmModal, setShowConfirmModal] = useState(false)
     const [extractedText, setExtractedText] = useState('')
     const [editedText, setEditedText] = useState('')
     const [progress, setProgress] = useState(0)
     const [capturedImage, setCapturedImage] = useState<string | null>(null)
+    const [croppedImage, setCroppedImage] = useState<string | null>(null)
+    const [crop, setCrop] = useState<CropType>({
+        unit: '%',
+        width: 90,
+        height: 30,
+        x: 5,
+        y: 35
+    })
+    const imageRef = useRef<HTMLImageElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const processImage = async (imageData: string) => {
         setIsProcessing(true)
         setProgress(0)
-        setCapturedImage(imageData)
 
         try {
             const result = await Tesseract.recognize(
@@ -51,6 +62,7 @@ export default function OCRScanner({
 
             setExtractedText(cleanedText)
             setEditedText(cleanedText)
+            setShowCropModal(false)
             setShowConfirmModal(true)
         } catch (error) {
             console.error('OCR Error:', error)
@@ -58,6 +70,45 @@ export default function OCRScanner({
         } finally {
             setIsProcessing(false)
         }
+    }
+
+    const getCroppedImage = async (): Promise<string> => {
+        if (!imageRef.current || !crop.width || !crop.height) {
+            return capturedImage || ''
+        }
+
+        const image = imageRef.current
+        const canvas = document.createElement('canvas')
+        const scaleX = image.naturalWidth / image.width
+        const scaleY = image.naturalHeight / image.height
+        
+        canvas.width = crop.width * scaleX
+        canvas.height = crop.height * scaleY
+        
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+            return capturedImage || ''
+        }
+
+        ctx.drawImage(
+            image,
+            crop.x * scaleX,
+            crop.y * scaleY,
+            crop.width * scaleX,
+            crop.height * scaleY,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        )
+
+        return canvas.toDataURL('image/jpeg', 0.95)
+    }
+
+    const handleCropConfirm = async () => {
+        const croppedImageData = await getCroppedImage()
+        setCroppedImage(croppedImageData)
+        await processImage(croppedImageData)
     }
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +129,8 @@ export default function OCRScanner({
             const reader = new FileReader()
             reader.onload = (event) => {
                 const imageData = event.target?.result as string
-                processImage(imageData)
+                setCapturedImage(imageData)
+                setShowCropModal(true)
             }
             reader.readAsDataURL(file)
         }
@@ -95,10 +147,19 @@ export default function OCRScanner({
 
     const handleClose = () => {
         setShowConfirmModal(false)
+        setShowCropModal(false)
         setCapturedImage(null)
+        setCroppedImage(null)
         setExtractedText('')
         setEditedText('')
         setProgress(0)
+        setCrop({
+            unit: '%',
+            width: 90,
+            height: 30,
+            x: 5,
+            y: 35
+        })
         // Reset file input
         if (fileInputRef.current) {
             fileInputRef.current.value = ''
@@ -138,6 +199,79 @@ export default function OCRScanner({
                 className="hidden"
             />
 
+            {/* Crop Modal */}
+            <Modal
+                isOpen={showCropModal}
+                onClose={handleClose}
+                title="✂️ Recorta el área del texto"
+                maxWidth="2xl"
+                footer={
+                    <div className="flex gap-3">
+                        <Button
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={handleClose}
+                        >
+                            <X className="w-4 h-4 mr-2" />
+                            Cancelar
+                        </Button>
+                        <Button
+                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                            onClick={handleCropConfirm}
+                            disabled={isProcessing}
+                        >
+                            {isProcessing ? (
+                                <>
+                                    <Loader className="w-4 h-4 mr-2 animate-spin" />
+                                    Procesando {progress}%
+                                </>
+                            ) : (
+                                <>
+                                    <Crop className="w-4 h-4 mr-2" />
+                                    Escanear área seleccionada
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="space-y-4">
+                    {/* Instructions */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="flex gap-2">
+                            <Crop className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm font-medium text-blue-900">
+                                    Ajusta el área de recorte
+                                </p>
+                                <p className="text-xs text-blue-700 mt-1">
+                                    Arrastra los bordes para seleccionar solo el nombre del auto. 
+                                    Esto mejorará la precisión del reconocimiento de texto.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Crop area */}
+                    {capturedImage && (
+                        <div className="max-h-[60vh] overflow-auto bg-gray-100 rounded-lg p-2">
+                            <ReactCrop
+                                crop={crop}
+                                onChange={(c) => setCrop(c)}
+                                aspect={undefined}
+                            >
+                                <img
+                                    ref={imageRef}
+                                    src={capturedImage}
+                                    alt="Imagen para recortar"
+                                    className="max-w-full"
+                                />
+                            </ReactCrop>
+                        </div>
+                    )}
+                </div>
+            </Modal>
+
             {/* Confirmation Modal */}
             <Modal
                 isOpen={showConfirmModal}
@@ -166,12 +300,12 @@ export default function OCRScanner({
                 }
             >
                 <div className="space-y-4">
-                    {/* Show captured image */}
-                    {capturedImage && (
+                    {/* Show cropped image */}
+                    {croppedImage && (
                         <div className="relative">
                             <img
-                                src={capturedImage}
-                                alt="Imagen capturada"
+                                src={croppedImage}
+                                alt="Área escaneada"
                                 className="w-full h-48 object-contain bg-gray-100 rounded-lg"
                             />
                         </div>
