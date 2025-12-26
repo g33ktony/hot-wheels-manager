@@ -298,8 +298,12 @@ export default function Inventory() {
         )
     }
 
-    // Los items ya vienen filtrados del backend
-    const filteredItems = inventoryItems
+    // Oculta piezas sin stock ni reservas (0/0) para evitar ruido visual
+    const filteredItems = inventoryItems.filter((item) => {
+        const quantity = item.quantity || 0
+        const reserved = item.reservedQuantity || 0
+        return !(quantity === 0 && reserved === 0)
+    })
 
     const handleAddItem = async () => {
         try {
