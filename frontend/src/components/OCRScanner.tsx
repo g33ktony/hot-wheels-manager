@@ -80,7 +80,7 @@ export default function OCRScanner({
                 // Apply binary threshold to tighten embossed text edges
                 const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height)
                 const data = imageDataObj.data
-                const threshold = 160
+                const threshold = 120  // Lower threshold to capture more detail in embossed text
                 for (let i = 0; i < data.length; i += 4) {
                     const gray = data[i] // already grayscale because of filter
                     const value = gray > threshold ? 255 : 0
@@ -106,7 +106,7 @@ export default function OCRScanner({
                 // Additional config keys are not in the TS defs; cast to any
                 // to pass whitelist and page segmentation mode.
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ...( { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -', psm: 7 } as any ),
+                ...( { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -', psm: 11 } as any ),
                 logger: (m) => {
                     if (m.status === 'recognizing text') {
                         setProgress(Math.round(m.progress * 100))
