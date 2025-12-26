@@ -74,16 +74,18 @@ export default function OCRScanner({
 
                 ctx.imageSmoothingEnabled = true
                 ctx.imageSmoothingQuality = 'high'
-                ctx.filter = 'grayscale(100%) contrast(180%) brightness(115%)'
+                ctx.filter = 'grayscale(100%) contrast(200%) brightness(120%)'
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
 
-                // Apply binary threshold to tighten embossed text edges
+                // Apply binary threshold and INVERT for dark background with embossed text
+                // Dark backgrounds need to be white, embossed text needs to be black for OCR
                 const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height)
                 const data = imageDataObj.data
-                const threshold = 120  // Lower threshold to capture more detail in embossed text
+                const threshold = 100  // Lower for dark backgrounds
                 for (let i = 0; i < data.length; i += 4) {
-                    const gray = data[i] // already grayscale because of filter
-                    const value = gray > threshold ? 255 : 0
+                    const gray = data[i] // already grayscale
+                    // INVERT: dark becomes white, light (embossed) becomes black
+                    const value = gray > threshold ? 0 : 255
                     data[i] = value
                     data[i + 1] = value
                     data[i + 2] = value
@@ -103,10 +105,10 @@ export default function OCRScanner({
 
         try {
             const result = await Tesseract.recognize(imageData, 'eng', {
-                // Additional config keys are not in the TS defs; cast to any
-                // to pass whitelist and page segmentation mode.
+                // No whitelist - allow full car names with any characters
+                // PSM 11: sparse text with OSD (good for embossed text)
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ...( { tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -', psm: 11 } as any ),
+                ...( { psm: 11 } as any ),
                 logger: (m) => {
                     if (m.status === 'recognizing text') {
                         setProgress(Math.round(m.progress * 100))
@@ -118,8 +120,7 @@ export default function OCRScanner({
             const cleanedText = result.data.text
                 .trim()
                 .replace(/\s+/g, ' ') // Multiple spaces to single space
-                .replace(/[^\w\s-]/g, '') // Remove special characters except hyphens
-                .toUpperCase() // Hot Wheels names are usually uppercase
+                .replace(/[^a-zA-Z0-9\s-]/g, '') // Keep only letters, numbers, spaces, hyphens
 
             setExtractedText(cleanedText)
             setEditedText(cleanedText)
