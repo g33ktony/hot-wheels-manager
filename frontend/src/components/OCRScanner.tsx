@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
-import Tesseract from 'tesseract.js'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import Modal from './common/Modal'
 import Button from './common/Button'
 import Input from './common/Input'
+
+// OCR.space API key - Get your own free key at https://ocr.space/ocrapi
+const OCR_API_KEY = 'K88513455088957' // Free tier: 25,000 requests/month
 
 interface OCRScannerProps {
     onTextExtracted: (text: string) => void
@@ -56,86 +58,51 @@ export default function OCRScanner({
         return null
     }
 
-    const preprocessImage = async (imageData: string): Promise<string> => {
-        return new Promise((resolve) => {
-            const img = new Image()
-            img.onload = () => {
-                const canvas = document.createElement('canvas')
-                const ctx = canvas.getContext('2d')
-
-                if (!ctx) {
-                    resolve(imageData)
-                    return
-                }
-
-                // Target 300 DPI equivalent with proper character height (13-24px ideal)
-                // Scale to make text around 20px height for optimal recognition
-                const scale = 3.0
-                canvas.width = img.naturalWidth * scale
-                canvas.height = img.naturalHeight * scale
-
-                // Draw with sharp edges (no smoothing for embossed text)
-                ctx.imageSmoothingEnabled = false
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-                
-                // Get image data for processing
-                const imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height)
-                const data = imageDataObj.data
-                
-                // Step 1: Convert to grayscale
-                for (let i = 0; i < data.length; i += 4) {
-                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
-                    data[i] = avg
-                    data[i + 1] = avg
-                    data[i + 2] = avg
-                }
-                
-                // Step 2: Enhance contrast for embossed text
-                const contrast = 2.0
-                const factor = (259 * (contrast + 1)) / (255 * (259 - contrast))
-                
-                for (let i = 0; i < data.length; i += 4) {
-                    const gray = data[i]
-                    const enhanced = factor * (gray - 128) + 128
-                    const clamped = Math.max(0, Math.min(255, enhanced))
-                    data[i] = clamped
-                    data[i + 1] = clamped
-                    data[i + 2] = clamped
-                }
-                
-                ctx.putImageData(imageDataObj, 0, 0)
-
-                resolve(canvas.toDataURL('image/png', 1.0))
-            }
-            img.onerror = () => resolve(imageData)
-            img.src = imageData
-        })
-    }
-
     const processImage = async (imageData: string) => {
         setIsProcessing(true)
-        setProgress(0)
+        setProgress(50)
 
         try {
-            const result = await Tesseract.recognize(imageData, 'eng', {
-                // PSM 6: Assume a single uniform block of text (best for 2-3 lines)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ...( { psm: 6 } as any ),
-                logger: (m) => {
-                    if (m.status === 'recognizing text') {
-                        setProgress(Math.round(m.progress * 100))
-                    }
-                }
+            // Call OCR.space API
+            const formData = new FormData()
+            formData.append('base64Image', imageData)
+            formData.append('language', 'eng')
+            formData.append('isOverlayRequired', 'false')
+            formData.append('detectOrientation', 'true')
+            formData.append('scale', 'true')
+            formData.append('OCREngine', '2') // Engine 2 is better for difficult images
+
+            const response = await fetch('https://api.ocr.space/parse/image', {
+                method: 'POST',
+                headers: {
+                    'apikey': OCR_API_KEY
+                },
+                body: formData
             })
 
+            if (!response.ok) {
+                throw new Error('OCR API request failed')
+            }
+
+            const result = await response.json()
+            
+            if (result.IsErroredOnProcessing) {
+                throw new Error(result.ErrorMessage?.[0] || 'OCR processing error')
+            }
+
+            setProgress(100)
+
+            // Extract text from OCR result
+            const extractedText = result.ParsedResults?.[0]?.ParsedText || ''
+            
             // Clean up the extracted text
-            const cleanedText = result.data.text
+            const cleanedText = extractedText
                 .trim()
                 .split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 0)
+                .map((line: string) => line.trim())
+                .filter((line: string) => line.length > 0)
                 .join(' ')
-                .replace(/\s+/g, ' ') // Multiple spaces to single space
+                .replace(/\s+/g, ' ')
 
             setExtractedText(cleanedText)
             setEditedText(cleanedText)
@@ -185,8 +152,7 @@ export default function OCRScanner({
     const handleCropConfirm = async () => {
         const croppedImageData = await getCroppedImage()
         setCroppedImage(croppedImageData)
-        const preprocessedImage = await preprocessImage(croppedImageData)
-        await processImage(preprocessedImage)
+        await processImage(croppedImageData)
     }
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
