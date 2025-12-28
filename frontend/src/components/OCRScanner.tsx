@@ -156,8 +156,6 @@ export default function OCRScanner({
     }
 
     const handleCropConfirm = async () => {
-        // Use the zoomed snapshot for cropping, or fallback to original
-        const imageToProcess = zoomedSnapshot || capturedImage
         const croppedImageData = await getCroppedImage()
         // Save original full image to item photos, not the cropped one
         if (capturedImage && onImageCaptured) {
