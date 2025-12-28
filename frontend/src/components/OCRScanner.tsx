@@ -317,8 +317,8 @@ export default function OCRScanner({
                                 initialScale={1}
                                 minScale={1}
                                 maxScale={5}
-                                wheel={{ step: 0.1 }}
-                                pinch={{ step: 0.08 }}
+                                wheel={{ step: 0.1, disabled: !isZoomMode }}
+                                pinch={{ step: 0.08, disabled: !isZoomMode }}
                                 doubleClick={{ disabled: true }}
                                 panning={{ disabled: !isZoomMode }}
                             >
