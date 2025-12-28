@@ -339,11 +339,11 @@ export default function OCRScanner({
 
                                         {/* Zoom controls for pinch + manual buttons */}
                                         <div className="absolute top-2 right-2 flex flex-col gap-1 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg p-1 shadow-sm">
-                                            <Button size="sm" variant="secondary" onClick={zoomIn} className="h-8 w-8 !p-0">+
+                                            <Button size="sm" variant="secondary" onClick={() => zoomIn()} className="h-8 w-8 !p-0">+
                                             </Button>
-                                            <Button size="sm" variant="secondary" onClick={zoomOut} className="h-8 w-8 !p-0">-
+                                            <Button size="sm" variant="secondary" onClick={() => zoomOut()} className="h-8 w-8 !p-0">-
                                             </Button>
-                                            <Button size="sm" variant="secondary" onClick={resetTransform} className="h-8 w-8 !p-0">↺
+                                            <Button size="sm" variant="secondary" onClick={() => resetTransform()} className="h-8 w-8 !p-0">↺
                                             </Button>
                                         </div>
                                     </>
