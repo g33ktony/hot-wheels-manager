@@ -79,16 +79,16 @@ export default function Inventory() {
     const [newItem, setNewItem] = useState({
         carId: '',
         quantity: 1,
-        purchasePrice: 0,
-        suggestedPrice: 0,
+        purchasePrice: 28,
+        suggestedPrice: 35,
         actualPrice: undefined as number | undefined,
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         notes: '',
         photos: [] as string[],
         location: '', // Ubicación física (caja)
         // Brand and type fields
-        brand: '' as string,
-        pieceType: '' as 'basic' | 'premium' | 'rlc' | '',
+        brand: 'Hot Wheels' as string,
+        pieceType: 'basic' as 'basic' | 'premium' | 'rlc' | '',
         isTreasureHunt: false,
         isSuperTreasureHunt: false,
         isChase: false,
