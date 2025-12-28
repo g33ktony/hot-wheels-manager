@@ -323,7 +323,7 @@ export default function OCRScanner({
                                     pinch={{ step: 0.08 }}
                                     doubleClick={{ disabled: true }}
                                 >
-                                    {({ zoomIn, zoomOut, resetTransform, instance }) => (
+                                    {({ zoomIn, zoomOut, resetTransform, state }) => (
                                         <>
                                             <TransformComponent
                                                 wrapperStyle={{ width: '100%', maxHeight: '60vh' }}
@@ -356,19 +356,19 @@ export default function OCRScanner({
                                                     size="sm"
                                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
                                                     onClick={() => {
-                                                        // Capture current zoomed/panned view
-                                                        const transformComponent = instance.contentComponent
-                                                        if (transformComponent) {
-                                                            const canvas = document.createElement('canvas')
-                                                            const img = transformComponent.querySelector('img')
+                                                        // Capture current zoomed/panned view using html2canvas-like approach
+                                                        const transformWrapper = document.querySelector('.react-transform-component')
+                                                        if (transformWrapper) {
+                                                            const img = transformWrapper.querySelector('img')
                                                             if (img) {
-                                                                const rect = transformComponent.getBoundingClientRect()
+                                                                const canvas = document.createElement('canvas')
+                                                                const rect = transformWrapper.getBoundingClientRect()
                                                                 canvas.width = rect.width
                                                                 canvas.height = rect.height
                                                                 const ctx = canvas.getContext('2d')
                                                                 if (ctx) {
-                                                                    // Get transform values
-                                                                    const { scale, positionX, positionY } = instance.state
+                                                                    // Get current transform values from state
+                                                                    const { scale, positionX, positionY } = state
                                                                     
                                                                     // Clear canvas
                                                                     ctx.clearRect(0, 0, canvas.width, canvas.height)
