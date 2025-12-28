@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import html2canvas from 'html2canvas'
 import 'react-image-crop/dist/ReactCrop.css'
 import Modal from './common/Modal'
 import Button from './common/Button'
@@ -39,7 +40,9 @@ export default function OCRScanner({
     const [capturedImage, setCapturedImage] = useState<string | null>(null)
     const [croppedImage, setCroppedImage] = useState<string | null>(null)
     const [isZoomMode, setIsZoomMode] = useState(true)
+    const [zoomedSnapshot, setZoomedSnapshot] = useState<string | null>(null)
     const transformRef = useRef<any>(null)
+    const transformComponentRef = useRef<HTMLDivElement>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 85,
@@ -203,6 +206,7 @@ export default function OCRScanner({
         setShowCropModal(false)
         setCapturedImage(null)
         setCroppedImage(null)
+        setZoomedSnapshot(null)
         setExtractedText('')
         setEditedText('')
         setProgress(0)
@@ -328,12 +332,14 @@ export default function OCRScanner({
                                             <TransformComponent
                                                 wrapperStyle={{ width: '100%', maxHeight: '60vh' }}
                                             >
-                                                <img
-                                                    src={capturedImage}
-                                                    alt="Imagen para zoom"
-                                                    className="w-full h-auto select-none"
-                                                    style={{ maxHeight: '60vh', objectFit: 'contain' }}
-                                                />
+                                                <div ref={transformComponentRef}>
+                                                    <img
+                                                        src={capturedImage}
+                                                        alt="Imagen para zoom"
+                                                        className="w-full h-auto select-none"
+                                                        style={{ maxHeight: '60vh', objectFit: 'contain' }}
+                                                    />
+                                                </div>
                                             </TransformComponent>
 
                                             {/* Zoom controls */}
@@ -355,10 +361,25 @@ export default function OCRScanner({
                                                 <Button
                                                     size="sm"
                                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
-                                                    onClick={() => {
-                                                        // Reset zoom when switching to crop
-                                                        if (transformRef.current?.resetTransform) {
-                                                            transformRef.current.resetTransform()
+                                                    onClick={async () => {
+                                                        try {
+                                                            // Capture the zoomed view using html2canvas
+                                                            const transformComponent = document.querySelector('.react-transform-component') as HTMLElement
+                                                            if (transformComponent) {
+                                                                const canvas = await html2canvas(transformComponent, {
+                                                                    useCORS: true,
+                                                                    allowTaint: true,
+                                                                    backgroundColor: '#f3f4f6',
+                                                                    scale: 2, // Higher resolution for better OCR
+                                                                    logging: false
+                                                                })
+                                                                const snapshot = canvas.toDataURL('image/jpeg', 0.95)
+                                                                setZoomedSnapshot(snapshot)
+                                                            }
+                                                        } catch (error) {
+                                                            console.error('Error capturing zoom:', error)
+                                                            // Fallback to original if capture fails
+                                                            setZoomedSnapshot(capturedImage)
                                                         }
                                                         setIsZoomMode(false)
                                                     }}
@@ -371,7 +392,7 @@ export default function OCRScanner({
                                     )}
                                 </TransformWrapper>
                             ) : (
-                                // Modo Recorte: Imagen original sin zoom
+                                // Modo Recorte: Usa snapshot zoomeado
                                 <div className="relative w-full">
                                     <ReactCrop
                                         crop={crop}
@@ -381,7 +402,7 @@ export default function OCRScanner({
                                     >
                                         <img
                                             ref={imageRef}
-                                            src={capturedImage}
+                                            src={zoomedSnapshot || capturedImage}
                                             alt="Imagen para recortar"
                                             className="w-full h-auto"
                                             style={{ maxHeight: '60vh', objectFit: 'contain' }}
@@ -393,7 +414,10 @@ export default function OCRScanner({
                                         <Button
                                             size="sm"
                                             variant="secondary"
-                                            onClick={() => setIsZoomMode(true)}
+                                            onClick={() => {
+                                                setIsZoomMode(true)
+                                                setZoomedSnapshot(null)
+                                            }}
                                             className="px-2 py-1"
                                         >
                                             ← Ajustar zoom
