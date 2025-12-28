@@ -1618,6 +1618,7 @@ export default function Inventory() {
                                     </label>
                                     <OCRScanner
                                         onTextExtracted={(text) => handleCarIdChange(text)}
+                                        onImageCaptured={(image) => setNewItem(prev => ({ ...prev, photos: [...prev.photos, image] }))}
                                         buttonText="📷 Escanear"
                                         buttonClassName="!py-1 !px-2 text-xs"
                                     />

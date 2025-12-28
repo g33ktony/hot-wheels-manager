@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import 'react-image-crop/dist/ReactCrop.css'
 import Modal from './common/Modal'
 import Button from './common/Button'
@@ -11,6 +12,7 @@ const OCR_API_KEY = 'K88513455088957' // Free tier: 25,000 requests/month
 
 interface OCRScannerProps {
     onTextExtracted: (text: string) => void
+    onImageCaptured?: (imageData: string) => void
     buttonText?: string
     buttonClassName?: string
 }
@@ -24,7 +26,8 @@ const isMobileDevice = () => {
 export default function OCRScanner({ 
     onTextExtracted, 
     buttonText = 'Escanear nombre',
-    buttonClassName = ''
+    buttonClassName = '',
+    onImageCaptured
 }: OCRScannerProps) {
     const [isMobile, setIsMobile] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
@@ -151,6 +154,9 @@ export default function OCRScanner({
 
     const handleCropConfirm = async () => {
         const croppedImageData = await getCroppedImage()
+        if (croppedImageData && onImageCaptured) {
+            onImageCaptured(croppedImageData)
+        }
         setCroppedImage(croppedImageData)
         await processImage(croppedImageData)
     }
@@ -301,25 +307,52 @@ export default function OCRScanner({
 
                     {/* Crop area - Full width on mobile */}
                     {capturedImage && (
-                        <div className="relative w-full overflow-auto bg-gray-100 rounded-lg">
-                            <ReactCrop
-                                crop={crop}
-                                onChange={(c) => setCrop(c)}
-                                aspect={undefined}
-                                className="max-h-[60vh] w-full"
+                        <div className="relative w-full overflow-hidden bg-gray-100 rounded-lg">
+                            <TransformWrapper
+                                initialScale={1}
+                                minScale={1}
+                                maxScale={5}
+                                wheel={{ step: 0.1 }}
+                                pinch={{ step: 0.08 }}
+                                doubleClick={{ disabled: true }}
                             >
-                                <img
-                                    ref={imageRef}
-                                    src={capturedImage}
-                                    alt="Imagen para recortar"
-                                    className="w-full h-auto"
-                                    style={{ maxHeight: '60vh', objectFit: 'contain' }}
-                                />
-                            </ReactCrop>
+                                {({ zoomIn, zoomOut, resetTransform }) => (
+                                    <>
+                                        <TransformComponent>
+                                            <div className="w-full">
+                                                <ReactCrop
+                                                    crop={crop}
+                                                    onChange={(c) => setCrop(c)}
+                                                    aspect={undefined}
+                                                    className="max-h-[60vh] w-full touch-none"
+                                                >
+                                                    <img
+                                                        ref={imageRef}
+                                                        src={capturedImage}
+                                                        alt="Imagen para recortar"
+                                                        className="w-full h-auto select-none"
+                                                        style={{ maxHeight: '60vh', objectFit: 'contain' }}
+                                                    />
+                                                </ReactCrop>
+                                            </div>
+                                        </TransformComponent>
+
+                                        {/* Zoom controls for pinch + manual buttons */}
+                                        <div className="absolute top-2 right-2 flex flex-col gap-1 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg p-1 shadow-sm">
+                                            <Button size="sm" variant="secondary" onClick={zoomIn} className="h-8 w-8 !p-0">+
+                                            </Button>
+                                            <Button size="sm" variant="secondary" onClick={zoomOut} className="h-8 w-8 !p-0">-
+                                            </Button>
+                                            <Button size="sm" variant="secondary" onClick={resetTransform} className="h-8 w-8 !p-0">↺
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </TransformWrapper>
 
                             {/* Inline action bar to make the next step obvious */}
                             <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
-                                <p className="text-[11px] text-gray-700">Ajusta y toca Escanear</p>
+                                <p className="text-[11px] text-gray-700">Haz pinch para hacer zoom, ajusta y toca Escanear</p>
                                 <Button
                                     size="sm"
                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
