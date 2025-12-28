@@ -39,7 +39,6 @@ export default function OCRScanner({
     const [capturedImage, setCapturedImage] = useState<string | null>(null)
     const [croppedImage, setCroppedImage] = useState<string | null>(null)
     const [isZoomMode, setIsZoomMode] = useState(true)
-    const [zoomedSnapshot, setZoomedSnapshot] = useState<string | null>(null)
     const transformRef = useRef<any>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
@@ -204,7 +203,6 @@ export default function OCRScanner({
         setShowCropModal(false)
         setCapturedImage(null)
         setCroppedImage(null)
-        setZoomedSnapshot(null)
         setExtractedText('')
         setEditedText('')
         setProgress(0)
@@ -353,53 +351,14 @@ export default function OCRScanner({
 
                                             {/* Switch to crop mode */}
                                             <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm z-10">
-                                                <p className="text-[11px] text-gray-700">🔍 Haz zoom para ver mejor</p>
+                                                <p className="text-[11px] text-gray-700">🔍 Usa zoom para encontrar el texto</p>
                                                 <Button
                                                     size="sm"
                                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
-                                                    onClick={async () => {
-                                                        // Capture the current zoomed/panned view to canvas
-                                                        const transformComponent = document.querySelector('.react-transform-component')
-                                                        if (transformComponent) {
-                                                            const img = transformComponent.querySelector('img')
-                                                            if (img) {
-                                                                try {
-                                                                    // Use html2canvas-like approach
-                                                                    const rect = transformComponent.getBoundingClientRect()
-                                                                    const canvas = document.createElement('canvas')
-                                                                    canvas.width = rect.width * 2  // Higher res for better OCR
-                                                                    canvas.height = rect.height * 2
-                                                                    const ctx = canvas.getContext('2d')
-                                                                    
-                                                                    if (ctx) {
-                                                                        // Get transform style
-                                                                        const transform = window.getComputedStyle(img.parentElement!).transform
-                                                                        
-                                                                        // Scale for retina
-                                                                        ctx.scale(2, 2)
-                                                                        
-                                                                        // Draw white background
-                                                                        ctx.fillStyle = 'white'
-                                                                        ctx.fillRect(0, 0, rect.width, rect.height)
-                                                                        
-                                                                        if (transform && transform !== 'none') {
-                                                                            // Parse matrix values
-                                                                            const values = transform.match(/matrix\(([^)]+)\)/)?.[1].split(',').map(parseFloat)
-                                                                            if (values && values.length === 6) {
-                                                                                const [scaleX, , , scaleY, translateX, translateY] = values
-                                                                                ctx.setTransform(scaleX, 0, 0, scaleY, translateX, translateY)
-                                                                            }
-                                                                        }
-                                                                        
-                                                                        ctx.drawImage(img, 0, 0)
-                                                                        setZoomedSnapshot(canvas.toDataURL('image/jpeg', 0.95))
-                                                                    }
-                                                                } catch (error) {
-                                                                    console.error('Error capturing zoom:', error)
-                                                                    // Fallback to original image
-                                                                    setZoomedSnapshot(capturedImage)
-                                                                }
-                                                            }
+                                                    onClick={() => {
+                                                        // Reset zoom when switching to crop
+                                                        if (transformRef.current?.resetTransform) {
+                                                            transformRef.current.resetTransform()
                                                         }
                                                         setIsZoomMode(false)
                                                     }}
@@ -412,7 +371,7 @@ export default function OCRScanner({
                                     )}
                                 </TransformWrapper>
                             ) : (
-                                // Modo Recorte: Usa la imagen zoomeada capturada
+                                // Modo Recorte: Imagen original sin zoom
                                 <div className="relative w-full">
                                     <ReactCrop
                                         crop={crop}
@@ -422,7 +381,7 @@ export default function OCRScanner({
                                     >
                                         <img
                                             ref={imageRef}
-                                            src={zoomedSnapshot || capturedImage}
+                                            src={capturedImage}
                                             alt="Imagen para recortar"
                                             className="w-full h-auto"
                                             style={{ maxHeight: '60vh', objectFit: 'contain' }}
@@ -434,13 +393,10 @@ export default function OCRScanner({
                                         <Button
                                             size="sm"
                                             variant="secondary"
-                                            onClick={() => {
-                                                setIsZoomMode(true)
-                                                setZoomedSnapshot(null)
-                                            }}
+                                            onClick={() => setIsZoomMode(true)}
                                             className="px-2 py-1"
                                         >
-                                            ← Volver a zoom
+                                            ← Ajustar zoom
                                         </Button>
                                         <Button
                                             size="sm"
