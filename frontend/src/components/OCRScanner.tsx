@@ -40,6 +40,7 @@ export default function OCRScanner({
     const [croppedImage, setCroppedImage] = useState<string | null>(null)
     const [isZoomMode, setIsZoomMode] = useState(true)
     const [zoomedImage, setZoomedImage] = useState<string | null>(null)
+    const transformRef = useRef<any>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 85,
@@ -316,6 +317,7 @@ export default function OCRScanner({
                             {isZoomMode ? (
                                 // Modo Zoom: Solo visualización con pinch-to-zoom
                                 <TransformWrapper
+                                    ref={transformRef}
                                     initialScale={1}
                                     minScale={1}
                                     maxScale={5}
@@ -323,7 +325,7 @@ export default function OCRScanner({
                                     pinch={{ step: 0.08 }}
                                     doubleClick={{ disabled: true }}
                                 >
-                                    {({ zoomIn, zoomOut, resetTransform, state }) => (
+                                    {({ zoomIn, zoomOut, resetTransform }) => (
                                         <>
                                             <TransformComponent
                                                 wrapperStyle={{ width: '100%', maxHeight: '60vh' }}
@@ -356,31 +358,36 @@ export default function OCRScanner({
                                                     size="sm"
                                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
                                                     onClick={() => {
-                                                        // Capture current zoomed/panned view using html2canvas-like approach
-                                                        const transformWrapper = document.querySelector('.react-transform-component')
-                                                        if (transformWrapper) {
-                                                            const img = transformWrapper.querySelector('img')
-                                                            if (img) {
-                                                                const canvas = document.createElement('canvas')
-                                                                const rect = transformWrapper.getBoundingClientRect()
-                                                                canvas.width = rect.width
-                                                                canvas.height = rect.height
-                                                                const ctx = canvas.getContext('2d')
-                                                                if (ctx) {
-                                                                    // Get current transform values from state
-                                                                    const { scale, positionX, positionY } = state
-                                                                    
-                                                                    // Clear canvas
-                                                                    ctx.clearRect(0, 0, canvas.width, canvas.height)
-                                                                    
-                                                                    // Apply transform and draw
-                                                                    ctx.save()
-                                                                    ctx.translate(positionX, positionY)
-                                                                    ctx.scale(scale, scale)
-                                                                    ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight)
-                                                                    ctx.restore()
-                                                                    
-                                                                    setZoomedImage(canvas.toDataURL('image/jpeg', 0.95))
+                                                        // Capture current zoomed/panned view
+                                                        if (transformRef.current) {
+                                                            const transformWrapper = document.querySelector('.react-transform-component')
+                                                            if (transformWrapper) {
+                                                                const img = transformWrapper.querySelector('img')
+                                                                if (img) {
+                                                                    const canvas = document.createElement('canvas')
+                                                                    const rect = transformWrapper.getBoundingClientRect()
+                                                                    canvas.width = rect.width
+                                                                    canvas.height = rect.height
+                                                                    const ctx = canvas.getContext('2d')
+                                                                    if (ctx) {
+                                                                        // Get current transform values from instance
+                                                                        const instance = transformRef.current.instance
+                                                                        if (instance && instance.transformState) {
+                                                                            const { scale, positionX, positionY } = instance.transformState
+                                                                            
+                                                                            // Clear canvas
+                                                                            ctx.clearRect(0, 0, canvas.width, canvas.height)
+                                                                            
+                                                                            // Apply transform and draw
+                                                                            ctx.save()
+                                                                            ctx.translate(positionX, positionY)
+                                                                            ctx.scale(scale, scale)
+                                                                            ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight)
+                                                                            ctx.restore()
+                                                                            
+                                                                            setZoomedImage(canvas.toDataURL('image/jpeg', 0.95))
+                                                                        }
+                                                                    }
                                                                 }
                                                             }
                                                         }
