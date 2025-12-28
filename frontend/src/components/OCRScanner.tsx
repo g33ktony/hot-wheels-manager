@@ -363,25 +363,30 @@ export default function OCRScanner({
                                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
                                                     onClick={async () => {
                                                         try {
-                                                            // Capture the zoomed view using html2canvas
-                                                            const transformComponent = document.querySelector('.react-transform-component') as HTMLElement
-                                                            if (transformComponent) {
-                                                                const canvas = await html2canvas(transformComponent, {
+                                                            // Find the wrapper that contains the zoomed/panned content
+                                                            const wrapper = document.querySelector('.react-transform-wrapper') as HTMLElement
+                                                            if (wrapper) {
+                                                                // Use html2canvas on the entire wrapper to capture visible content
+                                                                const canvas = await html2canvas(wrapper, {
                                                                     useCORS: true,
                                                                     allowTaint: true,
                                                                     backgroundColor: '#f3f4f6',
-                                                                    scale: 2, // Higher resolution for better OCR
-                                                                    logging: false
+                                                                    scale: 2,
+                                                                    logging: false,
+                                                                    width: wrapper.clientWidth,
+                                                                    height: wrapper.clientHeight,
+                                                                    windowWidth: wrapper.clientWidth,
+                                                                    windowHeight: wrapper.clientHeight
                                                                 })
+                                                                
                                                                 const snapshot = canvas.toDataURL('image/jpeg', 0.95)
                                                                 setZoomedSnapshot(snapshot)
+                                                                setIsZoomMode(false)
                                                             }
                                                         } catch (error) {
                                                             console.error('Error capturing zoom:', error)
-                                                            // Fallback to original if capture fails
-                                                            setZoomedSnapshot(capturedImage)
+                                                            alert('Error al capturar el zoom. Intenta de nuevo.')
                                                         }
-                                                        setIsZoomMode(false)
                                                     }}
                                                 >
                                                     <Crop className="w-4 h-4 mr-1" />
