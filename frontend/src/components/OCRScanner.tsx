@@ -39,6 +39,7 @@ export default function OCRScanner({
     const [capturedImage, setCapturedImage] = useState<string | null>(null)
     const [croppedImage, setCroppedImage] = useState<string | null>(null)
     const [isZoomMode, setIsZoomMode] = useState(true)
+    const [zoomedImage, setZoomedImage] = useState<string | null>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 85,
@@ -155,8 +156,9 @@ export default function OCRScanner({
 
     const handleCropConfirm = async () => {
         const croppedImageData = await getCroppedImage()
-        if (croppedImageData && onImageCaptured) {
-            onImageCaptured(croppedImageData)
+        // Save original full image to item photos, not the cropped one
+        if (capturedImage && onImageCaptured) {
+            onImageCaptured(capturedImage)
         }
         setCroppedImage(croppedImageData)
         await processImage(croppedImageData)
@@ -201,6 +203,7 @@ export default function OCRScanner({
         setShowCropModal(false)
         setCapturedImage(null)
         setCroppedImage(null)
+        setZoomedImage(null)
         setExtractedText('')
         setEditedText('')
         setProgress(0)
@@ -320,7 +323,7 @@ export default function OCRScanner({
                                     pinch={{ step: 0.08 }}
                                     doubleClick={{ disabled: true }}
                                 >
-                                    {({ zoomIn, zoomOut, resetTransform }) => (
+                                    {({ zoomIn, zoomOut, resetTransform, instance }) => (
                                         <>
                                             <TransformComponent
                                                 wrapperStyle={{ width: '100%', maxHeight: '60vh' }}
@@ -352,7 +355,37 @@ export default function OCRScanner({
                                                 <Button
                                                     size="sm"
                                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
-                                                    onClick={() => setIsZoomMode(false)}
+                                                    onClick={() => {
+                                                        // Capture current zoomed/panned view
+                                                        const transformComponent = instance.contentComponent
+                                                        if (transformComponent) {
+                                                            const canvas = document.createElement('canvas')
+                                                            const img = transformComponent.querySelector('img')
+                                                            if (img) {
+                                                                const rect = transformComponent.getBoundingClientRect()
+                                                                canvas.width = rect.width
+                                                                canvas.height = rect.height
+                                                                const ctx = canvas.getContext('2d')
+                                                                if (ctx) {
+                                                                    // Get transform values
+                                                                    const { scale, positionX, positionY } = instance.state
+                                                                    
+                                                                    // Clear canvas
+                                                                    ctx.clearRect(0, 0, canvas.width, canvas.height)
+                                                                    
+                                                                    // Apply transform and draw
+                                                                    ctx.save()
+                                                                    ctx.translate(positionX, positionY)
+                                                                    ctx.scale(scale, scale)
+                                                                    ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight)
+                                                                    ctx.restore()
+                                                                    
+                                                                    setZoomedImage(canvas.toDataURL('image/jpeg', 0.95))
+                                                                }
+                                                            }
+                                                        }
+                                                        setIsZoomMode(false)
+                                                    }}
                                                 >
                                                     <Crop className="w-4 h-4 mr-1" />
                                                     Recortar
@@ -362,7 +395,7 @@ export default function OCRScanner({
                                     )}
                                 </TransformWrapper>
                             ) : (
-                                // Modo Recorte: ReactCrop sin zoom
+                                // Modo Recorte: ReactCrop con la imagen zoomeada capturada
                                 <div className="relative w-full">
                                     <ReactCrop
                                         crop={crop}
@@ -372,7 +405,7 @@ export default function OCRScanner({
                                     >
                                         <img
                                             ref={imageRef}
-                                            src={capturedImage}
+                                            src={zoomedImage || capturedImage}
                                             alt="Imagen para recortar"
                                             className="w-full h-auto"
                                             style={{ maxHeight: '60vh', objectFit: 'contain' }}
