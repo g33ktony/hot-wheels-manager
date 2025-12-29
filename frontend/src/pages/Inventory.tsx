@@ -6,6 +6,7 @@ import { inventoryService } from '@/services/inventory'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import Stepper from '@/components/common/Stepper'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
@@ -1580,16 +1581,13 @@ export default function Inventory() {
                                         value={newItem.carId}
                                         onChange={(e) => setNewItem({ ...newItem, carId: e.target.value })}
                                     />
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        placeholder="Cant."
-                                        className="input w-24"
-                                        value={newItem.quantity === 0 ? '' : newItem.quantity}
-                                        onChange={(e) => {
-                                            const value = e.target.value === '' ? 0 : parseInt(e.target.value)
-                                            setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : Math.max(1, value) })
-                                        }}
+                                    <Stepper
+                                        value={newItem.quantity || 1}
+                                        onChange={(val) => setNewItem({ ...newItem, quantity: val })}
+                                        min={1}
+                                        max={99}
+                                        step={1}
+                                        className="flex-shrink-0"
                                     />
                                     <Button
                                         size="sm"
@@ -1738,36 +1736,25 @@ export default function Inventory() {
                         {/* Quantity - Only for individual and box (same model) */}
                         {!newItem.isMultipleCars && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     {newItem.isBox ? 'Total de Piezas (automático)' : 'Cantidad'}
                                 </label>
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    min="1"
-                                    step="1"
-                                    className="input w-full"
-                                    value={newItem.quantity || ''}
-                                    disabled={newItem.isBox}
-                                    onChange={(e) => {
-                                        if (!newItem.isBox) {
-                                            const val = e.target.value
-                                            if (val === '') {
-                                                setNewItem({ ...newItem, quantity: '' as any })
-                                            } else {
-                                                const num = parseInt(val)
-                                                setNewItem({ ...newItem, quantity: isNaN(num) ? 1 : Math.max(1, num) })
-                                            }
-                                        }
-                                    }}
-                                    onBlur={(e) => {
-                                        if (!newItem.isBox && (e.target.value === '' || parseInt(e.target.value) < 1)) {
-                                            setNewItem({ ...newItem, quantity: 1 })
-                                        }
-                                    }}
-                                />
+                                {newItem.isBox ? (
+                                    <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                        <span className="text-sm font-medium text-gray-700">{newItem.quantity}</span>
+                                        <span className="text-xs text-gray-500">piezas automáticas</span>
+                                    </div>
+                                ) : (
+                                    <Stepper
+                                        value={newItem.quantity || 1}
+                                        onChange={(val) => setNewItem({ ...newItem, quantity: val })}
+                                        min={1}
+                                        max={999}
+                                        step={1}
+                                    />
+                                )}
                                 {newItem.isBox && (
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-gray-500 mt-2">
                                         Se agregarán {newItem.quantity} piezas del mismo Hot Wheels
                                     </p>
                                 )}
