@@ -1617,8 +1617,8 @@ export default function Inventory() {
                                         Código de Hot Wheels
                                     </label>
                                     <OCRScanner
-                                        onTextExtracted={(text) => handleCarIdChange(text)}
-                                        onImageCaptured={(image) => setNewItem(prev => ({ ...prev, photos: [...prev.photos, image] }))}
+                                        onTextExtracted={(text: string) => handleCarIdChange(text)}
+                                        onImageCaptured={(image: string) => setNewItem(prev => ({ ...prev, photos: [...prev.photos, image] }))}
                                         buttonText="📷 Escanear"
                                         buttonClassName="!py-1 !px-2 text-xs"
                                     />
