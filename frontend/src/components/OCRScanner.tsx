@@ -434,23 +434,25 @@ export default function OCRScanner({
                             ) : (
                                 // Crop mode: Fresh image with no zoom applied
                                 zoomedSnapshot && (
-                                    <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
-                                        <ReactCrop
-                                            crop={crop}
-                                            onChange={(c) => setCrop(c)}
-                                            aspect={undefined}
-                                        >
-                                            <img
-                                                ref={imageRef}
-                                                src={zoomedSnapshot}
-                                                alt="Imagen para recortar"
-                                                className="w-full h-auto"
-                                                style={{ maxHeight: '60vh', objectFit: 'contain' }}
-                                            />
-                                        </ReactCrop>
+                                    <>
+                                        <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
+                                            <ReactCrop
+                                                crop={crop}
+                                                onChange={(c) => setCrop(c)}
+                                                aspect={undefined}
+                                            >
+                                                <img
+                                                    ref={imageRef}
+                                                    src={zoomedSnapshot}
+                                                    alt="Imagen para recortar"
+                                                    className="w-full h-auto"
+                                                    style={{ maxHeight: '60vh', objectFit: 'contain' }}
+                                                />
+                                            </ReactCrop>
+                                        </div>
 
-                                        {/* Action bar for crop mode */}
-                                        <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm z-10">
+                                        {/* Action bar for crop mode (below image, not overlay) */}
+                                        <div className="mt-2 flex items-center justify-between gap-2">
                                             <Button
                                                 size="sm"
                                                 variant="secondary"
@@ -481,7 +483,7 @@ export default function OCRScanner({
                                                 )}
                                             </Button>
                                         </div>
-                                    </div>
+                                    </>
                                 )
                             )}
                         </>
