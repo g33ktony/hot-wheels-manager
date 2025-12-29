@@ -17,7 +17,6 @@ import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, Che
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
-import toast from 'react-hot-toast'
 import OCRScanner from '@/components/OCRScanner'
 import type { InventoryItem } from '../../../shared/types'
 
