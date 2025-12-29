@@ -5,6 +5,7 @@ import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { inventoryService } from '@/services/inventory'
 import { useAppSelector } from '@/hooks/redux'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import { LazyImage } from '@/components/LazyImage'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -14,6 +15,7 @@ import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
 import toast from 'react-hot-toast'
 import OCRScanner from '@/components/OCRScanner'
@@ -69,6 +71,9 @@ const PREDEFINED_BRANDS = [
 export default function Inventory() {
     // Sync inventory in background (keeps Redux cache fresh for other pages)
     useInventorySyncInBackground()
+    
+    // Cloudinary upload
+    const { uploadImage } = useCloudinaryUpload()
 
     // Get Redux cache as fallback when React Query is loading
     const reduxInventory = useAppSelector(state => state.inventory)
@@ -877,15 +882,15 @@ export default function Inventory() {
         }))
     }
 
-    // Photo handling functions with automatic compression
+    // Photo handling functions with Cloudinary upload
     const handleFileUpload = async (files: FileList | null, isEditing: boolean = false) => {
         if (!files) return
 
         const compressionOptions = {
-            maxSizeMB: 0.5, // Máximo 500KB por imagen
-            maxWidthOrHeight: 1024, // Máximo 1024px de ancho/alto
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1024,
             useWebWorker: true,
-            fileType: 'image/jpeg', // Convertir a JPEG para mejor compresión
+            fileType: 'image/jpeg',
         }
 
         for (const file of Array.from(files)) {
@@ -893,45 +898,28 @@ export default function Inventory() {
                 try {
                     // Comprimir imagen
                     const compressedFile = await imageCompression(file, compressionOptions)
-
-                    // Convertir a base64
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                        const result = e.target?.result as string
-                        if (isEditing && editingItem) {
-                            setEditingItem((prev: any) => ({
-                                ...prev,
-                                photos: [...(prev.photos || []), result]
-                            }))
-                        } else {
-                            setNewItem(prev => ({
-                                ...prev,
-                                photos: [...prev.photos, result]
-                            }))
-                        }
-                    }
-                    reader.readAsDataURL(compressedFile)
-
                     console.log(`📸 Imagen comprimida: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
-                } catch (error) {
-                    console.error('Error al comprimir imagen:', error)
-                    // Si falla la compresión, usar la imagen original
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                        const result = e.target?.result as string
+
+                    // Subir a Cloudinary
+                    const result = await uploadImage(compressedFile)
+                    if (result) {
+                        // Guardar solo la URL de Cloudinary, no base64
                         if (isEditing && editingItem) {
                             setEditingItem((prev: any) => ({
                                 ...prev,
-                                photos: [...(prev.photos || []), result]
+                                photos: [...(prev.photos || []), result.url]
                             }))
                         } else {
                             setNewItem(prev => ({
                                 ...prev,
-                                photos: [...prev.photos, result]
+                                photos: [...prev.photos, result.url]
                             }))
                         }
+                        console.log(`☁️ Uploaded to Cloudinary: ${result.url}`)
                     }
-                    reader.readAsDataURL(file)
+                } catch (error) {
+                    console.error('Error al subir imagen:', error)
+                    toast.error('Error al subir imagen a Cloudinary')
                 }
             }
         }
