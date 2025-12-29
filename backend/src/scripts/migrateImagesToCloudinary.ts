@@ -24,6 +24,8 @@ dotenv.config({ path: path.join(__dirname, '../../../.env') })
 
 // Cloudinary config
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'your-cloud-name'
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET
 const CLOUDINARY_UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || 'unsigned_upload'
 const BACKUP_DIR = path.join(__dirname, '../../backups')
 
@@ -198,14 +200,23 @@ function printSummary() {
  * Main migration function
  */
 async function runMigration() {
+  // Get database argument from command line (default: 'hot-wheels-manager')
+  const dbName = process.argv[2] || 'hot-wheels-manager'
+  
   console.log('🚀 Starting Cloudinary Image Migration')
   console.log(`Cloud Name: ${CLOUDINARY_CLOUD_NAME}`)
   console.log(`Upload Preset: ${CLOUDINARY_UPLOAD_PRESET}`)
+  console.log(`Target Database: ${dbName}`)
 
   try {
     // Connect to database
     console.log('\n🔗 Connecting to database...')
-    await connectDB()
+    
+    // Build URI with specified database
+    const baseUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/hot-wheels-manager'
+    const dbUri = baseUri.replace(/\/[^/?]+(\?|$)/, `/${dbName}$1`)
+    
+    await connectDB(dbUri)
 
     // Create backup
     console.log('📦 Creating backup...')
