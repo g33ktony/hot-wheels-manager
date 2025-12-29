@@ -373,7 +373,7 @@ export default function OCRScanner({
                         <>
                             {isZoomMode ? (
                                 // Zoom mode: Image with pinch-to-zoom
-                                <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
+                                <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
                                     <TransformWrapper
                                         ref={transformWrapperRef}
                                         initialScale={1}
