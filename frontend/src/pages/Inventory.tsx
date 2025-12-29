@@ -17,6 +17,41 @@ import toast from 'react-hot-toast'
 import OCRScanner from '@/components/OCRScanner'
 import type { InventoryItem } from '../../../shared/types'
 
+// Utility function: Calculate Levenshtein distance for fuzzy matching
+const levenshteinDistance = (str1: string, str2: string): number => {
+    const track = new Array(str2.length + 1)
+        .fill(null)
+        .map(() => new Array(str1.length + 1).fill(0))
+
+    for (let i = 0; i <= str1.length; i += 1) {
+        track[0][i] = i
+    }
+    for (let j = 0; j <= str2.length; j += 1) {
+        track[j][0] = j
+    }
+
+    for (let j = 1; j <= str2.length; j += 1) {
+        for (let i = 1; i <= str1.length; i += 1) {
+            const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1
+            track[j][i] = Math.min(
+                track[j][i - 1] + 1,
+                track[j - 1][i] + 1,
+                track[j - 1][i - 1] + indicator
+            )
+        }
+    }
+
+    return track[str2.length][str1.length]
+}
+
+// Utility function: Calculate similarity percentage (0-100)
+const calculateSimilarity = (str1: string, str2: string): number => {
+    const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase())
+    const maxLength = Math.max(str1.length, str2.length)
+    if (maxLength === 0) return 100
+    return ((maxLength - distance) / maxLength) * 100
+}
+
 // Predefined brands
 const PREDEFINED_BRANDS = [
     'Hot Wheels',
@@ -620,9 +655,36 @@ export default function Inventory() {
     const getMatchingItems = () => {
         if (!newItem.carId || newItem.carId.length === 0) return []
 
-        return inventoryItems?.filter((item: InventoryItem) =>
-            item.carId && item.carId.toLowerCase().includes(newItem.carId.toLowerCase())
-        ) || []
+        const SIMILARITY_THRESHOLD = 75 // 75% similarity
+
+        return (inventoryItems?.filter((item: InventoryItem) => {
+            if (!item.carId) return false
+            
+            // Exact match or contains (still prioritize these)
+            if (item.carId.toLowerCase().includes(newItem.carId.toLowerCase())) {
+                return true
+            }
+            
+            // Fuzzy match with 75% similarity threshold
+            const similarity = calculateSimilarity(newItem.carId, item.carId)
+            return similarity >= SIMILARITY_THRESHOLD
+        }) || [])
+            .sort((a: InventoryItem, b: InventoryItem) => {
+                if (!a.carId || !b.carId) return 0
+                
+                // Prioritize exact matches
+                const aExact = a.carId.toLowerCase().includes(newItem.carId.toLowerCase())
+                const bExact = b.carId.toLowerCase().includes(newItem.carId.toLowerCase())
+                
+                if (aExact && !bExact) return -1
+                if (!aExact && bExact) return 1
+                
+                // Then sort by similarity score (highest first)
+                const aSimilarity = calculateSimilarity(newItem.carId, a.carId)
+                const bSimilarity = calculateSimilarity(newItem.carId, b.carId)
+                
+                return bSimilarity - aSimilarity
+            })
     }
 
     const handleSelectExistingItem = (item: any) => {
@@ -1709,26 +1771,42 @@ export default function Inventory() {
                                 {showSuggestions && !existingItemToUpdate && getMatchingItems().length > 0 && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                         <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
-                                            {getMatchingItems().length} pieza{getMatchingItems().length !== 1 ? 's' : ''} encontrada{getMatchingItems().length !== 1 ? 's' : ''}
+                                            {getMatchingItems().length} pieza{getMatchingItems().length !== 1 ? 's' : ''} encontrada{getMatchingItems().length !== 1 ? 's' : ''} (búsqueda inteligente)
                                         </div>
-                                        {getMatchingItems().map((item: InventoryItem) => (
-                                            <button
-                                                key={item._id}
-                                                type="button"
-                                                className="w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-b-0 transition-colors"
-                                                onClick={() => handleSelectExistingItem(item)}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <div className="font-medium text-sm">{item.carId}</div>
-                                                        <div className="text-xs text-gray-600">
-                                                            {item.quantity} disponible{item.quantity !== 1 ? 's' : ''} • {item.condition} • ${item.suggestedPrice}
+                                        {getMatchingItems().map((item: InventoryItem) => {
+                                            const similarity = calculateSimilarity(newItem.carId, item.carId)
+                                            const isExactMatch = item.carId.toLowerCase().includes(newItem.carId.toLowerCase())
+                                            
+                                            return (
+                                                <button
+                                                    key={item._id}
+                                                    type="button"
+                                                    className="w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-b-0 transition-colors"
+                                                    onClick={() => handleSelectExistingItem(item)}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <div className="font-medium text-sm">{item.carId}</div>
+                                                            <div className="text-xs text-gray-600">
+                                                                {item.quantity} disponible{item.quantity !== 1 ? 's' : ''} • {item.condition} • ${item.suggestedPrice}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-1">
+                                                            {!isExactMatch && (
+                                                                <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                                                    similarity >= 90
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : 'bg-yellow-100 text-yellow-700'
+                                                                }`}>
+                                                                    {Math.round(similarity)}%
+                                                                </span>
+                                                            )}
+                                                            <Edit size={14} className="text-blue-500" />
                                                         </div>
                                                     </div>
-                                                    <Edit size={14} className="text-blue-500" />
-                                                </div>
-                                            </button>
-                                        ))}
+                                                </button>
+                                            )
+                                        })}
                                     </div>
                                 )}
                             </div>
