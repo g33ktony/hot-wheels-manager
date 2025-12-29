@@ -47,29 +47,73 @@ const POS: React.FC = () => {
       try {
         dispatch(setLoading(true));
         console.log('🔄 POS: Cargando inventario inicial desde API...');
-        const data = await inventoryService.getAll(1, 1000, {});
         
-        if (!data || !data.items) {
+        // Load items in batches to prevent timeout on large inventories
+        const INITIAL_BATCH_SIZE = 100;
+        const allItems = [];
+        let totalItems = 0;
+        let totalPages = 0;
+        
+        // Load first batch
+        const firstBatch = await inventoryService.getAll(1, INITIAL_BATCH_SIZE, {});
+        
+        if (!firstBatch || !firstBatch.items) {
           throw new Error('Respuesta inválida del servidor: no hay datos');
         }
         
-        console.log('✅ POS: Inventario cargado -', data.items.length, 'items');
-        console.log('📊 POS: Pagination -', data.pagination);
+        allItems.push(...firstBatch.items);
+        totalItems = firstBatch.pagination?.totalItems || firstBatch.items.length;
+        totalPages = Math.ceil(totalItems / INITIAL_BATCH_SIZE);
         
+        console.log('✅ POS: Cargó primer lote -', firstBatch.items.length, 'items de', totalItems, 'total');
+        
+        // Update Redux with first batch
         dispatch(setInventoryItems({
-          items: data.items,
-          totalItems: data.pagination?.totalItems || data.items.length,
+          items: firstBatch.items,
+          totalItems: totalItems,
           currentPage: 1,
-          totalPages: 1,
-          itemsPerPage: 1000
+          totalPages: totalPages,
+          itemsPerPage: INITIAL_BATCH_SIZE
         }));
+        
+        // Load remaining batches in background if there are more pages
+        if (totalPages > 1) {
+          console.log('🔄 POS: Cargando lotes restantes en background (' + (totalPages - 1) + ' pages más)...');
+          
+          for (let page = 2; page <= totalPages; page++) {
+            try {
+              const batch = await inventoryService.getAll(page, INITIAL_BATCH_SIZE, {});
+              allItems.push(...(batch.items || []));
+              console.log('✅ POS: Página', page, '/', totalPages, 'cargada');
+            } catch (pageError) {
+              console.warn('⚠️ POS: Error cargando página', page, '-', pageError);
+            }
+          }
+          
+          console.log('✅ POS: Todos los lotes cargados -', allItems.length, 'items total');
+          dispatch(setInventoryItems({
+            items: allItems,
+            totalItems: totalItems,
+            currentPage: 1,
+            totalPages: totalPages,
+            itemsPerPage: INITIAL_BATCH_SIZE
+          }));
+        }
+        
         dispatch(setError(null));
       } catch (error: any) {
         const errorMsg = error?.message || 'Error desconocido';
+        const isTimeout = errorMsg.includes('timeout') || errorMsg.includes('30000');
         console.error('❌ Error loading inventory for POS:', errorMsg);
         console.error('Full error:', error);
-        dispatch(setError(`Error al cargar inventario: ${errorMsg}`));
-        toast.error(`Error: ${errorMsg}`);
+        
+        if (isTimeout) {
+          dispatch(setError('Tiempo de carga agotado - el servidor tardó demasiado'));
+          toast.error('⏱️ Timeout: Intenta de nuevo en unos momentos');
+        } else {
+          dispatch(setError(`Error al cargar inventario: ${errorMsg}`));
+          toast.error(`Error: ${errorMsg}`);
+        }
       } finally {
         dispatch(setLoading(false));
         setInitialLoadDone(true);
