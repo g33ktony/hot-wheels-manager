@@ -44,6 +44,7 @@ export default function OCRScanner({
     const zoomImageRef = useRef<HTMLImageElement>(null)
     const transformComponentRef = useRef<HTMLDivElement>(null)
     const transformWrapperRef = useRef<any>(null)
+    const resetTransformRef = useRef<(() => void) | null>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 85,
@@ -388,7 +389,10 @@ export default function OCRScanner({
                                     pinch={{ step: 0.08 }}
                                     doubleClick={{ disabled: true }}
                                 >
-                                    {({ zoomIn, zoomOut, resetTransform }) => (
+                                    {({ zoomIn, zoomOut, resetTransform }) => {
+                                        // Save resetTransform to ref so we can call it when switching to crop mode
+                                        resetTransformRef.current = resetTransform
+                                        return (
                                         <>
                                             <TransformComponent
                                                 wrapperStyle={{ width: '100%', maxHeight: '60vh' }}
@@ -428,6 +432,10 @@ export default function OCRScanner({
                                                             const snapshot = await captureZoomedView()
                                                             setZoomedSnapshot(snapshot)
                                                             setIsZoomMode(false)
+                                                            // Reset zoom when switching to crop mode
+                                                            setTimeout(() => {
+                                                                resetTransformRef.current?.()
+                                                            }, 0)
                                                         } catch (error) {
                                                             console.error('Error capturing zoom:', error)
                                                             alert('Error al capturar el zoom. Intenta de nuevo.')
@@ -439,7 +447,8 @@ export default function OCRScanner({
                                                 </Button>
                                             </div>
                                         </>
-                                    )}
+                                        )
+                                    }}
                                 </TransformWrapper>
                             ) : (
                                 // Modo Recorte: Usa snapshot zoomeado
@@ -467,6 +476,10 @@ export default function OCRScanner({
                                             onClick={() => {
                                                 setIsZoomMode(true)
                                                 setZoomedSnapshot(null)
+                                                // Reset transform when returning to zoom mode
+                                                setTimeout(() => {
+                                                    resetTransformRef.current?.()
+                                                }, 0)
                                             }}
                                             className="px-2 py-1"
                                         >
