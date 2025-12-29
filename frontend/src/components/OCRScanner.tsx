@@ -409,32 +409,22 @@ export default function OCRScanner({
                                                         className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
                                                         onClick={async () => {
                                                             try {
-                                                                setIsProcessing(true)
-                                                                setProgress(10)
                                                                 const snapshot = await captureZoomedView()
                                                                 if (!snapshot || snapshot.length < 20) {
-                                                                    alert('No se pudo capturar el área visible. Intenta ajustar el zoom y prueba de nuevo.')
-                                                                    setIsProcessing(false)
+                                                                    alert('No se pudo capturar el área visible. Ajusta el zoom y prueba de nuevo.')
                                                                     return
                                                                 }
+                                                                // Use the zoomed snapshot as a NEW image in crop mode
                                                                 setZoomedSnapshot(snapshot)
-                                                                // Save original full image to item photos
-                                                                if (capturedImage && onImageCaptured) {
-                                                                    onImageCaptured(capturedImage)
-                                                                }
-                                                                // Immediately run OCR on the zoomed snapshot
-                                                                setProgress(40)
-                                                                setCroppedImage(snapshot)
-                                                                await processImage(snapshot)
+                                                                setIsZoomMode(false)
                                                             } catch (error) {
                                                                 console.error('Error capturing zoom:', error)
                                                                 alert('Error al capturar el zoom. Intenta de nuevo.')
-                                                                setIsProcessing(false)
                                                             }
                                                         }}
                                                     >
                                                         <Crop className="w-4 h-4 mr-1" />
-                                                        Recortar y escanear
+                                                        Recortar
                                                     </Button>
                                                 </div>
                                             </>
