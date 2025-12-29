@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { inventoryService, type PaginatedInventoryResponse } from '@/services/inventory'
 import type { CreateInventoryItemDto } from '@shared/types'
+import { useAppDispatch, useAppSelector } from './redux'
+import { setInventoryItems, setError } from '@/store/slices/inventorySlice'
 import toast from 'react-hot-toast'
 
 interface UseInventoryOptions {
@@ -12,6 +14,7 @@ interface UseInventoryOptions {
   pieceType?: string
   treasureHunt?: 'all' | 'th' | 'sth'
   chase?: boolean
+  useRedux?: boolean // Use Redux cache alongside React Query
 }
 
 export const useInventory = (options: UseInventoryOptions = {}) => {
@@ -23,19 +26,49 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
     brand = '',
     pieceType = '',
     treasureHunt = 'all',
-    chase = false
+    chase = false,
+    useRedux = true
   } = options
+
+  const dispatch = useAppDispatch()
   
   return useQuery<PaginatedInventoryResponse, Error>(
     ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase],
     () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase }),
     {
-      staleTime: 15 * 60 * 1000, // Keep data fresh for 15 minutes
-      cacheTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
-      keepPreviousData: true, // Show previous data while fetching new page for smooth transitions
-      refetchOnWindowFocus: false,
+      staleTime: 2 * 60 * 1000, // 2 minutes - shorter for more frequent updates
+      cacheTime: 10 * 60 * 1000, // 10 minutes in cache
+      keepPreviousData: true,
+      refetchOnWindowFocus: true, // Refetch when user returns to window
+      refetchInterval: 3 * 60 * 1000, // Auto-refetch every 3 minutes
+      refetchIntervalInBackground: true, // Keep refetching even when tab is not focused
+      onSuccess: (data) => {
+        // Update Redux store when data is fetched successfully
+        if (useRedux) {
+          dispatch(setInventoryItems({
+            items: data.items,
+            totalItems: data.pagination.totalItems,
+            currentPage: data.pagination.currentPage,
+            totalPages: data.pagination.totalPages,
+            itemsPerPage: data.pagination.itemsPerPage
+          }))
+        }
+      },
+      onError: (error) => {
+        if (useRedux) {
+          dispatch(setError(error.message))
+        }
+      }
     }
   )
+}
+
+/**
+ * Hook to get all inventory from Redux cache (instant access)
+ * Useful for POS and quick lookups
+ */
+export const useInventoryCache = () => {
+  return useAppSelector(state => state.inventory)
 }
 
 export const useInventoryItem = (id: string) => {
