@@ -40,7 +40,9 @@ export default function OCRScanner({
     const [croppedImage, setCroppedImage] = useState<string | null>(null)
     const [isZoomMode, setIsZoomMode] = useState(true)
     const [zoomedSnapshot, setZoomedSnapshot] = useState<string | null>(null)
+    const zoomContainerRef = useRef<HTMLDivElement>(null)
     const zoomImageRef = useRef<HTMLImageElement>(null)
+    const transformComponentRef = useRef<HTMLDivElement>(null)
     const transformWrapperRef = useRef<any>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
@@ -125,7 +127,7 @@ export default function OCRScanner({
 
     const getCroppedImage = async (): Promise<string> => {
         if (!imageRef.current || !crop.width || !crop.height) {
-            return zoomedSnapshot || ''
+            return capturedImage || ''
         }
 
         const image = imageRef.current
@@ -138,7 +140,7 @@ export default function OCRScanner({
         
         const ctx = canvas.getContext('2d')
         if (!ctx) {
-            return zoomedSnapshot || ''
+            return capturedImage || ''
         }
 
         ctx.drawImage(
@@ -225,9 +227,14 @@ export default function OCRScanner({
 
     // Extract the zoomed portion from the original image
     const captureZoomedView = async () => {
-        if (!transformWrapperRef.current || !zoomImageRef.current) {
+        if (!transformWrapperRef.current || !zoomImageRef.current || !zoomContainerRef.current) {
             return capturedImage || ''
         }
+
+        // Get container dimensions (viewport)
+        const containerRect = zoomContainerRef.current.getBoundingClientRect()
+        const viewportWidth = containerRect.width
+        const viewportHeight = containerRect.height
 
         // Get transform state (scale, position)
         const instance = transformWrapperRef.current
@@ -241,12 +248,8 @@ export default function OCRScanner({
         const imgWidth = img.naturalWidth
         const imgHeight = img.naturalHeight
 
-        // Get the visible viewport size from the image element
-        const imgRect = img.getBoundingClientRect()
-        const viewportWidth = imgRect.width
-        const viewportHeight = imgRect.height
-
         // Calculate which portion of the original image is visible
+        // The zoomed image on screen has been scaled, so we need to reverse-calculate the crop
         const scaledWidth = viewportWidth / scale
         const scaledHeight = viewportHeight / scale
         const cropX = -posX / scale
@@ -353,7 +356,7 @@ export default function OCRScanner({
                 }
             >
                 <div className="space-y-3">
-                    {/* Instructions */}
+                    {/* Instructions - More compact for mobile */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                         <div className="flex gap-2">
                             <Crop className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -368,26 +371,29 @@ export default function OCRScanner({
                         </div>
                     </div>
 
-                    {/* Crop area */}
+                    {/* Crop area - Full width on mobile */}
                     {capturedImage && (
-                        <>
+                        <div
+                            ref={zoomContainerRef}
+                            className="relative w-full overflow-hidden bg-gray-100 rounded-lg"
+                        >
                             {isZoomMode ? (
-                                // Zoom mode: Image with pinch-to-zoom
-                                <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
-                                    <TransformWrapper
-                                        ref={transformWrapperRef}
-                                        initialScale={1}
-                                        minScale={1}
-                                        maxScale={5}
-                                        wheel={{ step: 0.1 }}
-                                        pinch={{ step: 0.08 }}
-                                        doubleClick={{ disabled: true }}
-                                    >
-                                        {({ zoomIn, zoomOut, resetTransform }) => (
-                                            <>
-                                                <TransformComponent
-                                                    wrapperStyle={{ width: '100%', height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                >
+                                // Modo Zoom: Solo visualización con pinch-to-zoom
+                                <TransformWrapper
+                                    ref={transformWrapperRef}
+                                    initialScale={1}
+                                    minScale={1}
+                                    maxScale={5}
+                                    wheel={{ step: 0.1 }}
+                                    pinch={{ step: 0.08 }}
+                                    doubleClick={{ disabled: true }}
+                                >
+                                    {({ zoomIn, zoomOut, resetTransform }) => (
+                                        <>
+                                            <TransformComponent
+                                                wrapperStyle={{ width: '100%', maxHeight: '60vh' }}
+                                            >
+                                                <div ref={transformComponentRef} className="flex items-center justify-center">
                                                     <img
                                                         ref={zoomImageRef}
                                                         src={capturedImage}
@@ -395,105 +401,104 @@ export default function OCRScanner({
                                                         className="w-full h-auto select-none"
                                                         style={{ maxHeight: '60vh', objectFit: 'contain' }}
                                                     />
-                                                </TransformComponent>
-
-                                                {/* Zoom controls */}
-                                                <div className="absolute top-2 right-2 flex flex-col gap-1 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg p-1 shadow-sm z-10">
-                                                    <Button size="sm" variant="secondary" onClick={() => zoomIn()} className="h-8 w-8 !p-0 !min-h-0">
-                                                        +
-                                                    </Button>
-                                                    <Button size="sm" variant="secondary" onClick={() => zoomOut()} className="h-8 w-8 !p-0 !min-h-0">
-                                                        -
-                                                    </Button>
-                                                    <Button size="sm" variant="secondary" onClick={() => resetTransform()} className="h-8 w-8 !p-0 !min-h-0">
-                                                        ↺
-                                                    </Button>
                                                 </div>
+                                            </TransformComponent>
 
-                                                {/* Switch to crop mode */}
-                                                <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm z-10">
-                                                    <p className="text-[11px] text-gray-700">🔍 Usa zoom para encontrar el texto</p>
-                                                    <Button
-                                                        size="sm"
-                                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
-                                                        onClick={async () => {
-                                                            try {
-                                                                const snapshot = await captureZoomedView()
-                                                                setZoomedSnapshot(snapshot)
-                                                                setIsZoomMode(false)
-                                                            } catch (error) {
-                                                                console.error('Error capturing zoom:', error)
-                                                                alert('Error al capturar el zoom. Intenta de nuevo.')
-                                                            }
-                                                        }}
-                                                    >
-                                                        <Crop className="w-4 h-4 mr-1" />
-                                                        Recortar
-                                                    </Button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </TransformWrapper>
-                                </div>
+                                            {/* Zoom controls */}
+                                            <div className="absolute top-2 right-2 flex flex-col gap-1 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg p-1 shadow-sm z-10">
+                                                <Button size="sm" variant="secondary" onClick={() => zoomIn()} className="h-8 w-8 !p-0 !min-h-0">
+                                                    +
+                                                </Button>
+                                                <Button size="sm" variant="secondary" onClick={() => zoomOut()} className="h-8 w-8 !p-0 !min-h-0">
+                                                    -
+                                                </Button>
+                                                <Button size="sm" variant="secondary" onClick={() => resetTransform()} className="h-8 w-8 !p-0 !min-h-0">
+                                                    ↺
+                                                </Button>
+                                            </div>
+
+                                            {/* Switch to crop mode */}
+                                            <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm z-10">
+                                                <p className="text-[11px] text-gray-700">🔍 Usa zoom para encontrar el texto</p>
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
+                                                    onClick={async () => {
+                                                        try {
+                                                            const snapshot = await captureZoomedView()
+                                                            setZoomedSnapshot(snapshot)
+                                                            setIsZoomMode(false)
+                                                        } catch (error) {
+                                                            console.error('Error capturing zoom:', error)
+                                                            alert('Error al capturar el zoom. Intenta de nuevo.')
+                                                        }
+                                                    }}
+                                                >
+                                                    <Crop className="w-4 h-4 mr-1" />
+                                                    Recortar
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                </TransformWrapper>
                             ) : (
-                                // Crop mode: Fresh image with no zoom applied
-                                zoomedSnapshot && (
-                                    <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
-                                        <ReactCrop
-                                            crop={crop}
-                                            onChange={(c) => setCrop(c)}
-                                            aspect={undefined}
-                                        >
-                                            <img
-                                                ref={imageRef}
-                                                src={zoomedSnapshot}
-                                                alt="Imagen para recortar"
-                                                className="w-full h-auto"
-                                                style={{ maxHeight: '60vh', objectFit: 'contain' }}
-                                            />
-                                        </ReactCrop>
+                                // Modo Recorte: Usa snapshot zoomeado
+                                <div className="relative w-full">
+                                    <ReactCrop
+                                        crop={crop}
+                                        onChange={(c) => setCrop(c)}
+                                        aspect={undefined}
+                                        className="max-h-[60vh] w-full"
+                                    >
+                                        <img
+                                            ref={imageRef}
+                                            src={zoomedSnapshot || capturedImage}
+                                            alt="Imagen para recortar"
+                                            className="w-full h-auto block mx-auto"
+                                            style={{ maxHeight: '60vh', objectFit: 'contain' }}
+                                        />
+                                    </ReactCrop>
 
-                                        {/* Action bar for crop mode */}
-                                        <div className="flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border-t border-gray-200 px-3 py-2 shadow-sm">
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={() => {
-                                                    setIsZoomMode(true)
-                                                    setZoomedSnapshot(null)
-                                                }}
-                                                className="px-2 py-1"
-                                            >
-                                                ← Ajustar zoom
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
-                                                onClick={handleCropConfirm}
-                                                disabled={isProcessing}
-                                            >
-                                                {isProcessing ? (
-                                                    <>
-                                                        <Loader className="w-4 h-4 mr-1 animate-spin" />
-                                                        {progress}%
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Check className="w-4 h-4 mr-1" />
-                                                        Escanear área
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </div>
+                                    {/* Action bar for crop mode */}
+                                    <div className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg px-3 py-2 shadow-sm z-10">
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setIsZoomMode(true)
+                                                setZoomedSnapshot(null)
+                                            }}
+                                            className="px-2 py-1"
+                                        >
+                                            ← Ajustar zoom
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
+                                            onClick={handleCropConfirm}
+                                            disabled={isProcessing}
+                                        >
+                                            {isProcessing ? (
+                                                <>
+                                                    <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                                    {progress}%
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Check className="w-4 h-4 mr-1" />
+                                                    Escanear área
+                                                </>
+                                            )}
+                                        </Button>
                                     </div>
-                                )
+                                </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
             </Modal>
 
-            {/* Confirmation Modal */}
+            {/* Confirmation Modal - Optimized for mobile */}
             <Modal
                 isOpen={showConfirmModal}
                 onClose={handleClose}
@@ -521,6 +526,7 @@ export default function OCRScanner({
                 }
             >
                 <div className="space-y-3">
+                    {/* Show cropped image - Smaller on mobile */}
                     {croppedImage && (
                         <div className="relative">
                             <img
@@ -531,6 +537,7 @@ export default function OCRScanner({
                         </div>
                     )}
 
+                    {/* Info message - More compact */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                         <div className="flex gap-2">
                             <Edit3 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -545,6 +552,7 @@ export default function OCRScanner({
                         </div>
                     </div>
 
+                    {/* Editable text field */}
                     <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
                             Texto Detectado
@@ -564,6 +572,7 @@ export default function OCRScanner({
                         )}
                     </div>
 
+                    {/* Character count */}
                     <div className="text-xs text-gray-500 text-right">
                         {editedText.length} caracteres
                     </div>
