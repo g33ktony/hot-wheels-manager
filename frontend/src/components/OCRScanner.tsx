@@ -41,6 +41,7 @@ export default function OCRScanner({
     const [isZoomMode, setIsZoomMode] = useState(true)
     const [zoomedSnapshot, setZoomedSnapshot] = useState<string | null>(null)
     const zoomImageRef = useRef<HTMLImageElement>(null)
+    const zoomContainerRef = useRef<HTMLDivElement>(null)
     const transformWrapperRef = useRef<any>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
@@ -225,56 +226,46 @@ export default function OCRScanner({
 
     // Extract the zoomed portion from the original image
     const captureZoomedView = async () => {
-        if (!transformWrapperRef.current || !zoomImageRef.current) {
+        if (!zoomImageRef.current) {
             return capturedImage || ''
         }
 
-        // Get transform state (scale, position)
-        const instance = transformWrapperRef.current
-        const state = instance?.state || {}
-        const scale = state.scale || 1
-        const posX = state.positionX || 0
-        const posY = state.positionY || 0
-
-        // Get original image dimensions
         const img = zoomImageRef.current
-        const imgWidth = img.naturalWidth
-        const imgHeight = img.naturalHeight
-
-        // Get the visible viewport size from the image element
         const imgRect = img.getBoundingClientRect()
-        const viewportWidth = imgRect.width
-        const viewportHeight = imgRect.height
+        // Prefer the internal transform component wrapper as viewport
+        const viewportEl = (zoomContainerRef.current?.querySelector('.react-transform-component') as HTMLElement) || zoomContainerRef.current
+        const viewportRect = viewportEl ? viewportEl.getBoundingClientRect() : imgRect
 
-        // Calculate which portion of the original image is visible
-        const scaledWidth = viewportWidth / scale
-        const scaledHeight = viewportHeight / scale
-        const cropX = -posX / scale
-        const cropY = -posY / scale
+        // Compute screen-space intersection of image and viewport
+        const overlapLeft = Math.max(viewportRect.left, imgRect.left)
+        const overlapTop = Math.max(viewportRect.top, imgRect.top)
+        const overlapRight = Math.min(viewportRect.right, imgRect.right)
+        const overlapBottom = Math.min(viewportRect.bottom, imgRect.bottom)
+        const overlapWidth = Math.max(0, overlapRight - overlapLeft)
+        const overlapHeight = Math.max(0, overlapBottom - overlapTop)
 
-        // Clamp to image bounds
-        const sourceX = Math.max(0, Math.min(cropX, imgWidth - 1))
-        const sourceY = Math.max(0, Math.min(cropY, imgHeight - 1))
-        const sourceWidth = Math.min(scaledWidth, imgWidth - sourceX)
-        const sourceHeight = Math.min(scaledHeight, imgHeight - sourceY)
+        if (overlapWidth <= 0 || overlapHeight <= 0) {
+            return capturedImage || ''
+        }
 
-        // Draw the cropped portion to a canvas
+        // Map intersection back to original image coordinates
+        const scaleX = img.naturalWidth / imgRect.width
+        const scaleY = img.naturalHeight / imgRect.height
+        const sx = (overlapLeft - imgRect.left) * scaleX
+        const sy = (overlapTop - imgRect.top) * scaleY
+        const sWidth = overlapWidth * scaleX
+        const sHeight = overlapHeight * scaleY
+
+        // Create snapshot canvas exactly the size of the visible area
+        const dpr = window.devicePixelRatio || 1
         const canvas = document.createElement('canvas')
-        canvas.width = viewportWidth
-        canvas.height = viewportHeight
+        canvas.width = Math.round(overlapWidth * dpr)
+        canvas.height = Math.round(overlapHeight * dpr)
         const ctx = canvas.getContext('2d')
         if (!ctx) return capturedImage || ''
-
-        // Fill background
         ctx.fillStyle = '#f3f4f6'
-        ctx.fillRect(0, 0, viewportWidth, viewportHeight)
-
-        // Draw the visible portion of the original image
-        ctx.drawImage(
-            img,
-            sourceX, sourceY, sourceWidth, sourceHeight,
-            0, 0, viewportWidth, viewportHeight
-        )
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height)
 
         return canvas.toDataURL('image/jpeg', 0.95)
     }
@@ -373,7 +364,7 @@ export default function OCRScanner({
                         <>
                             {isZoomMode ? (
                                 // Zoom mode: Image with pinch-to-zoom
-                                <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
+                                <div ref={zoomContainerRef} className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
                                     <TransformWrapper
                                         ref={transformWrapperRef}
                                         initialScale={1}
