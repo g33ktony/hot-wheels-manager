@@ -15,20 +15,20 @@ interface CartItem extends ReduxInventoryItem {
 const POS: React.FC = () => {
   // Sync inventory in background (keeps Redux cache fresh)
   useInventorySyncInBackground();
-  
+
   // Get inventory from Redux cache
   const reduxInventory = useAppSelector(state => state.inventory);
   const dispatch = useAppDispatch();
-  
+
   const inventoryItems = useMemo(() => reduxInventory.items || [], [reduxInventory.items]);
-  
+
   console.log('🔍 POS Redux State:', {
     itemsCount: inventoryItems.length,
     isLoading: reduxInventory.isLoading,
     error: reduxInventory.error,
     hasItems: inventoryItems.length > 0
   });
-  
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
@@ -47,26 +47,26 @@ const POS: React.FC = () => {
       try {
         dispatch(setLoading(true));
         console.log('🔄 POS: Cargando inventario inicial desde API...');
-        
+
         // Load items in batches to prevent timeout on large inventories
         const INITIAL_BATCH_SIZE = 100;
         const allItems = [];
         let totalItems = 0;
         let totalPages = 0;
-        
+
         // Load first batch
         const firstBatch = await inventoryService.getAll(1, INITIAL_BATCH_SIZE, {});
-        
+
         if (!firstBatch || !firstBatch.items) {
           throw new Error('Respuesta inválida del servidor: no hay datos');
         }
-        
+
         allItems.push(...firstBatch.items);
         totalItems = firstBatch.pagination?.totalItems || firstBatch.items.length;
         totalPages = Math.ceil(totalItems / INITIAL_BATCH_SIZE);
-        
+
         console.log('✅ POS: Cargó primer lote -', firstBatch.items.length, 'items de', totalItems, 'total');
-        
+
         // Update Redux with first batch
         dispatch(setInventoryItems({
           items: firstBatch.items,
@@ -75,11 +75,11 @@ const POS: React.FC = () => {
           totalPages: totalPages,
           itemsPerPage: INITIAL_BATCH_SIZE
         }));
-        
+
         // Load remaining batches in background if there are more pages
         if (totalPages > 1) {
           console.log('🔄 POS: Cargando lotes restantes en background (' + (totalPages - 1) + ' pages más)...');
-          
+
           for (let page = 2; page <= totalPages; page++) {
             try {
               const batch = await inventoryService.getAll(page, INITIAL_BATCH_SIZE, {});
@@ -89,7 +89,7 @@ const POS: React.FC = () => {
               console.warn('⚠️ POS: Error cargando página', page, '-', pageError);
             }
           }
-          
+
           console.log('✅ POS: Todos los lotes cargados -', allItems.length, 'items total');
           dispatch(setInventoryItems({
             items: allItems,
@@ -99,14 +99,14 @@ const POS: React.FC = () => {
             itemsPerPage: INITIAL_BATCH_SIZE
           }));
         }
-        
+
         dispatch(setError(null));
       } catch (error: any) {
         const errorMsg = error?.message || 'Error desconocido';
         const isTimeout = errorMsg.includes('timeout') || errorMsg.includes('30000');
         console.error('❌ Error loading inventory for POS:', errorMsg);
         console.error('Full error:', error);
-        
+
         if (isTimeout) {
           dispatch(setError('Tiempo de carga agotado - el servidor tardó demasiado'));
           toast.error('⏱️ Timeout: Intenta de nuevo en unos momentos');
@@ -147,12 +147,12 @@ const POS: React.FC = () => {
 
     const query = searchTerm.toLowerCase();
     const SIMILARITY_THRESHOLD = 75;
-    
+
     return inventoryItems
       .filter(item => {
         const quantity = item.quantity || 0;
         const reserved = item.reservedQuantity || 0;
-        
+
         // Skip items sin stock
         if (quantity - reserved <= 0) return false;
 
@@ -160,7 +160,7 @@ const POS: React.FC = () => {
         const carData = typeof item.carId === 'object' ? item.carId : null;
         const carName = carData?.name || '';
         const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-        
+
         // Búsqueda exacta (contiene substring)
         if (
           carName.toLowerCase().includes(query) ||
@@ -176,7 +176,7 @@ const POS: React.FC = () => {
         const carNameSimilarity = calculateSimilarity(query, carName);
         const brandSimilarity = calculateSimilarity(query, item.brand || '');
         const pieceTypeSimilarity = calculateSimilarity(query, item.pieceType || '');
-        
+
         return (
           carNameSimilarity >= SIMILARITY_THRESHOLD ||
           brandSimilarity >= SIMILARITY_THRESHOLD ||
@@ -189,11 +189,11 @@ const POS: React.FC = () => {
           const carData = typeof item.carId === 'object' ? item.carId : null;
           return carData?.name || '';
         };
-        
-        const aExact = 
+
+        const aExact =
           getCarName(a).toLowerCase().includes(query) ||
           a.brand?.toLowerCase().includes(query);
-        const bExact = 
+        const bExact =
           getCarName(b).toLowerCase().includes(query) ||
           b.brand?.toLowerCase().includes(query);
 
@@ -257,7 +257,7 @@ const POS: React.FC = () => {
   // Actualizar cantidad en carrito
   const updateCartQuantity = (itemId: string | undefined, newQuantity: number) => {
     if (!itemId) return;
-    
+
     const item = cart.find(c => c._id === itemId);
     if (!item) return;
 
@@ -321,7 +321,7 @@ const POS: React.FC = () => {
 
       toast.success(`¡Venta completada! Total: $${calculateTotal().toFixed(2)}`);
       setCart([]);
-      
+
       // Redux sync en background refrescará automáticamente el inventario
     } catch (error: any) {
       console.error('Error:', error);
@@ -445,11 +445,10 @@ const POS: React.FC = () => {
                             <button
                               onClick={() => addToCart(item)}
                               disabled={isInCart}
-                              className={`px-4 py-2 rounded-lg font-medium ${
-                                isInCart
+                              className={`px-4 py-2 rounded-lg font-medium ${isInCart
                                   ? 'bg-gray-300 cursor-not-allowed'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white'
-                              }`}
+                                }`}
                             >
                               {isInCart ? 'En carrito' : 'Agregar'}
                             </button>
@@ -469,11 +468,10 @@ const POS: React.FC = () => {
                               <button
                                 onClick={() => addToCart(item, 1)}
                                 disabled={cartQty >= availableQty}
-                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${
-                                  cartQty >= availableQty
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${cartQty >= availableQty
                                     ? 'bg-gray-300 cursor-not-allowed'
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                }`}
+                                  }`}
                               >
                                 +
                               </button>
@@ -560,11 +558,10 @@ const POS: React.FC = () => {
                               updateCartQuantity(item._id, item.cartQuantity + 1)
                             }
                             disabled={item.cartQuantity >= availableQty}
-                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${
-                              item.cartQuantity >= availableQty
+                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${item.cartQuantity >= availableQty
                                 ? 'bg-gray-300 cursor-not-allowed'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
+                              }`}
                           >
                             +
                           </button>
@@ -607,11 +604,10 @@ const POS: React.FC = () => {
               <button
                 onClick={processSale}
                 disabled={cart.length === 0 || processing}
-                className={`w-full py-3 rounded-lg font-bold text-lg ${
-                  cart.length === 0 || processing
+                className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
                     ? 'bg-gray-300 cursor-not-allowed'
                     : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
+                  }`}
               >
                 {processing ? 'Procesando...' : 'Completar Venta'}
               </button>

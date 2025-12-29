@@ -19,11 +19,11 @@ interface OCRScannerProps {
 // Detect if device is mobile
 const isMobileDevice = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (window.innerWidth <= 768)
+        (window.innerWidth <= 768)
 }
 
-export default function OCRScanner({ 
-    onTextExtracted, 
+export default function OCRScanner({
+    onTextExtracted,
     buttonText = 'Escanear nombre',
     buttonClassName = '',
     onImageCaptured
@@ -87,7 +87,7 @@ export default function OCRScanner({
             }
 
             const result = await response.json()
-            
+
             if (result.IsErroredOnProcessing) {
                 throw new Error(result.ErrorMessage?.[0] || 'OCR processing error')
             }
@@ -96,7 +96,7 @@ export default function OCRScanner({
 
             // Extract text from OCR result
             const extractedText = result.ParsedResults?.[0]?.ParsedText || ''
-            
+
             // Clean up the extracted text
             const cleanedText = extractedText
                 .trim()
@@ -127,10 +127,10 @@ export default function OCRScanner({
         const canvas = document.createElement('canvas')
         const scaleX = image.naturalWidth / image.width
         const scaleY = image.naturalHeight / image.height
-        
+
         canvas.width = crop.width * scaleX
         canvas.height = crop.height * scaleY
-        
+
         const ctx = canvas.getContext('2d')
         if (!ctx) {
             return capturedImage || ''

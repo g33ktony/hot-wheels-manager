@@ -72,7 +72,7 @@ export default function Inventory() {
     // Get Redux cache as fallback when React Query is loading
     const reduxInventory = useAppSelector(state => state.inventory)
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage] = useState(15)
+    const [itemsPerPage] = useState(30) // Increased from 15 to load more with lazy loading
     const [searchTerm, setSearchTerm] = useState('')
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('') // For debounced API calls
     const [filterCondition, setFilterCondition] = useState('')
