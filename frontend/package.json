@@ -30,7 +30,6 @@
     "react-query": "^3.39.3",
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.20.1",
-    "react-window": "^2.2.3",
     "react-zoom-pan-pinch": "^3.1.0"
   },
   "devDependencies": {
