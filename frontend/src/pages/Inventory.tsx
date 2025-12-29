@@ -1208,7 +1208,7 @@ export default function Inventory() {
                 )}
 
                 {/* Inventory Grid */}
-                {isLoading && inventoryItems.length === 0 && !reduxInventory.items.length ? (
+                {isLoading && inventoryItems.length === 0 ? (
                     <Card>
                         <div className="text-center py-12">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
@@ -1216,7 +1216,7 @@ export default function Inventory() {
                             <p className="text-gray-500 mt-2">Por favor espera mientras se cargan tus piezas</p>
                         </div>
                     </Card>
-                ) : filteredItems.length === 0 ? (
+                ) : !isLoading && filteredItems.length === 0 ? (
                     <Card>
                         <div className="text-center py-12">
                             <Package size={48} className="mx-auto text-gray-400 mb-4" />
