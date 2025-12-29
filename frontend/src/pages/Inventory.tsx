@@ -1134,9 +1134,17 @@ export default function Inventory() {
             {/* Pagination Controls - Top */}
             <PaginationControls />
 
-            {/* Inventory Grid with loading overlay */}
+            {/* Inventory Grid with loading indicator */}
             <div className="relative">
-                {/* Subtle loading indicator when changing pages (data is cached so show old data) */}
+                {/* Subtle prefetch indicator when preparing next page */}
+                {isPrefetchingNext && !isLoading && (
+                    <div className="absolute top-4 right-4 z-20 bg-blue-50 shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 border border-blue-200">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></div>
+                        <p className="text-xs text-blue-600 font-medium">Preparando siguiente página...</p>
+                    </div>
+                )}
+
+                {/* Current page loading indicator */}
                 {isLoading && inventoryData && (
                     <div className="absolute top-4 right-4 z-20 bg-white shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 border border-gray-200">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500"></div>
@@ -1164,9 +1172,8 @@ export default function Inventory() {
                         </div>
                     </Card>
                 ) : (
-                    <div className="relative overflow-hidden">
-                        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full transition duration-200 ${isPrefetchingNext ? 'blur-sm' : ''}`}>
-                            {filteredItems.map((item: InventoryItem) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
+                        {filteredItems.map((item: InventoryItem) => (
                             <Card
                                 key={item._id}
                                 hover={!isSelectionMode}
@@ -1364,17 +1371,6 @@ export default function Inventory() {
                                 </div>
                             </Card>
                         ))}
-                        </div>
-                        {isPrefetchingNext && (
-                            <div
-                                role="status"
-                                aria-live="polite"
-                                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-lg"
-                            >
-                                <Loader size={32} className="animate-spin text-primary-600" aria-hidden />
-                                <p className="text-sm font-medium text-gray-700">Cargando siguiente página...</p>
-                            </div>
-                        )}
                     </div>
                 )}
             </div>
