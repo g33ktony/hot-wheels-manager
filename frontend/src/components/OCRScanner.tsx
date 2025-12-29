@@ -409,18 +409,27 @@ export default function OCRScanner({
                                                         className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
                                                         onClick={async () => {
                                                             try {
+                                                                setIsProcessing(true)
+                                                                setProgress(10)
                                                                 const snapshot = await captureZoomedView()
+                                                                if (!snapshot || snapshot.length < 20) {
+                                                                    alert('No se pudo capturar el área visible. Intenta ajustar el zoom y prueba de nuevo.')
+                                                                    setIsProcessing(false)
+                                                                    return
+                                                                }
                                                                 setZoomedSnapshot(snapshot)
                                                                 // Save original full image to item photos
                                                                 if (capturedImage && onImageCaptured) {
                                                                     onImageCaptured(capturedImage)
                                                                 }
                                                                 // Immediately run OCR on the zoomed snapshot
+                                                                setProgress(40)
                                                                 setCroppedImage(snapshot)
                                                                 await processImage(snapshot)
                                                             } catch (error) {
                                                                 console.error('Error capturing zoom:', error)
                                                                 alert('Error al capturar el zoom. Intenta de nuevo.')
+                                                                setIsProcessing(false)
                                                             }
                                                         }}
                                                     >
