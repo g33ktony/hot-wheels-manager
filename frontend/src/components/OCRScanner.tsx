@@ -323,22 +323,24 @@ export default function OCRScanner({
                                     />
                                 </ReactCrop>
                             </div>
-                            <div className="mt-2 flex items-center justify-end gap-2">
+                            <div className="mt-3 flex flex-col gap-2">
+                                <p className="text-xs text-gray-600">
+                                    El botón de abajo recorta el área seleccionada y dispara el OCR. No está encima de la imagen.
+                                </p>
                                 <Button
-                                    size="sm"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
                                     onClick={handleCropConfirm}
                                     disabled={isProcessing}
                                 >
                                     {isProcessing ? (
                                         <>
-                                            <Loader className="w-4 h-4 mr-1 animate-spin" />
-                                            {progress}%
+                                            <Loader className="w-4 h-4 mr-2 animate-spin" />
+                                            Procesando {progress}%
                                         </>
                                     ) : (
                                         <>
-                                            <Check className="w-4 h-4 mr-1" />
-                                            Escanear área
+                                            <Check className="w-4 h-4 mr-2" />
+                                            Recortar y escanear
                                         </>
                                     )}
                                 </Button>
