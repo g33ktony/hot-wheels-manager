@@ -5,6 +5,7 @@ import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { inventoryService } from '@/services/inventory'
 import { useAppSelector } from '@/hooks/redux'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
+import { LazyImage } from '@/components/LazyImage'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -1262,12 +1263,15 @@ export default function Inventory() {
                                         >
                                             {item.photos && item.photos.length > 0 ? (
                                                 <>
-                                                    <img
+                                                    <LazyImage
                                                         src={item.photos[0]}
                                                         alt="Hot Wheels"
-                                                        loading="lazy"
                                                         className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
                                                             }`}
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image'
+                                                        }}
+                                                        onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
                                                     />
                                                     {/* Zoom indicator */}
                                                     {!isSelectionMode && (
