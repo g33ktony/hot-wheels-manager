@@ -41,7 +41,8 @@ export default function OCRScanner({
     const [croppedImage, setCroppedImage] = useState<string | null>(null)
     const [isZoomMode, setIsZoomMode] = useState(true)
     const [zoomedSnapshot, setZoomedSnapshot] = useState<string | null>(null)
-    const transformRef = useRef<any>(null)
+    const zoomContainerRef = useRef<HTMLDivElement>(null)
+    const zoomImageRef = useRef<HTMLImageElement>(null)
     const transformComponentRef = useRef<HTMLDivElement>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
@@ -224,6 +225,25 @@ export default function OCRScanner({
         }
     }
 
+    // Capture exactly what is visible inside the zoom component using html2canvas
+    const captureZoomedView = async () => {
+        if (!transformComponentRef.current) {
+            return capturedImage || ''
+        }
+
+        const target = transformComponentRef.current
+        const canvas = await html2canvas(target, {
+            backgroundColor: '#f3f4f6',
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            scale: window.devicePixelRatio || 1,
+            scrollX: -window.scrollX,
+            scrollY: -window.scrollY
+        })
+        return canvas.toDataURL('image/jpeg', 0.95)
+    }
+
     return (
         <>
             <Button
@@ -315,11 +335,13 @@ export default function OCRScanner({
 
                     {/* Crop area - Full width on mobile */}
                     {capturedImage && (
-                        <div className="relative w-full overflow-hidden bg-gray-100 rounded-lg">
+                        <div
+                            ref={zoomContainerRef}
+                            className="relative w-full overflow-hidden bg-gray-100 rounded-lg"
+                        >
                             {isZoomMode ? (
                                 // Modo Zoom: Solo visualización con pinch-to-zoom
                                 <TransformWrapper
-                                    ref={transformRef}
                                     initialScale={1}
                                     minScale={1}
                                     maxScale={5}
@@ -332,8 +354,9 @@ export default function OCRScanner({
                                             <TransformComponent
                                                 wrapperStyle={{ width: '100%', maxHeight: '60vh' }}
                                             >
-                                                <div ref={transformComponentRef}>
+                                                <div ref={transformComponentRef} className="flex items-center justify-center">
                                                     <img
+                                                        ref={zoomImageRef}
                                                         src={capturedImage}
                                                         alt="Imagen para zoom"
                                                         className="w-full h-auto select-none"
@@ -363,26 +386,9 @@ export default function OCRScanner({
                                                     className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
                                                     onClick={async () => {
                                                         try {
-                                                            // Find the wrapper that contains the zoomed/panned content
-                                                            const wrapper = document.querySelector('.react-transform-wrapper') as HTMLElement
-                                                            if (wrapper) {
-                                                                // Use html2canvas on the entire wrapper to capture visible content
-                                                                const canvas = await html2canvas(wrapper, {
-                                                                    useCORS: true,
-                                                                    allowTaint: true,
-                                                                    backgroundColor: '#f3f4f6',
-                                                                    scale: 2,
-                                                                    logging: false,
-                                                                    width: wrapper.clientWidth,
-                                                                    height: wrapper.clientHeight,
-                                                                    windowWidth: wrapper.clientWidth,
-                                                                    windowHeight: wrapper.clientHeight
-                                                                })
-                                                                
-                                                                const snapshot = canvas.toDataURL('image/jpeg', 0.95)
-                                                                setZoomedSnapshot(snapshot)
-                                                                setIsZoomMode(false)
-                                                            }
+                                                            const snapshot = await captureZoomedView()
+                                                            setZoomedSnapshot(snapshot)
+                                                            setIsZoomMode(false)
                                                         } catch (error) {
                                                             console.error('Error capturing zoom:', error)
                                                             alert('Error al capturar el zoom. Intenta de nuevo.')
@@ -409,7 +415,7 @@ export default function OCRScanner({
                                             ref={imageRef}
                                             src={zoomedSnapshot || capturedImage}
                                             alt="Imagen para recortar"
-                                            className="w-full h-auto"
+                                            className="w-full h-auto block mx-auto"
                                             style={{ maxHeight: '60vh', objectFit: 'contain' }}
                                         />
                                     </ReactCrop>
