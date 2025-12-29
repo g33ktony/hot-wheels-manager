@@ -12,6 +12,7 @@ import FacebookPublishModal from '@/components/FacebookPublishModal'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import debounce from 'lodash.debounce'
+import toast from 'react-hot-toast'
 import OCRScanner from '@/components/OCRScanner'
 import type { InventoryItem } from '../../../shared/types'
 
@@ -40,6 +41,7 @@ export default function Inventory() {
     const [showAddModal, setShowAddModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
     const [editingItem, setEditingItem] = useState<any>(null)
+    const [editingItemSnapshot, setEditingItemSnapshot] = useState<any>(null)
     // Image viewer modal
     const [showImageModal, setShowImageModal] = useState(false)
     const [selectedImage, setSelectedImage] = useState<string>('')
@@ -466,41 +468,73 @@ export default function Inventory() {
             seriesPrice: item.seriesPrice,
             seriesDefaultPrice: item.seriesDefaultPrice || 0
         })
+        setEditingItemSnapshot(JSON.parse(JSON.stringify(item)))
         setShowEditModal(true)
+    }
+
+    const editableFields = [
+        'carId',
+        'quantity',
+        'purchasePrice',
+        'suggestedPrice',
+        'actualPrice',
+        'condition',
+        'notes',
+        'photos',
+        'location',
+        'brand',
+        'pieceType',
+        'isTreasureHunt',
+        'isSuperTreasureHunt',
+        'isChase',
+        'seriesId',
+        'seriesName',
+        'seriesSize',
+        'seriesPosition',
+        'seriesPrice'
+    ]
+
+    const areValuesEqual = (a: any, b: any) => {
+        if (Array.isArray(a) || Array.isArray(b)) {
+            if (!Array.isArray(a) || !Array.isArray(b)) return false
+            if (a.length !== b.length) return false
+            return a.every((value, index) => value === b[index])
+        }
+        return a === b
+    }
+
+    const buildEditPatch = (original: any, updated: any): Record<string, any> => {
+        if (!original || !updated) return {}
+        const patch: Record<string, any> = {}
+        editableFields.forEach((field) => {
+            const originalValue = original[field]
+            const updatedValue = updated[field]
+            if (!areValuesEqual(originalValue, updatedValue)) {
+                patch[field] = updatedValue
+            }
+        })
+        return patch
     }
 
     const handleUpdateItem = async () => {
         if (!editingItem) return
 
         try {
+            const diff = buildEditPatch(editingItemSnapshot, editingItem)
+
+            if (Object.keys(diff).length === 0) {
+                toast('Sin cambios nuevos para guardar')
+                return
+            }
+
             await updateItemMutation.mutateAsync({
                 id: editingItem._id,
-                data: {
-                    carId: editingItem.carId,
-                    quantity: editingItem.quantity,
-                    purchasePrice: editingItem.purchasePrice,
-                    suggestedPrice: editingItem.suggestedPrice,
-                    actualPrice: editingItem.actualPrice,
-                    condition: editingItem.condition,
-                    notes: editingItem.notes,
-                    photos: editingItem.photos || [],
-                    location: editingItem.location,
-                    brand: editingItem.brand,
-                    pieceType: editingItem.pieceType || undefined,
-                    isTreasureHunt: editingItem.isTreasureHunt,
-                    isSuperTreasureHunt: editingItem.isSuperTreasureHunt,
-                    isChase: editingItem.isChase,
-                    // Series fields
-                    seriesId: editingItem.seriesId,
-                    seriesName: editingItem.seriesName,
-                    seriesSize: editingItem.seriesSize,
-                    seriesPosition: editingItem.seriesPosition,
-                    seriesPrice: editingItem.seriesPrice
-                }
+                data: diff
             })
 
             setShowEditModal(false)
             setEditingItem(null)
+            setEditingItemSnapshot(null)
         } catch (error) {
             console.error('Error updating item:', error)
         }
@@ -2187,6 +2221,7 @@ export default function Inventory() {
                 onClose={() => {
                     setShowEditModal(false)
                     setEditingItem(null)
+                    setEditingItemSnapshot(null)
                 }}
                 title="Editar Pieza"
                 maxWidth="md"
@@ -2198,6 +2233,7 @@ export default function Inventory() {
                             onClick={() => {
                                 setShowEditModal(false)
                                 setEditingItem(null)
+                                setEditingItemSnapshot(null)
                             }}
                         >
                             Cancelar
