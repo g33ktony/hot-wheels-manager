@@ -4,6 +4,15 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 import { IHotWheelsCar } from '../models/HotWheelsCar';
 import { calculateDefaultSeriesPrice } from '../utils/seriesHelpers';
 
+const inventoryQueryCache = new Map<string, { data: any; expiresAt: number }>();
+const INVENTORY_CACHE_TTL_MS = 15 * 1000; // 15 seconds cache window
+
+const buildInventoryCacheKey = (query: any, page: number, limit: number) => {
+  return JSON.stringify({ query, page, limit });
+};
+
+const invalidateInventoryCache = () => inventoryQueryCache.clear();
+
 // Get inventory items
 export const getInventoryItems = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -59,22 +68,35 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       query.isChase = true;
     }
 
+    const cacheKey = buildInventoryCacheKey(query, page, limit);
+    const cached = inventoryQueryCache.get(cacheKey);
+    const now = Date.now();
+    if (cached && cached.expiresAt > now) {
+      res.json({
+        success: true,
+        data: cached.data
+      });
+      return;
+    }
+
     // First check if we have any inventory items
     const inventoryCount = await InventoryItemModel.countDocuments(query);
     
     if (inventoryCount === 0) {
       // If no inventory matches, return empty result
+      const emptyData = {
+        items: [],
+        pagination: {
+          currentPage: page,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: limit
+        }
+      };
+      inventoryQueryCache.set(cacheKey, { data: emptyData, expiresAt: now + INVENTORY_CACHE_TTL_MS });
       res.json({
         success: true,
-        data: {
-          items: [],
-          pagination: {
-            currentPage: page,
-            totalPages: 0,
-            totalItems: 0,
-            itemsPerPage: limit
-          }
-        },
+        data: emptyData,
         message: 'No items found matching filters'
       });
       return;
@@ -93,19 +115,22 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       .skip(skip)
       .sort({ dateAdded: -1 });
 
-    const total = await InventoryItemModel.countDocuments(query);
+    const total = inventoryCount;
+    const responseData = {
+      items: inventoryItems,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit
+      }
+    };
+
+    inventoryQueryCache.set(cacheKey, { data: responseData, expiresAt: now + INVENTORY_CACHE_TTL_MS });
 
     res.json({
       success: true,
-      data: {
-        items: inventoryItems,
-        pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(total / limit),
-          totalItems: total,
-          itemsPerPage: limit
-        }
-      }
+      data: responseData
     });
   } catch (error) {
     console.error('Error getting inventory items:', error);
@@ -116,6 +141,7 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
 // Add inventory item
 export const addInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
+    invalidateInventoryCache()
     const { 
       carId, quantity, purchasePrice, suggestedPrice, condition, notes, photos, location,
       seriesId, seriesName, seriesSize, seriesPosition, seriesPrice,
@@ -222,6 +248,7 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
 // Update inventory item
 export const updateInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
+    invalidateInventoryCache()
     const { id } = req.params;
     const updates = req.body;
 
@@ -266,6 +293,7 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
 // Delete inventory item
 export const deleteInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
+    invalidateInventoryCache()
     const { id } = req.params;
 
     const inventoryItem = await InventoryItemModel.findByIdAndDelete(id);
