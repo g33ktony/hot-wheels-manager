@@ -13,130 +13,46 @@ const OCR_API_KEY = 'K88513455088957' // Free tier: 25,000 requests/month
 interface OCRScannerProps {
     onTextExtracted: (text: string) => void
     onImageCaptured?: (imageData: string) => void
-    buttonText?: string
-    buttonClassName?: string
-}
-
-// Detect if device is mobile
-const isMobileDevice = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (window.innerWidth <= 768)
-}
-
-export default function OCRScanner({ 
-    onTextExtracted, 
-    buttonText = 'Escanear nombre',
-    buttonClassName = '',
-    onImageCaptured
-}: OCRScannerProps) {
-    const [isMobile, setIsMobile] = useState(false)
-    const [isProcessing, setIsProcessing] = useState(false)
-    const [showCropModal, setShowCropModal] = useState(false)
-    const [showConfirmModal, setShowConfirmModal] = useState(false)
-    const [extractedText, setExtractedText] = useState('')
-    const [editedText, setEditedText] = useState('')
-    const [progress, setProgress] = useState(0)
-    const [capturedImage, setCapturedImage] = useState<string | null>(null)
-    const [croppedImage, setCroppedImage] = useState<string | null>(null)
-    const [isZoomMode, setIsZoomMode] = useState(true)
-    const [zoomedSnapshot, setZoomedSnapshot] = useState<string | null>(null)
-    const zoomImageRef = useRef<HTMLImageElement>(null)
-    const zoomContainerRef = useRef<HTMLDivElement>(null)
-    const transformWrapperRef = useRef<any>(null)
-    const [crop, setCrop] = useState<CropType>({
-        unit: '%',
-        width: 85,
-        height: 25,
-        x: 7.5,
-        y: 37.5
-    })
-    const imageRef = useRef<HTMLImageElement>(null)
-    const fileInputRef = useRef<HTMLInputElement>(null)
-
-    // Check if mobile on mount and window resize
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(isMobileDevice())
-        checkMobile()
-        window.addEventListener('resize', checkMobile)
-        return () => window.removeEventListener('resize', checkMobile)
-    }, [])
-
-    // Don't render on desktop
-    if (!isMobile) {
-        return null
-    }
-
-    const processImage = async (imageData: string) => {
-        setIsProcessing(true)
-        setProgress(50)
-
-        try {
-            // Call OCR.space API
-            const formData = new FormData()
-            formData.append('base64Image', imageData)
-            formData.append('language', 'eng')
-            formData.append('isOverlayRequired', 'false')
-            formData.append('detectOrientation', 'true')
-            formData.append('scale', 'true')
-            formData.append('OCREngine', '2') // Engine 2 is better for difficult images
-
-            const response = await fetch('https://api.ocr.space/parse/image', {
-                method: 'POST',
-                headers: {
-                    'apikey': OCR_API_KEY
-                },
-                body: formData
-            })
-
-            if (!response.ok) {
-                throw new Error('OCR API request failed')
-            }
-
-            const result = await response.json()
-            
-            if (result.IsErroredOnProcessing) {
-                throw new Error(result.ErrorMessage?.[0] || 'OCR processing error')
-            }
-
-            setProgress(100)
-
-            // Extract text from OCR result
-            const extractedText = result.ParsedResults?.[0]?.ParsedText || ''
-            
-            // Clean up the extracted text
-            const cleanedText = extractedText
-                .trim()
-                .split('\n')
-                .map((line: string) => line.trim())
-                .filter((line: string) => line.length > 0)
-                .join(' ')
-                .replace(/\s+/g, ' ')
-
-            setExtractedText(cleanedText)
-            setEditedText(cleanedText)
-            setShowCropModal(false)
-            setShowConfirmModal(true)
-        } catch (error) {
-            console.error('OCR Error:', error)
-            alert('❌ Error al escanear la imagen. Por favor intenta de nuevo.')
-        } finally {
-            setIsProcessing(false)
-        }
-    }
-
-    const getCroppedImage = async (): Promise<string> => {
-        if (!imageRef.current || !crop.width || !crop.height) {
-            return zoomedSnapshot || ''
-        }
-
-        const image = imageRef.current
-        const canvas = document.createElement('canvas')
-        const scaleX = image.naturalWidth / image.width
-        const scaleY = image.naturalHeight / image.height
-        
-        canvas.width = crop.width * scaleX
-        canvas.height = crop.height * scaleY
-        
+                    {/* Crop area: show full image, no zoom */}
+                    {capturedImage && (
+                        <>
+                            <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
+                                <ReactCrop
+                                    crop={crop}
+                                    onChange={(c) => setCrop(c)}
+                                    aspect={undefined}
+                                >
+                                    <img
+                                        ref={imageRef}
+                                        src={capturedImage}
+                                        alt="Imagen para recortar"
+                                        className="w-full h-auto"
+                                        style={{ maxHeight: '60vh', objectFit: 'contain' }}
+                                    />
+                                </ReactCrop>
+                            </div>
+                            <div className="mt-2 flex items-center justify-end gap-2">
+                                <Button
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
+                                    onClick={handleCropConfirm}
+                                    disabled={isProcessing}
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                            {progress}%
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check className="w-4 h-4 mr-1" />
+                                            Escanear área
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </>
+                    )}
         const ctx = canvas.getContext('2d')
         if (!ctx) {
             return zoomedSnapshot || ''
