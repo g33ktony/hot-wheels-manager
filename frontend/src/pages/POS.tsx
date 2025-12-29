@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache';
-import { useAppSelector } from '@/hooks/redux';
+import { useAppSelector, useAppDispatch } from '@/hooks/redux';
+import { setInventoryItems, setLoading, setError } from '@/store/slices/inventorySlice';
 import { calculateSimilarity } from '@/utils/searchUtils';
+import { inventoryService } from '@/services/inventory';
 import type { InventoryItem as ReduxInventoryItem } from '@/store/slices/inventorySlice';
 
 interface CartItem extends ReduxInventoryItem {
@@ -16,12 +18,47 @@ const POS: React.FC = () => {
   
   // Get inventory from Redux cache
   const reduxInventory = useAppSelector(state => state.inventory);
+  const dispatch = useAppDispatch();
+  
   const inventoryItems = useMemo(() => reduxInventory.items || [], [reduxInventory.items]);
   
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [processing, setProcessing] = useState(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+  // Initial load: fetch inventory on component mount if Redux is empty
+  useEffect(() => {
+    const loadInitialInventory = async () => {
+      if (inventoryItems.length > 0) {
+        setInitialLoadDone(true);
+        return;
+      }
+
+      try {
+        dispatch(setLoading(true));
+        const data = await inventoryService.getAll(1, 1000, {});
+        dispatch(setInventoryItems({
+          items: data.items || [],
+          totalItems: data.pagination.totalItems,
+          currentPage: 1,
+          totalPages: 1,
+          itemsPerPage: 1000
+        }));
+        dispatch(setError(null));
+      } catch (error) {
+        console.error('Error loading inventory for POS:', error);
+        dispatch(setError('Error al cargar inventario'));
+        toast.error('Error al cargar el inventario');
+      } finally {
+        dispatch(setLoading(false));
+        setInitialLoadDone(true);
+      }
+    };
+
+    loadInitialInventory();
+  }, []);
 
   // Fuzzy search en caché (instant search - sin API calls)
   const filteredInventory = useMemo(() => {
@@ -221,10 +258,43 @@ const POS: React.FC = () => {
   };
 
   // Loading state
+  if (!initialLoadDone || reduxInventory.isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-lg font-semibold mb-2">Cargando inventario...</div>
+          <p className="text-sm text-gray-600">Sincronizando datos desde el servidor</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (reduxInventory.error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-lg font-semibold text-red-600 mb-2">Error al cargar inventario</div>
+          <p className="text-sm text-gray-600 mb-4">{reduxInventory.error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
   if (!inventoryItems || inventoryItems.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Cargando inventario...</div>
+        <div className="text-center">
+          <div className="text-lg font-semibold text-gray-600 mb-2">No hay inventario disponible</div>
+          <p className="text-sm text-gray-600">Agrega items al inventario para comenzar a vender</p>
+        </div>
       </div>
     );
   }
