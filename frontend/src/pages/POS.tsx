@@ -1,111 +1,108 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
+import { useInventorySyncInBackground } from '@/hooks/useInventoryCache';
+import { useAppSelector } from '@/hooks/redux';
+import { calculateSimilarity } from '@/utils/searchUtils';
+import type { InventoryItem as ReduxInventoryItem } from '@/store/slices/inventorySlice';
 
-interface InventoryItem {
-  _id: string;
-  carId: string | {
-    _id: string;
-    name: string;
-    year?: number;
-    color?: string;
-    series?: string;
-  }; // Puede ser string (ID) o objeto poblado
-  carName?: string; // Puede venir del populate
-  brand: string;
-  year?: number; // Puede venir del populate
-  color?: string; // Puede venir del populate
-  series?: string; // Puede venir del populate
-  pieceType: string;
-  salePrice?: number; // Campo calculado
-  suggestedPrice: number;
-  actualPrice?: number;
-  purchasePrice: number;
-  status?: string;
-  quantity?: number;
-  reservedQuantity?: number;
-  notes?: string;
-  location?: string;
-  imageUrl?: string;
-}
-
-interface CartItem extends InventoryItem {
+interface CartItem extends ReduxInventoryItem {
   customPrice: number;
-  cartQuantity: number; // Cantidad en el carrito
+  cartQuantity: number;
 }
 
 const POS: React.FC = () => {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  // Sync inventory in background (keeps Redux cache fresh)
+  useInventorySyncInBackground();
+  
+  // Get inventory from Redux cache
+  const reduxInventory = useAppSelector(state => state.inventory);
+  const inventoryItems = useMemo(() => reduxInventory.items || [], [reduxInventory.items]);
+  
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
+  const [processing, setProcessing] = useState(false);
 
-  // Cargar inventario disponible
-  useEffect(() => {
-    fetchInventory();
-  }, []);
-
-  const fetchInventory = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/inventory`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) throw new Error('Error al cargar inventario');
-
-      const data = await response.json();
-      console.log('📦 Respuesta completa del API:', JSON.stringify(data, null, 2));
-      console.log('📦 data.data:', data.data);
-      console.log('📦 data.data.items:', data.data?.items);
-      console.log('📦 Es array data.data?:', Array.isArray(data.data));
-      console.log('📦 Es array data.data.items?:', Array.isArray(data.data?.items));
-
-      // Detectar estructura correcta
-      let items = [];
-      if (data.success && data.data) {
-        if (Array.isArray(data.data)) {
-          items = data.data;
-        } else if (data.data.items && Array.isArray(data.data.items)) {
-          items = data.data.items;
-        }
-      }
-
-      console.log('📦 Items extraídos:', items.length);
-      console.log('📦 Primer item completo:', JSON.stringify(items[0], null, 2));
-      console.log('🔍 carId es objeto?:', typeof items[0]?.carId === 'object');
-      console.log('🔍 carId tiene name?:', items[0]?.carId?.name);
-
-      // Filtrar items que tengan cantidad disponible (quantity - reservedQuantity > 0)
-      const availableItems = items.filter((item: InventoryItem) => {
+  // Fuzzy search en caché (instant search - sin API calls)
+  const filteredInventory = useMemo(() => {
+    if (!searchTerm.trim()) {
+      // Sin búsqueda: mostrar todos los items con stock disponible
+      return inventoryItems.filter(item => {
         const quantity = item.quantity || 0;
         const reserved = item.reservedQuantity || 0;
-        const available = quantity - reserved;
-        console.log(`  - Item: qty=${quantity}, reserved=${reserved}, available=${available}, carId type:${typeof item.carId}`);
-        return available > 0;
+        return quantity - reserved > 0;
       });
-
-      console.log('✅ Items disponibles para POS:', availableItems.length);
-      setInventory(availableItems);
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al cargar el inventario');
-      setInventory([]); // Asegurar que siempre sea un array
-    } finally {
-      setLoading(false);
     }
-  };
+
+    const query = searchTerm.toLowerCase();
+    const SIMILARITY_THRESHOLD = 75;
+    
+    return inventoryItems
+      .filter(item => {
+        const quantity = item.quantity || 0;
+        const reserved = item.reservedQuantity || 0;
+        
+        // Skip items sin stock
+        if (quantity - reserved <= 0) return false;
+
+        // Extraer datos del carId si está poblado
+        const carData = typeof item.carId === 'object' ? item.carId : null;
+        const carName = carData?.name || '';
+        const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+        
+        // Búsqueda exacta (contiene substring)
+        if (
+          carName.toLowerCase().includes(query) ||
+          carIdStr.toLowerCase().includes(query) ||
+          item.brand?.toLowerCase().includes(query) ||
+          item.pieceType?.toLowerCase().includes(query) ||
+          item.location?.toLowerCase().includes(query)
+        ) {
+          return true;
+        }
+
+        // Búsqueda fuzzy con Levenshtein
+        const carNameSimilarity = calculateSimilarity(query, carName);
+        const brandSimilarity = calculateSimilarity(query, item.brand || '');
+        const pieceTypeSimilarity = calculateSimilarity(query, item.pieceType || '');
+        
+        return (
+          carNameSimilarity >= SIMILARITY_THRESHOLD ||
+          brandSimilarity >= SIMILARITY_THRESHOLD ||
+          pieceTypeSimilarity >= SIMILARITY_THRESHOLD
+        );
+      })
+      .sort((a, b) => {
+        // Priorizar resultados exactos
+        const getCarName = (item: any) => {
+          const carData = typeof item.carId === 'object' ? item.carId : null;
+          return carData?.name || '';
+        };
+        
+        const aExact = 
+          getCarName(a).toLowerCase().includes(query) ||
+          a.brand?.toLowerCase().includes(query);
+        const bExact = 
+          getCarName(b).toLowerCase().includes(query) ||
+          b.brand?.toLowerCase().includes(query);
+
+        if (aExact && !bExact) return -1;
+        if (!aExact && bExact) return 1;
+        return 0;
+      });
+  }, [inventoryItems, searchTerm]);
 
   // Agregar item al carrito
-  const addToCart = (item: InventoryItem, quantity: number = 1) => {
-    const existingItem = cart.find(cartItem => cartItem._id === item._id);
+  const addToCart = (item: ReduxInventoryItem, quantity: number = 1) => {
+    if (!item._id) {
+      toast.error('Item inválido');
+      return;
+    }
+
+    const existingItem = cart.find(c => c._id === item._id);
     const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
 
     if (existingItem) {
-      // Si ya existe, incrementar cantidad
       const newQuantity = existingItem.cartQuantity + quantity;
       if (newQuantity > availableQty) {
         toast.error('No hay suficiente inventario disponible');
@@ -115,10 +112,11 @@ const POS: React.FC = () => {
       return;
     }
 
-    // Extraer datos del carId si está poblado
+    // Extraer nombre del carId
     const carData = typeof item.carId === 'object' ? item.carId : null;
     const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-    const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
+    const displayName = carData?.name || carIdStr || 'Sin nombre';
+
     const price = item.actualPrice || item.suggestedPrice || 0;
 
     const cartItem: CartItem = {
@@ -132,19 +130,23 @@ const POS: React.FC = () => {
   };
 
   // Remover item del carrito
-  const removeFromCart = (itemId: string) => {
+  const removeFromCart = (itemId: string | undefined) => {
+    if (!itemId) return;
     setCart(cart.filter(item => item._id !== itemId));
   };
 
   // Actualizar precio personalizado
-  const updatePrice = (itemId: string, newPrice: number) => {
+  const updatePrice = (itemId: string | undefined, newPrice: number) => {
+    if (!itemId) return;
     setCart(cart.map(item =>
       item._id === itemId ? { ...item, customPrice: newPrice } : item
     ));
   };
 
-  // Actualizar cantidad en el carrito
-  const updateCartQuantity = (itemId: string, newQuantity: number) => {
+  // Actualizar cantidad en carrito
+  const updateCartQuantity = (itemId: string | undefined, newQuantity: number) => {
+    if (!itemId) return;
+    
     const item = cart.find(c => c._id === itemId);
     if (!item) return;
 
@@ -192,8 +194,6 @@ const POS: React.FC = () => {
         notes: `Venta POS - ${cart.length} artículo(s)`
       };
 
-      console.log('📤 Enviando venta POS:', saleData);
-
       const response = await fetch(`${import.meta.env.VITE_API_URL}/sales/pos`, {
         method: 'POST',
         headers: {
@@ -205,20 +205,13 @@ const POS: React.FC = () => {
 
       if (!response.ok) {
         const error = await response.json();
-        console.error('❌ Error del servidor:', error);
-        console.error('❌ Status:', response.status);
         throw new Error(error.message || 'Error al procesar la venta');
       }
 
-      const result = await response.json();
-      console.log('✅ Venta creada:', result);
-
       toast.success(`¡Venta completada! Total: $${calculateTotal().toFixed(2)}`);
-
-      // Limpiar carrito y recargar inventario
       setCart([]);
-      await fetchInventory();
-
+      
+      // Redux sync en background refrescará automáticamente el inventario
     } catch (error: any) {
       console.error('Error:', error);
       toast.error(error.message || 'Error al procesar la venta');
@@ -227,45 +220,8 @@ const POS: React.FC = () => {
     }
   };
 
-  // Filtrar inventario - buscar solo en campos que existen en el modelo
-  const filteredInventory = inventory.filter(item => {
-    // First filter: hide items only if BOTH quantity and reservedQuantity are 0
-    // Show items if: 
-    // - They have available stock (quantity > reservedQuantity)
-    // - OR they have reserved items (reservedQuantity > 0) even if quantity is 0
-    const quantity = item.quantity || 0
-    const reservedQuantity = item.reservedQuantity || 0
-    
-    // Hide only if both are zero (no stock and no reservations)
-    if (quantity === 0 && reservedQuantity === 0) return false
-
-    // Second filter: search term
-    if (!searchTerm) return true // Si no hay búsqueda, mostrar todos los que tienen stock o reservas
-
-    const search = searchTerm.toLowerCase()
-
-    // Extraer datos del carId si está poblado
-    const carData = typeof item.carId === 'object' ? item.carId : null
-    const carName = carData?.name || item.carName || ''
-    const carYear = carData?.year || item.year
-    const carColor = carData?.color || item.color || ''
-    const carSeries = carData?.series || item.series || ''
-    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || ''
-
-    return (
-      carIdStr.toLowerCase().includes(search) ||
-      carName.toLowerCase().includes(search) ||
-      item.brand?.toLowerCase().includes(search) ||
-      item.pieceType?.toLowerCase().includes(search) ||
-      item.notes?.toLowerCase().includes(search) ||
-      item.location?.toLowerCase().includes(search) ||
-      carSeries.toLowerCase().includes(search) ||
-      carColor.toLowerCase().includes(search) ||
-      carYear?.toString().includes(search)
-    )
-  });
-
-  if (loading) {
+  // Loading state
+  if (!inventoryItems || inventoryItems.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg">Cargando inventario...</div>
@@ -277,7 +233,7 @@ const POS: React.FC = () => {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">🛒 Punto de Venta (POS)</h1>
-        <p className="text-gray-600">Selecciona artículos para crear una venta rápida</p>
+        <p className="text-gray-600">Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -287,57 +243,53 @@ const POS: React.FC = () => {
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Buscar por nombre, ID o marca..."
+                placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente 75%+)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+              {searchTerm && (
+                <p className="text-sm text-gray-500 mt-2">
+                  {filteredInventory.length} resultado(s) encontrado(s)
+                </p>
+              )}
             </div>
 
             <div className="overflow-y-auto max-h-[600px]">
               {filteredInventory.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">
-                  No hay artículos disponibles
+                  {searchTerm ? 'No se encontraron artículos' : 'No hay artículos disponibles'}
                 </p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredInventory.map(item => {
+                    if (!item._id) return null;
+
                     // Extraer datos del carId si está poblado
                     const carData = typeof item.carId === 'object' ? item.carId : null;
                     const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-                    const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
-                    const displayYear = carData?.year || item.year || '';
-                    const displayColor = carData?.color || item.color || '';
-                    const displaySeries = carData?.series || item.series || '';
+                    const displayName = carData?.name || carIdStr || 'Sin nombre';
                     const price = item.actualPrice || item.suggestedPrice || 0;
                     const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
                     const cartItem = cart.find(c => c._id === item._id);
                     const cartQty = cartItem?.cartQuantity || 0;
                     const isInCart = !!cartItem;
-                    const isSingleItem = availableQty === 1;
 
                     return (
                       <div
                         key={item._id}
                         className="border rounded-lg p-4 hover:shadow-md transition-shadow"
                       >
-                        {item.imageUrl && (
-                          <img
-                            src={item.imageUrl}
-                            alt={displayName}
-                            className="w-full h-32 object-cover rounded mb-2"
-                          />
-                        )}
                         <h3 className="font-semibold text-lg">{displayName}</h3>
                         <p className="text-sm text-gray-600">{carIdStr}</p>
                         <p className="text-sm text-gray-600">
-                          {item.brand} {displayYear && `• ${displayYear}`}
+                          {item.brand} {item.year && `• ${item.year}`}
                         </p>
-                        {displayColor && (
-                          <p className="text-sm text-gray-600">Color: {displayColor}</p>
+                        {item.color && (
+                          <p className="text-sm text-gray-600">Color: {item.color}</p>
                         )}
-                        {displaySeries && (
-                          <p className="text-sm text-gray-600">Serie: {displaySeries}</p>
+                        {item.series && (
+                          <p className="text-sm text-gray-600">Serie: {item.series}</p>
                         )}
                         <p className="text-sm text-gray-600">{item.pieceType}</p>
                         <p className="text-sm text-gray-500">Disponible: {availableQty}</p>
@@ -345,14 +297,15 @@ const POS: React.FC = () => {
                           <span className="text-xl font-bold text-green-600">
                             ${price.toFixed(2)}
                           </span>
-                          {isSingleItem ? (
+                          {availableQty <= 1 ? (
                             <button
                               onClick={() => addToCart(item)}
                               disabled={isInCart}
-                              className={`px-4 py-2 rounded-lg font-medium ${isInCart
+                              className={`px-4 py-2 rounded-lg font-medium ${
+                                isInCart
                                   ? 'bg-gray-300 cursor-not-allowed'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                }`}
+                              }`}
                             >
                               {isInCart ? 'En carrito' : 'Agregar'}
                             </button>
@@ -372,10 +325,11 @@ const POS: React.FC = () => {
                               <button
                                 onClick={() => addToCart(item, 1)}
                                 disabled={cartQty >= availableQty}
-                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${cartQty >= availableQty
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${
+                                  cartQty >= availableQty
                                     ? 'bg-gray-300 cursor-not-allowed'
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                  }`}
+                                }`}
                               >
                                 +
                               </button>
@@ -398,15 +352,14 @@ const POS: React.FC = () => {
 
             <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto">
               {cart.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
-                  Carrito vacío
-                </p>
+                <p className="text-center text-gray-500 py-8">Carrito vacío</p>
               ) : (
                 cart.map(item => {
-                  // Extraer datos del carId si está poblado
+                  if (!item._id) return null;
+
                   const carData = typeof item.carId === 'object' ? item.carId : null;
                   const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-                  const displayName = carData?.name || item.carName || carIdStr || 'Sin nombre';
+                  const displayName = carData?.name || carIdStr || 'Sin nombre';
                   const originalPrice = item.actualPrice || item.suggestedPrice || 0;
                   const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
 
@@ -417,7 +370,9 @@ const POS: React.FC = () => {
                           <p className="font-semibold text-sm">{displayName}</p>
                           <p className="text-xs text-gray-600">{carIdStr}</p>
                           {item.cartQuantity > 1 && (
-                            <p className="text-xs text-blue-600 font-semibold">Cantidad: {item.cartQuantity}</p>
+                            <p className="text-xs text-blue-600 font-semibold">
+                              Cantidad: {item.cartQuantity}
+                            </p>
                           )}
                         </div>
                         <button
@@ -435,7 +390,9 @@ const POS: React.FC = () => {
                         <input
                           type="number"
                           value={item.customPrice}
-                          onChange={(e) => updatePrice(item._id, parseFloat(e.target.value) || 0)}
+                          onChange={(e) =>
+                            updatePrice(item._id, parseFloat(e.target.value) || 0)
+                          }
                           className="flex-1 px-2 py-1 border rounded text-sm"
                           step="0.01"
                           min="0"
@@ -444,23 +401,32 @@ const POS: React.FC = () => {
                       {availableQty > 1 && (
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateCartQuantity(item._id, item.cartQuantity - 1)}
+                            onClick={() =>
+                              updateCartQuantity(item._id, item.cartQuantity - 1)
+                            }
                             className="w-7 h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded font-bold text-sm"
                           >
                             −
                           </button>
-                          <span className="text-sm font-semibold min-w-[2rem] text-center">{item.cartQuantity}</span>
+                          <span className="text-sm font-semibold min-w-[2rem] text-center">
+                            {item.cartQuantity}
+                          </span>
                           <button
-                            onClick={() => updateCartQuantity(item._id, item.cartQuantity + 1)}
+                            onClick={() =>
+                              updateCartQuantity(item._id, item.cartQuantity + 1)
+                            }
                             disabled={item.cartQuantity >= availableQty}
-                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${item.cartQuantity >= availableQty
+                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${
+                              item.cartQuantity >= availableQty
                                 ? 'bg-gray-300 cursor-not-allowed'
                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
-                              }`}
+                            }`}
                           >
                             +
                           </button>
-                          <span className="text-xs text-gray-500 ml-auto">Subtotal: ${(item.customPrice * item.cartQuantity).toFixed(2)}</span>
+                          <span className="text-xs text-gray-500 ml-auto">
+                            Subtotal: ${(item.customPrice * item.cartQuantity).toFixed(2)}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -497,10 +463,11 @@ const POS: React.FC = () => {
               <button
                 onClick={processSale}
                 disabled={cart.length === 0 || processing}
-                className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
+                className={`w-full py-3 rounded-lg font-bold text-lg ${
+                  cart.length === 0 || processing
                     ? 'bg-gray-300 cursor-not-allowed'
                     : 'bg-green-600 hover:bg-green-700 text-white'
-                  }`}
+                }`}
               >
                 {processing ? 'Procesando...' : 'Completar Venta'}
               </button>

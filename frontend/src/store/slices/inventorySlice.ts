@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface InventoryItem {
   _id?: string;
-  carId: string | { _id: string; name: string };
+  carId: string | { _id: string; name: string; year?: number; color?: string; series?: string };
   quantity?: number;
   purchasePrice?: number;
   suggestedPrice?: number;
@@ -17,6 +17,10 @@ export interface InventoryItem {
   isSuperTreasureHunt?: boolean;
   isChase?: boolean;
   dateAdded?: string | Date;
+  year?: number;
+  color?: string;
+  series?: string;
+  reservedQuantity?: number;
 }
 
 export interface InventoryState {
