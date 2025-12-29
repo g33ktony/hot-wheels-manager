@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "@types/lodash.debounce": "^4.0.9",
     "axios": "^1.6.2",
     "browser-image-compression": "^2.0.2",
@@ -26,9 +27,11 @@
     "react-hook-form": "^7.48.2",
     "react-hot-toast": "^2.4.1",
     "react-image-crop": "^11.0.10",
-    "react-zoom-pan-pinch": "^3.1.0",
     "react-query": "^3.39.3",
-    "react-router-dom": "^6.20.1"
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^6.20.1",
+    "react-window": "^2.2.3",
+    "react-zoom-pan-pinch": "^3.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
