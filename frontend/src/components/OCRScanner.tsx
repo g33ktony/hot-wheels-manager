@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react'
 import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
-import html2canvas from 'html2canvas'
 import 'react-image-crop/dist/ReactCrop.css'
 import Modal from './common/Modal'
 import Button from './common/Button'
@@ -44,6 +43,7 @@ export default function OCRScanner({
     const zoomContainerRef = useRef<HTMLDivElement>(null)
     const zoomImageRef = useRef<HTMLImageElement>(null)
     const transformComponentRef = useRef<HTMLDivElement>(null)
+    const transformWrapperRef = useRef<any>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 85,
@@ -225,26 +225,60 @@ export default function OCRScanner({
         }
     }
 
-    // Capture exactly what is visible inside the zoom container using html2canvas
+    // Extract the zoomed portion from the original image
     const captureZoomedView = async () => {
-        if (!zoomContainerRef.current) {
+        if (!transformWrapperRef.current || !zoomImageRef.current || !zoomContainerRef.current) {
             return capturedImage || ''
         }
 
-        const rect = zoomContainerRef.current.getBoundingClientRect()
-        const canvas = await html2canvas(zoomContainerRef.current, {
-            backgroundColor: '#f3f4f6',
-            useCORS: true,
-            allowTaint: true,
-            logging: false,
-            scale: window.devicePixelRatio || 1,
-            width: rect.width,
-            height: rect.height,
-            x: rect.left + window.scrollX,
-            y: rect.top + window.scrollY,
-            scrollX: -window.scrollX,
-            scrollY: -window.scrollY
-        })
+        // Get container dimensions (viewport)
+        const containerRect = zoomContainerRef.current.getBoundingClientRect()
+        const viewportWidth = containerRect.width
+        const viewportHeight = containerRect.height
+
+        // Get transform state (scale, position)
+        const instance = transformWrapperRef.current
+        const state = instance?.state || {}
+        const scale = state.scale || 1
+        const posX = state.positionX || 0
+        const posY = state.positionY || 0
+
+        // Get original image dimensions
+        const img = zoomImageRef.current
+        const imgWidth = img.naturalWidth
+        const imgHeight = img.naturalHeight
+
+        // Calculate which portion of the original image is visible
+        // The zoomed image on screen has been scaled, so we need to reverse-calculate the crop
+        const scaledWidth = viewportWidth / scale
+        const scaledHeight = viewportHeight / scale
+        const cropX = -posX / scale
+        const cropY = -posY / scale
+
+        // Clamp to image bounds
+        const sourceX = Math.max(0, Math.min(cropX, imgWidth - 1))
+        const sourceY = Math.max(0, Math.min(cropY, imgHeight - 1))
+        const sourceWidth = Math.min(scaledWidth, imgWidth - sourceX)
+        const sourceHeight = Math.min(scaledHeight, imgHeight - sourceY)
+
+        // Draw the cropped portion to a canvas
+        const canvas = document.createElement('canvas')
+        canvas.width = viewportWidth
+        canvas.height = viewportHeight
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return capturedImage || ''
+
+        // Fill background
+        ctx.fillStyle = '#f3f4f6'
+        ctx.fillRect(0, 0, viewportWidth, viewportHeight)
+
+        // Draw the visible portion of the original image
+        ctx.drawImage(
+            img,
+            sourceX, sourceY, sourceWidth, sourceHeight,
+            0, 0, viewportWidth, viewportHeight
+        )
+
         return canvas.toDataURL('image/jpeg', 0.95)
     }
 
@@ -346,6 +380,7 @@ export default function OCRScanner({
                             {isZoomMode ? (
                                 // Modo Zoom: Solo visualización con pinch-to-zoom
                                 <TransformWrapper
+                                    ref={transformWrapperRef}
                                     initialScale={1}
                                     minScale={1}
                                     maxScale={5}
