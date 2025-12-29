@@ -225,19 +225,23 @@ export default function OCRScanner({
         }
     }
 
-    // Capture exactly what is visible inside the zoom component using html2canvas
+    // Capture exactly what is visible inside the zoom container using html2canvas
     const captureZoomedView = async () => {
-        if (!transformComponentRef.current) {
+        if (!zoomContainerRef.current) {
             return capturedImage || ''
         }
 
-        const target = transformComponentRef.current
-        const canvas = await html2canvas(target, {
+        const rect = zoomContainerRef.current.getBoundingClientRect()
+        const canvas = await html2canvas(zoomContainerRef.current, {
             backgroundColor: '#f3f4f6',
             useCORS: true,
             allowTaint: true,
             logging: false,
             scale: window.devicePixelRatio || 1,
+            width: rect.width,
+            height: rect.height,
+            x: rect.left + window.scrollX,
+            y: rect.top + window.scrollY,
             scrollX: -window.scrollX,
             scrollY: -window.scrollY
         })
