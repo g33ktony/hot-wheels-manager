@@ -21,13 +21,19 @@ export const useCloudinaryUpload = () => {
       // Compress image first to reduce upload time
       const compressedFile = await compressImage(file)
       
+      console.log(`📤 Uploading image to Cloudinary...`, {
+        fileName: compressedFile.name,
+        fileSize: compressedFile.size,
+        fileType: compressedFile.type,
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        preset: CLOUDINARY_UPLOAD_PRESET
+      })
+      
       const formData = new FormData()
       formData.append('file', compressedFile)
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
       formData.append('folder', 'hot-wheels-manager/inventory') // Organize in folders
 
-      console.log('📤 Uploading image to Cloudinary...')
-      
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
         {
@@ -37,7 +43,13 @@ export const useCloudinaryUpload = () => {
       )
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`)
+        const errorText = await response.text()
+        console.error('❌ Upload error response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        })
+        throw new Error(`Upload failed (${response.status}): ${errorText}`)
       }
 
       const data = await response.json()
@@ -51,7 +63,8 @@ export const useCloudinaryUpload = () => {
       } as UploadResponse
     } catch (error) {
       console.error('❌ Error uploading image:', error)
-      toast.error('Error al subir imagen')
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido al subir imagen'
+      toast.error(`Error: ${errorMsg}`)
       return null
     }
   }
@@ -76,47 +89,80 @@ export const useCloudinaryUpload = () => {
  * Compress image before uploading to reduce bandwidth
  */
 async function compressImage(file: File): Promise<File> {
-  // For now, use native compression
-  // Can be enhanced with imagemin or similar
-  
   // If file is already small, skip compression
   if (file.size < 1024 * 100) { // < 100KB
+    console.log('ℹ️ File already small, skipping compression')
     return file
   }
 
   return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = (event: any) => {
-      const img = new Image()
-      img.src = event.target.result
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')!
-        
-        // Reduce dimensions if image is very large
-        let { width, height } = img
-        if (width > 1200) {
-          height = (height * 1200) / width
-          width = 1200
+    try {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = (event: any) => {
+        try {
+          const img = new Image()
+          img.src = event.target.result
+          img.onerror = () => {
+            console.warn('⚠️ Image failed to load for compression, using original file')
+            resolve(file)
+          }
+          img.onload = () => {
+            try {
+              const canvas = document.createElement('canvas')
+              const ctx = canvas.getContext('2d')
+              
+              if (!ctx) {
+                console.warn('⚠️ Canvas context not available, using original file')
+                resolve(file)
+                return
+              }
+              
+              // Reduce dimensions if image is very large
+              let { width, height } = img
+              if (width > 1200) {
+                height = (height * 1200) / width
+                width = 1200
+              }
+              
+              canvas.width = width
+              canvas.height = height
+              ctx.drawImage(img, 0, 0, width, height)
+              
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) {
+                    console.warn('⚠️ Blob creation failed, using original file')
+                    resolve(file)
+                    return
+                  }
+                  const compressedFile = new File([blob], file.name, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  })
+                  console.log(`✅ Image compressed: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
+                  resolve(compressedFile)
+                },
+                'image/jpeg',
+                0.7 // 70% quality
+              )
+            } catch (canvasError) {
+              console.warn('⚠️ Canvas operation failed:', canvasError, 'using original file')
+              resolve(file)
+            }
+          }
+        } catch (readerError) {
+          console.warn('⚠️ Image load failed:', readerError, 'using original file')
+          resolve(file)
         }
-        
-        canvas.width = width
-        canvas.height = height
-        ctx.drawImage(img, 0, 0, width, height)
-        
-        canvas.toBlob(
-          (blob) => {
-            const compressedFile = new File([blob!], file.name, {
-              type: 'image/jpeg',
-              lastModified: Date.now()
-            })
-            resolve(compressedFile)
-          },
-          'image/jpeg',
-          0.7 // 70% quality
-        )
       }
+      reader.onerror = () => {
+        console.warn('⚠️ FileReader failed, using original file')
+        resolve(file)
+      }
+    } catch (error) {
+      console.warn('⚠️ Compression error:', error, 'using original file')
+      resolve(file)
     }
   })
 }
