@@ -57,3 +57,4 @@ uploads/
 *.key
 *.crt
 
+backend/backups/
