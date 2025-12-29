@@ -22,6 +22,13 @@ const POS: React.FC = () => {
   
   const inventoryItems = useMemo(() => reduxInventory.items || [], [reduxInventory.items]);
   
+  console.log('🔍 POS Redux State:', {
+    itemsCount: inventoryItems.length,
+    isLoading: reduxInventory.isLoading,
+    error: reduxInventory.error,
+    hasItems: inventoryItems.length > 0
+  });
+  
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
@@ -38,7 +45,11 @@ const POS: React.FC = () => {
 
       try {
         dispatch(setLoading(true));
+        console.log('🔄 POS: Cargando inventario inicial...');
         const data = await inventoryService.getAll(1, 1000, {});
+        console.log('✅ POS: Inventario cargado -', data.items?.length || 0, 'items');
+        console.log('📊 POS: Items estructura:', data);
+        
         dispatch(setInventoryItems({
           items: data.items || [],
           totalItems: data.pagination.totalItems,
@@ -48,7 +59,7 @@ const POS: React.FC = () => {
         }));
         dispatch(setError(null));
       } catch (error) {
-        console.error('Error loading inventory for POS:', error);
+        console.error('❌ Error loading inventory for POS:', error);
         dispatch(setError('Error al cargar inventario'));
         toast.error('Error al cargar el inventario');
       } finally {
@@ -64,11 +75,22 @@ const POS: React.FC = () => {
   const filteredInventory = useMemo(() => {
     if (!searchTerm.trim()) {
       // Sin búsqueda: mostrar todos los items con stock disponible
-      return inventoryItems.filter(item => {
+      const available = inventoryItems.filter(item => {
         const quantity = item.quantity || 0;
         const reserved = item.reservedQuantity || 0;
         return quantity - reserved > 0;
       });
+      console.log('📦 POS Inventory Stats (No Search):', {
+        total: inventoryItems.length,
+        available: available.length,
+        firstItems: inventoryItems.slice(0, 3).map(i => ({
+          name: typeof i.carId === 'object' ? i.carId?.name : i.carId,
+          qty: i.quantity,
+          reserved: i.reservedQuantity,
+          avail: (i.quantity || 0) - (i.reservedQuantity || 0)
+        }))
+      });
+      return available;
     }
 
     const query = searchTerm.toLowerCase();
