@@ -918,8 +918,18 @@ export default function Inventory() {
                                 placeholder="Buscar por nombre o código..."
                                 value={searchTerm}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                                className="pl-10"
+                                className="pl-10 pr-10"
                             />
+                            {searchTerm && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleFilterChange('search', '')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition"
+                                    aria-label="Limpiar búsqueda"
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
                         </div>
 
                         <select
