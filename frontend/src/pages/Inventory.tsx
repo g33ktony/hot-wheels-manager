@@ -3,11 +3,12 @@ import { useQueryClient } from 'react-query'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { inventoryService } from '@/services/inventory'
+import { useAppSelector } from '@/hooks/redux'
+import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import Stepper from '@/components/common/Stepper'
-import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
@@ -65,6 +66,11 @@ const PREDEFINED_BRANDS = [
 ]
 
 export default function Inventory() {
+    // Sync inventory in background (keeps Redux cache fresh for other pages)
+    useInventorySyncInBackground()
+
+    // Get Redux cache as fallback when React Query is loading
+    const reduxInventory = useAppSelector(state => state.inventory)
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(15)
     const [searchTerm, setSearchTerm] = useState('')
@@ -171,11 +177,47 @@ export default function Inventory() {
     const queryClient = useQueryClient()
 
     // Extract items and pagination from response
-    const inventoryItems = inventoryData?.items || []
-    const pagination = inventoryData?.pagination
+    // Use React Query data if available, fallback to Redux cache while loading
+    const inventoryItems = useMemo(() => {
+        if (inventoryData?.items && inventoryData.items.length > 0) {
+            console.log('📊 Inventory: Using React Query data -', inventoryData.items.length, 'items')
+            return inventoryData.items
+        }
+        if (isLoading && reduxInventory.items.length > 0) {
+            console.log('📦 Inventory: Using Redux cache while loading -', reduxInventory.items.length, 'items')
+            return reduxInventory.items as any
+        }
+        return []
+    }, [inventoryData?.items, isLoading, reduxInventory.items])
+    
+    const pagination = useMemo(() => {
+        if (inventoryData?.pagination) {
+            return inventoryData.pagination
+        }
+        if (isLoading && reduxInventory.totalItems > 0) {
+            return {
+                currentPage: currentPage,
+                totalPages: reduxInventory.totalPages,
+                totalItems: reduxInventory.totalItems,
+                itemsPerPage: itemsPerPage
+            }
+        }
+        return undefined
+    }, [inventoryData?.pagination, isLoading, reduxInventory, currentPage, itemsPerPage])
 
     const prefetchedPagesRef = useRef<Set<number>>(new Set())
     const [isPrefetchingNext, setIsPrefetchingNext] = useState(false)
+
+    // Log component render state
+    useEffect(() => {
+        console.log('📊 Inventory component state:', {
+            isLoading,
+            itemsFromQuery: inventoryData?.items?.length || 0,
+            itemsFromRedux: reduxInventory.items.length,
+            finalItems: inventoryItems.length,
+            reduxLastRefreshed: reduxInventory.lastRefreshed ? new Date(reduxInventory.lastRefreshed).toLocaleTimeString() : 'never'
+        })
+    }, [isLoading, inventoryData, reduxInventory, inventoryItems])
 
     useEffect(() => {
         if (!pagination) return
@@ -330,20 +372,30 @@ export default function Inventory() {
         )
     }
 
-    if (isLoading) {
-        return <Loading text="Cargando inventario..." />
+    if (isLoading && inventoryItems.length === 0) {
+        console.log('🔄 Inventory: Loading from API...')
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <div className="text-lg font-semibold mb-2">Cargando inventario...</div>
+                    <p className="text-sm text-gray-600">Sincronizando datos desde el servidor</p>
+                </div>
+            </div>
+        )
     }
 
-    if (error) {
+    if (error && inventoryItems.length === 0) {
+        console.error('❌ Inventory: Error loading -', error)
         return (
             <div className="text-center py-12">
                 <p className="text-danger-600">Error al cargar el inventario</p>
+                <p className="text-sm text-gray-600 mt-2">{error.message}</p>
             </div>
         )
     }
 
     // Oculta piezas sin stock ni reservas (0/0) para evitar ruido visual
-    const filteredItems = inventoryItems.filter((item) => {
+    const filteredItems = inventoryItems.filter((item: any) => {
         const quantity = item.quantity || 0
         const reserved = item.reservedQuantity || 0
         return !(quantity === 0 && reserved === 0)
