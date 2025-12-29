@@ -3,6 +3,7 @@ import { InventoryItemModel } from '../models/InventoryItem';
 import { HotWheelsCarModel } from '../models/HotWheelsCar';
 import { IHotWheelsCar } from '../models/HotWheelsCar';
 import { calculateDefaultSeriesPrice } from '../utils/seriesHelpers';
+import { calculateSimilarity } from '../utils/searchUtils';
 
 const inventoryQueryCache = new Map<string, { data: any; expiresAt: number }>();
 const INVENTORY_CACHE_TTL_MS = 15 * 1000; // 15 seconds cache window
@@ -28,16 +29,8 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     const filterTreasureHunt = req.query.treasureHunt as string; // 'all' | 'th' | 'sth'
     const filterChase = req.query.chase === 'true';
 
-    // Build query object
+    // Build query object (without search term for now - will do fuzzy search in memory)
     const query: any = {};
-
-    // Search term (carId or notes)
-    if (searchTerm && searchTerm.length > 0) {
-      query.$or = [
-        { carId: { $regex: searchTerm, $options: 'i' } },
-        { notes: { $regex: searchTerm, $options: 'i' } }
-      ];
-    }
 
     // Condition filter
     if (filterCondition && filterCondition.length > 0) {
@@ -68,21 +61,44 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       query.isChase = true;
     }
 
-    const cacheKey = buildInventoryCacheKey(query, page, limit);
-    const cached = inventoryQueryCache.get(cacheKey);
-    const now = Date.now();
-    if (cached && cached.expiresAt > now) {
-      res.json({
-        success: true,
-        data: cached.data
+    // Get all items matching non-search filters
+    let allItems = await InventoryItemModel.find(query)
+      .select('-__v -updatedAt')
+      .populate({
+        path: 'carId',
+        select: 'name year color series _id',
+        options: { lean: true }
+      })
+      .lean()
+      .sort({ dateAdded: -1 });
+
+    // Apply fuzzy search if search term is provided
+    if (searchTerm && searchTerm.length > 0) {
+      const SIMILARITY_THRESHOLD = 75;
+      const filtered = allItems.filter((item: any) => {
+        // Check carId (if it's an object with name, use name; if it's a string, use directly)
+        const carIdText = typeof item.carId === 'object' ? item.carId?.name || '' : item.carId || '';
+        
+        // Check for exact matches first
+        if (carIdText.toLowerCase().includes(searchTerm.toLowerCase())) {
+          return true;
+        }
+        if (item.notes && item.notes.toLowerCase().includes(searchTerm.toLowerCase())) {
+          return true;
+        }
+        
+        // Check for fuzzy matches
+        const carIdSimilarity = calculateSimilarity(searchTerm, carIdText);
+        const notesSimilarity = item.notes ? calculateSimilarity(searchTerm, item.notes) : 0;
+        
+        return carIdSimilarity >= SIMILARITY_THRESHOLD || notesSimilarity >= SIMILARITY_THRESHOLD;
       });
-      return;
+      allItems = filtered;
     }
 
-    // First check if we have any inventory items
-    const inventoryCount = await InventoryItemModel.countDocuments(query);
+    const total = allItems.length;
     
-    if (inventoryCount === 0) {
+    if (total === 0) {
       // If no inventory matches, return empty result
       const emptyData = {
         items: [],
@@ -93,7 +109,6 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
           itemsPerPage: limit
         }
       };
-      inventoryQueryCache.set(cacheKey, { data: emptyData, expiresAt: now + INVENTORY_CACHE_TTL_MS });
       res.json({
         success: true,
         data: emptyData,
@@ -102,20 +117,8 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Get filtered inventory items with optimization
-    const inventoryItems = await InventoryItemModel.find(query)
-      .select('-__v -updatedAt') // Excluir campos innecesarios para reducir payload
-      .populate({
-        path: 'carId',
-        select: 'name year color series _id', // Traer solo los campos necesarios
-        options: { lean: true }
-      })
-      .lean() // Retorna objetos planos JS (30-40% más rápido que documentos Mongoose)
-      .limit(limit)
-      .skip(skip)
-      .sort({ dateAdded: -1 });
-
-    const total = inventoryCount;
+    // Apply pagination after filtering and fuzzy search
+    const inventoryItems = allItems.slice(skip, skip + limit);
     const responseData = {
       items: inventoryItems,
       pagination: {
@@ -125,8 +128,6 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
         itemsPerPage: limit
       }
     };
-
-    inventoryQueryCache.set(cacheKey, { data: responseData, expiresAt: now + INVENTORY_CACHE_TTL_MS });
 
     res.json({
       success: true,
@@ -327,15 +328,7 @@ export const searchHotWheelsCatalog = async (req: Request, res: Response): Promi
     
     const searchFilter: any = {};
     
-    if (query) {
-      searchFilter.$or = [
-        { model: { $regex: query, $options: 'i' } },
-        { series: { $regex: query, $options: 'i' } },
-        { color: { $regex: query, $options: 'i' } },
-        { toy_num: { $regex: query, $options: 'i' } }
-      ];
-    }
-    
+    // Build base filter without fuzzy search
     if (year) {
       searchFilter.year = year as string;
     }
@@ -344,17 +337,53 @@ export const searchHotWheelsCatalog = async (req: Request, res: Response): Promi
       searchFilter.series = { $regex: series, $options: 'i' };
     }
 
-    const cars = await HotWheelsCarModel.find(searchFilter)
-      .limit(parseInt(limit as string))
-      .skip(skip)
-      .sort({ year: -1, model: 1 });
+    // Get all cars matching year/series filters
+    let cars = await HotWheelsCarModel.find(searchFilter)
+      .sort({ year: -1, model: 1 })
+      .lean();
 
-    const total = await HotWheelsCarModel.countDocuments(searchFilter);
+    // Apply fuzzy search if query is provided
+    if (query) {
+      const SIMILARITY_THRESHOLD = 75;
+      const queryStr = query as string;
+      const filtered = cars.filter((car: any) => {
+        // Check for exact matches in model, series, color, toy_num
+        if (car.model?.toLowerCase().includes(queryStr.toLowerCase())) {
+          return true;
+        }
+        if (car.series?.toLowerCase().includes(queryStr.toLowerCase())) {
+          return true;
+        }
+        if (car.color?.toLowerCase().includes(queryStr.toLowerCase())) {
+          return true;
+        }
+        if (car.toy_num?.toLowerCase().includes(queryStr.toLowerCase())) {
+          return true;
+        }
+
+        // Check for fuzzy matches
+        const modelSimilarity = calculateSimilarity(queryStr, car.model || '');
+        const seriesSimilarity = calculateSimilarity(queryStr, car.series || '');
+        const colorSimilarity = calculateSimilarity(queryStr, car.color || '');
+        const toyNumSimilarity = calculateSimilarity(queryStr, car.toy_num || '');
+
+        return (
+          modelSimilarity >= SIMILARITY_THRESHOLD ||
+          seriesSimilarity >= SIMILARITY_THRESHOLD ||
+          colorSimilarity >= SIMILARITY_THRESHOLD ||
+          toyNumSimilarity >= SIMILARITY_THRESHOLD
+        );
+      });
+      cars = filtered;
+    }
+
+    const total = cars.length;
+    const paginatedCars = cars.slice(skip, skip + parseInt(limit as string));
 
     res.json({
       success: true,
       data: {
-        cars,
+        cars: paginatedCars,
         pagination: {
           currentPage: parseInt(page as string),
           totalPages: Math.ceil(total / parseInt(limit as string)),
