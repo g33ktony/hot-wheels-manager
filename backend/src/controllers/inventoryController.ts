@@ -158,6 +158,19 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       return;
     }
 
+    // Validate photos: reject base64 data (must be Cloudinary URLs)
+    if (photos && Array.isArray(photos)) {
+      for (const photo of photos) {
+        if (typeof photo === 'string' && (photo.includes('base64') || photo.startsWith('data:'))) {
+          res.status(400).json({
+            success: false,
+            error: 'Base64 images are no longer supported. Please use Cloudinary upload. Your photos should be URLs like https://res.cloudinary.com/...'
+          });
+          return;
+        }
+      }
+    }
+
     // Calculate default series price if this is part of a series
     let seriesDefaultPrice: number | undefined
     let finalSeriesPrice: number | undefined
@@ -252,6 +265,19 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
     invalidateInventoryCache()
     const { id } = req.params;
     const updates = req.body;
+
+    // Validate photos: reject base64 data (must be Cloudinary URLs)
+    if (updates.photos && Array.isArray(updates.photos)) {
+      for (const photo of updates.photos) {
+        if (typeof photo === 'string' && (photo.includes('base64') || photo.startsWith('data:'))) {
+          res.status(400).json({
+            success: false,
+            error: 'Base64 images are no longer supported. Please use Cloudinary upload. Your photos should be URLs like https://res.cloudinary.com/...'
+          });
+          return;
+        }
+      }
+    }
 
     // If updating series info, recalculate default price
     if (updates.seriesId && updates.seriesSize && updates.suggestedPrice) {

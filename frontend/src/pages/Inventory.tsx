@@ -106,6 +106,8 @@ export default function Inventory() {
     const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
     // Add item modal loading state
     const [isAddingItem, setIsAddingItem] = useState(false)
+    // Photo upload state
+    const [uploadingPhotos, setUploadingPhotos] = useState(0)
 
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
@@ -892,6 +894,9 @@ export default function Inventory() {
             fileType: 'image/jpeg',
         }
 
+        // Track number of uploads in progress
+        setUploadingPhotos(prev => prev + files.length)
+
         for (const file of Array.from(files)) {
             if (file.type.startsWith('image/')) {
                 try {
@@ -915,10 +920,14 @@ export default function Inventory() {
                             }))
                         }
                         console.log(`☁️ Uploaded to Cloudinary: ${result.url}`)
+                    } else {
+                        toast.error('Falló la carga de imagen a Cloudinary')
                     }
                 } catch (error) {
                     console.error('Error al subir imagen:', error)
                     toast.error('Error al subir imagen a Cloudinary')
+                } finally {
+                    setUploadingPhotos(prev => Math.max(0, prev - 1))
                 }
             }
         }
@@ -1449,6 +1458,7 @@ export default function Inventory() {
                                 onClick={handleAddItem}
                                 disabled={
                                     isAddingItem ||
+                                    uploadingPhotos > 0 ||
                                     (newItem.isMultipleCars ? newItem.cars.length === 0 : !newItem.carId)
                                 }
                             >
@@ -1456,6 +1466,11 @@ export default function Inventory() {
                                     <div className="flex items-center gap-2">
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                         <span>Guardando...</span>
+                                    </div>
+                                ) : uploadingPhotos > 0 ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <span>Subiendo {uploadingPhotos} foto{uploadingPhotos > 1 ? 's' : ''}...</span>
                                     </div>
                                 ) : existingItemToUpdate ? (
                                     '✏️ Actualizar Pieza'
