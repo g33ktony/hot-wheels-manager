@@ -47,15 +47,15 @@ export default function Stepper({
     }
 
     return (
-        <div className={`flex items-center gap-2 ${className}`}>
+        <div className={`flex items-center gap-1 sm:gap-2 ${className}`}>
             <button
                 type="button"
                 onClick={handleDecrement}
                 disabled={disabled || value <= min}
-                className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                 aria-label="Disminuir cantidad"
             >
-                <Minus size={18} className="text-gray-600" />
+                <Minus size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
             </button>
 
             <input
@@ -66,7 +66,7 @@ export default function Stepper({
                 min={min}
                 max={max}
                 inputMode="numeric"
-                className="w-16 text-center px-2 py-2 border border-gray-300 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-12 sm:w-16 text-center px-1 sm:px-2 py-2 border border-gray-300 rounded-lg disabled:bg-gray-100 disabled:cursor-not-allowed text-sm sm:text-base flex-shrink-0"
                 aria-label="Cantidad"
             />
 
@@ -74,10 +74,10 @@ export default function Stepper({
                 type="button"
                 onClick={handleIncrement}
                 disabled={disabled || value >= max}
-                className="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
                 aria-label="Aumentar cantidad"
             >
-                <Plus size={18} className="text-gray-600" />
+                <Plus size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
             </button>
         </div>
     )

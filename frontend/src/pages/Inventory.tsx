@@ -1573,7 +1573,7 @@ export default function Inventory() {
                                 )}
 
                                 {/* Add car to list */}
-                                <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2">
                                     <input
                                         type="text"
                                         placeholder="Código (ej: FHY65)"
@@ -1581,30 +1581,31 @@ export default function Inventory() {
                                         value={newItem.carId}
                                         onChange={(e) => setNewItem({ ...newItem, carId: e.target.value })}
                                     />
-                                    <Stepper
-                                        value={newItem.quantity || 1}
-                                        onChange={(val) => setNewItem({ ...newItem, quantity: val })}
-                                        min={1}
-                                        max={99}
-                                        step={1}
-                                        className="flex-shrink-0"
-                                    />
-                                    <Button
-                                        size="sm"
-                                        onClick={() => {
-                                            if (newItem.carId && newItem.quantity > 0) {
-                                                setNewItem({
-                                                    ...newItem,
-                                                    cars: [...newItem.cars, { carId: newItem.carId, quantity: newItem.quantity }],
-                                                    carId: '',
-                                                    quantity: 1
-                                                })
-                                            }
-                                        }}
-                                        disabled={!newItem.carId || newItem.quantity === 0}
-                                    >
-                                        <Plus size={16} />
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Stepper
+                                            value={newItem.quantity || 1}
+                                            onChange={(val) => setNewItem({ ...newItem, quantity: val })}
+                                            min={1}
+                                            max={99}
+                                            step={1}
+                                        />
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                if (newItem.carId && newItem.quantity > 0) {
+                                                    setNewItem({
+                                                        ...newItem,
+                                                        cars: [...newItem.cars, { carId: newItem.carId, quantity: newItem.quantity }],
+                                                        carId: '',
+                                                        quantity: 1
+                                                    })
+                                                }
+                                            }}
+                                            disabled={!newItem.carId || newItem.quantity === 0}
+                                        >
+                                            <Plus size={16} />
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 {/* List of cars */}
@@ -1745,13 +1746,15 @@ export default function Inventory() {
                                         <span className="text-xs text-gray-500">piezas automáticas</span>
                                     </div>
                                 ) : (
-                                    <Stepper
-                                        value={newItem.quantity || 1}
-                                        onChange={(val) => setNewItem({ ...newItem, quantity: val })}
-                                        min={1}
-                                        max={999}
-                                        step={1}
-                                    />
+                                    <div className="flex justify-start">
+                                        <Stepper
+                                            value={newItem.quantity || 1}
+                                            onChange={(val) => setNewItem({ ...newItem, quantity: val })}
+                                            min={1}
+                                            max={999}
+                                            step={1}
+                                        />
+                                    </div>
                                 )}
                                 {newItem.isBox && (
                                     <p className="text-xs text-gray-500 mt-2">
