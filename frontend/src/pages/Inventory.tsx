@@ -1685,6 +1685,7 @@ export default function Inventory() {
                                     type="number"
                                     inputMode="numeric"
                                     min="1"
+                                    step="1"
                                     className="input w-full"
                                     value={newItem.quantity || ''}
                                     disabled={newItem.isBox}
