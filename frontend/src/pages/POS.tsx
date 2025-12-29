@@ -39,29 +39,37 @@ const POS: React.FC = () => {
   useEffect(() => {
     const loadInitialInventory = async () => {
       if (inventoryItems.length > 0) {
+        console.log('✅ POS: Usando inventario en caché (ya cargado)');
         setInitialLoadDone(true);
         return;
       }
 
       try {
         dispatch(setLoading(true));
-        console.log('🔄 POS: Cargando inventario inicial...');
+        console.log('🔄 POS: Cargando inventario inicial desde API...');
         const data = await inventoryService.getAll(1, 1000, {});
-        console.log('✅ POS: Inventario cargado -', data.items?.length || 0, 'items');
-        console.log('📊 POS: Items estructura:', data);
+        
+        if (!data || !data.items) {
+          throw new Error('Respuesta inválida del servidor: no hay datos');
+        }
+        
+        console.log('✅ POS: Inventario cargado -', data.items.length, 'items');
+        console.log('📊 POS: Pagination -', data.pagination);
         
         dispatch(setInventoryItems({
-          items: data.items || [],
-          totalItems: data.pagination.totalItems,
+          items: data.items,
+          totalItems: data.pagination?.totalItems || data.items.length,
           currentPage: 1,
           totalPages: 1,
           itemsPerPage: 1000
         }));
         dispatch(setError(null));
-      } catch (error) {
-        console.error('❌ Error loading inventory for POS:', error);
-        dispatch(setError('Error al cargar inventario'));
-        toast.error('Error al cargar el inventario');
+      } catch (error: any) {
+        const errorMsg = error?.message || 'Error desconocido';
+        console.error('❌ Error loading inventory for POS:', errorMsg);
+        console.error('Full error:', error);
+        dispatch(setError(`Error al cargar inventario: ${errorMsg}`));
+        toast.error(`Error: ${errorMsg}`);
       } finally {
         dispatch(setLoading(false));
         setInitialLoadDone(true);
