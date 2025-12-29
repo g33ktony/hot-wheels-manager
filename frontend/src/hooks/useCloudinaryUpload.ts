@@ -18,6 +18,17 @@ interface UploadResponse {
 export const useCloudinaryUpload = () => {
   const uploadImage = async (file: File): Promise<UploadResponse | null> => {
     try {
+      // Verify environment variables are set
+      if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'hot-wheels-manager') {
+        console.error('❌ CLOUDINARY_CLOUD_NAME not configured:', CLOUDINARY_CLOUD_NAME)
+        toast.error('Cloudinary no está configurado correctamente')
+        return null
+      }
+
+      if (!CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET === 'unsigned_upload') {
+        console.warn('⚠️ Using default upload preset, may need configuration')
+      }
+
       // Compress image first to reduce upload time
       const compressedFile = await compressImage(file)
       
@@ -32,38 +43,39 @@ export const useCloudinaryUpload = () => {
       const formData = new FormData()
       formData.append('file', compressedFile)
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
-      formData.append('folder', 'hot-wheels-manager/inventory') // Organize in folders
+      formData.append('folder', 'hot-wheels-manager/inventory')
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData
-        }
-      )
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
+      console.log('📍 Upload URL:', uploadUrl)
 
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData
+        // Note: Don't set Content-Type header, let browser set it with boundary for multipart/form-data
+      })
+
+      const responseData = await response.json().catch(() => null)
+      
       if (!response.ok) {
-        const errorText = await response.text()
         console.error('❌ Upload error response:', {
           status: response.status,
           statusText: response.statusText,
-          body: errorText
+          data: responseData
         })
-        throw new Error(`Upload failed (${response.status}): ${errorText}`)
+        const errorMsg = responseData?.error?.message || response.statusText || 'Unknown error'
+        throw new Error(`Cloudinary error (${response.status}): ${errorMsg}`)
       }
 
-      const data = await response.json()
-      
-      console.log('✅ Image uploaded successfully:', data.secure_url)
+      console.log('✅ Image uploaded successfully:', responseData?.secure_url)
       
       return {
-        url: data.secure_url,
-        publicId: data.public_id,  // Can be used for deletion later
+        url: responseData.secure_url,
+        publicId: responseData.public_id,
         timestamp: Date.now()
       } as UploadResponse
     } catch (error) {
-      console.error('❌ Error uploading image:', error)
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido al subir imagen'
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido'
+      console.error('❌ Error uploading image:', errorMsg)
       toast.error(`Error: ${errorMsg}`)
       return null
     }
