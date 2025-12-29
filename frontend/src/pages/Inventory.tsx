@@ -136,34 +136,36 @@ export default function Inventory() {
     const inventoryItems = inventoryData?.items || []
     const pagination = inventoryData?.pagination
 
-    // Aggressive prefetching: prefetch next AND previous pages for instant navigation
+    const prefetchedPagesRef = useRef<Set<number>>(new Set())
+
     useEffect(() => {
         if (!pagination) return
 
-        const prefetchPage = (page: number) => {
-            queryClient.prefetchQuery(
-                ['inventory', page, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase],
-                () => inventoryService.getAll(page, itemsPerPage, {
-                    search: debouncedSearchTerm,
-                    condition: filterCondition,
-                    brand: filterBrand,
-                    pieceType: filterPieceType,
-                    treasureHunt: filterTreasureHunt,
-                    chase: filterChase
-                })
-            )
-        }
+        const nextPage = currentPage + 1
+        if (nextPage > pagination.totalPages) return
 
-        // Prefetch next page
-        if (currentPage < pagination.totalPages) {
-            prefetchPage(currentPage + 1)
-        }
+        if (prefetchedPagesRef.current.has(nextPage)) return
 
-        // Prefetch previous page
-        if (currentPage > 1) {
-            prefetchPage(currentPage - 1)
-        }
+        queryClient.prefetchQuery(
+            ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase],
+            () => inventoryService.getAll(nextPage, itemsPerPage, {
+                search: debouncedSearchTerm,
+                condition: filterCondition,
+                brand: filterBrand,
+                pieceType: filterPieceType,
+                treasureHunt: filterTreasureHunt,
+                chase: filterChase
+            })
+        ).then(() => {
+            prefetchedPagesRef.current.add(nextPage)
+        }).catch(() => {
+            // Allow retry on failure by not marking the page as prefetched
+        })
     }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, queryClient])
+
+    useEffect(() => {
+        prefetchedPagesRef.current.clear()
+    }, [debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase])
 
     // Combine predefined and custom brands
     const allBrands = [
