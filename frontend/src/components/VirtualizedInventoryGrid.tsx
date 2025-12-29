@@ -1,5 +1,4 @@
-import { FixedSizeGrid as Grid } from 'react-window'
-import Card from '@/components/common/Card'
+import { VariableSizeGrid as Grid } from 'react-window'
 import { InventoryItem } from '../../../shared/types'
 
 interface InventoryGridProps {
