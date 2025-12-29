@@ -9,7 +9,7 @@ import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Loader } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import debounce from 'lodash.debounce'
 import toast from 'react-hot-toast'
@@ -137,6 +137,7 @@ export default function Inventory() {
     const pagination = inventoryData?.pagination
 
     const prefetchedPagesRef = useRef<Set<number>>(new Set())
+    const [isPrefetchingNext, setIsPrefetchingNext] = useState(false)
 
     useEffect(() => {
         if (!pagination) return
@@ -146,6 +147,7 @@ export default function Inventory() {
 
         if (prefetchedPagesRef.current.has(nextPage)) return
 
+        setIsPrefetchingNext(true)
         queryClient.prefetchQuery(
             ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase],
             () => inventoryService.getAll(nextPage, itemsPerPage, {
@@ -160,7 +162,7 @@ export default function Inventory() {
             prefetchedPagesRef.current.add(nextPage)
         }).catch(() => {
             // Allow retry on failure by not marking the page as prefetched
-        })
+        }).finally(() => setIsPrefetchingNext(false))
     }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, queryClient])
 
     useEffect(() => {
@@ -1099,8 +1101,9 @@ export default function Inventory() {
                         </div>
                     </Card>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
-                        {filteredItems.map((item: InventoryItem) => (
+                    <div className="relative overflow-hidden">
+                        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full transition duration-200 ${isPrefetchingNext ? 'blur-sm' : ''}`}>
+                            {filteredItems.map((item: InventoryItem) => (
                             <Card
                                 key={item._id}
                                 hover={!isSelectionMode}
@@ -1298,6 +1301,17 @@ export default function Inventory() {
                                 </div>
                             </Card>
                         ))}
+                        </div>
+                        {isPrefetchingNext && (
+                            <div
+                                role="status"
+                                aria-live="polite"
+                                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-lg"
+                            >
+                                <Loader size={32} className="animate-spin text-primary-600" aria-hidden />
+                                <p className="text-sm font-medium text-gray-700">Cargando siguiente página...</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
