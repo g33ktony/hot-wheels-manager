@@ -93,6 +93,8 @@ export default function Inventory() {
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
     const [customBrandInput, setCustomBrandInput] = useState('')
     const [showCustomBrandInput, setShowCustomBrandInput] = useState(false)
+    // Add item modal loading state
+    const [isAddingItem, setIsAddingItem] = useState(false)
 
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
@@ -349,6 +351,8 @@ export default function Inventory() {
 
     const handleAddItem = async () => {
         try {
+            setIsAddingItem(true)
+            
             // If updating an existing item
             if (existingItemToUpdate) {
                 // Update existing item
@@ -444,8 +448,10 @@ export default function Inventory() {
 
             // Reset form and close modal
             resetForm()
+            setIsAddingItem(false)
         } catch (error) {
             console.error('Error adding/updating item:', error)
+            setIsAddingItem(false)
         }
     }
 
@@ -1391,22 +1397,32 @@ export default function Inventory() {
                                 variant="secondary"
                                 className="flex-1"
                                 onClick={resetForm}
+                                disabled={isAddingItem}
                             >
                                 Cancelar
                             </Button>
                             <Button
                                 className="flex-1"
                                 onClick={handleAddItem}
-                                disabled={newItem.isMultipleCars ? newItem.cars.length === 0 : !newItem.carId}
-                            >
-                                {existingItemToUpdate
-                                    ? '✏️ Actualizar Pieza'
-                                    : newItem.isMultipleCars
-                                        ? `Agregar ${newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} Piezas (${newItem.cars.length} modelos)`
-                                        : newItem.isBox
-                                            ? `Agregar ${newItem.quantity} Piezas`
-                                            : 'Agregar Pieza'
+                                disabled={
+                                    isAddingItem ||
+                                    (newItem.isMultipleCars ? newItem.cars.length === 0 : !newItem.carId)
                                 }
+                            >
+                                {isAddingItem ? (
+                                    <div className="flex items-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <span>Guardando...</span>
+                                    </div>
+                                ) : existingItemToUpdate ? (
+                                    '✏️ Actualizar Pieza'
+                                ) : newItem.isMultipleCars ? (
+                                    `Agregar ${newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} Piezas (${newItem.cars.length} modelos)`
+                                ) : newItem.isBox ? (
+                                    `Agregar ${newItem.quantity} Piezas`
+                                ) : (
+                                    'Agregar Pieza'
+                                )}
                             </Button>
                         </div>
                     }
