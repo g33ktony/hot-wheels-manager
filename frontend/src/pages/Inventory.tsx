@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
@@ -99,12 +99,12 @@ export default function Inventory() {
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
 
-    // Debounced search - actualiza después de 500ms sin escribir
+    // Debounced search - actualiza después de 200ms sin escribir (optimizado para rapidez)
     const debouncedSearch = useCallback(
         debounce((value: string) => {
             setDebouncedSearchTerm(value)
             setCurrentPage(1) // Reset to page 1 on search
-        }, 500),
+        }, 200),
         []
     )
 
@@ -658,7 +658,7 @@ export default function Inventory() {
         }
     }
 
-    const getMatchingItems = () => {
+    const getMatchingItems = useMemo(() => {
         if (!newItem.carId || newItem.carId.length === 0) return []
 
         const SIMILARITY_THRESHOLD = 75 // 75% similarity
@@ -691,7 +691,7 @@ export default function Inventory() {
                 
                 return bSimilarity - aSimilarity
             })
-    }
+    }, [newItem.carId, inventoryItems])
 
     const handleSelectExistingItem = (item: any) => {
         setExistingItemToUpdate(item)
@@ -1780,12 +1780,12 @@ export default function Inventory() {
                                 />
 
                                 {/* Dropdown with suggestions */}
-                                {showSuggestions && !existingItemToUpdate && getMatchingItems().length > 0 && (
+                                {showSuggestions && !existingItemToUpdate && getMatchingItems.length > 0 && (
                                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                                         <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
-                                            {getMatchingItems().length} pieza{getMatchingItems().length !== 1 ? 's' : ''} encontrada{getMatchingItems().length !== 1 ? 's' : ''} (búsqueda inteligente)
+                                            {getMatchingItems.length} pieza{getMatchingItems.length !== 1 ? 's' : ''} encontrada{getMatchingItems.length !== 1 ? 's' : ''} (búsqueda inteligente)
                                         </div>
-                                        {getMatchingItems().map((item: InventoryItem) => {
+                                        {getMatchingItems.map((item: InventoryItem) => {
                                             const similarity = calculateSimilarity(newItem.carId, item.carId)
                                             const isExactMatch = item.carId.toLowerCase().includes(newItem.carId.toLowerCase())
                                             

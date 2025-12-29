@@ -30,8 +30,8 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
     ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase],
     () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase }),
     {
-      staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
-      cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+      staleTime: 15 * 60 * 1000, // Keep data fresh for 15 minutes
+      cacheTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
       keepPreviousData: true, // Show previous data while fetching new page for smooth transitions
       refetchOnWindowFocus: false,
     }
