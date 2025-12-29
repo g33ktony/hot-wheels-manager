@@ -411,7 +411,13 @@ export default function OCRScanner({
                                                             try {
                                                                 const snapshot = await captureZoomedView()
                                                                 setZoomedSnapshot(snapshot)
-                                                                setIsZoomMode(false)
+                                                                // Save original full image to item photos
+                                                                if (capturedImage && onImageCaptured) {
+                                                                    onImageCaptured(capturedImage)
+                                                                }
+                                                                // Immediately run OCR on the zoomed snapshot
+                                                                setCroppedImage(snapshot)
+                                                                await processImage(snapshot)
                                                             } catch (error) {
                                                                 console.error('Error capturing zoom:', error)
                                                                 alert('Error al capturar el zoom. Intenta de nuevo.')
@@ -419,7 +425,7 @@ export default function OCRScanner({
                                                         }}
                                                     >
                                                         <Crop className="w-4 h-4 mr-1" />
-                                                        Recortar
+                                                        Recortar y escanear
                                                     </Button>
                                                 </div>
                                             </>
