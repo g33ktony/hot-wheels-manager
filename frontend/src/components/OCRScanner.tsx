@@ -323,7 +323,26 @@ export default function OCRScanner({
                                     />
                                 </ReactCrop>
                             </div>
-                            {/* Controls are provided in the modal footer to avoid overlaying the image */}
+                            <div className="mt-2 flex items-center justify-end gap-2">
+                                <Button
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
+                                    onClick={handleCropConfirm}
+                                    disabled={isProcessing}
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader className="w-4 h-4 mr-1 animate-spin" />
+                                            {progress}%
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Check className="w-4 h-4 mr-1" />
+                                            Escanear área
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
                         </>
                     )}
                 </div>
