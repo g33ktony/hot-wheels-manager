@@ -32,6 +32,7 @@ export default function ItemDetail() {
     const [showShareModal, setShowShareModal] = useState(false)
     const [showCropModal, setShowCropModal] = useState(false)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+    const [sharePrice, setSharePrice] = useState<number>(0)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 90,
@@ -73,6 +74,11 @@ export default function ItemDetail() {
     const getFinalPrice = () => {
         if (!item) return 0
         return item.actualPrice || item.suggestedPrice || 0
+    }
+
+    const handleOpenShareModal = () => {
+        setSharePrice(getFinalPrice())
+        setShowShareModal(true)
     }
 
     const getCroppedImage = async (): Promise<Blob> => {
@@ -139,7 +145,7 @@ export default function ItemDetail() {
             const file = new File([croppedBlob], 'hot-wheels.jpg', { type: 'image/jpeg' })
 
             const carName = getCarName()
-            const price = getFinalPrice()
+            const price = sharePrice
             const text = `🏎️ ${carName}\n💵 Precio: $${price.toFixed(2)}`
 
             // Use native share if available
@@ -172,7 +178,7 @@ export default function ItemDetail() {
     const handleSharePDF = async () => {
         try {
             const carName = getCarName()
-            const price = getFinalPrice()
+            const price = sharePrice
             
             const pdf = new jsPDF({
                 orientation: 'portrait',
@@ -465,7 +471,7 @@ export default function ItemDetail() {
 
             {/* Floating Share Button */}
             <button
-                onClick={() => setShowShareModal(true)}
+                onClick={handleOpenShareModal}
                 className="fixed bottom-6 right-6 bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110 z-20"
             >
                 <Share2 className="w-6 h-6" />
@@ -480,8 +486,20 @@ export default function ItemDetail() {
             >
                 <div className="space-y-4">
                     <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="font-semibold text-lg">{carName}</p>
-                        <p className="text-2xl font-bold text-primary-600">${finalPrice.toFixed(2)}</p>
+                        <p className="font-semibold text-lg mb-3">{carName}</p>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Precio para compartir:</label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={sharePrice}
+                                    onChange={(e) => setSharePrice(parseFloat(e.target.value) || 0)}
+                                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent text-xl font-bold text-primary-600"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <p className="text-sm text-gray-600">
