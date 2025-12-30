@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   getInventoryItems,
+  getInventoryItemById,
   addInventoryItem,
   updateInventoryItem,
   deleteInventoryItem,
@@ -17,6 +18,9 @@ router.post('/analyze-image', analyzeImage)
 
 // GET /api/inventory - Get all inventory items
 router.get('/', getInventoryItems)
+
+// GET /api/inventory/:id - Get single inventory item by ID
+router.get('/:id', getInventoryItemById)
 
 // POST /api/inventory - Add new inventory item
 router.post('/', addInventoryItem)

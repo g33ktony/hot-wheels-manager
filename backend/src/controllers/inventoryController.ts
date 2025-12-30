@@ -139,6 +139,41 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
   }
 };
 
+// Get single inventory item by ID
+export const getInventoryItemById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const item = await InventoryItemModel.findById(id)
+      .select('-__v')
+      .populate({
+        path: 'carId',
+        select: 'name year color series _id',
+        options: { lean: true }
+      })
+      .lean();
+
+    if (!item) {
+      res.status(404).json({ 
+        success: false, 
+        message: 'Inventory item not found' 
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: item
+    });
+  } catch (error) {
+    console.error('Error getting inventory item by ID:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Error fetching inventory item' 
+    });
+  }
+};
+
 // Add inventory item
 export const addInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
