@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useInventory } from '@/hooks/useInventory'
 import { inventoryService } from '@/services/inventory'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import jsPDF from 'jspdf'
+import type { InventoryItem } from '../../../shared/types'
 import { 
     ArrowLeft, 
     Share2, 
@@ -12,14 +12,11 @@ import {
     DollarSign, 
     Package, 
     Tag, 
-    Calendar,
     Info,
     Edit,
     Trash2,
     Image as ImageIcon,
     FileText,
-    Crop,
-    Download,
     X
 } from 'lucide-react'
 import Card from '@/components/common/Card'
@@ -27,33 +24,12 @@ import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
 import toast from 'react-hot-toast'
 
-interface InventoryItem {
-    _id: string
-    carId: string | { name: string; year?: number; color?: string }
-    quantity: number
-    purchasePrice?: number
-    suggestedPrice?: number
-    actualPrice?: number
-    condition?: string
-    notes?: string
-    photos?: string[]
-    location?: string
-    brand?: string
-    pieceType?: string
-    isTreasureHunt?: boolean
-    isSuperTreasureHunt?: boolean
-    isChase?: boolean
-    dateAdded?: string
-    lastUpdated?: string
-}
-
 export default function ItemDetail() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
     const [item, setItem] = useState<InventoryItem | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [showShareModal, setShowShareModal] = useState(false)
-    const [shareFormat, setShareFormat] = useState<'image' | 'pdf'>('image')
     const [showCropModal, setShowCropModal] = useState(false)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
     const [crop, setCrop] = useState<CropType>({
@@ -74,7 +50,9 @@ export default function ItemDetail() {
         try {
             setIsLoading(true)
             const data = await inventoryService.getById(id)
-            setItem(data)
+            if (data && data._id) {
+                setItem(data)
+            }
         } catch (error) {
             console.error('Error loading item:', error)
             toast.error('Error al cargar el item')
@@ -86,7 +64,10 @@ export default function ItemDetail() {
     const getCarName = () => {
         if (!item) return ''
         if (typeof item.carId === 'string') return item.carId
-        return item.carId.name || ''
+        if (item.carId && typeof item.carId === 'object') {
+            return (item.carId as any).name || ''
+        }
+        return ''
     }
 
     const getFinalPrice = () => {
@@ -496,11 +477,7 @@ export default function ItemDetail() {
                     <div className="grid grid-cols-2 gap-3">
                         <button
                             onClick={handleShareImage}
-                            className={`p-4 border-2 rounded-lg transition-all ${
-                                shareFormat === 'image'
-                                    ? 'border-primary-600 bg-primary-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                            }`}
+                            className="p-4 border-2 rounded-lg transition-all border-gray-200 hover:border-primary-600 hover:bg-primary-50"
                         >
                             <ImageIcon className="w-8 h-8 mx-auto mb-2 text-primary-600" />
                             <p className="font-medium">Imagen</p>
@@ -509,11 +486,7 @@ export default function ItemDetail() {
 
                         <button
                             onClick={handleSharePDF}
-                            className={`p-4 border-2 rounded-lg transition-all ${
-                                shareFormat === 'pdf'
-                                    ? 'border-primary-600 bg-primary-50'
-                                    : 'border-gray-200 hover:border-gray-300'
-                            }`}
+                            className="p-4 border-2 rounded-lg transition-all border-gray-200 hover:border-primary-600 hover:bg-primary-50"
                         >
                             <FileText className="w-8 h-8 mx-auto mb-2 text-primary-600" />
                             <p className="font-medium">PDF</p>
