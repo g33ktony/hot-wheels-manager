@@ -67,6 +67,28 @@ const PREDEFINED_BRANDS = [
     'Greenlight'
 ]
 
+/**
+ * Convert base64 string to File object
+ * Useful for converting OCR/camera captures to uploadable files
+ */
+function base64ToFile(base64: string, fileName: string): File {
+    // Handle data URL format (data:image/jpeg;base64,...)
+    const base64String = base64.includes(';base64,') 
+        ? base64.split(';base64,')[1] 
+        : base64
+    
+    // Convert base64 to binary
+    const binaryString = atob(base64String)
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+    }
+    
+    // Create blob and file
+    const blob = new Blob([bytes], { type: 'image/jpeg' })
+    return new File([blob], fileName, { type: 'image/jpeg', lastModified: Date.now() })
+}
+
 export default function Inventory() {
     // Sync inventory in background (keeps Redux cache fresh for other pages)
     useInventorySyncInBackground()
@@ -1835,7 +1857,25 @@ export default function Inventory() {
                                     </label>
                                     <OCRScanner
                                         onTextExtracted={(text: string) => handleCarIdChange(text)}
-                                        onImageCaptured={(image: string) => setNewItem(prev => ({ ...prev, photos: [...prev.photos, image] }))}
+                                        onImageCaptured={async (imageBase64: string) => {
+                                          // Convert base64 to File and upload to Cloudinary
+                                          try {
+                                            const file = base64ToFile(imageBase64, 'ocr-capture.jpg')
+                                            const result = await uploadImage(file)
+                                            if (result) {
+                                              setNewItem(prev => ({ ...prev, photos: [...prev.photos, result.url] }))
+                                              console.log('✅ OCR photo uploaded to Cloudinary:', result.url)
+                                            } else {
+                                              console.error('Failed to upload OCR photo to Cloudinary')
+                                              // Fallback to base64 if Cloudinary fails
+                                              setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
+                                            }
+                                          } catch (error) {
+                                            console.error('Error uploading OCR photo:', error)
+                                            // Fallback to base64 if error
+                                            setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
+                                          }
+                                        }}
                                         buttonText="📷 Escanear"
                                         buttonClassName="!py-1 !px-2 text-xs"
                                     />
