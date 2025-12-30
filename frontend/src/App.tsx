@@ -6,6 +6,7 @@ import Layout from './components/common/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Inventory from './pages/Inventory'
+import ItemDetail from './pages/ItemDetail'
 import Sales from './pages/Sales'
 import Purchases from './pages/Purchases'
 import Deliveries from './pages/Deliveries'
@@ -40,6 +41,7 @@ function App() {
                                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                         <Route path="/dashboard" element={<Dashboard />} />
                                         <Route path="/inventory" element={<Inventory />} />
+                                        <Route path="/inventory/:id" element={<ItemDetail />} />
                                         <Route path="/pos" element={<POS />} />
                                         <Route path="/gemini-test" element={<GeminiTest />} />
                                         <Route path="/sales" element={<Sales />} />
