@@ -330,24 +330,6 @@ export default function ItemDetail() {
             }
         })
     }
-            } else {
-                // Fallback: download the image
-                const url = URL.createObjectURL(croppedBlob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = `${carName.replace(/\s+/g, '-')}.jpg`
-                a.click()
-                URL.revokeObjectURL(url)
-                toast.success('Imagen descargada')
-            }
-
-            setShowCropModal(false)
-            setShowShareModal(false)
-        } catch (error) {
-            console.error('Error sharing:', error)
-            toast.error('Error al compartir')
-        }
-    }
 
     const handleSharePDF = async () => {
         try {
