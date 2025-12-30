@@ -96,27 +96,44 @@ export default function ItemDetail() {
         }
         
         const canvas = document.createElement('canvas')
-        const scaleX = image.naturalWidth / image.width
-        const scaleY = image.naturalHeight / image.height
+        
+        // Use a single scale factor to maintain aspect ratio
+        const scale = image.naturalWidth / image.width
 
-        canvas.width = crop.width * scaleX
-        canvas.height = crop.height * scaleY
+        // Calculate crop dimensions in natural (original) image size
+        const cropX = crop.x * scale
+        const cropY = crop.y * scale
+        const cropWidth = crop.width * scale
+        const cropHeight = crop.height * scale
 
-        const ctx = canvas.getContext('2d')
+        // Set canvas size to match crop dimensions
+        canvas.width = cropWidth
+        canvas.height = cropHeight
+
+        const ctx = canvas.getContext('2d', { 
+            alpha: false,
+            willReadFrequently: false 
+        })
+        
         if (!ctx) {
             throw new Error('Failed to get canvas context')
         }
 
+        // Enable image smoothing for better quality
+        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingQuality = 'high'
+
+        // Draw the cropped portion
         ctx.drawImage(
             image,
-            crop.x * scaleX,
-            crop.y * scaleY,
-            crop.width * scaleX,
-            crop.height * scaleY,
+            cropX,
+            cropY,
+            cropWidth,
+            cropHeight,
             0,
             0,
-            canvas.width,
-            canvas.height
+            cropWidth,
+            cropHeight
         )
 
         return new Promise((resolve, reject) => {
@@ -126,7 +143,7 @@ export default function ItemDetail() {
                 } else {
                     reject(new Error('Failed to create blob from canvas'))
                 }
-            }, 'image/jpeg', 0.95)
+            }, 'image/jpeg', 1.0)
         })
     }
 
