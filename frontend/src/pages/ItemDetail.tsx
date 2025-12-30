@@ -159,10 +159,13 @@ export default function ItemDetail() {
     const handleConfirmCrop = async () => {
         try {
             const croppedBlob = await getCroppedImage()
-            const file = new File([croppedBlob], 'hot-wheels.jpg', { type: 'image/jpeg' })
-
             const carName = getCarName()
             const price = sharePrice
+
+            // Create composite image with car info
+            const compositeBlob = await createCompositeImage(croppedBlob, carName, price)
+            const file = new File([compositeBlob], 'hot-wheels-report.jpg', { type: 'image/jpeg' })
+
             const text = `🏎️ ${carName}\n💵 Precio: $${price.toFixed(2)}`
 
             // Use native share if available
@@ -173,6 +176,160 @@ export default function ItemDetail() {
                     files: [file]
                 })
                 toast.success('Compartido exitosamente')
+            } else {
+                // Fallback: download the image
+                const url = URL.createObjectURL(compositeBlob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `${carName.replace(/\s+/g, '-')}-report.jpg`
+                a.click()
+                URL.revokeObjectURL(url)
+                toast.success('Imagen descargada')
+            }
+
+            setShowCropModal(false)
+            setShowShareModal(false)
+        } catch (error) {
+            console.error('Error sharing:', error)
+            toast.error('Error al compartir')
+        }
+    }
+
+    const createCompositeImage = async (croppedBlob: Blob, carName: string, price: number): Promise<Blob> => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Load cropped image
+                const croppedImage = new Image()
+                croppedImage.crossOrigin = 'anonymous'
+                const croppedUrl = URL.createObjectURL(croppedBlob)
+                
+                croppedImage.onload = () => {
+                    URL.revokeObjectURL(croppedUrl)
+                    
+                    // Create canvas for composite
+                    const canvas = document.createElement('canvas')
+                    const ctx = canvas.getContext('2d')
+                    if (!ctx) {
+                        reject(new Error('Failed to get canvas context'))
+                        return
+                    }
+
+                    // Set canvas dimensions
+                    const padding = 40
+                    const headerHeight = 120
+                    const footerHeight = 80
+                    const maxImageWidth = 800
+                    
+                    // Calculate image dimensions maintaining aspect ratio
+                    let imgWidth = croppedImage.width
+                    let imgHeight = croppedImage.height
+                    
+                    if (imgWidth > maxImageWidth) {
+                        const ratio = maxImageWidth / imgWidth
+                        imgWidth = maxImageWidth
+                        imgHeight = imgHeight * ratio
+                    }
+
+                    canvas.width = imgWidth + (padding * 2)
+                    canvas.height = imgHeight + headerHeight + footerHeight + (padding * 2)
+
+                    // White background
+                    ctx.fillStyle = '#ffffff'
+                    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+                    // Header with gradient
+                    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
+                    gradient.addColorStop(0, '#2563eb')
+                    gradient.addColorStop(1, '#1e40af')
+                    ctx.fillStyle = gradient
+                    ctx.fillRect(0, 0, canvas.width, headerHeight)
+
+                    // Car name
+                    ctx.fillStyle = '#ffffff'
+                    ctx.font = 'bold 32px Arial, sans-serif'
+                    ctx.textAlign = 'center'
+                    
+                    // Wrap text if too long
+                    const maxWidth = canvas.width - (padding * 2)
+                    const words = carName.split(' ')
+                    let line = ''
+                    let y = 45
+                    
+                    for (let i = 0; i < words.length; i++) {
+                        const testLine = line + words[i] + ' '
+                        const metrics = ctx.measureText(testLine)
+                        
+                        if (metrics.width > maxWidth && i > 0) {
+                            ctx.fillText(line, canvas.width / 2, y)
+                            line = words[i] + ' '
+                            y += 35
+                        } else {
+                            line = testLine
+                        }
+                    }
+                    ctx.fillText(line, canvas.width / 2, y)
+
+                    // Draw the cropped image
+                    const imageY = headerHeight + padding
+                    ctx.drawImage(croppedImage, padding, imageY, imgWidth, imgHeight)
+
+                    // Add border to image
+                    ctx.strokeStyle = '#e5e7eb'
+                    ctx.lineWidth = 2
+                    ctx.strokeRect(padding, imageY, imgWidth, imgHeight)
+
+                    // Footer with price
+                    const footerY = imageY + imgHeight + padding
+                    
+                    // Price background
+                    ctx.fillStyle = '#10b981'
+                    const priceBoxHeight = 60
+                    const priceBoxY = footerY + 10
+                    ctx.fillRect(padding, priceBoxY, canvas.width - (padding * 2), priceBoxHeight)
+                    
+                    // Price text
+                    ctx.fillStyle = '#ffffff'
+                    ctx.font = 'bold 40px Arial, sans-serif'
+                    ctx.textAlign = 'center'
+                    ctx.fillText(`$${price.toFixed(2)}`, canvas.width / 2, priceBoxY + 42)
+
+                    // Additional info
+                    if (item?.brand || item?.condition) {
+                        ctx.fillStyle = '#6b7280'
+                        ctx.font = '16px Arial, sans-serif'
+                        let infoY = footerY + priceBoxHeight + 30
+                        
+                        if (item.brand) {
+                            ctx.fillText(`Marca: ${item.brand}`, canvas.width / 2, infoY)
+                            infoY += 20
+                        }
+                        
+                        if (item.condition) {
+                            ctx.fillText(`Condición: ${item.condition}`, canvas.width / 2, infoY)
+                        }
+                    }
+
+                    // Convert to blob
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(blob)
+                        } else {
+                            reject(new Error('Failed to create composite blob'))
+                        }
+                    }, 'image/jpeg', 0.95)
+                }
+                
+                croppedImage.onerror = () => {
+                    URL.revokeObjectURL(croppedUrl)
+                    reject(new Error('Failed to load cropped image'))
+                }
+                
+                croppedImage.src = croppedUrl
+            } catch (error) {
+                reject(error)
+            }
+        })
+    }
             } else {
                 // Fallback: download the image
                 const url = URL.createObjectURL(croppedBlob)
