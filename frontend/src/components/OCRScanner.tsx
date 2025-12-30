@@ -307,7 +307,7 @@ export default function OCRScanner({
 
                     {/* Crop area: adaptive height to show full image */}
                     {capturedImage && (
-                        <div className="w-full bg-gray-100 rounded-lg overflow-auto flex items-center justify-center" style={{ maxHeight: '70vh', minHeight: '400px' }}>
+                        <div className="w-full bg-gray-100 rounded-lg overflow-auto flex items-center justify-center" style={{ maxHeight: '45vh', minHeight: '350px' }}>
                             <ReactCrop
                                 crop={crop}
                                 onChange={(c) => setCrop(c)}
