@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Camera, X, Check, Loader, Edit3, Crop, Image as ImageIcon } from 'lucide-react'
+import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import Modal from './common/Modal'
@@ -32,7 +32,6 @@ export default function OCRScanner({
     const [isProcessing, setIsProcessing] = useState(false)
     const [showCropModal, setShowCropModal] = useState(false)
     const [showConfirmModal, setShowConfirmModal] = useState(false)
-    const [showSourceMenu, setShowSourceMenu] = useState(false)
     const [extractedText, setExtractedText] = useState('')
     const [editedText, setEditedText] = useState('')
     const [progress, setProgress] = useState(0)
@@ -46,8 +45,7 @@ export default function OCRScanner({
         y: 37.5
     })
     const imageRef = useRef<HTMLImageElement>(null)
-    const cameraInputRef = useRef<HTMLInputElement>(null)
-    const galleryInputRef = useRef<HTMLInputElement>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Check if mobile on mount and window resize
     useEffect(() => {
@@ -191,7 +189,6 @@ export default function OCRScanner({
     const handleClose = () => {
         setShowConfirmModal(false)
         setShowCropModal(false)
-        setShowSourceMenu(false)
         setCapturedImage(null)
         setCroppedImage(null)
         setExtractedText('')
@@ -204,27 +201,14 @@ export default function OCRScanner({
             x: 7.5,
             y: 37.5
         })
-        // Reset file inputs
-        if (cameraInputRef.current) {
-            cameraInputRef.current.value = ''
-        }
-        if (galleryInputRef.current) {
-            galleryInputRef.current.value = ''
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ''
         }
     }
 
     const handleCapture = () => {
-        setShowSourceMenu(true)
-    }
-
-    const handleOpenCamera = () => {
-        setShowSourceMenu(false)
-        cameraInputRef.current?.click()
-    }
-
-    const handleOpenGallery = () => {
-        setShowSourceMenu(false)
-        galleryInputRef.current?.click()
+        fileInputRef.current?.click()
     }
 
     const handleConfirm = () => {
@@ -257,65 +241,15 @@ export default function OCRScanner({
                 )}
             </Button>
 
-            {/* Hidden file input for camera */}
+            {/* Hidden file input - native OS dialog */}
             <input
-                ref={cameraInputRef}
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
+                capture
                 onChange={handleFileSelect}
                 className="hidden"
             />
-
-            {/* Hidden file input for gallery */}
-            <input
-                ref={galleryInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-            />
-
-            {/* Source selection menu */}
-            {showSourceMenu && (
-                <div className="fixed inset-0 z-50 flex items-end">
-                    {/* Backdrop */}
-                    <div 
-                        className="absolute inset-0 bg-black/40"
-                        onClick={() => setShowSourceMenu(false)}
-                    />
-                    
-                    {/* Menu */}
-                    <div className="relative w-full bg-white rounded-t-2xl p-4 space-y-2">
-                        <div className="text-center mb-3">
-                            <p className="font-medium text-gray-900">Selecciona una opción</p>
-                        </div>
-                        <Button
-                            onClick={handleOpenCamera}
-                            className="w-full justify-center gap-2"
-                        >
-                            <Camera className="w-4 h-4" />
-                            Tomar Foto
-                        </Button>
-                        <Button
-                            onClick={handleOpenGallery}
-                            variant="secondary"
-                            className="w-full justify-center gap-2"
-                        >
-                            <ImageIcon className="w-4 h-4" />
-                            Seleccionar de Galería
-                        </Button>
-                        <Button
-                            onClick={() => setShowSourceMenu(false)}
-                            variant="secondary"
-                            className="w-full mt-2"
-                        >
-                            <X className="w-4 h-4 mr-1" />
-                            Cancelar
-                        </Button>
-                    </div>
-                </div>
-            )}
 
             {/* Crop Modal - Optimized for mobile */}
             <Modal
