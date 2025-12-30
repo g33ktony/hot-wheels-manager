@@ -3,7 +3,8 @@ import { useQueryClient } from 'react-query'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { inventoryService } from '@/services/inventory'
-import { useAppSelector } from '@/hooks/redux'
+import { useAppSelector, useAppDispatch } from '@/hooks/redux'
+import { setInventoryItems } from '@/store/slices/inventorySlice'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import { LazyImage } from '@/components/LazyImage'
@@ -98,6 +99,74 @@ export default function Inventory() {
 
     // Get Redux cache as fallback when React Query is loading
     const reduxInventory = useAppSelector(state => state.inventory)
+    const dispatch = useAppDispatch()
+    
+    // Preload inventory in background (same strategy as POS)
+    useEffect(() => {
+        const preloadInventory = async () => {
+            // Only preload if Redux is empty
+            if (reduxInventory.items && reduxInventory.items.length > 0) {
+                console.log('✅ Inventory: Using cached inventory -', reduxInventory.items.length, 'items')
+                return
+            }
+
+            try {
+                console.log('🔄 Inventory: Preloading all inventory in background...')
+                
+                // Load first batch
+                const firstBatch = await inventoryService.getAll(1, 100, {})
+                if (!firstBatch || !firstBatch.items) {
+                    throw new Error('Invalid response from server')
+                }
+
+                const allItems = [...firstBatch.items]
+                const totalItems = firstBatch.pagination?.totalItems || firstBatch.items.length
+                const totalPages = Math.ceil(totalItems / 100)
+
+                console.log('✅ Inventory: First batch loaded -', firstBatch.items.length, 'items of', totalItems)
+
+                // Update Redux immediately with first batch
+                dispatch(setInventoryItems({
+                    items: firstBatch.items,
+                    totalItems: totalItems,
+                    currentPage: 1,
+                    totalPages: totalPages,
+                    itemsPerPage: 100
+                }))
+
+                // Load remaining pages in background
+                if (totalPages > 1) {
+                    console.log('🔄 Inventory: Loading remaining pages (' + (totalPages - 1) + ' more)...')
+                    
+                    for (let page = 2; page <= totalPages; page++) {
+                        try {
+                            const batch = await inventoryService.getAll(page, 100, {})
+                            allItems.push(...(batch.items || []))
+                            console.log('✅ Inventory: Page', page, '/', totalPages, 'loaded')
+                        } catch (pageError) {
+                            console.warn('⚠️ Inventory: Error loading page', page, '-', pageError)
+                        }
+                    }
+
+                    console.log('✅ Inventory: All pages loaded -', allItems.length, 'total items')
+                    
+                    // Update Redux with all items
+                    dispatch(setInventoryItems({
+                        items: allItems,
+                        totalItems: totalItems,
+                        currentPage: 1,
+                        totalPages: totalPages,
+                        itemsPerPage: 100
+                    }))
+                }
+            } catch (error: any) {
+                console.error('❌ Inventory: Error preloading -', error)
+            }
+        }
+
+        preloadInventory()
+    }, [dispatch])
+
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(30) // Increased from 15 to load more with lazy loading
     const [searchTerm, setSearchTerm] = useState('')
