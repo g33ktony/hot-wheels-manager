@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
+import { useNavigate } from 'react-router-dom'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { inventoryService } from '@/services/inventory'
@@ -14,7 +15,7 @@ import Input from '@/components/common/Input'
 import Stepper from '@/components/common/Stepper'
 import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
@@ -273,6 +274,9 @@ export default function Inventory() {
 
     // Query client for prefetching
     const queryClient = useQueryClient()
+    
+    // Navigation hook for item detail page
+    const navigate = useNavigate()
 
     // Extract items and pagination from response
     // Use React Query data if available, fallback to Redux cache while loading
@@ -1513,8 +1517,16 @@ export default function Inventory() {
                                             <div className="flex space-x-2 pt-2">
                                                 <Button
                                                     size="sm"
-                                                    variant="secondary"
+                                                    variant="primary"
                                                     className="flex-1"
+                                                    onClick={() => navigate(`/inventory/${item._id}`)}
+                                                >
+                                                    <Info size={16} className="mr-1" />
+                                                    Detalle
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="secondary"
                                                     onClick={() => handleEditItem(item)}
                                                 >
                                                     <Edit size={16} />
