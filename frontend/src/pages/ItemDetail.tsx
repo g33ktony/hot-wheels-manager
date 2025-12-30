@@ -81,6 +81,14 @@ export default function ItemDetail() {
         }
 
         const image = imageRef.current
+        
+        // Wait for image to fully load if it hasn't
+        if (!image.complete) {
+            await new Promise<void>((resolve) => {
+                image.onload = () => resolve()
+            })
+        }
+        
         const canvas = document.createElement('canvas')
         const scaleX = image.naturalWidth / image.width
         const scaleY = image.naturalHeight / image.height
@@ -105,9 +113,13 @@ export default function ItemDetail() {
             canvas.height
         )
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             canvas.toBlob((blob) => {
-                if (blob) resolve(blob)
+                if (blob) {
+                    resolve(blob)
+                } else {
+                    reject(new Error('Failed to create blob from canvas'))
+                }
             }, 'image/jpeg', 0.95)
         })
     }
@@ -285,6 +297,7 @@ export default function ItemDetail() {
                             <img
                                 src={item.photos[selectedPhotoIndex]}
                                 alt={carName}
+                                crossOrigin="anonymous"
                                 className="w-full h-64 object-contain bg-gray-100"
                             />
                             {item.photos.length > 1 && (
@@ -302,6 +315,7 @@ export default function ItemDetail() {
                                             <img
                                                 src={photo}
                                                 alt={`${carName} ${index + 1}`}
+                                                crossOrigin="anonymous"
                                                 className="w-full h-full object-cover"
                                             />
                                         </button>
@@ -540,6 +554,7 @@ export default function ItemDetail() {
                                     ref={imageRef}
                                     src={item.photos[selectedPhotoIndex]}
                                     alt={carName}
+                                    crossOrigin="anonymous"
                                     style={{ maxWidth: '100%', height: 'auto' }}
                                 />
                             </ReactCrop>
