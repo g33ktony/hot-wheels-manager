@@ -203,40 +203,98 @@ export default function ItemDetail() {
                 format: 'a4'
             })
 
-            // Add title
-            pdf.setFontSize(20)
-            pdf.text(carName, 20, 20)
+            const pageWidth = pdf.internal.pageSize.getWidth()
+            const margin = 15
 
-            // Add price
-            pdf.setFontSize(16)
-            pdf.text(`Precio: $${price.toFixed(2)}`, 20, 35)
+            // Header with background
+            pdf.setFillColor(41, 128, 185) // Primary blue
+            pdf.rect(0, 0, pageWidth, 40, 'F')
+            
+            // Title
+            pdf.setTextColor(255, 255, 255)
+            pdf.setFontSize(22)
+            const titleLines = pdf.splitTextToSize(carName, pageWidth - 2 * margin)
+            pdf.text(titleLines, margin, 15)
+
+            // Price box
+            pdf.setFillColor(46, 204, 113) // Green
+            pdf.roundedRect(margin, 45, 70, 20, 3, 3, 'F')
+            pdf.setFontSize(18)
+            pdf.setFont('helvetica', 'bold')
+            pdf.text(`$${price.toFixed(2)}`, margin + 35, 58, { align: 'center' })
+            
+            pdf.setTextColor(0, 0, 0)
+            pdf.setFont('helvetica', 'normal')
 
             // Add image if available
+            let currentY = 75
             if (item?.photos && item.photos.length > 0) {
                 const photo = item.photos[selectedPhotoIndex]
                 try {
-                    pdf.addImage(photo, 'JPEG', 20, 50, 170, 120)
+                    // Create a temporary image to get dimensions
+                    const img = new Image()
+                    img.crossOrigin = 'anonymous'
+                    img.src = photo
+                    
+                    await new Promise((resolve) => {
+                        img.onload = resolve
+                    })
+
+                    // Calculate image dimensions to fit width while maintaining aspect ratio
+                    const maxWidth = pageWidth - 2 * margin
+                    const maxHeight = 140
+                    const imgRatio = img.width / img.height
+                    
+                    let imgWidth = maxWidth
+                    let imgHeight = imgWidth / imgRatio
+                    
+                    if (imgHeight > maxHeight) {
+                        imgHeight = maxHeight
+                        imgWidth = imgHeight * imgRatio
+                    }
+
+                    // Center the image
+                    const imgX = (pageWidth - imgWidth) / 2
+
+                    pdf.addImage(photo, 'JPEG', imgX, currentY, imgWidth, imgHeight, undefined, 'FAST')
+                    currentY += imgHeight + 15
                 } catch (e) {
                     console.warn('Could not add image to PDF:', e)
+                    currentY += 15
                 }
             }
 
-            // Add details
-            pdf.setFontSize(12)
-            let yPos = 180
+            // Details section
+            pdf.setFillColor(245, 245, 245)
+            pdf.roundedRect(margin, currentY, pageWidth - 2 * margin, 60, 3, 3, 'F')
+            
+            currentY += 10
+            pdf.setFontSize(14)
+            pdf.setFont('helvetica', 'bold')
+            pdf.text('Detalles', margin + 5, currentY)
+            
+            currentY += 8
+            pdf.setFontSize(11)
+            pdf.setFont('helvetica', 'normal')
             
             if (item?.brand) {
-                pdf.text(`Marca: ${item.brand}`, 20, yPos)
-                yPos += 7
+                pdf.text(`Marca: ${item.brand}`, margin + 5, currentY)
+                currentY += 7
             }
             
             if (item?.condition) {
-                pdf.text(`Condición: ${item.condition}`, 20, yPos)
-                yPos += 7
+                pdf.text(`Condición: ${item.condition}`, margin + 5, currentY)
+                currentY += 7
+            }
+
+            if (item?.pieceType) {
+                pdf.text(`Tipo: ${item.pieceType}`, margin + 5, currentY)
+                currentY += 7
             }
 
             if (item?.notes) {
-                pdf.text(`Notas: ${item.notes}`, 20, yPos)
+                const notesLines = pdf.splitTextToSize(`Notas: ${item.notes}`, pageWidth - 2 * margin - 10)
+                pdf.text(notesLines, margin + 5, currentY)
             }
 
             const pdfBlob = pdf.output('blob')
