@@ -199,7 +199,7 @@ export default function Inventory() {
         // Default: empty array
         console.log('📭 Inventory: No data available')
         return []
-    }, [inventoryData?.items, isLoading, reduxInventory.items, inventoryData?.items?.length])
+    }, [inventoryData?.items, isLoading, reduxInventory.items])
     
     const pagination = useMemo(() => {
         if (inventoryData?.pagination) {
@@ -219,17 +219,16 @@ export default function Inventory() {
     const prefetchedPagesRef = useRef<Set<number>>(new Set())
     const [isPrefetchingNext, setIsPrefetchingNext] = useState(false)
 
-    // Log component render state
+    // Log component render state (only when critical values change)
     useEffect(() => {
         console.log('📊 Inventory component state:', {
             isLoading,
-            error,
+            error: error?.message,
             itemsFromQuery: inventoryData?.items?.length || 0,
             itemsFromRedux: reduxInventory.items.length,
-            finalItems: inventoryItems.length,
-            reduxLastRefreshed: reduxInventory.lastRefreshed ? new Date(reduxInventory.lastRefreshed).toLocaleTimeString() : 'never'
+            finalItems: inventoryItems.length
         })
-    }, [isLoading, inventoryData, error, reduxInventory, inventoryItems])
+    }, [isLoading, error, inventoryData?.items?.length, reduxInventory.items.length, inventoryItems.length])
 
     useEffect(() => {
         if (!pagination) return
