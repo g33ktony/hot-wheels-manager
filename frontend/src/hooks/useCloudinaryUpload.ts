@@ -25,67 +25,129 @@ export const useCloudinaryUpload = () => {
         return null
       }
 
-      if (!CLOUDINARY_UPLOAD_PRESET || CLOUDINARY_UPLOAD_PRESET === 'unsigned_upload') {
-        console.warn('⚠️ Using default upload preset, may need configuration')
+      console.log(`🎬 Starting upload process:`, {
+        originalFileName: file.name,
+        originalSize: `${(file.size / 1024).toFixed(2)}KB`,
+        originalType: file.type,
+        userAgent: navigator.userAgent.substring(0, 50)
+      })
+
+      // Validate and normalize file
+      const validFile = await validateAndConvertFile(file)
+      console.log(`✅ File validated: ${validFile.name} (${validFile.type})`)
+
+      // Compress only if file is reasonably large (> 500KB)
+      let fileToUpload = validFile
+      if (validFile.size > 1024 * 500) {
+        console.log(`🗜️ File is large (${(validFile.size / 1024).toFixed(2)}KB), attempting compression...`)
+        const compressed = await compressImageSafariCompatible(validFile)
+        // Only use compressed if it's actually smaller
+        if (compressed.size < validFile.size) {
+          fileToUpload = compressed
+          console.log(`✅ Compression successful: ${(validFile.size / 1024).toFixed(2)}KB → ${(compressed.size / 1024).toFixed(2)}KB`)
+        } else {
+          console.log(`⏭️ Compressed file larger, using original`)
+          fileToUpload = validFile
+        }
+      } else {
+        console.log(`✅ File small enough (${(validFile.size / 1024).toFixed(2)}KB), skipping compression`)
       }
 
-      // Validate file type for compatibility
-      const validFile = await validateAndConvertFile(file)
-      
-      // Compress image first to reduce upload time (optimized for Safari)
-      const compressedFile = await compressImageSafariCompatible(validFile)
-      
-      console.log(`📤 Uploading image to Cloudinary...`, {
-        fileName: compressedFile.name,
-        fileSize: `${(compressedFile.size / 1024).toFixed(2)}KB`,
-        fileType: compressedFile.type,
-        cloudName: CLOUDINARY_CLOUD_NAME,
-        preset: CLOUDINARY_UPLOAD_PRESET,
-        isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+      // Ensure file is a Blob with proper type
+      const finalFile = new File([fileToUpload], fileToUpload.name, { 
+        type: fileToUpload.type || 'image/jpeg',
+        lastModified: Date.now()
       })
-      
-      const formData = new FormData()
-      formData.append('file', compressedFile)
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
-      formData.append('folder', 'hot-wheels-manager/inventory')
-      formData.append('resource_type', 'auto')
 
+      console.log(`📤 Preparing upload to Cloudinary:`, {
+        fileName: finalFile.name,
+        fileSize: `${(finalFile.size / 1024).toFixed(2)}KB`,
+        fileType: finalFile.type,
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        preset: CLOUDINARY_UPLOAD_PRESET
+      })
+
+      // Build FormData carefully for Safari compatibility
+      const formData = new FormData()
+      formData.append('file', finalFile, finalFile.name)
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
+      // Note: Remove folder parameter as it may cause issues in some cases
+      // Cloudinary will organize files automatically
+      
       const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
-      console.log('📍 Upload URL:', uploadUrl)
+      console.log('🌐 Sending request to:', uploadUrl)
+
+      // Use AbortController for timeout handling
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 second timeout
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
-        headers: {
-          // Don't set Content-Type, let browser set it automatically with multipart boundary
-        }
+        signal: controller.signal
+        // NOTE: Don't set Content-Type header - let browser set it with boundary
       })
 
-      const responseData = await response.json().catch(() => null)
+      clearTimeout(timeoutId)
+
+      // Try to parse response
+      let responseData: any
+      const contentType = response.headers.get('content-type')
       
+      if (contentType?.includes('application/json')) {
+        responseData = await response.json()
+      } else {
+        const text = await response.text()
+        try {
+          responseData = JSON.parse(text)
+        } catch {
+          console.error('❌ Response is not JSON:', text.substring(0, 200))
+          responseData = null
+        }
+      }
+
+      // Check response status
       if (!response.ok) {
-        console.error('❌ Upload error response:', {
+        console.error('❌ Cloudinary returned error:', {
           status: response.status,
           statusText: response.statusText,
-          data: responseData,
-          fileName: compressedFile.name,
-          fileType: compressedFile.type
+          contentType,
+          responseData,
+          fileName: finalFile.name,
+          fileSize: `${(finalFile.size / 1024).toFixed(2)}KB`,
+          fileType: finalFile.type
         })
-        const errorMsg = responseData?.error?.message || response.statusText || 'Unknown error'
+
+        // Common error messages
+        const errorMsg = responseData?.error?.message 
+          || (response.status === 400 ? 'Formato de archivo inválido. Intenta con JPG, PNG o WebP.' : response.statusText)
+          || 'Error desconocido en Cloudinary'
+
         throw new Error(`Cloudinary error (${response.status}): ${errorMsg}`)
       }
 
-      console.log('✅ Image uploaded successfully:', responseData?.secure_url)
-      
+      // Validate response has required fields
+      if (!responseData?.secure_url || !responseData?.public_id) {
+        console.error('❌ Invalid Cloudinary response - missing required fields:', responseData)
+        throw new Error('Respuesta inválida de Cloudinary - falta URL o public_id')
+      }
+
+      console.log('✅ Upload successful!', {
+        url: responseData.secure_url,
+        publicId: responseData.public_id,
+        size: responseData.bytes
+      })
+
       return {
         url: responseData.secure_url,
         publicId: responseData.public_id,
         timestamp: Date.now()
       } as UploadResponse
+
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido'
-      console.error('❌ Error uploading image:', errorMsg)
-      toast.error(`Error: ${errorMsg}`)
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      console.error('❌ Upload failed:', errorMsg)
+      toast.error(`Fallo en upload: ${errorMsg}`)
       return null
     }
   }
@@ -110,14 +172,17 @@ export const useCloudinaryUpload = () => {
  * Validate file type and convert if needed for better compatibility
  */
 async function validateAndConvertFile(file: File): Promise<File> {
-  console.log(`🔍 Validating file: ${file.name}, type: ${file.type}, size: ${(file.size / 1024).toFixed(2)}KB`)
+  console.log(`🔍 Validating file: ${file.name}`)
+  console.log(`   - Type: ${file.type || '(empty)'}`)
+  console.log(`   - Size: ${(file.size / 1024).toFixed(2)}KB`)
+  console.log(`   - Last modified: ${file.lastModified}`)
 
   // List of supported types
   const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
   
   // If it's already a supported type, return as-is
   if (supportedTypes.includes(file.type)) {
-    console.log(`✅ File type supported: ${file.type}`)
+    console.log(`✅ File type already supported: ${file.type}`)
     return file
   }
 
@@ -126,7 +191,7 @@ async function validateAndConvertFile(file: File): Promise<File> {
   let detectedType = file.type
 
   if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
-    console.log('📱 Detected HEIC/HEIF file (iOS), will convert to JPEG')
+    console.log('📱 Detected HEIC/HEIF file (iOS)')
     detectedType = 'image/jpeg'
   } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
     detectedType = 'image/jpeg'
@@ -134,16 +199,28 @@ async function validateAndConvertFile(file: File): Promise<File> {
     detectedType = 'image/png'
   } else if (fileName.endsWith('.webp')) {
     detectedType = 'image/webp'
+  } else if (fileName.endsWith('.gif')) {
+    // Convert GIF to JPEG for compatibility
+    detectedType = 'image/jpeg'
+    console.log('🔄 Converting GIF to JPEG')
+  } else if (!file.type) {
+    // Assume JPEG if no type is specified
+    console.warn(`⚠️ No file type specified, assuming JPEG`)
+    detectedType = 'image/jpeg'
   } else {
-    // Default to JPEG for unknown types
-    console.warn(`⚠️ Unknown file type: ${file.type}, will attempt JPEG conversion`)
+    console.warn(`⚠️ Unknown file type: ${file.type}, will attempt conversion`)
     detectedType = 'image/jpeg'
   }
 
   // If file type was corrected, create new file with correct type
   if (detectedType !== file.type) {
-    console.log(`🔄 Converting ${file.type || 'unknown'} → ${detectedType}`)
-    return new File([file], file.name, { type: detectedType, lastModified: file.lastModified })
+    console.log(`🔄 Normalizing type: ${file.type || '(empty)'} → ${detectedType}`)
+    const normalizedFile = new File([file], file.name, { 
+      type: detectedType, 
+      lastModified: file.lastModified 
+    })
+    console.log(`✅ File normalized to ${detectedType}`)
+    return normalizedFile
   }
 
   return file
