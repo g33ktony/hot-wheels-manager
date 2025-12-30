@@ -476,24 +476,10 @@ export default function Inventory() {
 
     if (isLoading && inventoryItems.length === 0) {
         console.log('🔄 Inventory: Loading from API...')
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                    <div className="text-lg font-semibold mb-2">Cargando inventario...</div>
-                    <p className="text-sm text-gray-600">Sincronizando datos desde el servidor</p>
-                </div>
-            </div>
-        )
     }
 
     if (error && inventoryItems.length === 0) {
         console.error('❌ Inventory: Error loading -', error)
-        return (
-            <div className="text-center py-12">
-                <p className="text-danger-600">Error al cargar el inventario</p>
-                <p className="text-sm text-gray-600 mt-2">{error.message}</p>
-            </div>
-        )
     }
 
     // Oculta piezas sin stock ni reservas (0/0) para evitar ruido visual
