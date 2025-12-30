@@ -241,12 +241,12 @@ export default function OCRScanner({
                 )}
             </Button>
 
-            {/* Hidden file input - camera only */}
+            {/* Hidden file input - opens native OS camera/gallery dialog */}
             <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
+                capture
                 onChange={handleFileSelect}
                 className="hidden"
             />
