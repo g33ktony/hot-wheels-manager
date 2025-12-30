@@ -33,6 +33,7 @@ export default function ItemDetail() {
     const [showCropModal, setShowCropModal] = useState(false)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
     const [sharePrice, setSharePrice] = useState<number>(0)
+    const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 90,
@@ -159,6 +160,11 @@ export default function ItemDetail() {
     const handleConfirmCrop = async () => {
         try {
             const croppedBlob = await getCroppedImage()
+            
+            // Save cropped image URL for PDF
+            const croppedUrl = URL.createObjectURL(croppedBlob)
+            setCroppedImageUrl(croppedUrl)
+            
             const carName = getCarName()
             const price = sharePrice
 
@@ -189,6 +195,12 @@ export default function ItemDetail() {
 
             setShowCropModal(false)
             setShowShareModal(false)
+            
+            // Clean up cropped image URL
+            if (croppedImageUrl) {
+                URL.revokeObjectURL(croppedImageUrl)
+                setCroppedImageUrl(null)
+            }
         } catch (error) {
             console.error('Error sharing:', error)
             toast.error('Error al compartir')
@@ -386,14 +398,16 @@ export default function ItemDetail() {
             pdf.setTextColor(0, 0, 0)
             pdf.setFont('helvetica', 'normal')
 
-            // Add image if available
+            // Add image if available (use cropped image if available, otherwise use original)
             let currentY = 75
             if (item?.photos && item.photos.length > 0) {
-                const photo = item.photos[selectedPhotoIndex]
+                const photo = croppedImageUrl || item.photos[selectedPhotoIndex]
                 try {
                     // Create a temporary image to get dimensions
                     const img = new Image()
-                    img.crossOrigin = 'anonymous'
+                    if (!croppedImageUrl) {
+                        img.crossOrigin = 'anonymous'
+                    }
                     img.src = photo
                     
                     await new Promise((resolve) => {
