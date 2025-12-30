@@ -28,7 +28,7 @@ export default function CloudinaryDebug() {
       setError('')
       setLogs([])
       setUploadResult(null)
-      
+
       addLog('Creating test image...')
       // Create a simple test image
       const canvas = document.createElement('canvas')
@@ -40,13 +40,13 @@ export default function CloudinaryDebug() {
       ctx.fillStyle = 'white'
       ctx.font = '20px Arial'
       ctx.fillText('TEST', 70, 110)
-      
+
       const blob = await new Promise<Blob>((resolve) => {
         canvas.toBlob((b) => resolve(b!), 'image/jpeg')
       })
 
       const testFile = new File([blob], 'test.jpg', { type: 'image/jpeg' })
-      
+
       addLog(`Test image created: ${testFile.size} bytes`)
       await performUpload(testFile)
     } catch (err) {
@@ -63,17 +63,17 @@ export default function CloudinaryDebug() {
       setError('Please select a file first')
       return
     }
-    
+
     try {
       setLoading(true)
       setError('')
       setLogs([])
       setUploadResult(null)
-      
+
       addLog(`Uploading selected file: ${selectedFile.name}`)
       addLog(`  Size: ${(selectedFile.size / 1024).toFixed(2)} KB`)
       addLog(`  Type: ${selectedFile.type}`)
-      
+
       await performUpload(selectedFile)
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err)
@@ -89,7 +89,7 @@ export default function CloudinaryDebug() {
     const formData = new FormData()
     formData.append('file', file, file.name)
     formData.append('upload_preset', uploadPreset)
-    
+
     addLog('Sending request to Cloudinary...')
     const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
     addLog(`  URL: ${uploadUrl}`)
@@ -105,12 +105,12 @@ export default function CloudinaryDebug() {
       })
 
       clearTimeout(timeoutId)
-      
+
       addLog(`Response received: ${response.status} ${response.statusText}`)
-      
+
       const contentType = response.headers.get('content-type')
       addLog(`  Content-Type: ${contentType}`)
-      
+
       let data: any
       if (contentType?.includes('application/json')) {
         data = await response.json()
@@ -148,7 +148,7 @@ export default function CloudinaryDebug() {
   return (
     <div className="p-4 sm:p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">🔧 Cloudinary Debug Console</h1>
-      
+
       {/* Configuration */}
       <div className="bg-blue-50 border border-blue-200 p-4 rounded mb-6">
         <h2 className="font-bold text-blue-900 mb-3">Configuration:</h2>
@@ -182,15 +182,15 @@ export default function CloudinaryDebug() {
 
       {/* Test Buttons */}
       <div className="flex gap-3 mb-6 flex-wrap">
-        <Button 
-          onClick={testUploadWithTestImage} 
+        <Button
+          onClick={testUploadWithTestImage}
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700"
         >
           {loading ? '⏳ Testing...' : '🧪 Test with Generated Image'}
         </Button>
-        <Button 
-          onClick={testUploadWithSelectedFile} 
+        <Button
+          onClick={testUploadWithSelectedFile}
           disabled={loading || !selectedFile}
           className="bg-green-600 hover:bg-green-700"
         >
@@ -233,13 +233,13 @@ export default function CloudinaryDebug() {
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
           <h3 className="font-bold text-lg mb-2">✅ Upload Successful!</h3>
           <pre className="bg-white p-3 rounded text-sm overflow-auto border border-green-100">
-{JSON.stringify(uploadResult, null, 2)}
+            {JSON.stringify(uploadResult, null, 2)}
           </pre>
           {uploadResult?.secure_url && (
             <div className="mt-4">
-              <img 
-                src={uploadResult.secure_url} 
-                alt="Uploaded" 
+              <img
+                src={uploadResult.secure_url}
+                alt="Uploaded"
                 className="max-w-xs rounded border border-green-300"
               />
             </div>

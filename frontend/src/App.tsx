@@ -40,21 +40,21 @@ function App() {
                                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                         <Route path="/dashboard" element={<Dashboard />} />
                                         <Route path="/inventory" element={<Inventory />} />
-                                    <Route path="/pos" element={<POS />} />
-                                    <Route path="/gemini-test" element={<GeminiTest />} />
-                                    <Route path="/sales" element={<Sales />} />
-                                    <Route path="/purchases" element={<Purchases />} />
-                                    <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
-                                    <Route path="/presale" element={<PreSaleHub />} />
-                                    <Route path="/pending-items" element={<PendingItemsPage />} />
-                                    <Route path="/deliveries" element={<Deliveries />} />
-                                    <Route path="/customers" element={<Customers />} />
-                                    <Route path="/suppliers" element={<Suppliers />} />
-                                    <Route path="/boxes" element={<Boxes />} />
-                                    <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
-                                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                                </Routes>
-                            </Layout>
+                                        <Route path="/pos" element={<POS />} />
+                                        <Route path="/gemini-test" element={<GeminiTest />} />
+                                        <Route path="/sales" element={<Sales />} />
+                                        <Route path="/purchases" element={<Purchases />} />
+                                        <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
+                                        <Route path="/presale" element={<PreSaleHub />} />
+                                        <Route path="/pending-items" element={<PendingItemsPage />} />
+                                        <Route path="/deliveries" element={<Deliveries />} />
+                                        <Route path="/customers" element={<Customers />} />
+                                        <Route path="/suppliers" element={<Suppliers />} />
+                                        <Route path="/boxes" element={<Boxes />} />
+                                        <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
+                                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                                    </Routes>
+                                </Layout>
                             </PrivateRoute>
                         </ErrorBoundary>
                     }

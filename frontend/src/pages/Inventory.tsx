@@ -74,17 +74,17 @@ const PREDEFINED_BRANDS = [
  */
 function base64ToFile(base64: string, fileName: string): File {
     // Handle data URL format (data:image/jpeg;base64,...)
-    const base64String = base64.includes(';base64,') 
-        ? base64.split(';base64,')[1] 
+    const base64String = base64.includes(';base64,')
+        ? base64.split(';base64,')[1]
         : base64
-    
+
     // Convert base64 to binary
     const binaryString = atob(base64String)
     const bytes = new Uint8Array(binaryString.length)
     for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i)
     }
-    
+
     // Create blob and file
     const blob = new Blob([bytes], { type: 'image/jpeg' })
     return new File([blob], fileName, { type: 'image/jpeg', lastModified: Date.now() })
@@ -93,14 +93,14 @@ function base64ToFile(base64: string, fileName: string): File {
 export default function Inventory() {
     // Sync inventory in background (keeps Redux cache fresh for other pages)
     useInventorySyncInBackground()
-    
+
     // Cloudinary upload
     const { uploadImage } = useCloudinaryUpload()
 
     // Get Redux cache as fallback when React Query is loading
     const reduxInventory = useAppSelector(state => state.inventory)
     const dispatch = useAppDispatch()
-    
+
     // Preload inventory in background (same strategy as POS)
     useEffect(() => {
         const preloadInventory = async () => {
@@ -112,7 +112,7 @@ export default function Inventory() {
 
             try {
                 console.log('🔄 Inventory: Preloading all inventory in background...')
-                
+
                 // Load first batch
                 const firstBatch = await inventoryService.getAll(1, 100, {})
                 if (!firstBatch || !firstBatch.items) {
@@ -137,7 +137,7 @@ export default function Inventory() {
                 // Load remaining pages in background
                 if (totalPages > 1) {
                     console.log('🔄 Inventory: Loading remaining pages (' + (totalPages - 1) + ' more)...')
-                    
+
                     for (let page = 2; page <= totalPages; page++) {
                         try {
                             const batch = await inventoryService.getAll(page, 100, {})
@@ -149,7 +149,7 @@ export default function Inventory() {
                     }
 
                     console.log('✅ Inventory: All pages loaded -', allItems.length, 'total items')
-                    
+
                     // Update Redux with all items
                     dispatch(setInventoryItems({
                         items: allItems,
@@ -165,7 +165,7 @@ export default function Inventory() {
         }
 
         preloadInventory()
-    }, [dispatch])
+    }, [])
 
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(30) // Increased from 15 to load more with lazy loading
@@ -291,7 +291,7 @@ export default function Inventory() {
         console.log('📭 Inventory: No data available')
         return []
     }, [inventoryData?.items, isLoading, reduxInventory.items])
-    
+
     const pagination = useMemo(() => {
         if (inventoryData?.pagination) {
             return inventoryData.pagination
@@ -506,7 +506,7 @@ export default function Inventory() {
     const handleAddItem = async () => {
         try {
             setIsAddingItem(true)
-            
+
             // If updating an existing item
             if (existingItemToUpdate) {
                 // Update existing item
@@ -819,30 +819,30 @@ export default function Inventory() {
 
         return (inventoryItems?.filter((item: InventoryItem) => {
             if (!item.carId) return false
-            
+
             // Exact match or contains (still prioritize these)
             if (item.carId.toLowerCase().includes(newItem.carId.toLowerCase())) {
                 return true
             }
-            
+
             // Fuzzy match with 75% similarity threshold
             const similarity = calculateSimilarity(newItem.carId, item.carId)
             return similarity >= SIMILARITY_THRESHOLD
         }) || [])
             .sort((a: InventoryItem, b: InventoryItem) => {
                 if (!a.carId || !b.carId) return 0
-                
+
                 // Prioritize exact matches
                 const aExact = a.carId.toLowerCase().includes(newItem.carId.toLowerCase())
                 const bExact = b.carId.toLowerCase().includes(newItem.carId.toLowerCase())
-                
+
                 if (aExact && !bExact) return -1
                 if (!aExact && bExact) return 1
-                
+
                 // Then sort by similarity score (highest first)
                 const aSimilarity = calculateSimilarity(newItem.carId, a.carId)
                 const bSimilarity = calculateSimilarity(newItem.carId, b.carId)
-                
+
                 return bSimilarity - aSimilarity
             })
     }, [newItem.carId, inventoryItems])
@@ -1050,7 +1050,7 @@ export default function Inventory() {
                     🔄 Loading... (isLoading: {isLoading ? 'true' : 'false'}, items: {inventoryItems.length})
                 </div>
             )}
-            
+
             {/* Error display */}
             {error && (
                 <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
@@ -1058,7 +1058,7 @@ export default function Inventory() {
                     <p className="text-red-600 text-sm">{error.message || String(error)}</p>
                 </div>
             )}
-            
+
             {/* Ref para scroll automático */}
             <div ref={topRef} />
 
@@ -1927,23 +1927,23 @@ export default function Inventory() {
                                     <OCRScanner
                                         onTextExtracted={(text: string) => handleCarIdChange(text)}
                                         onImageCaptured={async (imageBase64: string) => {
-                                          // Convert base64 to File and upload to Cloudinary
-                                          try {
-                                            const file = base64ToFile(imageBase64, 'ocr-capture.jpg')
-                                            const result = await uploadImage(file)
-                                            if (result) {
-                                              setNewItem(prev => ({ ...prev, photos: [...prev.photos, result.url] }))
-                                              console.log('✅ OCR photo uploaded to Cloudinary:', result.url)
-                                            } else {
-                                              console.error('Failed to upload OCR photo to Cloudinary')
-                                              // Fallback to base64 if Cloudinary fails
-                                              setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
+                                            // Convert base64 to File and upload to Cloudinary
+                                            try {
+                                                const file = base64ToFile(imageBase64, 'ocr-capture.jpg')
+                                                const result = await uploadImage(file)
+                                                if (result) {
+                                                    setNewItem(prev => ({ ...prev, photos: [...prev.photos, result.url] }))
+                                                    console.log('✅ OCR photo uploaded to Cloudinary:', result.url)
+                                                } else {
+                                                    console.error('Failed to upload OCR photo to Cloudinary')
+                                                    // Fallback to base64 if Cloudinary fails
+                                                    setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
+                                                }
+                                            } catch (error) {
+                                                console.error('Error uploading OCR photo:', error)
+                                                // Fallback to base64 if error
+                                                setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
                                             }
-                                          } catch (error) {
-                                            console.error('Error uploading OCR photo:', error)
-                                            // Fallback to base64 if error
-                                            setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
-                                          }
                                         }}
                                         buttonText="📷 Escanear"
                                         buttonClassName="!py-1 !px-2 text-xs"
@@ -1981,7 +1981,7 @@ export default function Inventory() {
                                         {getMatchingItems.map((item: InventoryItem) => {
                                             const similarity = calculateSimilarity(newItem.carId, item.carId)
                                             const isExactMatch = item.carId.toLowerCase().includes(newItem.carId.toLowerCase())
-                                            
+
                                             return (
                                                 <button
                                                     key={item._id}
@@ -1998,11 +1998,10 @@ export default function Inventory() {
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1">
                                                             {!isExactMatch && (
-                                                                <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                                                                    similarity >= 90
+                                                                <span className={`text-xs font-medium px-2 py-0.5 rounded ${similarity >= 90
                                                                         ? 'bg-green-100 text-green-700'
                                                                         : 'bg-yellow-100 text-yellow-700'
-                                                                }`}>
+                                                                    }`}>
                                                                     {Math.round(similarity)}%
                                                                 </span>
                                                             )}
