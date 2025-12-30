@@ -290,21 +290,6 @@ export default function OCRScanner({
                 }
             >
                 <div className="space-y-3">
-                    {/* Instructions */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                        <div className="flex gap-2">
-                            <Crop className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                                <p className="text-xs font-medium text-blue-900">
-                                    Ajusta el área
-                                </p>
-                                <p className="text-xs text-blue-700">
-                                    Selecciona solo el nombre del auto
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Crop area: adaptive height to show full image */}
                     {capturedImage && (
                         <div className="w-full bg-gray-100 rounded-lg overflow-auto flex items-center justify-center" style={{ maxHeight: '45vh', minHeight: '350px' }}>
