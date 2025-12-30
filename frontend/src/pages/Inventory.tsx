@@ -186,16 +186,20 @@ export default function Inventory() {
     // Extract items and pagination from response
     // Use React Query data if available, fallback to Redux cache while loading
     const inventoryItems = useMemo(() => {
-        if (inventoryData?.items && inventoryData.items.length > 0) {
+        // Priority 1: React Query data is always preferred when available
+        if (inventoryData?.items) {
             console.log('📊 Inventory: Using React Query data -', inventoryData.items.length, 'items')
             return inventoryData.items
         }
-        if (isLoading && reduxInventory.items.length > 0) {
+        // Priority 2: If loading and Redux has data, use Redux as temporary cache
+        if (isLoading && reduxInventory.items && reduxInventory.items.length > 0) {
             console.log('📦 Inventory: Using Redux cache while loading -', reduxInventory.items.length, 'items')
             return reduxInventory.items as any
         }
+        // Default: empty array
+        console.log('📭 Inventory: No data available')
         return []
-    }, [inventoryData?.items, isLoading, reduxInventory.items])
+    }, [inventoryData?.items, isLoading, reduxInventory.items, inventoryData?.items?.length])
     
     const pagination = useMemo(() => {
         if (inventoryData?.pagination) {
@@ -219,12 +223,13 @@ export default function Inventory() {
     useEffect(() => {
         console.log('📊 Inventory component state:', {
             isLoading,
+            error,
             itemsFromQuery: inventoryData?.items?.length || 0,
             itemsFromRedux: reduxInventory.items.length,
             finalItems: inventoryItems.length,
             reduxLastRefreshed: reduxInventory.lastRefreshed ? new Date(reduxInventory.lastRefreshed).toLocaleTimeString() : 'never'
         })
-    }, [isLoading, inventoryData, reduxInventory, inventoryItems])
+    }, [isLoading, inventoryData, error, reduxInventory, inventoryItems])
 
     useEffect(() => {
         if (!pagination) return
@@ -949,6 +954,21 @@ export default function Inventory() {
 
     return (
         <div className="space-y-6 w-full">
+            {/* Debug: Show loading status */}
+            {isLoading && inventoryItems.length === 0 && (
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm text-blue-700">
+                    🔄 Loading... (isLoading: {isLoading ? 'true' : 'false'}, items: {inventoryItems.length})
+                </div>
+            )}
+            
+            {/* Error display */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                    <h3 className="font-bold text-red-700 mb-2">Error al cargar inventario:</h3>
+                    <p className="text-red-600 text-sm">{error.message || String(error)}</p>
+                </div>
+            )}
+            
             {/* Ref para scroll automático */}
             <div ref={topRef} />
 
@@ -1209,14 +1229,13 @@ export default function Inventory() {
 
                 {/* Inventory Grid */}
                 {isLoading && inventoryItems.length === 0 ? (
-                    <Card>
-                        <div className="text-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-                            <h3 className="text-lg font-medium text-gray-900">Cargando inventario...</h3>
-                            <p className="text-gray-500 mt-2">Por favor espera mientras se cargan tus piezas</p>
-                        </div>
-                    </Card>
-                ) : !isLoading && filteredItems.length === 0 ? (
+                    // Show loading spinner only if we're actually loading AND have no data to show
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-primary-600"></div>
+                        <p className="mt-4 text-gray-600">Cargando inventario...</p>
+                    </div>
+                ) : filteredItems.length === 0 ? (
+                    // Show "no items" message when not loading and no filtered items
                     <Card>
                         <div className="text-center py-12">
                             <Package size={48} className="mx-auto text-gray-400 mb-4" />
