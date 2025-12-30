@@ -2248,8 +2248,9 @@ export default function Inventory() {
                             <div className="mb-3">
                                 <input
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
                                     multiple
+                                    capture="environment"
                                     onChange={(e) => handleFileUpload(e.target.files, false)}
                                     className="hidden"
                                     id="photo-upload"
@@ -2809,8 +2810,9 @@ export default function Inventory() {
                             <div className="mb-3">
                                 <input
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
                                     multiple
+                                    capture="environment"
                                     onChange={(e) => handleFileUpload(e.target.files, true)}
                                     className="hidden"
                                     id="photo-upload-edit"
