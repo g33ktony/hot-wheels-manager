@@ -34,6 +34,7 @@ export default function ItemDetail() {
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
     const [sharePrice, setSharePrice] = useState<number>(0)
     const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null)
+    const [shareMode, setShareMode] = useState<'image' | 'pdf' | null>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 90,
@@ -150,6 +151,7 @@ export default function ItemDetail() {
 
     const handleShareImage = async () => {
         try {
+            setShareMode('image')
             setShowCropModal(true)
         } catch (error) {
             console.error('Error sharing image:', error)
@@ -161,10 +163,28 @@ export default function ItemDetail() {
         try {
             const croppedBlob = await getCroppedImage()
             
-            // Save cropped image URL for PDF
+            // Save cropped image URL
             const croppedUrl = URL.createObjectURL(croppedBlob)
             setCroppedImageUrl(croppedUrl)
             
+            setShowCropModal(false)
+            
+            // Route to appropriate action based on mode
+            if (shareMode === 'image') {
+                await generateAndShareImage(croppedBlob)
+            } else if (shareMode === 'pdf') {
+                await generateAndSharePDF()
+            }
+            
+            setShareMode(null)
+        } catch (error) {
+            console.error('Error processing crop:', error)
+            toast.error('Error al procesar la imagen')
+        }
+    }
+
+    const generateAndShareImage = async (croppedBlob: Blob) => {
+        try {
             const carName = getCarName()
             const price = sharePrice
 
@@ -193,7 +213,6 @@ export default function ItemDetail() {
                 toast.success('Imagen descargada')
             }
 
-            setShowCropModal(false)
             setShowShareModal(false)
             
             // Clean up cropped image URL
@@ -202,8 +221,8 @@ export default function ItemDetail() {
                 setCroppedImageUrl(null)
             }
         } catch (error) {
-            console.error('Error sharing:', error)
-            toast.error('Error al compartir')
+            console.error('Error sharing image:', error)
+            toast.error('Error al compartir imagen')
         }
     }
 
@@ -365,6 +384,16 @@ export default function ItemDetail() {
     }
 
     const handleSharePDF = async () => {
+        try {
+            setShareMode('pdf')
+            setShowCropModal(true)
+        } catch (error) {
+            console.error('Error preparing PDF:', error)
+            toast.error('Error al preparar PDF')
+        }
+    }
+
+    const generateAndSharePDF = async () => {
         try {
             const carName = getCarName()
             const price = sharePrice
@@ -780,7 +809,10 @@ export default function ItemDetail() {
             {/* Crop Modal */}
             <Modal
                 isOpen={showCropModal}
-                onClose={() => setShowCropModal(false)}
+                onClose={() => {
+                    setShowCropModal(false)
+                    setShareMode(null)
+                }}
                 title="✂️ Recortar Imagen"
                 maxWidth="4xl"
                 footer={
@@ -788,7 +820,10 @@ export default function ItemDetail() {
                         <Button
                             variant="secondary"
                             className="flex-1"
-                            onClick={() => setShowCropModal(false)}
+                            onClick={() => {
+                                setShowCropModal(false)
+                                setShareMode(null)
+                            }}
                         >
                             <X className="w-4 h-4 mr-1" />
                             Cancelar
