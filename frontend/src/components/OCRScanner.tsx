@@ -307,45 +307,21 @@ export default function OCRScanner({
 
                     {/* Crop area: full image, no zoom */}
                     {capturedImage && (
-                        <>
-                            <div className="space-y-2">
-                                <p className="text-xs text-gray-600">
-                                    El botón que aparece aquí recorta el área seleccionada y dispara el OCR sin estar encima de la imagen.
-                                </p>
-                                <Button
-                                    className="w-full border border-blue-600 bg-white text-blue-600 hover:bg-blue-50"
-                                    onClick={handleCropConfirm}
-                                    disabled={isProcessing}
-                                >
-                                    {isProcessing ? (
-                                        <>
-                                            <Loader className="w-4 h-4 mr-2 animate-spin" />
-                                            Procesando {progress}%
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Check className="w-4 h-4 mr-2" />
-                                            Recortar y escanear
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
-                                <ReactCrop
-                                    crop={crop}
-                                    onChange={(c) => setCrop(c)}
-                                    aspect={undefined}
-                                >
-                                    <img
-                                        ref={imageRef}
-                                        src={capturedImage}
-                                        alt="Imagen para recortar"
-                                        className="w-full h-auto"
-                                        style={{ maxHeight: '60vh', objectFit: 'contain' }}
-                                    />
-                                </ReactCrop>
-                            </div>
-                        </>
+                        <div className="w-full bg-gray-100 rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
+                            <ReactCrop
+                                crop={crop}
+                                onChange={(c) => setCrop(c)}
+                                aspect={undefined}
+                            >
+                                <img
+                                    ref={imageRef}
+                                    src={capturedImage}
+                                    alt="Imagen para recortar"
+                                    className="w-full h-auto"
+                                    style={{ maxHeight: '60vh', objectFit: 'contain' }}
+                                />
+                            </ReactCrop>
+                        </div>
                     )}
                 </div>
             </Modal>

@@ -1985,8 +1985,8 @@ export default function Inventory() {
                                                         <div className="flex flex-col items-end gap-1">
                                                             {!isExactMatch && (
                                                                 <span className={`text-xs font-medium px-2 py-0.5 rounded ${similarity >= 90
-                                                                        ? 'bg-green-100 text-green-700'
-                                                                        : 'bg-yellow-100 text-yellow-700'
+                                                                    ? 'bg-green-100 text-green-700'
+                                                                    : 'bg-yellow-100 text-yellow-700'
                                                                     }`}>
                                                                     {Math.round(similarity)}%
                                                                 </span>
@@ -2241,6 +2241,7 @@ export default function Inventory() {
                                     <option value="basic">Básico</option>
                                     <option value="premium">Premium</option>
                                     <option value="rlc">RLC</option>
+                                    <option value="silver_series">Silver Series</option>
                                 </select>
                             </div>
                         )}

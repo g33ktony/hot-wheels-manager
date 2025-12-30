@@ -21,7 +21,11 @@ const PREDEFINED_BRANDS = [
     'Tomica',
     'Matchbox',
     'Johnny Lightning',
-    'Greenlight'
+    'Greenlight',
+    'BBR Models',
+    'PGM',
+    'Maisto',
+    'Burago',
 ]
 
 export default function Purchases() {
