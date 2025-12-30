@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import PrivateRoute from './components/PrivateRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/common/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -32,12 +33,13 @@ function App() {
                 <Route
                     path="/*"
                     element={
-                        <PrivateRoute>
-                            <Layout>
-                                <Routes>
-                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/inventory" element={<Inventory />} />
+                        <ErrorBoundary>
+                            <PrivateRoute>
+                                <Layout>
+                                    <Routes>
+                                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                        <Route path="/dashboard" element={<Dashboard />} />
+                                        <Route path="/inventory" element={<Inventory />} />
                                     <Route path="/pos" element={<POS />} />
                                     <Route path="/gemini-test" element={<GeminiTest />} />
                                     <Route path="/sales" element={<Sales />} />
@@ -53,7 +55,8 @@ function App() {
                                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                 </Routes>
                             </Layout>
-                        </PrivateRoute>
+                            </PrivateRoute>
+                        </ErrorBoundary>
                     }
                 />
             </Routes>
