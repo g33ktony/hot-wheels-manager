@@ -34,6 +34,7 @@ export default function ItemDetail() {
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
     const [sharePrice, setSharePrice] = useState<number>(0)
     const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null)
+    const [croppedImageData, setCroppedImageData] = useState<string | null>(null)
     const [shareMode, setShareMode] = useState<'image' | 'pdf' | null>(null)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
@@ -163,9 +164,17 @@ export default function ItemDetail() {
         try {
             const croppedBlob = await getCroppedImage()
             
-            // Save cropped image URL
+            // Save cropped image as blob URL
             const croppedUrl = URL.createObjectURL(croppedBlob)
             setCroppedImageUrl(croppedUrl)
+            
+            // Also save as base64 for PDF generation
+            const reader = new FileReader()
+            const base64Data = await new Promise<string>((resolve) => {
+                reader.onloadend = () => resolve(reader.result as string)
+                reader.readAsDataURL(croppedBlob)
+            })
+            setCroppedImageData(base64Data)
             
             setShowCropModal(false)
             
@@ -215,11 +224,12 @@ export default function ItemDetail() {
 
             setShowShareModal(false)
             
-            // Clean up cropped image URL
+            // Clean up cropped image URL and data
             if (croppedImageUrl) {
                 URL.revokeObjectURL(croppedImageUrl)
                 setCroppedImageUrl(null)
             }
+            setCroppedImageData(null)
         } catch (error) {
             console.error('Error sharing image:', error)
             toast.error('Error al compartir imagen')
@@ -430,11 +440,11 @@ export default function ItemDetail() {
             // Add image if available (use cropped image if available, otherwise use original)
             let currentY = 75
             if (item?.photos && item.photos.length > 0) {
-                const photo = croppedImageUrl || item.photos[selectedPhotoIndex]
+                const photo = croppedImageData || item.photos[selectedPhotoIndex]
                 try {
                     // Create a temporary image to get dimensions
                     const img = new Image()
-                    if (!croppedImageUrl) {
+                    if (!croppedImageData) {
                         img.crossOrigin = 'anonymous'
                     }
                     img.src = photo

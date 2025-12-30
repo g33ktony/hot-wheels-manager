@@ -291,17 +291,18 @@ export default function OCRScanner({
                 <div className="space-y-3">
                     {/* Crop area: adaptive height to show full image */}
                     {capturedImage && (
-                        <div className="w-full bg-gray-100 rounded-lg overflow-y-auto" style={{ maxHeight: '60vh', minHeight: '300px' }}>
+                        <div className="w-full bg-gray-100 rounded-lg overflow-auto" style={{ maxHeight: '70vh', minHeight: '300px' }}>
                             <ReactCrop
                                 crop={crop}
                                 onChange={(c) => setCrop(c)}
                                 aspect={undefined}
+                                className="max-w-full"
                             >
                                 <img
                                     ref={imageRef}
                                     src={capturedImage}
                                     alt="Imagen para recortar"
-                                    style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
+                                    style={{ width: '100%', height: 'auto', display: 'block' }}
                                 />
                             </ReactCrop>
                         </div>
