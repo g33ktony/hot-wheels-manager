@@ -254,77 +254,113 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   }
 
   const ReportContent = (
-    <div className="bg-white p-6 border rounded-lg" style={{ minHeight: '400px' }}>
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">2Fast Wheels Garage</h1>
-        <h2 className="text-lg font-semibold text-gray-700">Reporte de Entrega</h2>
-        <p className="text-sm text-gray-500">ID: {delivery._id}</p>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Cliente</h3>
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="font-medium text-gray-900">{delivery.customer?.name}</p>
-          {delivery.customer?.phone && <p className="text-gray-600">Teléfono: {delivery.customer.phone}</p>}
-          {delivery.customer?.email && <p className="text-gray-600">Email: {delivery.customer.email}</p>}
+    <div className="bg-white p-8" style={{ minHeight: '400px' }}>
+      {/* Header with brand colors */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t-lg -mx-8 -mt-8 mb-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-2">🏎️ 2Fast Wheels Garage</h1>
+          <h2 className="text-xl font-semibold opacity-90">Reporte de Entrega</h2>
+          <p className="text-sm opacity-75 mt-2">ID: {delivery._id}</p>
         </div>
       </div>
 
+      {/* Status Badge */}
+      <div className="flex justify-center mb-6">
+        <div className={`inline-flex items-center px-6 py-2 rounded-full text-sm font-semibold ${
+          delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
+          delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+          delivery.status === 'prepared' ? 'bg-blue-100 text-blue-800' :
+          'bg-yellow-100 text-yellow-800'
+        }`}>
+          Estado: {statusToSpanish(delivery.status as any)}
+        </div>
+      </div>
+
+      {/* Customer Info */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Detalles de Entrega</h3>
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Fecha programada</p>
-              <p className="font-medium">{formatDate(delivery.scheduledDate)}</p>
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+          <div className="w-1 h-6 bg-blue-600 rounded"></div>
+          Cliente
+        </h3>
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
+          <p className="text-xl font-bold text-gray-900 mb-2">{delivery.customer?.name}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+            {delivery.customer?.phone && (
+              <p className="text-gray-700">📱 {delivery.customer.phone}</p>
+            )}
+            {delivery.customer?.email && (
+              <p className="text-gray-700">✉️ {delivery.customer.email}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Delivery Details */}
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+          <div className="w-1 h-6 bg-blue-600 rounded"></div>
+          Detalles de Entrega
+        </h3>
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="bg-white p-3 rounded-lg">
+              <p className="text-xs text-gray-600 mb-1">📅 Fecha programada</p>
+              <p className="font-bold text-gray-900">{formatDate(delivery.scheduledDate)}</p>
             </div>
             {delivery.scheduledTime && (
-              <div>
-                <p className="text-sm text-gray-600">Hora</p>
-                <p className="font-medium">{formatTime(delivery.scheduledTime)}</p>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-xs text-gray-600 mb-1">🕐 Hora</p>
+                <p className="font-bold text-gray-900">{formatTime(delivery.scheduledTime)}</p>
               </div>
             )}
           </div>
 
-          <div className="mt-3">
-            <p className="text-sm text-gray-600">Ubicación</p>
-            <p className="font-medium">{delivery.location}</p>
-          </div>
-
-          <div className="mt-3">
-            <p className="text-sm text-gray-600">Estado</p>
-            <p className="font-medium">{statusToSpanish(delivery.status as any)}</p>
+          <div className="bg-white p-3 rounded-lg">
+            <p className="text-xs text-gray-600 mb-1">📍 Ubicación</p>
+            <p className="font-semibold text-gray-900">{delivery.location}</p>
           </div>
         </div>
       </div>
 
+      {/* Items Table */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Artículos</h3>
-        <div className="border rounded-lg overflow-hidden">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+          <div className="w-1 h-6 bg-blue-600 rounded"></div>
+          Artículos
+        </h3>
+        <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[640px]">
-              <thead className="bg-gray-50">
+              <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Artículo</th>
-                  <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">Cantidad</th>
-                  <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Precio</th>
-                  <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold">Artículo</th>
+                  <th className="px-4 py-3 text-center text-sm font-bold">Cant.</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold">Precio Unit.</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold">Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {delivery.items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-2 text-sm text-gray-900">{item.carName}</td>
-                    <td className="px-4 py-2 text-center text-sm text-gray-900">{item.quantity}</td>
-                    <td className="px-4 py-2 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-4 py-2 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice * item.quantity)}</td>
+                  <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.carName}</td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-900">
+                      <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold">
+                        {item.quantity}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice)}</td>
+                    <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">{formatCurrency(item.unitPrice * item.quantity)}</td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-gray-50">
+              <tfoot className="bg-gradient-to-r from-green-50 to-green-100">
                 <tr>
-                  <td colSpan={3} className="px-4 py-3 text-right text-sm font-medium text-gray-900">Total:</td>
-                  <td className="px-4 py-3 text-right text-lg font-bold text-gray-900">{formatCurrency(delivery.totalAmount)}</td>
+                  <td colSpan={3} className="px-4 py-4 text-right text-base font-bold text-gray-900">Total a Pagar:</td>
+                  <td className="px-4 py-4 text-right">
+                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg">
+                      <span className="text-xl font-bold">{formatCurrency(delivery.totalAmount)}</span>
+                    </div>
+                  </td>
                 </tr>
               </tfoot>
             </table>
@@ -334,17 +370,33 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {delivery.payments && delivery.payments.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Pagos</h3>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Monto pagado: {formatCurrency(delivery.paidAmount || 0)}</p>
-            <p className="text-sm text-gray-600">Estado: {delivery.paymentStatus || 'pending'}</p>
+          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <div className="w-1 h-6 bg-blue-600 rounded"></div>
+            Información de Pago
+          </h3>
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border border-green-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-xs text-gray-600 mb-1">💵 Monto Pagado</p>
+                <p className="text-lg font-bold text-green-700">{formatCurrency(delivery.paidAmount || 0)}</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-xs text-gray-600 mb-1">📊 Estado del Pago</p>
+                <p className="text-lg font-bold text-gray-900 capitalize">{delivery.paymentStatus || 'Pendiente'}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="text-center text-sm text-gray-500 mt-8 pt-4 border-t">
-        <p>Generado por 2Fast Wheels Garage</p>
-        <p>{new Date().toLocaleString('es-ES')}</p>
+      {/* Footer */}
+      <div className="text-center text-sm text-gray-500 mt-8 pt-6 border-t-2 border-gray-200">
+        <p className="font-semibold text-gray-700 mb-1">Generado por 2Fast Wheels Garage</p>
+        <p className="text-xs">{new Date().toLocaleString('es-ES', { 
+          dateStyle: 'long', 
+          timeStyle: 'short' 
+        })}</p>
+        <p className="text-xs mt-2 text-gray-400">Gracias por tu compra 🏎️</p>
       </div>
     </div>
   )
