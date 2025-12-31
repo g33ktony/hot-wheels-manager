@@ -58,6 +58,11 @@ export const updatePurchaseStatus = async (req: Request, res: Response) => {
     // If status is changing to received, add items to inventory
     if (status === 'received' && purchase.status !== 'received') {
       await addItemsToInventory(purchase)
+      
+      // Also process any pending items linked to this purchase
+      const { processPendingItemsOnPurchaseReceived } = await import('./pendingItemsController')
+      await processPendingItemsOnPurchaseReceived(id)
+      
       purchase.receivedDate = new Date()
       purchase.isReceived = true
     }
@@ -136,6 +141,10 @@ export const receivePurchaseWithVerification = async (req: Request, res: Respons
 
     // Add received items to inventory
     await addItemsToInventory(purchase)
+    
+    // Also process any pending items linked to this purchase
+    const { processPendingItemsOnPurchaseReceived } = await import('./pendingItemsController')
+    await processPendingItemsOnPurchaseReceived(id)
 
     const updatedPurchase = await Purchase.findById(id).populate('supplierId')
 

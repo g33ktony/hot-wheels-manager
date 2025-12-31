@@ -324,3 +324,102 @@ async function updatePurchasePendingCount(purchaseId: string) {
     console.error('Error updating purchase pending count:', error)
   }
 }
+
+// Process pending items when a purchase is received
+// This adds pending items (that were linked to this purchase) to inventory
+export async function processPendingItemsOnPurchaseReceived(purchaseId: string) {
+  try {
+    console.log(`🔄 Processing pending items for received purchase: ${purchaseId}`)
+    
+    // Find all pending items linked to this purchase that haven't been received yet
+    const pendingItems = await PendingItemModel.find({
+      linkedToPurchaseId: purchaseId,
+      status: 'pending-reshipment'
+    })
+    
+    if (pendingItems.length === 0) {
+      console.log('✅ No pending items to process for this purchase')
+      return
+    }
+    
+    const { InventoryItemModel } = await import('../models/InventoryItem')
+    
+    for (const pendingItem of pendingItems) {
+      console.log(`📦 Processing pending item: ${pendingItem.carId} (qty: ${pendingItem.quantity})`)
+      
+      // Check if inventory item already exists with same carId, condition, and brand
+      let inventoryItem = await InventoryItemModel.findOne({
+        carId: pendingItem.carId,
+        condition: pendingItem.condition,
+        brand: pendingItem.brand || { $exists: false }
+      })
+      
+      if (inventoryItem) {
+        // Update existing inventory item
+        console.log(`✅ Adding ${pendingItem.quantity} units to existing inventory item`)
+        inventoryItem.quantity += pendingItem.quantity
+        inventoryItem.purchasePrice = pendingItem.unitPrice
+        
+        if (pendingItem.brand) inventoryItem.brand = pendingItem.brand
+        if (pendingItem.pieceType) inventoryItem.pieceType = pendingItem.pieceType
+        if (pendingItem.isTreasureHunt) inventoryItem.isTreasureHunt = true
+        if (pendingItem.isSuperTreasureHunt) inventoryItem.isSuperTreasureHunt = true
+        if (pendingItem.isChase) inventoryItem.isChase = true
+        
+        // Merge photos
+        if (pendingItem.photos && pendingItem.photos.length > 0) {
+          const existingPhotos = inventoryItem.photos || []
+          const newPhotos = pendingItem.photos.filter(photo => !existingPhotos.includes(photo))
+          inventoryItem.photos = [...existingPhotos, ...newPhotos]
+        }
+        
+        // Append notes
+        const notePrefix = `[Pre-orden recibida - ${new Date().toLocaleDateString()}]`
+        if (pendingItem.notes) {
+          const existingNotes = inventoryItem.notes || ''
+          inventoryItem.notes = existingNotes 
+            ? `${existingNotes}\n${notePrefix}: ${pendingItem.notes}`
+            : `${notePrefix}: ${pendingItem.notes}`
+        } else {
+          const existingNotes = inventoryItem.notes || ''
+          inventoryItem.notes = existingNotes 
+            ? `${existingNotes}\n${notePrefix}: Item agregado desde pre-orden`
+            : `${notePrefix}: Item agregado desde pre-orden`
+        }
+        
+        await inventoryItem.save()
+      } else {
+        // Create new inventory item
+        console.log(`✅ Creating new inventory item`)
+        const newInventoryItem = new InventoryItemModel({
+          carId: pendingItem.carId,
+          quantity: pendingItem.quantity,
+          purchasePrice: pendingItem.unitPrice,
+          suggestedPrice: pendingItem.unitPrice * 1.3, // Default 30% markup
+          condition: pendingItem.condition,
+          brand: pendingItem.brand,
+          pieceType: pendingItem.pieceType,
+          isTreasureHunt: pendingItem.isTreasureHunt || false,
+          isSuperTreasureHunt: pendingItem.isSuperTreasureHunt || false,
+          isChase: pendingItem.isChase || false,
+          photos: pendingItem.photos || [],
+          notes: pendingItem.notes 
+            ? `[Pre-orden recibida - ${new Date().toLocaleDateString()}]: ${pendingItem.notes}`
+            : `[Pre-orden recibida - ${new Date().toLocaleDateString()}]: Item agregado desde pre-orden`,
+          dateAdded: new Date()
+        })
+        await newInventoryItem.save()
+      }
+      
+      // Mark pending item as received/completed by removing the link
+      pendingItem.linkedToPurchaseId = undefined
+      pendingItem.notes = (pendingItem.notes || '') + `\n✅ Recibido el ${new Date().toLocaleDateString()} - Agregado al inventario`
+      await pendingItem.save()
+    }
+    
+    console.log(`✅ Processed ${pendingItems.length} pending item(s) and added to inventory`)
+  } catch (error) {
+    console.error('Error processing pending items on purchase received:', error)
+    throw error
+  }
+}
