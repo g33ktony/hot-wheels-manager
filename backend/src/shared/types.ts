@@ -42,7 +42,7 @@ export interface InventoryItem {
   lastUpdated: Date;
   // Brand and type fields
   brand?: string; // Hot Wheels, Kaido House, Mini GT, M2, etc.
-  pieceType?: 'basic' | 'premium' | 'rlc'; // Basic, Premium, RLC
+  pieceType?: 'basic' | 'premium' | 'rlc' | 'silver_series' | 'elite_64'; // Basic, Premium, RLC, Silver Series, Elite 64
   isTreasureHunt?: boolean; // Only for Hot Wheels basic
   isSuperTreasureHunt?: boolean; // Only for Hot Wheels basic
   isChase?: boolean; // Only for Mini GT, Kaido House, M2

@@ -46,8 +46,8 @@ export interface PreSaleItem extends Document {
   // Product metadata (denormalized from HotWheels for faster lookups)
   carModel?: string;
   brand?: string;
-  pieceType?: 'basic' | 'premium' | 'rlc';
-  condition?: 'mint' | 'good' | 'fair' | 'poor';
+  pieceType?: 'basic' | 'premium' | 'rlc' | 'silver_series' | 'elite_64';
+  condition?: 'mint' | 'mint_loose' | 'good' | 'fair' | 'poor';
   photo?: string; // Base64 encoded image or image URL
 
   // Related purchases
@@ -190,11 +190,11 @@ const PreSaleItemSchema = new Schema<PreSaleItem>(
     brand: { type: String },
     pieceType: {
       type: String,
-      enum: ['basic', 'premium', 'rlc']
+      enum: ['basic', 'premium', 'rlc', 'silver_series', 'elite_64']
     },
     condition: {
       type: String,
-      enum: ['mint', 'good', 'fair', 'poor'],
+      enum: ['mint', 'mint_loose', 'good', 'fair', 'poor'],
       default: 'mint'
     },
     photo: {

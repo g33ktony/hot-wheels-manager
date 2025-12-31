@@ -13,7 +13,7 @@ const PurchaseItemSchema = new Schema<PurchaseItem>({
   },
   // Brand and type fields
   brand: { type: String },
-  pieceType: { type: String, enum: ['basic', 'premium', 'rlc'] },
+  pieceType: { type: String, enum: ['basic', 'premium', 'rlc', 'silver_series', 'elite_64'] },
   isTreasureHunt: { type: Boolean, default: false },
   isSuperTreasureHunt: { type: Boolean, default: false },
   isChase: { type: Boolean, default: false },

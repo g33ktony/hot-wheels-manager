@@ -1225,6 +1225,8 @@ export default function Inventory() {
                                 <option value="basic">Básico</option>
                                 <option value="premium">Premium</option>
                                 <option value="rlc">RLC</option>
+                                <option value="silver_series">Silver Series</option>
+                                <option value="elite_64">Elite 64</option>
                             </select>
                         )}
 

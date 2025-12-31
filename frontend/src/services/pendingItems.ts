@@ -26,7 +26,7 @@ interface CreatePendingItemPayload {
   unitPrice: number
   condition: 'mint' | 'good' | 'fair' | 'poor'
   brand?: string
-  pieceType?: 'basic' | 'premium' | 'rlc'
+  pieceType?: 'basic' | 'premium' | 'rlc' | 'silver_series' | 'elite_64'
   isTreasureHunt?: boolean
   isSuperTreasureHunt?: boolean
   isChase?: boolean
