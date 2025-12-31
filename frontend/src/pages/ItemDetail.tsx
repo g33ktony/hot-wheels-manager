@@ -99,20 +99,6 @@ export default function ItemDetail() {
         }
 
         const canvas = document.createElement('canvas')
-
-        // Use a single scale factor to maintain aspect ratio
-        const scale = image.naturalWidth / image.width
-
-        // Calculate crop dimensions in natural (original) image size
-        const cropX = crop.x * scale
-        const cropY = crop.y * scale
-        const cropWidth = crop.width * scale
-        const cropHeight = crop.height * scale
-
-        // Set canvas size to match crop dimensions
-        canvas.width = cropWidth
-        canvas.height = cropHeight
-
         const ctx = canvas.getContext('2d', {
             alpha: false,
             willReadFrequently: false
@@ -122,11 +108,34 @@ export default function ItemDetail() {
             throw new Error('Failed to get canvas context')
         }
 
+        // Calculate crop area based on the displayed image dimensions
+        let cropX: number, cropY: number, cropWidth: number, cropHeight: number
+
+        if (crop.unit === '%') {
+            // Convert percentage to pixels on the NATURAL (original) image
+            cropX = (crop.x / 100) * image.naturalWidth
+            cropY = (crop.y / 100) * image.naturalHeight
+            cropWidth = (crop.width / 100) * image.naturalWidth
+            cropHeight = (crop.height / 100) * image.naturalHeight
+        } else {
+            // Pixel-based crop: scale to natural dimensions
+            const scaleX = image.naturalWidth / image.width
+            const scaleY = image.naturalHeight / image.height
+            cropX = crop.x * scaleX
+            cropY = crop.y * scaleY
+            cropWidth = crop.width * scaleX
+            cropHeight = crop.height * scaleY
+        }
+
+        // Set canvas size to match crop dimensions
+        canvas.width = cropWidth
+        canvas.height = cropHeight
+
         // Enable image smoothing for better quality
         ctx.imageSmoothingEnabled = true
         ctx.imageSmoothingQuality = 'high'
 
-        // Draw the cropped portion
+        // Draw the cropped portion from the NATURAL image
         ctx.drawImage(
             image,
             cropX,
