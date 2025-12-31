@@ -172,6 +172,12 @@ export default function ItemDetail() {
     const handleConfirmCrop = async () => {
         try {
             const croppedBlob = await getCroppedImage()
+            
+            console.log('✂️ Imagen recortada:', {
+                size: croppedBlob.size,
+                type: croppedBlob.type,
+                cropArea: crop
+            })
 
             // Save cropped image as blob URL
             const croppedUrl = URL.createObjectURL(croppedBlob)
@@ -184,6 +190,12 @@ export default function ItemDetail() {
                 reader.readAsDataURL(croppedBlob)
             })
             setCroppedImageData(base64Data)
+            
+            console.log('✅ Imagen recortada guardada:', {
+                hasUrl: !!croppedUrl,
+                hasData: !!base64Data,
+                dataLength: base64Data.length
+            })
 
             setShowCropModal(false)
 
@@ -450,6 +462,11 @@ export default function ItemDetail() {
             let currentY = 75
             if (item?.photos && item.photos.length > 0) {
                 const photo = croppedImageData || item.photos[selectedPhotoIndex]
+                console.log('📄 PDF - Usando imagen:', {
+                    usingCropped: !!croppedImageData,
+                    photoType: croppedImageData ? 'cropped (base64)' : 'original',
+                    photoLength: photo.length
+                })
                 try {
                     // Create a temporary image to get dimensions
                     const img = new Image()
