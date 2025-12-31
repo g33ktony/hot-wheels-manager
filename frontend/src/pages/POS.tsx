@@ -123,7 +123,7 @@ const POS: React.FC = () => {
     loadInitialInventory();
   }, []);
 
-  // Fuzzy search en caché (instant search - sin API calls)
+  // Smart search con scoring multi-criterio
   const filteredInventory = useMemo(() => {
     if (!searchTerm.trim()) {
       // Sin búsqueda: mostrar todos los items con stock disponible
@@ -145,62 +145,109 @@ const POS: React.FC = () => {
       return available;
     }
 
-    const query = searchTerm.toLowerCase();
-    const SIMILARITY_THRESHOLD = 75;
+    const query = searchTerm.toLowerCase().trim();
+    const queryWords = query.split(/\s+/); // Dividir en palabras
 
-    return inventoryItems
-      .filter(item => {
+    // Sistema de scoring para ordenar resultados
+    const scoredItems = inventoryItems
+      .map(item => {
         const quantity = item.quantity || 0;
         const reserved = item.reservedQuantity || 0;
 
         // Skip items sin stock
-        if (quantity - reserved <= 0) return false;
+        if (quantity - reserved <= 0) return null;
 
-        // Extraer datos del carId si está poblado
+        // Extraer datos del item
         const carData = typeof item.carId === 'object' ? item.carId : null;
-        const carName = carData?.name || '';
-        const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+        const carName = (carData?.name || '').toLowerCase();
+        const carIdStr = (typeof item.carId === 'string' ? item.carId : carData?._id || '').toLowerCase();
+        const brand = (item.brand || '').toLowerCase();
+        const pieceType = (item.pieceType || '').toLowerCase();
+        const location = (item.location || '').toLowerCase();
+        const condition = (item.condition || '').toLowerCase();
+        const notes = (item.notes || '').toLowerCase();
 
-        // Búsqueda exacta (contiene substring)
-        if (
-          carName.toLowerCase().includes(query) ||
-          carIdStr.toLowerCase().includes(query) ||
-          item.brand?.toLowerCase().includes(query) ||
-          item.pieceType?.toLowerCase().includes(query) ||
-          item.location?.toLowerCase().includes(query)
-        ) {
-          return true;
-        }
+        let score = 0;
 
-        // Búsqueda fuzzy con Levenshtein
+        // 1. Coincidencia exacta completa (máxima prioridad)
+        if (carName === query) score += 1000;
+        if (brand === query) score += 900;
+        if (pieceType === query) score += 800;
+
+        // 2. Contiene la frase completa
+        if (carName.includes(query)) score += 500;
+        if (brand.includes(query)) score += 400;
+        if (pieceType.includes(query)) score += 300;
+        if (location.includes(query)) score += 200;
+        if (condition.includes(query)) score += 150;
+        if (notes.includes(query)) score += 100;
+        if (carIdStr.includes(query)) score += 50;
+
+        // 3. Empieza con la búsqueda (muy relevante)
+        if (carName.startsWith(query)) score += 400;
+        if (brand.startsWith(query)) score += 350;
+        if (pieceType.startsWith(query)) score += 250;
+
+        // 4. Búsqueda por palabras individuales
+        queryWords.forEach(word => {
+          if (word.length < 2) return; // Ignorar palabras muy cortas
+
+          // Palabras completas encontradas
+          const carNameWords = carName.split(/\s+/);
+          const brandWords = brand.split(/\s+/);
+          
+          if (carNameWords.some(w => w === word)) score += 200;
+          if (brandWords.some(w => w === word)) score += 180;
+          if (carNameWords.some(w => w.startsWith(word))) score += 150;
+          if (brandWords.some(w => w.startsWith(word))) score += 130;
+
+          // Contiene la palabra
+          if (carName.includes(word)) score += 80;
+          if (brand.includes(word)) score += 70;
+          if (pieceType.includes(word)) score += 60;
+          if (location.includes(word)) score += 40;
+          if (notes.includes(word)) score += 30;
+        });
+
+        // 5. Similitud fuzzy (umbral bajo para ser flexible)
+        const FUZZY_THRESHOLD = 60; // Reducido de 75 a 60
+        
         const carNameSimilarity = calculateSimilarity(query, carName);
-        const brandSimilarity = calculateSimilarity(query, item.brand || '');
-        const pieceTypeSimilarity = calculateSimilarity(query, item.pieceType || '');
+        const brandSimilarity = calculateSimilarity(query, brand);
+        const pieceTypeSimilarity = calculateSimilarity(query, pieceType);
 
-        return (
-          carNameSimilarity >= SIMILARITY_THRESHOLD ||
-          brandSimilarity >= SIMILARITY_THRESHOLD ||
-          pieceTypeSimilarity >= SIMILARITY_THRESHOLD
-        );
+        if (carNameSimilarity >= FUZZY_THRESHOLD) score += carNameSimilarity * 2;
+        if (brandSimilarity >= FUZZY_THRESHOLD) score += brandSimilarity * 1.5;
+        if (pieceTypeSimilarity >= FUZZY_THRESHOLD) score += pieceTypeSimilarity;
+
+        // 6. Bonus por palabras individuales con fuzzy
+        queryWords.forEach(word => {
+          if (word.length >= 3) {
+            const wordCarSimilarity = calculateSimilarity(word, carName);
+            const wordBrandSimilarity = calculateSimilarity(word, brand);
+            
+            if (wordCarSimilarity >= 70) score += 100;
+            if (wordBrandSimilarity >= 70) score += 80;
+          }
+        });
+
+        return score > 0 ? { item, score } : null;
       })
-      .sort((a, b) => {
-        // Priorizar resultados exactos
-        const getCarName = (item: any) => {
-          const carData = typeof item.carId === 'object' ? item.carId : null;
-          return carData?.name || '';
-        };
+      .filter((result): result is { item: ReduxInventoryItem; score: number } => result !== null)
+      .sort((a, b) => b.score - a.score) // Ordenar por score descendente
+      .map(result => result.item);
 
-        const aExact =
-          getCarName(a).toLowerCase().includes(query) ||
-          a.brand?.toLowerCase().includes(query);
-        const bExact =
-          getCarName(b).toLowerCase().includes(query) ||
-          b.brand?.toLowerCase().includes(query);
+    console.log('🔍 Smart Search:', {
+      query,
+      queryWords,
+      resultsFound: scoredItems.length,
+      topResults: scoredItems.slice(0, 3).map(i => ({
+        name: typeof i.carId === 'object' ? i.carId?.name : i.carId,
+        brand: i.brand
+      }))
+    });
 
-        if (aExact && !bExact) return -1;
-        if (!aExact && bExact) return 1;
-        return 0;
-      });
+    return scoredItems;
   }, [inventoryItems, searchTerm]);
 
   // Agregar item al carrito
