@@ -294,9 +294,11 @@ const POS: React.FC = () => {
       filtersApplied: { filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock },
       itemsAfterFilters: items.length,
       resultsFound: scoredItems.length,
+      availableStockOnly: true, // POS solo muestra items con stock disponible
       topResults: scoredItems.slice(0, 3).map(i => ({
         name: typeof i.carId === 'object' ? i.carId?.name : i.carId,
-        brand: i.brand
+        brand: i.brand,
+        available: (i.quantity || 0) - (i.reservedQuantity || 0)
       }))
     });
 

@@ -517,7 +517,8 @@ export default function Inventory() {
         let items = inventoryItems.filter((item: any) => {
             const quantity = item.quantity || 0;
             const reserved = item.reservedQuantity || 0;
-            // Ocultar piezas sin stock ni reservas (0/0)
+            // Mostrar items con stock disponible O con reservas (pero al menos algo de stock)
+            // Ocultar solo los items completamente vacíos (0/0)
             return !(quantity === 0 && reserved === 0);
         });
 
@@ -533,7 +534,7 @@ export default function Inventory() {
                 if (!itemLocation.includes(filterLocation.toLowerCase())) return false;
             }
 
-            // Filtro de stock bajo (≤3 disponibles)
+            // Filtro de stock bajo (≤3 disponibles - solo cuenta stock disponible no reservado)
             if (filterLowStock && available > 3) return false;
 
             // Filtro de rango de precio (actualPrice o suggestedPrice)
@@ -631,10 +632,14 @@ export default function Inventory() {
             console.log('🔍 Inventory Smart Search:', {
                 query,
                 queryWords,
+                includesReservedItems: true, // Inventory muestra items con reservas también
                 resultsFound: scoredItems.length,
                 topResults: scoredItems.slice(0, 3).map((i: any) => ({
                     name: typeof i.carId === 'object' ? i.carId?.name : i.carId,
-                    brand: i.brand
+                    brand: i.brand,
+                    total: i.quantity || 0,
+                    reserved: i.reservedQuantity || 0,
+                    available: (i.quantity || 0) - (i.reservedQuantity || 0)
                 }))
             });
 
