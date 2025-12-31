@@ -422,61 +422,96 @@ const POS: React.FC = () => {
                     return (
                       <div
                         key={item._id}
-                        className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                        className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white"
                       >
-                        <h3 className="font-semibold text-lg">{displayName}</h3>
-                        <p className="text-sm text-gray-600">{carIdStr}</p>
-                        <p className="text-sm text-gray-600">
-                          {item.brand} {item.year && `• ${item.year}`}
-                        </p>
-                        {item.color && (
-                          <p className="text-sm text-gray-600">Color: {item.color}</p>
-                        )}
-                        {item.series && (
-                          <p className="text-sm text-gray-600">Serie: {item.series}</p>
-                        )}
-                        <p className="text-sm text-gray-600">{item.pieceType}</p>
-                        <p className="text-sm text-gray-500">Disponible: {availableQty}</p>
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="text-xl font-bold text-green-600">
-                            ${price.toFixed(2)}
-                          </span>
-                          {availableQty <= 1 ? (
-                            <button
-                              onClick={() => addToCart(item)}
-                              disabled={isInCart}
-                              className={`px-4 py-2 rounded-lg font-medium ${isInCart
-                                  ? 'bg-gray-300 cursor-not-allowed'
-                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                }`}
-                            >
-                              {isInCart ? 'En carrito' : 'Agregar'}
-                            </button>
+                        {/* Item Image */}
+                        <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
+                          {item.photos && item.photos.length > 0 ? (
+                            <img
+                              src={item.photos[0]}
+                              alt={displayName}
+                              className="w-full h-48 object-cover"
+                              crossOrigin="anonymous"
+                            />
                           ) : (
-                            <div className="flex items-center gap-2">
-                              {isInCart && (
-                                <>
-                                  <button
-                                    onClick={() => updateCartQuantity(item._id, cartQty - 1)}
-                                    className="w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold"
-                                  >
-                                    −
-                                  </button>
-                                  <span className="font-semibold min-w-[2rem] text-center">{cartQty}</span>
-                                </>
-                              )}
+                            <div className="w-full h-48 flex items-center justify-center">
+                              <svg className="w-20 h-20 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                          {isInCart && (
+                            <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                              En carrito
+                            </div>
+                          )}
+                          {availableQty <= 3 && (
+                            <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                              Solo {availableQty}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Item Details */}
+                        <div className="p-4">
+                          <h3 className="font-bold text-lg mb-1 line-clamp-2">{displayName}</h3>
+                          <p className="text-xs text-gray-500 mb-2">{carIdStr}</p>
+                          <div className="space-y-1 mb-3">
+                            <p className="text-sm text-gray-700 font-medium">
+                              {item.brand} {item.year && `• ${item.year}`}
+                            </p>
+                            {item.color && (
+                              <p className="text-xs text-gray-600">🎨 {item.color}</p>
+                            )}
+                            {item.series && (
+                              <p className="text-xs text-gray-600">📦 {item.series}</p>
+                            )}
+                            <p className="text-xs text-gray-600">🏷️ {item.pieceType}</p>
+                            <p className="text-xs text-gray-500">📍 Disponible: {availableQty}</p>
+                          </div>
+                          
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                            <span className="text-2xl font-bold text-green-600">
+                              ${price.toFixed(2)}
+                            </span>
+                            {availableQty <= 1 ? (
                               <button
-                                onClick={() => addToCart(item, 1)}
-                                disabled={cartQty >= availableQty}
-                                className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold ${cartQty >= availableQty
+                                onClick={() => addToCart(item)}
+                                disabled={isInCart}
+                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
                                     ? 'bg-gray-300 cursor-not-allowed'
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                                   }`}
                               >
-                                +
+                                {isInCart ? '✓ Agregado' : '+ Agregar'}
                               </button>
-                            </div>
-                          )}
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {isInCart && (
+                                  <>
+                                    <button
+                                      onClick={() => updateCartQuantity(item._id, cartQty - 1)}
+                                      className="w-9 h-9 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors"
+                                    >
+                                      −
+                                    </button>
+                                    <span className="font-bold text-lg min-w-[2.5rem] text-center">{cartQty}</span>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => addToCart(item, 1)}
+                                  disabled={cartQty >= availableQty}
+                                  className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${cartQty >= availableQty
+                                      ? 'bg-gray-300 cursor-not-allowed'
+                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    }`}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
@@ -492,7 +527,7 @@ const POS: React.FC = () => {
           <div className="bg-white rounded-lg shadow p-4 sticky top-4">
             <h2 className="text-xl font-bold mb-4">Carrito ({cart.length})</h2>
 
-            <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto">
+            <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
               {cart.length === 0 ? (
                 <p className="text-center text-gray-500 py-8">Carrito vacío</p>
               ) : (
@@ -506,70 +541,94 @@ const POS: React.FC = () => {
                   const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
 
                   return (
-                    <div key={item._id} className="border rounded p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm">{displayName}</p>
-                          <p className="text-xs text-gray-600">{carIdStr}</p>
-                          {item.cartQuantity > 1 && (
-                            <p className="text-xs text-blue-600 font-semibold">
-                              Cantidad: {item.cartQuantity}
-                            </p>
+                    <div key={item._id} className="border rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow">
+                      <div className="flex gap-2 p-2">
+                        {/* Cart Item Image */}
+                        <div className="flex-shrink-0">
+                          {item.photos && item.photos.length > 0 ? (
+                            <img
+                              src={item.photos[0]}
+                              alt={displayName}
+                              className="w-16 h-16 object-cover rounded border"
+                              crossOrigin="anonymous"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded border flex items-center justify-center">
+                              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
                           )}
                         </div>
-                        <button
-                          onClick={() => removeFromCart(item._id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs text-gray-600">Precio:</span>
-                        <span className="text-xs text-gray-400 line-through">
-                          ${originalPrice.toFixed(2)}
-                        </span>
-                        <input
-                          type="number"
-                          value={item.customPrice}
-                          onChange={(e) =>
-                            updatePrice(item._id, parseFloat(e.target.value) || 0)
-                          }
-                          className="flex-1 px-2 py-1 border rounded text-sm"
-                          step="0.01"
-                          min="0"
-                        />
-                      </div>
-                      {availableQty > 1 && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() =>
-                              updateCartQuantity(item._id, item.cartQuantity - 1)
-                            }
-                            className="w-7 h-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded font-bold text-sm"
-                          >
-                            −
-                          </button>
-                          <span className="text-sm font-semibold min-w-[2rem] text-center">
-                            {item.cartQuantity}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateCartQuantity(item._id, item.cartQuantity + 1)
-                            }
-                            disabled={item.cartQuantity >= availableQty}
-                            className={`w-7 h-7 flex items-center justify-center rounded font-bold text-sm ${item.cartQuantity >= availableQty
-                                ? 'bg-gray-300 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700 text-white'
-                              }`}
-                          >
-                            +
-                          </button>
-                          <span className="text-xs text-gray-500 ml-auto">
-                            Subtotal: ${(item.customPrice * item.cartQuantity).toFixed(2)}
-                          </span>
+                        
+                        {/* Cart Item Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-1">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm truncate">{displayName}</p>
+                              <p className="text-xs text-gray-500 truncate">{carIdStr}</p>
+                            </div>
+                            <button
+                              onClick={() => removeFromCart(item._id)}
+                              className="text-red-600 hover:text-red-800 ml-2 flex-shrink-0"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          
+                          {/* Price Input */}
+                          <div className="flex items-center gap-1 mb-2">
+                            <span className="text-xs text-gray-400 line-through">
+                              ${originalPrice.toFixed(2)}
+                            </span>
+                            <input
+                              type="number"
+                              value={item.customPrice}
+                              onChange={(e) =>
+                                updatePrice(item._id, parseFloat(e.target.value) || 0)
+                              }
+                              className="flex-1 px-2 py-1 border rounded text-sm font-semibold text-green-600"
+                              step="0.01"
+                              min="0"
+                            />
+                          </div>
+                          
+                          {/* Quantity Controls */}
+                          {availableQty > 1 && (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() =>
+                                    updateCartQuantity(item._id, item.cartQuantity - 1)
+                                  }
+                                  className="w-6 h-6 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded font-bold text-xs"
+                                >
+                                  −
+                                </button>
+                                <span className="text-sm font-bold min-w-[2rem] text-center">
+                                  {item.cartQuantity}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    updateCartQuantity(item._id, item.cartQuantity + 1)
+                                  }
+                                  disabled={item.cartQuantity >= availableQty}
+                                  className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${item.cartQuantity >= availableQty
+                                      ? 'bg-gray-300 cursor-not-allowed'
+                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    }`}
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <span className="text-xs font-semibold text-gray-700">
+                                ${(item.customPrice * item.cartQuantity).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })
