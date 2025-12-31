@@ -34,6 +34,13 @@ const POS: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [processing, setProcessing] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  
+  // Filtros adicionales
+  const [filterCondition, setFilterCondition] = useState('');
+  const [filterBrand, setFilterBrand] = useState('');
+  const [filterPieceType, setFilterPieceType] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterLowStock, setFilterLowStock] = useState(false);
 
   // Initial load: fetch inventory on component mount if Redux is empty
   useEffect(() => {
@@ -123,15 +130,43 @@ const POS: React.FC = () => {
     loadInitialInventory();
   }, []);
 
-  // Smart search con scoring multi-criterio
+  // Smart search con scoring multi-criterio + filtros
   const filteredInventory = useMemo(() => {
+    let items = inventoryItems;
+    
+    // Aplicar filtros primero
+    items = items.filter(item => {
+      const quantity = item.quantity || 0;
+      const reserved = item.reservedQuantity || 0;
+      const available = quantity - reserved;
+      
+      // Stock disponible (siempre requerido)
+      if (available <= 0) return false;
+      
+      // Filtro de condición
+      if (filterCondition && item.condition !== filterCondition) return false;
+      
+      // Filtro de marca
+      if (filterBrand && item.brand !== filterBrand) return false;
+      
+      // Filtro de tipo de pieza
+      if (filterPieceType && item.pieceType !== filterPieceType) return false;
+      
+      // Filtro de ubicación
+      if (filterLocation) {
+        const itemLocation = (item.location || '').toLowerCase();
+        if (!itemLocation.includes(filterLocation.toLowerCase())) return false;
+      }
+      
+      // Filtro de stock bajo (≤ 3 unidades disponibles)
+      if (filterLowStock && available > 3) return false;
+      
+      return true;
+    });
+    
     if (!searchTerm.trim()) {
-      // Sin búsqueda: mostrar todos los items con stock disponible
-      const available = inventoryItems.filter(item => {
-        const quantity = item.quantity || 0;
-        const reserved = item.reservedQuantity || 0;
-        return quantity - reserved > 0;
-      });
+      // Sin búsqueda: mostrar items filtrados
+      const available = items;
       console.log('📦 POS Inventory Stats (No Search):', {
         total: inventoryItems.length,
         available: available.length,
@@ -148,14 +183,9 @@ const POS: React.FC = () => {
     const query = searchTerm.toLowerCase().trim();
     const queryWords = query.split(/\s+/); // Dividir en palabras
 
-    // Sistema de scoring para ordenar resultados
-    const scoredItems = inventoryItems
+    // Sistema de scoring para ordenar resultados (sobre items ya filtrados)
+    const scoredItems = items
       .map(item => {
-        const quantity = item.quantity || 0;
-        const reserved = item.reservedQuantity || 0;
-
-        // Skip items sin stock
-        if (quantity - reserved <= 0) return null;
 
         // Extraer datos del item
         const carData = typeof item.carId === 'object' ? item.carId : null;
@@ -240,6 +270,8 @@ const POS: React.FC = () => {
     console.log('🔍 Smart Search:', {
       query,
       queryWords,
+      filtersApplied: { filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock },
+      itemsAfterFilters: items.length,
       resultsFound: scoredItems.length,
       topResults: scoredItems.slice(0, 3).map(i => ({
         name: typeof i.carId === 'object' ? i.carId?.name : i.carId,
@@ -248,7 +280,25 @@ const POS: React.FC = () => {
     });
 
     return scoredItems;
-  }, [inventoryItems, searchTerm]);
+  }, [inventoryItems, searchTerm, filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock]);
+  
+  // Extraer marcas únicas para el filtro
+  const uniqueBrands = useMemo(() => {
+    const brands = new Set<string>();
+    inventoryItems.forEach(item => {
+      if (item.brand) brands.add(item.brand);
+    });
+    return Array.from(brands).sort();
+  }, [inventoryItems]);
+  
+  // Extraer ubicaciones únicas para el filtro
+  const uniqueLocations = useMemo(() => {
+    const locations = new Set<string>();
+    inventoryItems.forEach(item => {
+      if (item.location) locations.add(item.location);
+    });
+    return Array.from(locations).sort();
+  }, [inventoryItems]);
 
   // Agregar item al carrito
   const addToCart = (item: ReduxInventoryItem, quantity: number = 1) => {
@@ -431,20 +481,111 @@ const POS: React.FC = () => {
         {/* Lista de Inventario */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow p-4">
+            {/* Barra de búsqueda */}
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente 75%+)"
+                placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
-              {searchTerm && (
-                <p className="text-sm text-gray-500 mt-2">
-                  {filteredInventory.length} resultado(s) encontrado(s)
-                </p>
-              )}
             </div>
+            
+            {/* Filtros */}
+            <div className="mb-4 space-y-3">
+              {/* Primera fila de filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <select
+                  value={filterCondition}
+                  onChange={(e) => setFilterCondition(e.target.value)}
+                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">Todas las condiciones</option>
+                  <option value="mint">Mint</option>
+                  <option value="good">Bueno</option>
+                  <option value="fair">Regular</option>
+                  <option value="poor">Malo</option>
+                </select>
+                
+                <select
+                  value={filterBrand}
+                  onChange={(e) => {
+                    setFilterBrand(e.target.value);
+                    if (!e.target.value) setFilterPieceType(''); // Reset tipo al cambiar marca
+                  }}
+                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">Todas las marcas</option>
+                  {uniqueBrands.map(brand => (
+                    <option key={brand} value={brand}>{brand}</option>
+                  ))}
+                </select>
+                
+                <select
+                  value={filterPieceType}
+                  onChange={(e) => setFilterPieceType(e.target.value)}
+                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  disabled={!filterBrand}
+                >
+                  <option value="">Todos los tipos</option>
+                  <option value="basic">Básico</option>
+                  <option value="premium">Premium</option>
+                  <option value="rlc">RLC</option>
+                  <option value="silver_series">Silver Series</option>
+                  <option value="elite_64">Elite 64</option>
+                </select>
+              </div>
+              
+              {/* Segunda fila de filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <select
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">Todas las ubicaciones</option>
+                  {uniqueLocations.map(location => (
+                    <option key={location} value={location}>{location}</option>
+                  ))}
+                </select>
+                
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={filterLowStock}
+                    onChange={(e) => setFilterLowStock(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Solo stock bajo (≤3)
+                  </span>
+                </label>
+                
+                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock) && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setFilterCondition('');
+                      setFilterBrand('');
+                      setFilterPieceType('');
+                      setFilterLocation('');
+                      setFilterLowStock(false);
+                    }}
+                    className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
+                  >
+                    Limpiar filtros
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            {/* Contador de resultados */}
+            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock) && (
+              <div className="mb-3 text-sm text-gray-600">
+                {filteredInventory.length} resultado(s) encontrado(s)
+              </div>
+            )}
 
             <div className="overflow-y-auto max-h-[600px]">
               {filteredInventory.length === 0 ? (
