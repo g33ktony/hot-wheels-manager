@@ -870,26 +870,15 @@ export default function Deliveries() {
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2 lg:hidden">
                                             {delivery.status === 'scheduled' && (
-                                                <>
-                                                    <Button
-                                                        size="sm"
-                                                        onClick={() => handleMarkAsPrepared(delivery._id!)}
-                                                        disabled={markPreparedMutation.isLoading}
-                                                        className="text-orange-600 hover:text-orange-800 min-w-[44px] min-h-[44px]"
-                                                        title="Marcar como preparada"
-                                                    >
-                                                        📦
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        onClick={() => handleMarkAsCompleted(delivery._id!)}
-                                                        disabled={markCompletedMutation.isLoading}
-                                                        className="text-green-600 hover:text-green-800 min-w-[44px] min-h-[44px]"
-                                                        title="Marcar como completada y pagada"
-                                                    >
-                                                        <CheckCircle size={16} />
-                                                    </Button>
-                                                </>
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleMarkAsPrepared(delivery._id!)}
+                                                    disabled={markPreparedMutation.isLoading}
+                                                    className="text-orange-600 hover:text-orange-800 min-w-[44px] min-h-[44px]"
+                                                    title="Marcar como preparada"
+                                                >
+                                                    📦
+                                                </Button>
                                             )}
                                             {delivery.status === 'prepared' && (
                                                 <Button
@@ -988,26 +977,15 @@ export default function Deliveries() {
                                 {/* Desktop actions */}
                                 <div className="hidden lg:flex items-center gap-2">
                                     {delivery.status === 'scheduled' && (
-                                        <>
-                                            <Button
-                                                size="sm"
-                                                onClick={() => handleMarkAsPrepared(delivery._id!)}
-                                                disabled={markPreparedMutation.isLoading}
-                                                className="text-orange-600 hover:text-orange-800"
-                                                title="Marcar como preparada"
-                                            >
-                                                📦
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={() => handleMarkAsCompleted(delivery._id!)}
-                                                disabled={markCompletedMutation.isLoading}
-                                                className="text-green-600 hover:text-green-800"
-                                                title="Marcar como completada y pagada"
-                                            >
-                                                <CheckCircle size={16} />
-                                            </Button>
-                                        </>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleMarkAsPrepared(delivery._id!)}
+                                            disabled={markPreparedMutation.isLoading}
+                                            className="text-orange-600 hover:text-orange-800"
+                                            title="Marcar como preparada"
+                                        >
+                                            📦
+                                        </Button>
                                     )}
                                     {delivery.status === 'prepared' && (
                                         <Button
@@ -1684,35 +1662,18 @@ export default function Deliveries() {
                         <div className="px-6 py-4 bg-gray-50 border-b">
                             <div className="flex flex-wrap gap-2">
                                 {selectedDelivery.status === 'scheduled' && (
-                                    <>
-                                        <Button
-                                            size="sm"
-                                            onClick={() => {
-                                                handleMarkAsPrepared(selectedDelivery._id!)
-                                                handleCloseDetails()
-                                            }}
-                                            disabled={markPreparedMutation.isLoading}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <Package size={16} />
-                                            <span>Marcar como Preparada</span>
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            onClick={() => {
-                                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
-                                                    handleMarkAsCompleted(selectedDelivery._id!)
-                                                    handleCloseDetails()
-                                                }
-                                            }}
-                                            disabled={markCompletedMutation.isLoading}
-                                            variant="success"
-                                            className="flex items-center gap-2"
-                                        >
-                                            <CheckCircle size={16} />
-                                            <span>Marcar como Completada</span>
-                                        </Button>
-                                    </>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => {
+                                            handleMarkAsPrepared(selectedDelivery._id!)
+                                            handleCloseDetails()
+                                        }}
+                                        disabled={markPreparedMutation.isLoading}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Package size={16} />
+                                        <span>Marcar como Preparada</span>
+                                    </Button>
                                 )}
                                 {selectedDelivery.status === 'prepared' && (
                                     <Button
