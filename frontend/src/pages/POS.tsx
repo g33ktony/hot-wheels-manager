@@ -54,6 +54,28 @@ const POS: React.FC = () => {
   const [filterPieceType, setFilterPieceType] = useState('');
   const [filterLocation, setFilterLocation] = useState('');
   const [filterLowStock, setFilterLowStock] = useState(false);
+  
+  // Cargar búsqueda compartida desde Inventario (solo si existe)
+  useEffect(() => {
+    const sharedSearch = sessionStorage.getItem('sharedSearchTerm');
+    const sharedCondition = sessionStorage.getItem('sharedFilterCondition');
+    const sharedBrand = sessionStorage.getItem('sharedFilterBrand');
+    const sharedPieceType = sessionStorage.getItem('sharedFilterPieceType');
+    
+    if (sharedSearch) {
+      setSearchTerm(sharedSearch);
+      console.log('🔗 POS: Búsqueda compartida cargada desde Inventario:', sharedSearch);
+    }
+    if (sharedCondition) setFilterCondition(sharedCondition);
+    if (sharedBrand) setFilterBrand(sharedBrand);
+    if (sharedPieceType) setFilterPieceType(sharedPieceType);
+    
+    // Limpiar sessionStorage después de cargar (solo se usa una vez)
+    sessionStorage.removeItem('sharedSearchTerm');
+    sessionStorage.removeItem('sharedFilterCondition');
+    sessionStorage.removeItem('sharedFilterBrand');
+    sessionStorage.removeItem('sharedFilterPieceType');
+  }, []);
 
   // Initial load: fetch inventory on component mount if Redux is empty
   useEffect(() => {

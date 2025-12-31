@@ -185,6 +185,7 @@ export default function Inventory() {
     const [itemsPerPage] = useState(30) // Increased from 15 to load more with lazy loading
     const [searchTerm, setSearchTerm] = useState('')
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('') // For debounced API calls
+    const [keepSearchAcrossPages, setKeepSearchAcrossPages] = useState(false) // Toggle para mantener búsqueda
     const [filterCondition, setFilterCondition] = useState('')
     const [filterBrand, setFilterBrand] = useState('')
     const [filterPieceType, setFilterPieceType] = useState('')
@@ -238,6 +239,24 @@ export default function Inventory() {
             debouncedSearch.cancel()
         }
     }, [searchTerm, debouncedSearch])
+    
+    // Guardar búsqueda en sessionStorage si el toggle está activo
+    useEffect(() => {
+        if (keepSearchAcrossPages) {
+            // Guardar estado de búsqueda para compartir con POS
+            sessionStorage.setItem('sharedSearchTerm', searchTerm);
+            sessionStorage.setItem('sharedFilterCondition', filterCondition);
+            sessionStorage.setItem('sharedFilterBrand', filterBrand);
+            sessionStorage.setItem('sharedFilterPieceType', filterPieceType);
+        } else {
+            // Limpiar si el toggle está desactivado
+            sessionStorage.removeItem('sharedSearchTerm');
+            sessionStorage.removeItem('sharedFilterCondition');
+            sessionStorage.removeItem('sharedFilterBrand');
+            sessionStorage.removeItem('sharedFilterPieceType');
+        }
+    }, [keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType]);
+    
     const [newItem, setNewItem] = useState({
         carId: '',
         quantity: 1,
@@ -1288,6 +1307,23 @@ export default function Inventory() {
             {/* Filters */}
             <Card>
                 <div className="space-y-4 w-full">
+                    {/* Toggle para mantener búsqueda */}
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                        <input
+                            type="checkbox"
+                            id="keepSearchToggle"
+                            checked={keepSearchAcrossPages}
+                            onChange={(e) => setKeepSearchAcrossPages(e.target.checked)}
+                            className="rounded w-4 h-4"
+                        />
+                        <label htmlFor="keepSearchToggle" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                            🔗 Mantener búsqueda al ir a POS
+                        </label>
+                        <span className="text-xs text-gray-500">
+                            (Actívalo para continuar la búsqueda en POS)
+                        </span>
+                    </div>
+                    
                     {/* First row: Search and Condition */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 w-full">
                         <div className="relative w-full">
