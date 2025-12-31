@@ -88,7 +88,7 @@ export default function ItemDetail() {
     const getCroppedImage = async (): Promise<Blob> => {
         // Use completedCrop if available, otherwise use current crop state
         const cropToUse = completedCrop || crop
-        
+
         if (!imageRef.current || !cropToUse.width || !cropToUse.height) {
             throw new Error('No crop area selected')
         }
@@ -176,7 +176,7 @@ export default function ItemDetail() {
     const handleConfirmCrop = async () => {
         try {
             const croppedBlob = await getCroppedImage()
-            
+
             console.log('✂️ Imagen recortada:', {
                 size: croppedBlob.size,
                 type: croppedBlob.type,
@@ -194,7 +194,7 @@ export default function ItemDetail() {
                 reader.readAsDataURL(croppedBlob)
             })
             setCroppedImageData(base64Data)
-            
+
             console.log('✅ Imagen recortada guardada:', {
                 hasUrl: !!croppedUrl,
                 hasData: !!base64Data,
@@ -631,8 +631,8 @@ export default function ItemDetail() {
                                             key={index}
                                             onClick={() => setSelectedPhotoIndex(index)}
                                             className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedPhotoIndex === index
-                                                    ? 'border-primary-600'
-                                                    : 'border-gray-200'
+                                                ? 'border-primary-600'
+                                                : 'border-gray-200'
                                                 }`}
                                         >
                                             <img

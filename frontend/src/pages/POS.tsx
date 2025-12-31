@@ -7,6 +7,19 @@ import { calculateSimilarity } from '@/utils/searchUtils';
 import { inventoryService } from '@/services/inventory';
 import type { InventoryItem as ReduxInventoryItem } from '@/store/slices/inventorySlice';
 
+// Helper para formatear el tipo de pieza
+const formatPieceType = (pieceType: string | undefined): string => {
+  if (!pieceType) return '';
+  const typeMap: Record<string, string> = {
+    'basic': 'Básico',
+    'premium': 'Premium',
+    'rlc': 'RLC',
+    'silver_series': 'Silver Series',
+    'elite_64': 'Elite 64'
+  };
+  return typeMap[pieceType] || pieceType;
+};
+
 interface CartItem extends ReduxInventoryItem {
   customPrice: number;
   cartQuantity: number;
@@ -34,7 +47,7 @@ const POS: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [processing, setProcessing] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
-  
+
   // Filtros adicionales
   const [filterCondition, setFilterCondition] = useState('');
   const [filterBrand, setFilterBrand] = useState('');
@@ -73,6 +86,14 @@ const POS: React.FC = () => {
         totalPages = Math.ceil(totalItems / INITIAL_BATCH_SIZE);
 
         console.log('✅ POS: Cargó primer lote -', firstBatch.items.length, 'items de', totalItems, 'total');
+        
+        // Debug: verificar si los items tienen brand
+        console.log('🔍 Debug first batch brands:', firstBatch.items.slice(0, 10).map((item: any) => ({
+          id: item._id,
+          name: typeof item.carId === 'object' ? item.carId?.name : item.carId,
+          brand: item.brand,
+          hasBrand: !!item.brand
+        })));
 
         // Update Redux with first batch
         dispatch(setInventoryItems({
@@ -133,37 +154,37 @@ const POS: React.FC = () => {
   // Smart search con scoring multi-criterio + filtros
   const filteredInventory = useMemo(() => {
     let items = inventoryItems;
-    
+
     // Aplicar filtros primero
     items = items.filter(item => {
       const quantity = item.quantity || 0;
       const reserved = item.reservedQuantity || 0;
       const available = quantity - reserved;
-      
+
       // Stock disponible (siempre requerido)
       if (available <= 0) return false;
-      
+
       // Filtro de condición
       if (filterCondition && item.condition !== filterCondition) return false;
-      
+
       // Filtro de marca
       if (filterBrand && item.brand !== filterBrand) return false;
-      
+
       // Filtro de tipo de pieza
       if (filterPieceType && item.pieceType !== filterPieceType) return false;
-      
+
       // Filtro de ubicación
       if (filterLocation) {
         const itemLocation = (item.location || '').toLowerCase();
         if (!itemLocation.includes(filterLocation.toLowerCase())) return false;
       }
-      
+
       // Filtro de stock bajo (≤ 3 unidades disponibles)
       if (filterLowStock && available > 3) return false;
-      
+
       return true;
     });
-    
+
     if (!searchTerm.trim()) {
       // Sin búsqueda: mostrar items filtrados
       const available = items;
@@ -225,7 +246,7 @@ const POS: React.FC = () => {
           // Palabras completas encontradas
           const carNameWords = carName.split(/\s+/);
           const brandWords = brand.split(/\s+/);
-          
+
           if (carNameWords.some(w => w === word)) score += 200;
           if (brandWords.some(w => w === word)) score += 180;
           if (carNameWords.some(w => w.startsWith(word))) score += 150;
@@ -241,7 +262,7 @@ const POS: React.FC = () => {
 
         // 5. Similitud fuzzy (umbral bajo para ser flexible)
         const FUZZY_THRESHOLD = 60; // Reducido de 75 a 60
-        
+
         const carNameSimilarity = calculateSimilarity(query, carName);
         const brandSimilarity = calculateSimilarity(query, brand);
         const pieceTypeSimilarity = calculateSimilarity(query, pieceType);
@@ -255,7 +276,7 @@ const POS: React.FC = () => {
           if (word.length >= 3) {
             const wordCarSimilarity = calculateSimilarity(word, carName);
             const wordBrandSimilarity = calculateSimilarity(word, brand);
-            
+
             if (wordCarSimilarity >= 70) score += 100;
             if (wordBrandSimilarity >= 70) score += 80;
           }
@@ -281,7 +302,7 @@ const POS: React.FC = () => {
 
     return scoredItems;
   }, [inventoryItems, searchTerm, filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock]);
-  
+
   // Extraer marcas únicas para el filtro
   const uniqueBrands = useMemo(() => {
     const brands = new Set<string>();
@@ -299,7 +320,7 @@ const POS: React.FC = () => {
     });
     return brandsArray;
   }, [inventoryItems]);
-  
+
   // Extraer ubicaciones únicas para el filtro
   const uniqueLocations = useMemo(() => {
     const locations = new Set<string>();
@@ -500,7 +521,7 @@ const POS: React.FC = () => {
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
+
             {/* Filtros */}
             <div className="mb-4 space-y-3">
               {/* Primera fila de filtros */}
@@ -516,7 +537,7 @@ const POS: React.FC = () => {
                   <option value="fair">Regular</option>
                   <option value="poor">Malo</option>
                 </select>
-                
+
                 <select
                   value={filterBrand}
                   onChange={(e) => {
@@ -530,7 +551,7 @@ const POS: React.FC = () => {
                     <option key={brand} value={brand}>{brand}</option>
                   ))}
                 </select>
-                
+
                 <select
                   value={filterPieceType}
                   onChange={(e) => setFilterPieceType(e.target.value)}
@@ -545,7 +566,7 @@ const POS: React.FC = () => {
                   <option value="elite_64">Elite 64</option>
                 </select>
               </div>
-              
+
               {/* Segunda fila de filtros */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <select
@@ -558,7 +579,7 @@ const POS: React.FC = () => {
                     <option key={location} value={location}>{location}</option>
                   ))}
                 </select>
-                
+
                 <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
                     type="checkbox"
@@ -570,7 +591,7 @@ const POS: React.FC = () => {
                     Solo stock bajo (≤3)
                   </span>
                 </label>
-                
+
                 {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock) && (
                   <button
                     onClick={() => {
@@ -588,7 +609,7 @@ const POS: React.FC = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Contador de resultados */}
             {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock) && (
               <div className="mb-3 text-sm text-gray-600">
@@ -649,7 +670,7 @@ const POS: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Item Details */}
                         <div className="p-4">
                           <h3 className="font-bold text-lg mb-1 line-clamp-2">{displayName}</h3>
@@ -664,10 +685,10 @@ const POS: React.FC = () => {
                             {item.series && (
                               <p className="text-xs text-gray-600">📦 {item.series}</p>
                             )}
-                            <p className="text-xs text-gray-600">🏷️ {item.pieceType}</p>
+                            <p className="text-xs text-gray-600">🏷️ {formatPieceType(item.pieceType)}</p>
                             <p className="text-xs text-gray-500">📍 Disponible: {availableQty}</p>
                           </div>
-                          
+
                           <div className="flex items-center justify-between mt-3 pt-3 border-t">
                             <span className="text-2xl font-bold text-green-600">
                               ${price.toFixed(2)}
@@ -677,8 +698,8 @@ const POS: React.FC = () => {
                                 onClick={() => addToCart(item)}
                                 disabled={isInCart}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
-                                    ? 'bg-gray-300 cursor-not-allowed'
-                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                  ? 'bg-gray-300 cursor-not-allowed'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
                                   }`}
                               >
                                 {isInCart ? '✓ Agregado' : '+ Agregar'}
@@ -700,8 +721,8 @@ const POS: React.FC = () => {
                                   onClick={() => addToCart(item, 1)}
                                   disabled={cartQty >= availableQty}
                                   className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${cartQty >= availableQty
-                                      ? 'bg-gray-300 cursor-not-allowed'
-                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    ? 'bg-gray-300 cursor-not-allowed'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                                     }`}
                                 >
                                   +
@@ -758,7 +779,7 @@ const POS: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Cart Item Details */}
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-1">
@@ -773,7 +794,7 @@ const POS: React.FC = () => {
                               ✕
                             </button>
                           </div>
-                          
+
                           {/* Price Input */}
                           <div className="flex items-center gap-1 mb-2">
                             <span className="text-xs text-gray-400 line-through">
@@ -790,7 +811,7 @@ const POS: React.FC = () => {
                               min="0"
                             />
                           </div>
-                          
+
                           {/* Quantity Controls */}
                           {availableQty > 1 && (
                             <div className="flex items-center justify-between">
@@ -812,8 +833,8 @@ const POS: React.FC = () => {
                                   }
                                   disabled={item.cartQuantity >= availableQty}
                                   className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${item.cartQuantity >= availableQty
-                                      ? 'bg-gray-300 cursor-not-allowed'
-                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    ? 'bg-gray-300 cursor-not-allowed'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
                                     }`}
                                 >
                                   +
@@ -861,8 +882,8 @@ const POS: React.FC = () => {
                 onClick={processSale}
                 disabled={cart.length === 0 || processing}
                 className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700 text-white'
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700 text-white'
                   }`}
               >
                 {processing ? 'Procesando...' : 'Completar Venta'}

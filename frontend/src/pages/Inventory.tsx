@@ -22,6 +22,19 @@ import debounce from 'lodash.debounce'
 import OCRScanner from '@/components/OCRScanner'
 import type { InventoryItem } from '../../../shared/types'
 
+// Helper para formatear el tipo de pieza
+const formatPieceType = (pieceType: string | undefined): string => {
+    if (!pieceType) return '';
+    const typeMap: Record<string, string> = {
+        'basic': 'Básico',
+        'premium': 'Premium',
+        'rlc': 'RLC',
+        'silver_series': 'Silver Series',
+        'elite_64': 'Elite 64'
+    };
+    return typeMap[pieceType] || pieceType;
+};
+
 // Utility function: Calculate Levenshtein distance for fuzzy matching
 const levenshteinDistance = (str1: string, str2: string): number => {
     const track = new Array(str2.length + 1)
@@ -364,7 +377,7 @@ export default function Inventory() {
         ...PREDEFINED_BRANDS,
         ...(customBrands?.map(b => b.name) || [])
     ].sort()
-    
+
     // Extraer ubicaciones únicas para el filtro
     const uniqueLocations = useMemo(() => {
         const locations = new Set<string>();
@@ -507,35 +520,35 @@ export default function Inventory() {
             // Ocultar piezas sin stock ni reservas (0/0)
             return !(quantity === 0 && reserved === 0);
         });
-        
+
         // Aplicar filtros adicionales localmente
         items = items.filter((item: any) => {
             const quantity = item.quantity || 0;
             const reserved = item.reservedQuantity || 0;
             const available = quantity - reserved;
-            
+
             // Filtro de ubicación
             if (filterLocation) {
                 const itemLocation = (item.location || '').toLowerCase();
                 if (!itemLocation.includes(filterLocation.toLowerCase())) return false;
             }
-            
+
             // Filtro de stock bajo (≤3 disponibles)
             if (filterLowStock && available > 3) return false;
-            
+
             // Filtro de rango de precio (actualPrice o suggestedPrice)
             const price = item.actualPrice || item.suggestedPrice || 0;
             if (filterPriceMin && price < parseFloat(filterPriceMin)) return false;
             if (filterPriceMax && price > parseFloat(filterPriceMax)) return false;
-            
+
             return true;
         });
-        
+
         // Si hay búsqueda con término, aplicar scoring inteligente
         if (searchTerm.trim()) {
             const query = searchTerm.toLowerCase().trim();
             const queryWords = query.split(/\\s+/);
-            
+
             const scoredItems = items
                 .map((item: any) => {
                     const carData = typeof item.carId === 'object' ? item.carId : null;
@@ -546,14 +559,14 @@ export default function Inventory() {
                     const location = (item.location || '').toLowerCase();
                     const condition = (item.condition || '').toLowerCase();
                     const notes = (item.notes || '').toLowerCase();
-                    
+
                     let score = 0;
-                    
+
                     // 1. Coincidencia exacta completa
                     if (carName === query) score += 1000;
                     if (brand === query) score += 900;
                     if (pieceType === query) score += 800;
-                    
+
                     // 2. Contiene la frase completa
                     if (carName.includes(query)) score += 500;
                     if (brand.includes(query)) score += 400;
@@ -562,59 +575,59 @@ export default function Inventory() {
                     if (condition.includes(query)) score += 150;
                     if (notes.includes(query)) score += 100;
                     if (carIdStr.includes(query)) score += 50;
-                    
+
                     // 3. Empieza con la búsqueda
                     if (carName.startsWith(query)) score += 400;
                     if (brand.startsWith(query)) score += 350;
                     if (pieceType.startsWith(query)) score += 250;
-                    
+
                     // 4. Búsqueda por palabras individuales
                     queryWords.forEach(word => {
                         if (word.length < 2) return;
-                        
+
                         const carNameWords = carName.split(/\\s+/);
                         const brandWords = brand.split(/\\s+/);
-                        
+
                         if (carNameWords.some((w: string) => w === word)) score += 200;
                         if (brandWords.some((w: string) => w === word)) score += 180;
                         if (carNameWords.some((w: string) => w.startsWith(word))) score += 150;
                         if (brandWords.some((w: string) => w.startsWith(word))) score += 130;
-                        
+
                         if (carName.includes(word)) score += 80;
                         if (brand.includes(word)) score += 70;
                         if (pieceType.includes(word)) score += 60;
                         if (location.includes(word)) score += 40;
                         if (notes.includes(word)) score += 30;
                     });
-                    
+
                     // 5. Similitud fuzzy (umbral bajo)
                     const FUZZY_THRESHOLD = 60;
-                    
+
                     const carNameSimilarity = calculateSimilarity(query, carName);
                     const brandSimilarity = calculateSimilarity(query, brand);
                     const pieceTypeSimilarity = calculateSimilarity(query, pieceType);
-                    
+
                     if (carNameSimilarity >= FUZZY_THRESHOLD) score += carNameSimilarity * 2;
                     if (brandSimilarity >= FUZZY_THRESHOLD) score += brandSimilarity * 1.5;
                     if (pieceTypeSimilarity >= FUZZY_THRESHOLD) score += pieceTypeSimilarity;
-                    
+
                     // 6. Bonus por palabras individuales con fuzzy
                     queryWords.forEach(word => {
                         if (word.length >= 3) {
                             const wordCarSimilarity = calculateSimilarity(word, carName);
                             const wordBrandSimilarity = calculateSimilarity(word, brand);
-                            
+
                             if (wordCarSimilarity >= 70) score += 100;
                             if (wordBrandSimilarity >= 70) score += 80;
                         }
                     });
-                    
+
                     return score > 0 ? { item, score } : null;
                 })
                 .filter((result: any): result is { item: any; score: number } => result !== null)
                 .sort((a: any, b: any) => b.score - a.score)
                 .map((result: any) => result.item);
-            
+
             console.log('🔍 Inventory Smart Search:', {
                 query,
                 queryWords,
@@ -624,10 +637,10 @@ export default function Inventory() {
                     brand: i.brand
                 }))
             });
-            
+
             return scoredItems;
         }
-        
+
         return items;
     }, [inventoryItems, searchTerm, filterLocation, filterLowStock, filterPriceMin, filterPriceMax]);
 
@@ -1423,7 +1436,7 @@ export default function Inventory() {
                                 <option key={location} value={location}>{location}</option>
                             ))}
                         </select>
-                        
+
                         <label className="flex items-center gap-2 input cursor-pointer">
                             <input
                                 type="checkbox"
@@ -1438,7 +1451,7 @@ export default function Inventory() {
                                 Stock bajo (≤3)
                             </span>
                         </label>
-                        
+
                         <input
                             type="number"
                             value={filterPriceMin}
@@ -1453,7 +1466,7 @@ export default function Inventory() {
                                 WebkitTapHighlightColor: 'transparent',
                             }}
                         />
-                        
+
                         <input
                             type="number"
                             value={filterPriceMax}
@@ -1610,18 +1623,13 @@ export default function Inventory() {
                                                 {/* Piece Type Badge */}
                                                 {item.pieceType && (
                                                     <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
-                                                            item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
-                                                                item.pieceType === 'rlc' ? 'bg-orange-500 bg-opacity-90 text-white' :
-                                                                    item.pieceType === 'silver_series' ? 'bg-gray-500 bg-opacity-90 text-white' :
-                                                                        item.pieceType === 'elite_64' ? 'bg-red-500 bg-opacity-90 text-white' :
-                                                                            'bg-gray-400 bg-opacity-90 text-white'
+                                                        item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
+                                                            item.pieceType === 'rlc' ? 'bg-orange-500 bg-opacity-90 text-white' :
+                                                                item.pieceType === 'silver_series' ? 'bg-gray-500 bg-opacity-90 text-white' :
+                                                                    item.pieceType === 'elite_64' ? 'bg-red-500 bg-opacity-90 text-white' :
+                                                                        'bg-gray-400 bg-opacity-90 text-white'
                                                         }`}>
-                                                        {item.pieceType === 'basic' ? 'BÁSICO' :
-                                                            item.pieceType === 'premium' ? 'PREMIUM' :
-                                                                item.pieceType === 'rlc' ? 'RLC' :
-                                                                    item.pieceType === 'silver_series' ? 'SILVER' :
-                                                                        item.pieceType === 'elite_64' ? 'ELITE 64' :
-                                                                            item.pieceType}
+                                                        {formatPieceType(item.pieceType).toUpperCase()}
                                                     </span>
                                                 )}
 
