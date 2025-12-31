@@ -5,7 +5,7 @@ import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
-import { Package, ShoppingCart, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle } from 'lucide-react'
+import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, Database } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
@@ -35,6 +35,11 @@ export default function Dashboard() {
         return null
     }
 
+    // Calcular métricas adicionales
+    const profitMargin = metrics.monthlyRevenue > 0 
+        ? ((metrics.monthlyProfit / metrics.monthlyRevenue) * 100).toFixed(1)
+        : '0.0';
+
     const metricCards = [
         {
             title: 'Items en Inventario',
@@ -43,47 +48,53 @@ export default function Dashboard() {
             color: 'text-green-600',
             bgColor: 'bg-green-100',
         },
-        // {
-        //     title: 'Total de Ventas',
-        //     value: (metrics.totalSales || 0).toString(),
-        //     icon: ShoppingCart,
-        //     color: 'text-purple-600',
-        //     bgColor: 'bg-purple-100',
-        // },
-        // {
-        //     title: 'Ventas del Mes',
-        //     value: (metrics.monthlySales || 0).toString(),
-        //     icon: ShoppingCart,
-        //     color: 'text-indigo-600',
-        //     bgColor: 'bg-indigo-100',
-        // },
-        // {
-        //     title: 'Ingresos Totales',
-        //     value: `$${(metrics.totalRevenue || 0).toLocaleString()}`,
-        //     icon: DollarSign,
-        //     color: 'text-green-600',
-        //     bgColor: 'bg-green-100',
-        // },
-        // {
-        //     title: 'Ingresos del Mes',
-        //     value: `$${(metrics.monthlyRevenue || 0).toLocaleString()}`,
-        //     icon: DollarSign,
-        //     color: 'text-emerald-600',
-        //     bgColor: 'bg-emerald-100',
-        // },
+        // 2. Total de Compras Pendientes
         {
-            title: 'Ventas Pendientes',
-            value: metrics.pendingSales.toString(),
-            icon: ShoppingCart,
-            color: 'text-orange-600',
-            bgColor: 'bg-orange-100',
+            title: 'Compras Pendientes',
+            value: metrics.pendingPurchases.toString(),
+            icon: ShoppingBag,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-100',
         },
+        // 3. Entregas del Día
+        {
+            title: 'Entregas del Día',
+            value: (metrics.todaysDeliveries?.length || 0).toString(),
+            icon: CalendarCheck,
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-100',
+        },
+        // 4. Cantidad Total en Stock
+        {
+            title: 'Total en Stock',
+            value: (metrics.totalQuantity || 0).toLocaleString(),
+            icon: Archive,
+            color: 'text-green-600',
+            bgColor: 'bg-green-100',
+        },
+        // 5. Margen de Ganancia del Mes
+        {
+            title: 'Margen del Mes',
+            value: `${profitMargin}%`,
+            icon: Percent,
+            color: 'text-emerald-600',
+            bgColor: 'bg-emerald-100',
+        },
+        // 6. Entregas Pendientes (como indicador de cumplimiento)
         {
             title: 'Entregas Pendientes',
             value: metrics.pendingDeliveries.toString(),
             icon: Truck,
-            color: 'text-purple-600',
-            bgColor: 'bg-purple-100',
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-100',
+        },
+        // 7. Items Únicos en Catálogo
+        {
+            title: 'Catálogo Hot Wheels',
+            value: (metrics.totalCatalogCars || 0).toLocaleString(),
+            icon: Database,
+            color: 'text-indigo-600',
+            bgColor: 'bg-indigo-100',
         },
         {
             title: 'Ganancia del Mes',
