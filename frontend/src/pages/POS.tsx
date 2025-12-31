@@ -288,7 +288,16 @@ const POS: React.FC = () => {
     inventoryItems.forEach(item => {
       if (item.brand) brands.add(item.brand);
     });
-    return Array.from(brands).sort();
+    const brandsArray = Array.from(brands).sort();
+    console.log('🏷️ POS Unique Brands:', {
+      totalItems: inventoryItems.length,
+      uniqueBrands: brandsArray,
+      sampleItems: inventoryItems.slice(0, 5).map(i => ({
+        name: typeof i.carId === 'object' ? i.carId?.name : 'N/A',
+        brand: i.brand
+      }))
+    });
+    return brandsArray;
   }, [inventoryItems]);
   
   // Extraer ubicaciones únicas para el filtro
