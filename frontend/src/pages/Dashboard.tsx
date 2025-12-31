@@ -37,13 +37,6 @@ export default function Dashboard() {
 
     const metricCards = [
         {
-            title: 'Valor del Inventario',
-            value: `$${metrics.totalInventoryValue.toLocaleString()}`,
-            icon: Package,
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-100',
-        },
-        {
             title: 'Items en Inventario',
             value: metrics.totalInventoryItems.toString(),
             icon: Package,
