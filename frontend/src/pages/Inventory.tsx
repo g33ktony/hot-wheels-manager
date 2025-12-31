@@ -221,6 +221,14 @@ export default function Inventory() {
 
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
+    
+    // Refs para capturar valores actuales al desmontar (no cuando cambian las dependencias)
+    const searchStateRef = useRef({ keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType })
+    
+    // Actualizar refs cuando cambian los valores
+    useEffect(() => {
+        searchStateRef.current = { keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType }
+    }, [keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType])
 
     // Debounced search - actualiza después de 200ms sin escribir (optimizado para rapidez)
     const debouncedSearch = useCallback(
@@ -240,7 +248,7 @@ export default function Inventory() {
         }
     }, [searchTerm, debouncedSearch])
     
-    // Guardar búsqueda SOLO al salir de la página (cleanup) y SOLO si el toggle está activo
+    // Guardar búsqueda SOLO al desmontar (sin dependencias que disparen el cleanup continuamente)
     useEffect(() => {
         // Limpiar búsqueda compartida al montar (para empezar limpio)
         sessionStorage.removeItem('sharedSearchTerm');
@@ -248,20 +256,21 @@ export default function Inventory() {
         sessionStorage.removeItem('sharedFilterBrand');
         sessionStorage.removeItem('sharedFilterPieceType');
         
-        // Cleanup: guardar solo al desmontar el componente
+        // Cleanup: se ejecuta SOLO al desmontar el componente (no hay dependencias)
         return () => {
-            if (keepSearchAcrossPages) {
+            const state = searchStateRef.current;
+            if (state.keepSearchAcrossPages) {
                 // Solo guardar si el toggle está activo
-                console.log('💾 Guardando búsqueda para POS:', searchTerm);
-                sessionStorage.setItem('sharedSearchTerm', searchTerm);
-                sessionStorage.setItem('sharedFilterCondition', filterCondition);
-                sessionStorage.setItem('sharedFilterBrand', filterBrand);
-                sessionStorage.setItem('sharedFilterPieceType', filterPieceType);
+                console.log('💾 Guardando búsqueda para POS:', state.searchTerm);
+                sessionStorage.setItem('sharedSearchTerm', state.searchTerm);
+                sessionStorage.setItem('sharedFilterCondition', state.filterCondition);
+                sessionStorage.setItem('sharedFilterBrand', state.filterBrand);
+                sessionStorage.setItem('sharedFilterPieceType', state.filterPieceType);
             } else {
                 console.log('🚫 Toggle desactivado, NO se guardará la búsqueda');
             }
         };
-    }, [keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType]);
+    }, []); // ← Sin dependencias: cleanup SOLO al desmontar
     
     const [newItem, setNewItem] = useState({
         carId: '',
