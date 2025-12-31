@@ -5,7 +5,7 @@ import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
-import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, Database } from 'lucide-react'
+import { Package, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, Database } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
@@ -79,14 +79,6 @@ export default function Dashboard() {
             icon: Percent,
             color: 'text-emerald-600',
             bgColor: 'bg-emerald-100',
-        },
-        // 6. Entregas Pendientes (como indicador de cumplimiento)
-        {
-            title: 'Entregas Pendientes',
-            value: metrics.pendingDeliveries.toString(),
-            icon: Truck,
-            color: 'text-orange-600',
-            bgColor: 'bg-orange-100',
         },
         // 7. Items Únicos en Catálogo
         {
