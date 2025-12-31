@@ -1401,11 +1401,18 @@ export default function Inventory() {
                                                 {/* Piece Type Badge */}
                                                 {item.pieceType && (
                                                     <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
-                                                        item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
-                                                            'bg-orange-500 bg-opacity-90 text-white'
+                                                            item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
+                                                                item.pieceType === 'rlc' ? 'bg-orange-500 bg-opacity-90 text-white' :
+                                                                    item.pieceType === 'silver_series' ? 'bg-gray-500 bg-opacity-90 text-white' :
+                                                                        item.pieceType === 'elite_64' ? 'bg-red-500 bg-opacity-90 text-white' :
+                                                                            'bg-gray-400 bg-opacity-90 text-white'
                                                         }`}>
                                                         {item.pieceType === 'basic' ? 'BÁSICO' :
-                                                            item.pieceType === 'premium' ? 'PREMIUM' : 'RLC'}
+                                                            item.pieceType === 'premium' ? 'PREMIUM' :
+                                                                item.pieceType === 'rlc' ? 'RLC' :
+                                                                    item.pieceType === 'silver_series' ? 'SILVER' :
+                                                                        item.pieceType === 'elite_64' ? 'ELITE 64' :
+                                                                            item.pieceType}
                                                     </span>
                                                 )}
 

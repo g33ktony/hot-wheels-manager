@@ -266,12 +266,11 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Status Badge */}
       <div className="flex justify-center mb-6">
-        <div className={`inline-flex items-center px-6 py-2 rounded-full text-sm font-semibold ${
-          delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
-          delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-          delivery.status === 'prepared' ? 'bg-blue-100 text-blue-800' :
-          'bg-yellow-100 text-yellow-800'
-        }`}>
+        <div className={`inline-flex items-center px-6 py-2 rounded-full text-sm font-semibold ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
+            delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+              delivery.status === 'prepared' ? 'bg-blue-100 text-blue-800' :
+                'bg-yellow-100 text-yellow-800'
+          }`}>
           Estado: {statusToSpanish(delivery.status as any)}
         </div>
       </div>
@@ -392,9 +391,9 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       {/* Footer */}
       <div className="text-center text-sm text-gray-500 mt-8 pt-6 border-t-2 border-gray-200">
         <p className="font-semibold text-gray-700 mb-1">Generado por 2Fast Wheels Garage</p>
-        <p className="text-xs">{new Date().toLocaleString('es-ES', { 
-          dateStyle: 'long', 
-          timeStyle: 'short' 
+        <p className="text-xs">{new Date().toLocaleString('es-ES', {
+          dateStyle: 'long',
+          timeStyle: 'short'
         })}</p>
         <p className="text-xs mt-2 text-gray-400">Gracias por tu compra 🏎️</p>
       </div>

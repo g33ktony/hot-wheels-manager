@@ -21,17 +21,17 @@ export const InventoryList: React.FC<InventoryListProps> = ({
   onImageClick,
   isSelectionMode = false,
   selectedItems = new Set(),
-  onSelectItem = () => {}
+  onSelectItem = () => { }
 }) => {
   // Fuzzy search filter (75% similarity threshold)
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) {
       return items
     }
-    
+
     const query = searchTerm.toLowerCase()
     const SIMILARITY_THRESHOLD = 75
-    
+
     const levenshteinDistance = (str1: string, str2: string): number => {
       const track = new Array(str2.length + 1)
         .fill(null)
@@ -111,9 +111,8 @@ export const InventoryList: React.FC<InventoryListProps> = ({
         return (
           <div
             key={item._id}
-            className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden ${
-              isSelectionMode && isSelected ? 'ring-2 ring-blue-500' : ''
-            }`}
+            className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden ${isSelectionMode && isSelected ? 'ring-2 ring-blue-500' : ''
+              }`}
           >
             {/* Checkbox for selection mode */}
             {isSelectionMode && (
@@ -157,7 +156,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({
               <h3 className="font-semibold text-sm text-gray-900 truncate mb-1">
                 {carName || item._id}
               </h3>
-              
+
               {item.brand && (
                 <p className="text-xs text-gray-500 mb-2">{item.brand}</p>
               )}

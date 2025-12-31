@@ -5,13 +5,13 @@ import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import jsPDF from 'jspdf'
 import type { InventoryItem } from '../../../shared/types'
-import { 
-    ArrowLeft, 
-    Share2, 
-    MapPin, 
-    DollarSign, 
-    Package, 
-    Tag, 
+import {
+    ArrowLeft,
+    Share2,
+    MapPin,
+    DollarSign,
+    Package,
+    Tag,
     Info,
     Edit,
     Trash2,
@@ -90,16 +90,16 @@ export default function ItemDetail() {
         }
 
         const image = imageRef.current
-        
+
         // Wait for image to fully load if it hasn't
         if (!image.complete) {
             await new Promise<void>((resolve) => {
                 image.onload = () => resolve()
             })
         }
-        
+
         const canvas = document.createElement('canvas')
-        
+
         // Use a single scale factor to maintain aspect ratio
         const scale = image.naturalWidth / image.width
 
@@ -113,11 +113,11 @@ export default function ItemDetail() {
         canvas.width = cropWidth
         canvas.height = cropHeight
 
-        const ctx = canvas.getContext('2d', { 
+        const ctx = canvas.getContext('2d', {
             alpha: false,
-            willReadFrequently: false 
+            willReadFrequently: false
         })
-        
+
         if (!ctx) {
             throw new Error('Failed to get canvas context')
         }
@@ -163,11 +163,11 @@ export default function ItemDetail() {
     const handleConfirmCrop = async () => {
         try {
             const croppedBlob = await getCroppedImage()
-            
+
             // Save cropped image as blob URL
             const croppedUrl = URL.createObjectURL(croppedBlob)
             setCroppedImageUrl(croppedUrl)
-            
+
             // Also save as base64 for PDF generation
             const reader = new FileReader()
             const base64Data = await new Promise<string>((resolve) => {
@@ -175,16 +175,16 @@ export default function ItemDetail() {
                 reader.readAsDataURL(croppedBlob)
             })
             setCroppedImageData(base64Data)
-            
+
             setShowCropModal(false)
-            
+
             // Route to appropriate action based on mode
             if (shareMode === 'image') {
                 await generateAndShareImage(croppedBlob)
             } else if (shareMode === 'pdf') {
                 await generateAndSharePDF()
             }
-            
+
             setShareMode(null)
         } catch (error) {
             console.error('Error processing crop:', error)
@@ -223,7 +223,7 @@ export default function ItemDetail() {
             }
 
             setShowShareModal(false)
-            
+
             // Clean up cropped image URL and data
             if (croppedImageUrl) {
                 URL.revokeObjectURL(croppedImageUrl)
@@ -243,10 +243,10 @@ export default function ItemDetail() {
                 const croppedImage = new Image()
                 croppedImage.crossOrigin = 'anonymous'
                 const croppedUrl = URL.createObjectURL(croppedBlob)
-                
+
                 croppedImage.onload = () => {
                     URL.revokeObjectURL(croppedUrl)
-                    
+
                     // Create canvas for composite
                     const canvas = document.createElement('canvas')
                     const ctx = canvas.getContext('2d')
@@ -261,11 +261,11 @@ export default function ItemDetail() {
                     const priceBoxHeight = 70
                     const detailsHeight = 100
                     const maxImageWidth = 800
-                    
+
                     // Calculate image dimensions maintaining aspect ratio
                     let imgWidth = croppedImage.width
                     let imgHeight = croppedImage.height
-                    
+
                     if (imgWidth > maxImageWidth) {
                         const ratio = maxImageWidth / imgWidth
                         imgWidth = maxImageWidth
@@ -291,18 +291,18 @@ export default function ItemDetail() {
                     ctx.fillStyle = '#ffffff'
                     ctx.font = 'bold 28px Arial, sans-serif'
                     ctx.textAlign = 'center'
-                    
+
                     // Wrap text if too long
                     const maxWidth = canvas.width - (margin * 2)
                     const words = carName.split(' ')
                     let line = ''
                     let y = 35
                     const lineHeight = 32
-                    
+
                     for (let i = 0; i < words.length; i++) {
                         const testLine = line + words[i] + ' '
                         const metrics = ctx.measureText(testLine)
-                        
+
                         if (metrics.width > maxWidth && i > 0) {
                             ctx.fillText(line, canvas.width / 2, y)
                             line = words[i] + ' '
@@ -316,11 +316,11 @@ export default function ItemDetail() {
                     // Draw the cropped image (centered)
                     const imageY = headerHeight + margin
                     const imageX = (canvas.width - imgWidth) / 2
-                    
+
                     // Enable high quality image rendering
                     ctx.imageSmoothingEnabled = true
                     ctx.imageSmoothingQuality = 'high'
-                    
+
                     ctx.drawImage(croppedImage, imageX, imageY, imgWidth, imgHeight)
 
                     // Add subtle border around image
@@ -332,14 +332,14 @@ export default function ItemDetail() {
                     const priceBoxY = imageY + imgHeight + margin
                     const priceBoxWidth = canvas.width - (margin * 2)
                     const priceBoxX = margin
-                    
+
                     // Rounded rectangle for price
                     const borderRadius = 8
                     ctx.fillStyle = '#2ecc71' // Green matching PDF
                     ctx.beginPath()
                     ctx.roundRect(priceBoxX, priceBoxY, priceBoxWidth, priceBoxHeight, borderRadius)
                     ctx.fill()
-                    
+
                     // Price text
                     ctx.fillStyle = '#ffffff'
                     ctx.font = 'bold 48px Arial, sans-serif'
@@ -358,15 +358,15 @@ export default function ItemDetail() {
                     ctx.font = 'bold 18px Arial, sans-serif'
                     ctx.textAlign = 'center'
                     ctx.fillText('Detalles', canvas.width / 2, detailsY + 25)
-                    
+
                     ctx.font = '16px Arial, sans-serif'
                     let detailTextY = detailsY + 50
-                    
+
                     if (item?.brand) {
                         ctx.fillText(`Marca: ${item.brand}`, canvas.width / 2, detailTextY)
                         detailTextY += 22
                     }
-                    
+
                     if (item?.condition) {
                         ctx.fillText(`Condición: ${item.condition}`, canvas.width / 2, detailTextY)
                     }
@@ -380,12 +380,12 @@ export default function ItemDetail() {
                         }
                     }, 'image/jpeg', 1.0)
                 }
-                
+
                 croppedImage.onerror = () => {
                     URL.revokeObjectURL(croppedUrl)
                     reject(new Error('Failed to load cropped image'))
                 }
-                
+
                 croppedImage.src = croppedUrl
             } catch (error) {
                 reject(error)
@@ -407,7 +407,7 @@ export default function ItemDetail() {
         try {
             const carName = getCarName()
             const price = sharePrice
-            
+
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -420,7 +420,7 @@ export default function ItemDetail() {
             // Header with background
             pdf.setFillColor(41, 128, 185) // Primary blue
             pdf.rect(0, 0, pageWidth, 40, 'F')
-            
+
             // Title
             pdf.setTextColor(255, 255, 255)
             pdf.setFontSize(22)
@@ -433,7 +433,7 @@ export default function ItemDetail() {
             pdf.setFontSize(18)
             pdf.setFont('helvetica', 'bold')
             pdf.text(`$${price.toFixed(2)}`, margin + 35, 58, { align: 'center' })
-            
+
             pdf.setTextColor(0, 0, 0)
             pdf.setFont('helvetica', 'normal')
 
@@ -448,7 +448,7 @@ export default function ItemDetail() {
                         img.crossOrigin = 'anonymous'
                     }
                     img.src = photo
-                    
+
                     await new Promise((resolve) => {
                         img.onload = resolve
                     })
@@ -457,10 +457,10 @@ export default function ItemDetail() {
                     const maxWidth = pageWidth - 2 * margin
                     const maxHeight = 140
                     const imgRatio = img.width / img.height
-                    
+
                     let imgWidth = maxWidth
                     let imgHeight = imgWidth / imgRatio
-                    
+
                     if (imgHeight > maxHeight) {
                         imgHeight = maxHeight
                         imgWidth = imgHeight * imgRatio
@@ -480,21 +480,21 @@ export default function ItemDetail() {
             // Details section
             pdf.setFillColor(245, 245, 245)
             pdf.roundedRect(margin, currentY, pageWidth - 2 * margin, 60, 3, 3, 'F')
-            
+
             currentY += 10
             pdf.setFontSize(14)
             pdf.setFont('helvetica', 'bold')
             pdf.text('Detalles', margin + 5, currentY)
-            
+
             currentY += 8
             pdf.setFontSize(11)
             pdf.setFont('helvetica', 'normal')
-            
+
             if (item?.brand) {
                 pdf.text(`Marca: ${item.brand}`, margin + 5, currentY)
                 currentY += 7
             }
-            
+
             if (item?.condition) {
                 pdf.text(`Condición: ${item.condition}`, margin + 5, currentY)
                 currentY += 7
@@ -600,11 +600,10 @@ export default function ItemDetail() {
                                         <button
                                             key={index}
                                             onClick={() => setSelectedPhotoIndex(index)}
-                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
-                                                selectedPhotoIndex === index
+                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedPhotoIndex === index
                                                     ? 'border-primary-600'
                                                     : 'border-gray-200'
-                                            }`}
+                                                }`}
                                         >
                                             <img
                                                 src={photo}
