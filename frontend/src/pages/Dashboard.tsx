@@ -5,7 +5,7 @@ import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
-import { Package, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, Database } from 'lucide-react'
+import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
@@ -80,13 +80,13 @@ export default function Dashboard() {
             color: 'text-emerald-600',
             bgColor: 'bg-emerald-100',
         },
-        // 7. Items Únicos en Catálogo
+        // 6. Entregas Pendientes
         {
-            title: 'Catálogo Hot Wheels',
-            value: (metrics.totalCatalogCars || 0).toLocaleString(),
-            icon: Database,
-            color: 'text-indigo-600',
-            bgColor: 'bg-indigo-100',
+            title: 'Entregas Pendientes',
+            value: metrics.pendingDeliveries.toString(),
+            icon: Truck,
+            color: 'text-orange-600',
+            bgColor: 'bg-orange-100',
         },
         {
             title: 'Ganancia del Mes',
