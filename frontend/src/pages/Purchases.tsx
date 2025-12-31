@@ -2451,6 +2451,7 @@ export default function Purchases() {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="mint">Mint</option>
+                                            <option value="mint_loose">Mint loose</option>
                                             <option value="good">Good</option>
                                             <option value="fair">Fair</option>
                                             <option value="poor">Poor</option>
