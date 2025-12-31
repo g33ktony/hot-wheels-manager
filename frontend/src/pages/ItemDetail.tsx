@@ -43,6 +43,7 @@ export default function ItemDetail() {
         x: 5,
         y: 5
     })
+    const [completedCrop, setCompletedCrop] = useState<CropType | null>(null)
     const imageRef = useRef<HTMLImageElement>(null)
 
     useEffect(() => {
@@ -85,7 +86,10 @@ export default function ItemDetail() {
     }
 
     const getCroppedImage = async (): Promise<Blob> => {
-        if (!imageRef.current || !crop.width || !crop.height) {
+        // Use completedCrop if available, otherwise use current crop state
+        const cropToUse = completedCrop || crop
+        
+        if (!imageRef.current || !cropToUse.width || !cropToUse.height) {
             throw new Error('No crop area selected')
         }
 
@@ -111,20 +115,20 @@ export default function ItemDetail() {
         // Calculate crop area based on the displayed image dimensions
         let cropX: number, cropY: number, cropWidth: number, cropHeight: number
 
-        if (crop.unit === '%') {
+        if (cropToUse.unit === '%') {
             // Convert percentage to pixels on the NATURAL (original) image
-            cropX = (crop.x / 100) * image.naturalWidth
-            cropY = (crop.y / 100) * image.naturalHeight
-            cropWidth = (crop.width / 100) * image.naturalWidth
-            cropHeight = (crop.height / 100) * image.naturalHeight
+            cropX = (cropToUse.x / 100) * image.naturalWidth
+            cropY = (cropToUse.y / 100) * image.naturalHeight
+            cropWidth = (cropToUse.width / 100) * image.naturalWidth
+            cropHeight = (cropToUse.height / 100) * image.naturalHeight
         } else {
             // Pixel-based crop: scale to natural dimensions
             const scaleX = image.naturalWidth / image.width
             const scaleY = image.naturalHeight / image.height
-            cropX = crop.x * scaleX
-            cropY = crop.y * scaleY
-            cropWidth = crop.width * scaleX
-            cropHeight = crop.height * scaleY
+            cropX = cropToUse.x * scaleX
+            cropY = cropToUse.y * scaleY
+            cropWidth = cropToUse.width * scaleX
+            cropHeight = cropToUse.height * scaleY
         }
 
         // Set canvas size to match crop dimensions
@@ -847,6 +851,7 @@ export default function ItemDetail() {
                 onClose={() => {
                     setShowCropModal(false)
                     setShareMode(null)
+                    setCompletedCrop(null)
                 }}
                 title="✂️ Recortar Imagen"
                 maxWidth="4xl"
@@ -858,6 +863,7 @@ export default function ItemDetail() {
                             onClick={() => {
                                 setShowCropModal(false)
                                 setShareMode(null)
+                                setCompletedCrop(null)
                             }}
                         >
                             <X className="w-4 h-4 mr-1" />
@@ -881,10 +887,11 @@ export default function ItemDetail() {
                     </div>
 
                     {item.photos && item.photos[selectedPhotoIndex] && (
-                        <div className="w-full bg-gray-100 rounded-lg overflow-auto" style={{ maxHeight: '45vh' }}>
+                        <div className="w-full bg-gray-100 rounded-lg overflow-auto" style={{ maxHeight: '70vh', minHeight: '400px' }}>
                             <ReactCrop
                                 crop={crop}
                                 onChange={(c) => setCrop(c)}
+                                onComplete={(c) => setCompletedCrop(c)}
                                 aspect={undefined}
                             >
                                 <img
@@ -892,7 +899,13 @@ export default function ItemDetail() {
                                     src={item.photos[selectedPhotoIndex]}
                                     alt={carName}
                                     crossOrigin="anonymous"
-                                    style={{ maxWidth: '100%', height: 'auto' }}
+                                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                                    onLoad={() => {
+                                        // Set initial completedCrop when image loads
+                                        if (!completedCrop) {
+                                            setCompletedCrop(crop)
+                                        }
+                                    }}
                                 />
                             </ReactCrop>
                         </div>
