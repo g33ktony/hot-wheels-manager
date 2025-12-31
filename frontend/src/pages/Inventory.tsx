@@ -240,21 +240,27 @@ export default function Inventory() {
         }
     }, [searchTerm, debouncedSearch])
     
-    // Guardar búsqueda en sessionStorage si el toggle está activo
+    // Guardar búsqueda SOLO al salir de la página (cleanup) y SOLO si el toggle está activo
     useEffect(() => {
-        if (keepSearchAcrossPages) {
-            // Guardar estado de búsqueda para compartir con POS
-            sessionStorage.setItem('sharedSearchTerm', searchTerm);
-            sessionStorage.setItem('sharedFilterCondition', filterCondition);
-            sessionStorage.setItem('sharedFilterBrand', filterBrand);
-            sessionStorage.setItem('sharedFilterPieceType', filterPieceType);
-        } else {
-            // Limpiar si el toggle está desactivado
-            sessionStorage.removeItem('sharedSearchTerm');
-            sessionStorage.removeItem('sharedFilterCondition');
-            sessionStorage.removeItem('sharedFilterBrand');
-            sessionStorage.removeItem('sharedFilterPieceType');
-        }
+        // Limpiar búsqueda compartida al montar (para empezar limpio)
+        sessionStorage.removeItem('sharedSearchTerm');
+        sessionStorage.removeItem('sharedFilterCondition');
+        sessionStorage.removeItem('sharedFilterBrand');
+        sessionStorage.removeItem('sharedFilterPieceType');
+        
+        // Cleanup: guardar solo al desmontar el componente
+        return () => {
+            if (keepSearchAcrossPages) {
+                // Solo guardar si el toggle está activo
+                console.log('💾 Guardando búsqueda para POS:', searchTerm);
+                sessionStorage.setItem('sharedSearchTerm', searchTerm);
+                sessionStorage.setItem('sharedFilterCondition', filterCondition);
+                sessionStorage.setItem('sharedFilterBrand', filterBrand);
+                sessionStorage.setItem('sharedFilterPieceType', filterPieceType);
+            } else {
+                console.log('🚫 Toggle desactivado, NO se guardará la búsqueda');
+            }
+        };
     }, [keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType]);
     
     const [newItem, setNewItem] = useState({
