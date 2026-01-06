@@ -1,6 +1,7 @@
 import PreSaleItem, { PreSaleItem as PreSaleItemType } from '../models/PreSaleItem'
 import Purchase from '../models/Purchase'
 import { HotWheelsCarModel } from '../models/HotWheelsCar'
+import PendingItemModel from '../models/PendingItem'
 
 /**
  * PreSaleItemService
@@ -378,7 +379,29 @@ class PreSaleItemService {
 
     preSaleItem.status = status
 
-    if (status === 'delivered' || status === 'cancelled') {
+    if (status === 'received') {
+      // When a PreSaleItem is received, create PendingItems for each unit
+      for (const unit of preSaleItem.units) {
+        const newPendingItem = new PendingItemModel({
+          carId: preSaleItem.carId,
+          quantity: 1, // Each unit becomes one pending item
+          unitPrice: preSaleItem.basePricePerUnit, // Use base price for consistency
+          condition: preSaleItem.condition,
+          brand: preSaleItem.brand,
+          pieceType: preSaleItem.pieceType,
+          isTreasureHunt: preSaleItem.isTreasureHunt, // Assuming these fields exist in PreSaleItem
+          isSuperTreasureHunt: preSaleItem.isSuperTreasureHunt,
+          isChase: preSaleItem.isChase,
+          photos: preSaleItem.photo ? [preSaleItem.photo] : [],
+          notes: `Item de pre-venta #${preSaleItem._id} (unidad: ${unit.unitId}) recibido.`,
+          status: 'pending-reshipment', // Crucial for inventory processing
+          linkedToPurchaseId: unit.purchaseId // Link to original purchase for processing
+        });
+        await newPendingItem.save();
+        console.log(`✅ Created PendingItem for PreSaleItem unit: ${unit.unitId}`);
+      }
+      preSaleItem.endDate = new Date()
+    } else if (status === 'delivered' || status === 'cancelled') {
       preSaleItem.endDate = new Date()
     }
 
