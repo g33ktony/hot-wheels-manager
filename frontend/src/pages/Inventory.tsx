@@ -1446,7 +1446,7 @@ export default function Inventory() {
                             value={filterLocation}
                             onChange={(e) => {
                                 setCurrentPage(1);
-                                setFilterLocation(e.target.value);
+                                updateFilter('filterLocation', e.target.value);
                             }}
                             className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
                             style={{
@@ -1467,7 +1467,7 @@ export default function Inventory() {
                                 checked={filterLowStock}
                                 onChange={(e) => {
                                     setCurrentPage(1);
-                                    setFilterLowStock(e.target.checked);
+                                    updateFilter('filterLowStock', e.target.checked);
                                 }}
                                 className="rounded"
                             />
@@ -1515,14 +1515,14 @@ export default function Inventory() {
                                 size="sm"
                                 onClick={() => {
                                     setCurrentPage(1) // Reset page
-                                    setSearchTerm('')
-                                    setFilterCondition('')
-                                    setFilterBrand('')
-                                    setFilterPieceType('')
-                                    setFilterTreasureHunt('all')
-                                    setFilterChase(false)
-                                    setFilterLocation('')
-                                    setFilterLowStock(false)
+                                    updateFilter('searchTerm', '')
+                                    updateFilter('filterCondition', '')
+                                    updateFilter('filterBrand', '')
+                                    updateFilter('filterPieceType', '')
+                                    updateFilter('filterTreasureHunt', 'all')
+                                    updateFilter('filterChase', false)
+                                    updateFilter('filterLocation', '')
+                                    updateFilter('filterLowStock', false)
                                     setFilterPriceMin('')
                                     setFilterPriceMax('')
                                 }}
