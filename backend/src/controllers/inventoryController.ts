@@ -78,10 +78,11 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       .lean()
       .sort({ dateAdded: -1 });
 
-    // Apply fuzzy search if search term is provided
+    // Apply smart multi-word search if search term is provided
     if (searchTerm && searchTerm.length > 0) {
-      const SIMILARITY_THRESHOLD = 60; // Lowered for more flexible matching
-      const searchLower = searchTerm.toLowerCase();
+      const SIMILARITY_THRESHOLD = 55; // Even more flexible matching
+      const searchLower = searchTerm.toLowerCase().trim();
+      const searchWords = searchLower.split(/\s+/); // Split into words
       
       const filtered = allItems.filter((item: any) => {
         // Extract all searchable fields
@@ -91,11 +92,26 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
         const condition = item.condition || '';
         const location = item.location || '';
         const notes = item.notes || '';
-        const year = typeof item.carId === 'object' ? item.carId?.year || '' : '';
+        const year = String(typeof item.carId === 'object' ? item.carId?.year || '' : '');
         const series = typeof item.carId === 'object' ? item.carId?.series || '' : '';
         const color = typeof item.carId === 'object' ? item.carId?.color || '' : '';
         
-        // Check for exact matches first (highest priority)
+        // Combine all text for multi-word search
+        const allText = `${carIdText} ${brand} ${pieceType} ${condition} ${location} ${notes} ${year} ${series} ${color}`.toLowerCase();
+        
+        // Special keyword searches (exact match)
+        if (searchLower === 'th' && item.isTreasureHunt) return true;
+        if (searchLower === 'sth' && item.isSuperTreasureHunt) return true;
+        if (searchLower === 'chase' && item.isChase) return true;
+        if ((searchLower === 'fantasy' || searchLower === 'fantasia') && item.isFantasy) return true;
+        
+        // Multi-word search: ALL words must match somewhere
+        if (searchWords.length > 1) {
+          const allWordsMatch = searchWords.every(word => allText.includes(word));
+          if (allWordsMatch) return true;
+        }
+        
+        // Check for substring matches in individual fields (highest priority)
         if (carIdText.toLowerCase().includes(searchLower)) return true;
         if (brand.toLowerCase().includes(searchLower)) return true;
         if (pieceType.toLowerCase().includes(searchLower)) return true;
@@ -106,24 +122,29 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
         if (series.toLowerCase().includes(searchLower)) return true;
         if (color.toLowerCase().includes(searchLower)) return true;
         
-        // Special searches
-        if (searchLower === 'th' && item.isTreasureHunt) return true;
-        if (searchLower === 'sth' && item.isSuperTreasureHunt) return true;
-        if (searchLower === 'chase' && item.isChase) return true;
-        if ((searchLower === 'fantasy' || searchLower === 'fantasia') && item.isFantasy) return true;
+        // Partial word matching: check if any search word is contained
+        for (const word of searchWords) {
+          if (word.length >= 3) { // Only check words with 3+ chars
+            if (carIdText.toLowerCase().includes(word)) return true;
+            if (brand.toLowerCase().includes(word)) return true;
+            if (notes.toLowerCase().includes(word)) return true;
+            if (series.toLowerCase().includes(word)) return true;
+            if (color.toLowerCase().includes(word)) return true;
+          }
+        }
         
-        // Check for fuzzy matches
+        // Fuzzy matching as last resort (for typos)
         const carIdSimilarity = calculateSimilarity(searchTerm, carIdText);
         const brandSimilarity = calculateSimilarity(searchTerm, brand);
-        const pieceTypeSimilarity = calculateSimilarity(searchTerm, pieceType);
         const notesSimilarity = notes ? calculateSimilarity(searchTerm, notes) : 0;
         const seriesSimilarity = series ? calculateSimilarity(searchTerm, series) : 0;
+        const colorSimilarity = color ? calculateSimilarity(searchTerm, color) : 0;
         
         return carIdSimilarity >= SIMILARITY_THRESHOLD || 
-               brandSimilarity >= SIMILARITY_THRESHOLD || 
-               pieceTypeSimilarity >= SIMILARITY_THRESHOLD ||
+               brandSimilarity >= SIMILARITY_THRESHOLD ||
                notesSimilarity >= SIMILARITY_THRESHOLD ||
-               seriesSimilarity >= SIMILARITY_THRESHOLD;
+               seriesSimilarity >= SIMILARITY_THRESHOLD ||
+               colorSimilarity >= SIMILARITY_THRESHOLD;
       });
       allItems = filtered;
     }
@@ -263,6 +284,20 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       }
       if (location) {
         existingItem.location = location;
+      }
+      
+      // Update special flags (TH, STH, Chase, Fantasy)
+      if (isTreasureHunt !== undefined) {
+        existingItem.isTreasureHunt = isTreasureHunt;
+      }
+      if (isSuperTreasureHunt !== undefined) {
+        existingItem.isSuperTreasureHunt = isSuperTreasureHunt;
+      }
+      if (isChase !== undefined) {
+        existingItem.isChase = isChase;
+      }
+      if (isFantasy !== undefined) {
+        existingItem.isFantasy = isFantasy;
       }
       
       // Update series info if provided

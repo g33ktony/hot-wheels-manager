@@ -190,7 +190,7 @@ const POS: React.FC = () => {
       if (filterLowStock && available > 3) return false;
 
       // Filtro Treasure Hunt (solo para Hot Wheels Basic)
-      if (filterTreasureHunt && item.brand === 'Hot Wheels' && item.pieceType === 'basic') {
+      if (filterTreasureHunt !== 'all' && item.brand === 'Hot Wheels' && item.pieceType === 'basic') {
         if (filterTreasureHunt === 'th' && !item.isTreasureHunt) return false;
         if (filterTreasureHunt === 'sth' && !item.isSuperTreasureHunt) return false;
       }
@@ -657,7 +657,7 @@ const POS: React.FC = () => {
                   </label>
                 )}
 
-                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt || filterChase || filterFantasy) && (
+                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy) && (
                   <button
                     onClick={() => {
                       updateFilter('searchTerm', '');
@@ -666,7 +666,7 @@ const POS: React.FC = () => {
                       updateFilter('filterPieceType', '');
                       updateFilter('filterLocation', '');
                       updateFilter('filterLowStock', false);
-                      updateFilter('filterTreasureHunt', '');
+                      updateFilter('filterTreasureHunt', 'all');
                       updateFilter('filterChase', false);
                       updateFilter('filterFantasy', false);
                     }}
@@ -679,7 +679,7 @@ const POS: React.FC = () => {
             </div>
 
             {/* Contador de resultados */}
-            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt || filterChase || filterFantasy) && (
+            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy) && (
               <div className="mb-3 text-sm text-gray-600">
                 {filteredInventory.length} resultado(s) encontrado(s)
               </div>
