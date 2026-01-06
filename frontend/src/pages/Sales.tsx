@@ -61,14 +61,8 @@ export default function Sales() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
-                    <p className="text-gray-600">Gestiona tus ventas de Hot Wheels</p>
+                    <p className="text-gray-600">Todas las ventas se realizan a través del POS</p>
                 </div>
-                <Button
-                    icon={<Plus size={20} />}
-                    onClick={() => setShowCreateModal(true)}
-                >
-                    Nueva Venta
-                </Button>
             </div>
 
             {/* Filters */}

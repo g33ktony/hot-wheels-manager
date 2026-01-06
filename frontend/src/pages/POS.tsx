@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { useSearch } from '@/contexts/SearchContext';
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { setInventoryItems, setLoading, setError } from '@/store/slices/inventorySlice';
@@ -29,6 +30,17 @@ const POS: React.FC = () => {
   // Sync inventory in background (keeps Redux cache fresh)
   useInventorySyncInBackground();
 
+  // Use global search context
+  const { filters, updateFilter } = useSearch();
+  const {
+    searchTerm,
+    filterCondition,
+    filterBrand,
+    filterPieceType,
+    filterLocation,
+    filterLowStock
+  } = filters;
+
   // Get inventory from Redux cache
   const reduxInventory = useAppSelector(state => state.inventory);
   const dispatch = useAppDispatch();
@@ -43,39 +55,9 @@ const POS: React.FC = () => {
   });
 
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [processing, setProcessing] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
-
-  // Filtros adicionales
-  const [filterCondition, setFilterCondition] = useState('');
-  const [filterBrand, setFilterBrand] = useState('');
-  const [filterPieceType, setFilterPieceType] = useState('');
-  const [filterLocation, setFilterLocation] = useState('');
-  const [filterLowStock, setFilterLowStock] = useState(false);
-  
-  // Cargar búsqueda compartida desde Inventario (solo si existe)
-  useEffect(() => {
-    const sharedSearch = sessionStorage.getItem('sharedSearchTerm');
-    const sharedCondition = sessionStorage.getItem('sharedFilterCondition');
-    const sharedBrand = sessionStorage.getItem('sharedFilterBrand');
-    const sharedPieceType = sessionStorage.getItem('sharedFilterPieceType');
-    
-    if (sharedSearch) {
-      setSearchTerm(sharedSearch);
-      console.log('🔗 POS: Búsqueda compartida cargada desde Inventario:', sharedSearch);
-    }
-    if (sharedCondition) setFilterCondition(sharedCondition);
-    if (sharedBrand) setFilterBrand(sharedBrand);
-    if (sharedPieceType) setFilterPieceType(sharedPieceType);
-    
-    // Limpiar sessionStorage después de cargar (solo se usa una vez)
-    sessionStorage.removeItem('sharedSearchTerm');
-    sessionStorage.removeItem('sharedFilterCondition');
-    sessionStorage.removeItem('sharedFilterBrand');
-    sessionStorage.removeItem('sharedFilterPieceType');
-  }, []);
 
   // Initial load: fetch inventory on component mount if Redux is empty
   useEffect(() => {
@@ -541,7 +523,7 @@ const POS: React.FC = () => {
                 type="text"
                 placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => updateFilter('searchTerm', e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -552,7 +534,7 @@ const POS: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <select
                   value={filterCondition}
-                  onChange={(e) => setFilterCondition(e.target.value)}
+                  onChange={(e) => updateFilter('filterCondition', e.target.value)}
                   className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="">Todas las condiciones</option>
@@ -565,8 +547,8 @@ const POS: React.FC = () => {
                 <select
                   value={filterBrand}
                   onChange={(e) => {
-                    setFilterBrand(e.target.value);
-                    if (!e.target.value) setFilterPieceType(''); // Reset tipo al cambiar marca
+                    updateFilter('filterBrand', e.target.value);
+                    if (!e.target.value) updateFilter('filterPieceType', ''); // Reset tipo al cambiar marca
                   }}
                   className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                 >
@@ -578,7 +560,7 @@ const POS: React.FC = () => {
 
                 <select
                   value={filterPieceType}
-                  onChange={(e) => setFilterPieceType(e.target.value)}
+                  onChange={(e) => updateFilter('filterPieceType', e.target.value)}
                   className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                   disabled={!filterBrand}
                 >
@@ -595,7 +577,7 @@ const POS: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <select
                   value={filterLocation}
-                  onChange={(e) => setFilterLocation(e.target.value)}
+                  onChange={(e) => updateFilter('filterLocation', e.target.value)}
                   className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="">Todas las ubicaciones</option>
@@ -608,7 +590,7 @@ const POS: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={filterLowStock}
-                    onChange={(e) => setFilterLowStock(e.target.checked)}
+                    onChange={(e) => updateFilter('filterLowStock', e.target.checked)}
                     className="rounded"
                   />
                   <span className="text-sm font-medium text-gray-700">
@@ -619,12 +601,12 @@ const POS: React.FC = () => {
                 {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock) && (
                   <button
                     onClick={() => {
-                      setSearchTerm('');
-                      setFilterCondition('');
-                      setFilterBrand('');
-                      setFilterPieceType('');
-                      setFilterLocation('');
-                      setFilterLowStock(false);
+                      updateFilter('searchTerm', '');
+                      updateFilter('filterCondition', '');
+                      updateFilter('filterBrand', '');
+                      updateFilter('filterPieceType', '');
+                      updateFilter('filterLocation', '');
+                      updateFilter('filterLowStock', false);
                     }}
                     className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
                   >

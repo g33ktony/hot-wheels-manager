@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { SearchProvider } from './contexts/SearchContext'
 import PrivateRoute from './components/PrivateRoute'
 import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/common/Layout'
@@ -26,42 +27,44 @@ import GeminiTest from './pages/GeminiTest'
 function App() {
     return (
         <AuthProvider>
-            <Routes>
-                {/* Ruta pública */}
-                <Route path="/login" element={<Login />} />
+            <SearchProvider>
+                <Routes>
+                    {/* Ruta pública */}
+                    <Route path="/login" element={<Login />} />
 
-                {/* Rutas protegidas */}
-                <Route
-                    path="/*"
-                    element={
-                        <ErrorBoundary>
-                            <PrivateRoute>
-                                <Layout>
-                                    <Routes>
-                                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                        <Route path="/dashboard" element={<Dashboard />} />
-                                        <Route path="/inventory" element={<Inventory />} />
-                                        <Route path="/inventory/:id" element={<ItemDetail />} />
-                                        <Route path="/pos" element={<POS />} />
-                                        <Route path="/gemini-test" element={<GeminiTest />} />
-                                        <Route path="/sales" element={<Sales />} />
-                                        <Route path="/purchases" element={<Purchases />} />
-                                        <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
-                                        <Route path="/presale" element={<PreSaleHub />} />
-                                        <Route path="/pending-items" element={<PendingItemsPage />} />
-                                        <Route path="/deliveries" element={<Deliveries />} />
-                                        <Route path="/customers" element={<Customers />} />
-                                        <Route path="/suppliers" element={<Suppliers />} />
-                                        <Route path="/boxes" element={<Boxes />} />
-                                        <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
-                                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                                    </Routes>
-                                </Layout>
-                            </PrivateRoute>
-                        </ErrorBoundary>
-                    }
-                />
-            </Routes>
+                    {/* Rutas protegidas */}
+                    <Route
+                        path="/*"
+                        element={
+                            <ErrorBoundary>
+                                <PrivateRoute>
+                                    <Layout>
+                                        <Routes>
+                                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                            <Route path="/dashboard" element={<Dashboard />} />
+                                            <Route path="/inventory" element={<Inventory />} />
+                                            <Route path="/inventory/:id" element={<ItemDetail />} />
+                                            <Route path="/pos" element={<POS />} />
+                                            <Route path="/gemini-test" element={<GeminiTest />} />
+                                            <Route path="/sales" element={<Sales />} />
+                                            <Route path="/purchases" element={<Purchases />} />
+                                            <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
+                                            <Route path="/presale" element={<PreSaleHub />} />
+                                            <Route path="/pending-items" element={<PendingItemsPage />} />
+                                            <Route path="/deliveries" element={<Deliveries />} />
+                                            <Route path="/customers" element={<Customers />} />
+                                            <Route path="/suppliers" element={<Suppliers />} />
+                                            <Route path="/boxes" element={<Boxes />} />
+                                            <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
+                                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                                        </Routes>
+                                    </Layout>
+                                </PrivateRoute>
+                            </ErrorBoundary>
+                        }
+                    />
+                </Routes>
+            </SearchProvider>
         </AuthProvider>
     )
 }

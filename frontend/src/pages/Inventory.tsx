@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
 import { useNavigate } from 'react-router-dom'
+import { useSearch } from '@/contexts/SearchContext'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { inventoryService } from '@/services/inventory'
@@ -182,18 +183,22 @@ export default function Inventory() {
         preloadInventory()
     }, [])
 
+    // Use global search context
+    const { filters, updateFilter } = useSearch()
+    const {
+        searchTerm,
+        filterCondition,
+        filterBrand,
+        filterPieceType,
+        filterTreasureHunt,
+        filterChase,
+        filterLocation,
+        filterLowStock
+    } = filters
+
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(30) // Increased from 15 to load more with lazy loading
-    const [searchTerm, setSearchTerm] = useState('')
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('') // For debounced API calls
-    const [keepSearchAcrossPages, setKeepSearchAcrossPages] = useState(false) // Toggle para mantener búsqueda
-    const [filterCondition, setFilterCondition] = useState('')
-    const [filterBrand, setFilterBrand] = useState('')
-    const [filterPieceType, setFilterPieceType] = useState('')
-    const [filterTreasureHunt, setFilterTreasureHunt] = useState<'all' | 'th' | 'sth'>('all')
-    const [filterChase, setFilterChase] = useState(false)
-    const [filterLocation, setFilterLocation] = useState('')
-    const [filterLowStock, setFilterLowStock] = useState(false)
     const [filterPriceMin, setFilterPriceMin] = useState('')
     const [filterPriceMax, setFilterPriceMax] = useState('')
     const [showAddModal, setShowAddModal] = useState(false)
@@ -224,14 +229,6 @@ export default function Inventory() {
 
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
-    
-    // Refs para capturar valores actuales al desmontar (no cuando cambian las dependencias)
-    const searchStateRef = useRef({ keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType })
-    
-    // Actualizar refs cuando cambian los valores
-    useEffect(() => {
-        searchStateRef.current = { keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType }
-    }, [keepSearchAcrossPages, searchTerm, filterCondition, filterBrand, filterPieceType])
 
     // Debounced search - actualiza después de 200ms sin escribir (optimizado para rapidez)
     const debouncedSearch = useCallback(
@@ -250,30 +247,6 @@ export default function Inventory() {
             debouncedSearch.cancel()
         }
     }, [searchTerm, debouncedSearch])
-    
-    // Guardar búsqueda SOLO al desmontar (sin dependencias que disparen el cleanup continuamente)
-    useEffect(() => {
-        // Limpiar búsqueda compartida al montar (para empezar limpio)
-        sessionStorage.removeItem('sharedSearchTerm');
-        sessionStorage.removeItem('sharedFilterCondition');
-        sessionStorage.removeItem('sharedFilterBrand');
-        sessionStorage.removeItem('sharedFilterPieceType');
-        
-        // Cleanup: se ejecuta SOLO al desmontar el componente (no hay dependencias)
-        return () => {
-            const state = searchStateRef.current;
-            if (state.keepSearchAcrossPages) {
-                // Solo guardar si el toggle está activo
-                console.log('💾 Guardando búsqueda para POS:', state.searchTerm);
-                sessionStorage.setItem('sharedSearchTerm', state.searchTerm);
-                sessionStorage.setItem('sharedFilterCondition', state.filterCondition);
-                sessionStorage.setItem('sharedFilterBrand', state.filterBrand);
-                sessionStorage.setItem('sharedFilterPieceType', state.filterPieceType);
-            } else {
-                console.log('🚫 Toggle desactivado, NO se guardará la búsqueda');
-            }
-        };
-    }, []); // ← Sin dependencias: cleanup SOLO al desmontar
     
     const [newItem, setNewItem] = useState({
         carId: '',
@@ -430,23 +403,22 @@ export default function Inventory() {
 
         switch (filterType) {
             case 'search':
-                // Solo actualiza el estado local, el debounce se encarga de la API
-                setSearchTerm(value)
+                updateFilter('searchTerm', value)
                 break
             case 'condition':
-                setFilterCondition(value)
+                updateFilter('filterCondition', value)
                 break
             case 'brand':
-                setFilterBrand(value)
+                updateFilter('filterBrand', value)
                 break
             case 'pieceType':
-                setFilterPieceType(value)
+                updateFilter('filterPieceType', value)
                 break
             case 'treasureHunt':
-                setFilterTreasureHunt(value)
+                updateFilter('filterTreasureHunt', value)
                 break
             case 'chase':
-                setFilterChase(value)
+                updateFilter('filterChase', value)
                 break
         }
     }
@@ -1333,22 +1305,7 @@ export default function Inventory() {
             {/* Filters */}
             <Card>
                 <div className="space-y-4 w-full">
-                    {/* Toggle para mantener búsqueda */}
-                    <div className="flex items-center gap-2 pb-2 border-b">
-                        <input
-                            type="checkbox"
-                            id="keepSearchToggle"
-                            checked={keepSearchAcrossPages}
-                            onChange={(e) => setKeepSearchAcrossPages(e.target.checked)}
-                            className="rounded w-4 h-4"
-                        />
-                        <label htmlFor="keepSearchToggle" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
-                            🔗 Mantener búsqueda al ir a POS
-                        </label>
-                        <span className="text-xs text-gray-500">
-                            (Actívalo para continuar la búsqueda en POS)
-                        </span>
-                    </div>
+                    {/* Search is now shared globally across all pages */}
                     
                     {/* First row: Search and Condition */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 w-full">
