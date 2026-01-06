@@ -850,6 +850,7 @@ export default function Inventory() {
         'isTreasureHunt',
         'isSuperTreasureHunt',
         'isChase',
+        'isFantasy',
         'seriesId',
         'seriesName',
         'seriesSize',
