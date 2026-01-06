@@ -15,7 +15,8 @@ import Input from '@/components/common/Input'
 import Stepper from '@/components/common/Stepper'
 import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info } from 'lucide-react'
+import InventoryQuoteReport from '@/components/InventoryQuoteReport'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
@@ -209,6 +210,8 @@ export default function Inventory() {
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
     // Facebook publish modal
     const [showFacebookModal, setShowFacebookModal] = useState(false)
+    // Quote report modal
+    const [showQuoteModal, setShowQuoteModal] = useState(false)
     // Search suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
@@ -1266,6 +1269,14 @@ export default function Inventory() {
                                         size="sm"
                                     >
                                         Deseleccionar ({selectedItems.size})
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        icon={<FileText size={18} />}
+                                        onClick={() => setShowQuoteModal(true)}
+                                        size="sm"
+                                    >
+                                        Generar Cotización ({selectedItems.size})
                                     </Button>
                                     <Button
                                         variant="secondary"
@@ -3319,6 +3330,14 @@ export default function Inventory() {
                     setSelectedItems(new Set())
                 }}
             />
+
+            {/* Quote Report Modal */}
+            {showQuoteModal && (
+                <InventoryQuoteReport
+                    items={filteredItems.filter((item: InventoryItem) => selectedItems.has(item._id!))}
+                    onClose={() => setShowQuoteModal(false)}
+                />
+            )}
         </div>
     )
 }
