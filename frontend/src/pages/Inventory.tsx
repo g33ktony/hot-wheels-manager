@@ -193,7 +193,8 @@ export default function Inventory() {
         filterTreasureHunt,
         filterChase,
         filterLocation,
-        filterLowStock
+        filterLowStock,
+        filterFantasy
     } = filters
 
     const [currentPage, setCurrentPage] = useState(1)
@@ -264,6 +265,7 @@ export default function Inventory() {
         isTreasureHunt: false,
         isSuperTreasureHunt: false,
         isChase: false,
+        isFantasy: false,
         // Box/Series support
         isBox: false,
         boxSize: 10 as 5 | 8 | 10,
@@ -291,7 +293,8 @@ export default function Inventory() {
         brand: filterBrand,
         pieceType: filterPieceType,
         treasureHunt: filterTreasureHunt,
-        chase: filterChase
+        chase: filterChase,
+        fantasy: filterFantasy
     })
     const { data: customBrands } = useCustomBrands()
     const createItemMutation = useCreateInventoryItem()
@@ -362,25 +365,26 @@ export default function Inventory() {
 
         setIsPrefetchingNext(true)
         queryClient.prefetchQuery(
-            ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase],
+            ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy],
             () => inventoryService.getAll(nextPage, itemsPerPage, {
                 search: debouncedSearchTerm,
                 condition: filterCondition,
                 brand: filterBrand,
                 pieceType: filterPieceType,
                 treasureHunt: filterTreasureHunt,
-                chase: filterChase
+                chase: filterChase,
+                fantasy: filterFantasy
             })
         ).then(() => {
             prefetchedPagesRef.current.add(nextPage)
         }).catch(() => {
             // Allow retry on failure by not marking the page as prefetched
         }).finally(() => setIsPrefetchingNext(false))
-    }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, queryClient])
+    }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy, queryClient])
 
     useEffect(() => {
         prefetchedPagesRef.current.clear()
-    }, [debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase])
+    }, [debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy])
 
     // Combine predefined and custom brands
     const allBrands = [
@@ -419,6 +423,9 @@ export default function Inventory() {
                 break
             case 'chase':
                 updateFilter('filterChase', value)
+                break
+            case 'fantasy':
+                updateFilter('filterFantasy', value)
                 break
         }
     }
@@ -1438,6 +1445,21 @@ export default function Inventory() {
                                     </span>
                                 </label>
                             )}
+
+                        {/* Fantasy filter - only for Hot Wheels */}
+                        {filterBrand?.toLowerCase() === 'hot wheels' && (
+                            <label className="flex items-center gap-2 input cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={filterFantasy}
+                                    onChange={(e) => handleFilterChange('fantasy', e.target.checked)}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    Solo Fantasías 🎨
+                                </span>
+                            </label>
+                            )}
                     </div>
 
                     {/* Tercera fila: Filtros adicionales (ubicación, stock, precio) */}
@@ -1508,7 +1530,7 @@ export default function Inventory() {
                     </div>
 
                     {/* Clear filters button */}
-                    {(searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase || filterLocation || filterLowStock || filterPriceMin || filterPriceMax) && (
+                    {(searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase || filterLocation || filterLowStock || filterFantasy || filterPriceMin || filterPriceMax) && (
                         <div className="flex justify-end">
                             <Button
                                 variant="secondary"
@@ -1521,6 +1543,7 @@ export default function Inventory() {
                                     updateFilter('filterPieceType', '')
                                     updateFilter('filterTreasureHunt', 'all')
                                     updateFilter('filterChase', false)
+                                    updateFilter('filterFantasy', false)
                                     updateFilter('filterLocation', '')
                                     updateFilter('filterLowStock', false)
                                     setFilterPriceMin('')
@@ -2548,6 +2571,23 @@ export default function Inventory() {
                             </div>
                         )}
 
+                        {/* Fantasy Casting (only for Hot Wheels) */}
+                        {newItem.brand?.toLowerCase() === 'hot wheels' && (
+                            <div>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={newItem.isFantasy}
+                                        onChange={(e) => setNewItem({ ...newItem, isFantasy: e.target.checked })}
+                                        className="rounded"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        🎨 Fantasía (diseño original)
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
                         {/* Chase (only for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
                         {(newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) ||
                             (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium') ? (
@@ -3013,6 +3053,23 @@ export default function Inventory() {
                                     />
                                     <span className={`text-sm font-medium ${editingItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
                                         ⭐ Super Treasure Hunt (STH)
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
+                        {/* Fantasy Casting - Edit Mode (only for Hot Wheels) */}
+                        {editingItem.brand?.toLowerCase() === 'hot wheels' && (
+                            <div>
+                                <label className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isFantasy || false}
+                                        onChange={(e) => setEditingItem({ ...editingItem, isFantasy: e.target.checked })}
+                                        className="rounded"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        🎨 Fantasía (diseño original)
                                     </span>
                                 </label>
                             </div>

@@ -28,6 +28,7 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     const filterPieceType = req.query.pieceType as string;
     const filterTreasureHunt = req.query.treasureHunt as string; // 'all' | 'th' | 'sth'
     const filterChase = req.query.chase === 'true';
+    const filterFantasy = req.query.fantasy === 'true';
 
     // Build query object (without search term for now - will do fuzzy search in memory)
     const query: any = {};
@@ -61,6 +62,11 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       query.isChase = true;
     }
 
+    // Fantasy filter
+    if (filterFantasy) {
+      query.isFantasy = true;
+    }
+
     // Get all items matching non-search filters
     let allItems = await InventoryItemModel.find(query)
       .select('-__v -updatedAt')
@@ -74,24 +80,50 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
 
     // Apply fuzzy search if search term is provided
     if (searchTerm && searchTerm.length > 0) {
-      const SIMILARITY_THRESHOLD = 75;
+      const SIMILARITY_THRESHOLD = 60; // Lowered for more flexible matching
+      const searchLower = searchTerm.toLowerCase();
+      
       const filtered = allItems.filter((item: any) => {
-        // Check carId (if it's an object with name, use name; if it's a string, use directly)
+        // Extract all searchable fields
         const carIdText = typeof item.carId === 'object' ? item.carId?.name || '' : item.carId || '';
+        const brand = item.brand || '';
+        const pieceType = item.pieceType || '';
+        const condition = item.condition || '';
+        const location = item.location || '';
+        const notes = item.notes || '';
+        const year = typeof item.carId === 'object' ? item.carId?.year || '' : '';
+        const series = typeof item.carId === 'object' ? item.carId?.series || '' : '';
+        const color = typeof item.carId === 'object' ? item.carId?.color || '' : '';
         
-        // Check for exact matches first
-        if (carIdText.toLowerCase().includes(searchTerm.toLowerCase())) {
-          return true;
-        }
-        if (item.notes && item.notes.toLowerCase().includes(searchTerm.toLowerCase())) {
-          return true;
-        }
+        // Check for exact matches first (highest priority)
+        if (carIdText.toLowerCase().includes(searchLower)) return true;
+        if (brand.toLowerCase().includes(searchLower)) return true;
+        if (pieceType.toLowerCase().includes(searchLower)) return true;
+        if (condition.toLowerCase().includes(searchLower)) return true;
+        if (location.toLowerCase().includes(searchLower)) return true;
+        if (notes.toLowerCase().includes(searchLower)) return true;
+        if (year.toLowerCase().includes(searchLower)) return true;
+        if (series.toLowerCase().includes(searchLower)) return true;
+        if (color.toLowerCase().includes(searchLower)) return true;
+        
+        // Special searches
+        if (searchLower === 'th' && item.isTreasureHunt) return true;
+        if (searchLower === 'sth' && item.isSuperTreasureHunt) return true;
+        if (searchLower === 'chase' && item.isChase) return true;
+        if ((searchLower === 'fantasy' || searchLower === 'fantasia') && item.isFantasy) return true;
         
         // Check for fuzzy matches
         const carIdSimilarity = calculateSimilarity(searchTerm, carIdText);
-        const notesSimilarity = item.notes ? calculateSimilarity(searchTerm, item.notes) : 0;
+        const brandSimilarity = calculateSimilarity(searchTerm, brand);
+        const pieceTypeSimilarity = calculateSimilarity(searchTerm, pieceType);
+        const notesSimilarity = notes ? calculateSimilarity(searchTerm, notes) : 0;
+        const seriesSimilarity = series ? calculateSimilarity(searchTerm, series) : 0;
         
-        return carIdSimilarity >= SIMILARITY_THRESHOLD || notesSimilarity >= SIMILARITY_THRESHOLD;
+        return carIdSimilarity >= SIMILARITY_THRESHOLD || 
+               brandSimilarity >= SIMILARITY_THRESHOLD || 
+               pieceTypeSimilarity >= SIMILARITY_THRESHOLD ||
+               notesSimilarity >= SIMILARITY_THRESHOLD ||
+               seriesSimilarity >= SIMILARITY_THRESHOLD;
       });
       allItems = filtered;
     }

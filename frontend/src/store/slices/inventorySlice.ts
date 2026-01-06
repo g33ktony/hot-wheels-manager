@@ -16,6 +16,7 @@ export interface InventoryItem {
   isTreasureHunt?: boolean;
   isSuperTreasureHunt?: boolean;
   isChase?: boolean;
+  isFantasy?: boolean;
   dateAdded?: string | Date;
   lastUpdated?: string | Date;
   year?: number;

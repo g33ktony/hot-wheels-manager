@@ -30,6 +30,7 @@ const inventoryItemSchema = new Schema({
   isTreasureHunt: { type: Boolean, default: false }, // Only for Hot Wheels basic
   isSuperTreasureHunt: { type: Boolean, default: false }, // Only for Hot Wheels basic
   isChase: { type: Boolean, default: false }, // Only for Mini GT, Kaido House, M2
+  isFantasy: { type: Boolean, default: false }, // Only for Hot Wheels - fantasy casting
   // Series fields
   seriesId: { type: String }, // Unique identifier for the series (e.g., "MARVEL-2024-001")
   seriesName: { type: String }, // Display name (e.g., "Marvel Series 2024")

@@ -46,6 +46,7 @@ export interface InventoryItem {
   isTreasureHunt?: boolean; // Only for Hot Wheels basic
   isSuperTreasureHunt?: boolean; // Only for Hot Wheels basic
   isChase?: boolean; // Only for Mini GT, Kaido House, M2
+  isFantasy?: boolean; // Only for Hot Wheels - indicates fantasy/original design (not based on real car)
   // Series fields for selling items as a complete series
   seriesId?: string; // Unique identifier (e.g., "MARVEL-2024-001")
   seriesName?: string; // Display name (e.g., "Marvel Series 2024")

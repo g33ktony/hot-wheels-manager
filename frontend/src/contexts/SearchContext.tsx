@@ -9,6 +9,7 @@ interface SearchFilters {
   filterLowStock: boolean
   filterTreasureHunt: 'all' | 'th' | 'sth'
   filterChase: boolean
+  filterFantasy: boolean
 }
 
 interface SearchContextType {
@@ -25,7 +26,8 @@ const defaultFilters: SearchFilters = {
   filterLocation: '',
   filterLowStock: false,
   filterTreasureHunt: 'all',
-  filterChase: false
+  filterChase: false,
+  filterFantasy: false
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined)

@@ -38,7 +38,10 @@ const POS: React.FC = () => {
     filterBrand,
     filterPieceType,
     filterLocation,
-    filterLowStock
+    filterLowStock,
+    filterTreasureHunt,
+    filterChase,
+    filterFantasy
   } = filters;
 
   // Get inventory from Redux cache
@@ -186,6 +189,18 @@ const POS: React.FC = () => {
       // Filtro de stock bajo (≤ 3 unidades disponibles)
       if (filterLowStock && available > 3) return false;
 
+      // Filtro Treasure Hunt (solo para Hot Wheels Basic)
+      if (filterTreasureHunt && item.brand === 'Hot Wheels' && item.pieceType === 'basic') {
+        if (filterTreasureHunt === 'th' && !item.isTreasureHunt) return false;
+        if (filterTreasureHunt === 'sth' && !item.isSuperTreasureHunt) return false;
+      }
+
+      // Filtro Chase
+      if (filterChase && !item.isChase) return false;
+
+      // Filtro Fantasy (solo para Hot Wheels)
+      if (filterFantasy && item.brand === 'Hot Wheels' && !item.isFantasy) return false;
+
       return true;
     });
 
@@ -295,7 +310,7 @@ const POS: React.FC = () => {
     console.log('🔍 Smart Search:', {
       query,
       queryWords,
-      filtersApplied: { filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock },
+      filtersApplied: { filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock, filterTreasureHunt, filterChase, filterFantasy },
       itemsAfterFilters: items.length,
       resultsFound: scoredItems.length,
       availableStockOnly: true, // POS solo muestra items con stock disponible
@@ -307,7 +322,7 @@ const POS: React.FC = () => {
     });
 
     return scoredItems;
-  }, [inventoryItems, searchTerm, filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock]);
+  }, [inventoryItems, searchTerm, filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock, filterTreasureHunt, filterChase, filterFantasy]);
 
   // Extraer marcas únicas para el filtro
   const uniqueBrands = useMemo(() => {
@@ -586,6 +601,19 @@ const POS: React.FC = () => {
                   ))}
                 </select>
 
+                {/* Filtro TH/STH solo para Hot Wheels Basic */}
+                {filterBrand === 'Hot Wheels' && filterPieceType === 'basic' && (
+                  <select
+                    value={filterTreasureHunt}
+                    onChange={(e) => updateFilter('filterTreasureHunt', e.target.value)}
+                    className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-yellow-50"
+                  >
+                    <option value="">Todos (TH/STH/Normal)</option>
+                    <option value="th">Solo Treasure Hunt (TH)</option>
+                    <option value="sth">Solo Super TH (STH)</option>
+                  </select>
+                )}
+
                 <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
                     type="checkbox"
@@ -597,8 +625,39 @@ const POS: React.FC = () => {
                     Solo stock bajo (≤3)
                   </span>
                 </label>
+              </div>
 
-                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock) && (
+              {/* Tercera fila de filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {/* Filtro Chase */}
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={filterChase}
+                    onChange={(e) => updateFilter('filterChase', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Solo Chase
+                  </span>
+                </label>
+
+                {/* Filtro Fantasy solo para Hot Wheels */}
+                {filterBrand === 'Hot Wheels' && (
+                  <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 bg-purple-50">
+                    <input
+                      type="checkbox"
+                      checked={filterFantasy}
+                      onChange={(e) => updateFilter('filterFantasy', e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium text-purple-700">
+                      Solo Fantasías
+                    </span>
+                  </label>
+                )}
+
+                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt || filterChase || filterFantasy) && (
                   <button
                     onClick={() => {
                       updateFilter('searchTerm', '');
@@ -607,6 +666,9 @@ const POS: React.FC = () => {
                       updateFilter('filterPieceType', '');
                       updateFilter('filterLocation', '');
                       updateFilter('filterLowStock', false);
+                      updateFilter('filterTreasureHunt', '');
+                      updateFilter('filterChase', false);
+                      updateFilter('filterFantasy', false);
                     }}
                     className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
                   >
@@ -617,7 +679,7 @@ const POS: React.FC = () => {
             </div>
 
             {/* Contador de resultados */}
-            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock) && (
+            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt || filterChase || filterFantasy) && (
               <div className="mb-3 text-sm text-gray-600">
                 {filteredInventory.length} resultado(s) encontrado(s)
               </div>

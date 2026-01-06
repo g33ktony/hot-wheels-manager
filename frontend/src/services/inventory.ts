@@ -22,6 +22,7 @@ export interface InventoryFilters {
   pieceType?: string
   treasureHunt?: 'all' | 'th' | 'sth'
   chase?: boolean
+  fantasy?: boolean
 }
 
 export const inventoryService = {
@@ -55,6 +56,9 @@ export const inventoryService = {
     }
     if (filters.chase) {
       params.append('chase', 'true')
+    }
+    if (filters.fantasy) {
+      params.append('fantasy', 'true')
     }
 
     const response = await api.get<ApiResponse<PaginatedInventoryResponse>>(

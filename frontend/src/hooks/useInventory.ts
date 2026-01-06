@@ -14,6 +14,7 @@ interface UseInventoryOptions {
   pieceType?: string
   treasureHunt?: 'all' | 'th' | 'sth'
   chase?: boolean
+  fantasy?: boolean
   useRedux?: boolean // Use Redux cache alongside React Query
 }
 
@@ -27,14 +28,15 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
     pieceType = '',
     treasureHunt = 'all',
     chase = false,
+    fantasy = false,
     useRedux = true
   } = options
 
   const dispatch = useAppDispatch()
   
   return useQuery<PaginatedInventoryResponse, Error>(
-    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase],
-    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase }),
+    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase, fantasy],
+    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase, fantasy }),
     {
       staleTime: 2 * 60 * 1000, // 2 minutes - shorter for more frequent updates
       cacheTime: 10 * 60 * 1000, // 10 minutes in cache
