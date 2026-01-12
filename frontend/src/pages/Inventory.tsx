@@ -944,6 +944,17 @@ export default function Inventory() {
         setSelectedItems(new Set())
     }
 
+    // Get all selected items from Redux store (includes items from all pages)
+    const getSelectedItems = useCallback((): InventoryItem[] => {
+        if (selectedItems.size === 0) return []
+        
+        // Get all items from Redux store (has all items cached)
+        const allItems = reduxInventory.items || []
+        
+        // Filter to only selected IDs
+        return allItems.filter(item => item._id && selectedItems.has(item._id))
+    }, [selectedItems, reduxInventory.items])
+
     const handleBulkDelete = async () => {
         if (selectedItems.size === 0) return
 
@@ -3352,7 +3363,7 @@ export default function Inventory() {
             <FacebookPublishModal
                 isOpen={showFacebookModal}
                 onClose={() => setShowFacebookModal(false)}
-                selectedItems={filteredItems.filter((item: InventoryItem) => selectedItems.has(item._id!))}
+                selectedItems={getSelectedItems()}
                 onSuccess={() => {
                     setIsSelectionMode(false)
                     setSelectedItems(new Set())
@@ -3362,7 +3373,7 @@ export default function Inventory() {
             {/* Quote Report Modal */}
             {showQuoteModal && (
                 <InventoryQuoteReport
-                    items={filteredItems.filter((item: InventoryItem) => selectedItems.has(item._id!))}
+                    items={getSelectedItems()}
                     onClose={() => setShowQuoteModal(false)}
                 />
             )}
@@ -3371,7 +3382,7 @@ export default function Inventory() {
             <CollageGenerator
                 isOpen={showCollageModal}
                 onClose={() => setShowCollageModal(false)}
-                selectedItems={filteredItems.filter((item: InventoryItem) => selectedItems.has(item._id!))}
+                selectedItems={getSelectedItems()}
             />
         </div>
     )
