@@ -27,7 +27,7 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([])
   const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
   const [tempPrice, setTempPrice] = useState('')
-  const [companyName] = useState('Hot Wheels Manager')
+  const [companyName] = useState(import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage')
   const [notes, setNotes] = useState('')
 
   const DESKTOP_WIDTH = 1000

@@ -93,7 +93,7 @@ const POS: React.FC = () => {
         totalPages = Math.ceil(totalItems / INITIAL_BATCH_SIZE);
 
         console.log('✅ POS: Cargó primer lote -', firstBatch.items.length, 'items de', totalItems, 'total');
-        
+
         // Debug: verificar si los items tienen brand
         console.log('🔍 Debug first batch brands:', firstBatch.items.slice(0, 10).map((item: any) => ({
           id: item._id,

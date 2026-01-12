@@ -497,10 +497,11 @@ export default function ItemDetail() {
                     ctx.fillRect(0, footerY, canvas.width, 4)
 
                     // Footer text
+                    const storeName = import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'
                     ctx.fillStyle = '#94a3b8'
                     ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
-                    ctx.fillText('Hot Wheels Manager', canvas.width / 2, footerY + 30)
+                    ctx.fillText(storeName, canvas.width / 2, footerY + 30)
 
                     ctx.fillStyle = '#64748b'
                     ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
@@ -552,42 +553,43 @@ export default function ItemDetail() {
             const pageWidth = pdf.internal.pageSize.getWidth()
             const pageHeight = pdf.internal.pageSize.getHeight()
             const margin = 15
+            const storeName = import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'
 
-            // MODERN GRADIENT HEADER
+            // MODERN GRADIENT HEADER (Reducido)
             // Primary gradient rectangle
             pdf.setFillColor(30, 64, 175) // Dark blue
-            pdf.rect(0, 0, pageWidth, 55, 'F')
+            pdf.rect(0, 0, pageWidth, 35, 'F')
 
             // Lighter overlay for gradient effect
             pdf.setFillColor(59, 130, 246) // Lighter blue
             pdf.setGState(pdf.GState({ opacity: 0.6 }))
-            pdf.rect(0, 0, pageWidth, 55, 'F')
+            pdf.rect(0, 0, pageWidth, 35, 'F')
             pdf.setGState(pdf.GState({ opacity: 1 }))
 
             // Racing stripes decoration
             pdf.setFillColor(255, 255, 255)
             pdf.setGState(pdf.GState({ opacity: 0.15 }))
             pdf.rect(0, 0, pageWidth, 2, 'F')
-            pdf.rect(0, 53, pageWidth, 2, 'F')
+            pdf.rect(0, 33, pageWidth, 2, 'F')
             pdf.setGState(pdf.GState({ opacity: 1 }))
 
-            // Icon - Hot Wheels symbol
-            pdf.setFontSize(14)
+            // Store name
+            pdf.setFontSize(10)
             pdf.setFont('helvetica', 'bold')
-            pdf.text('HOT WHEELS', pageWidth / 2, 15, { align: 'center' })
+            pdf.text(storeName, pageWidth / 2, 10, { align: 'center' })
 
             // Title with better formatting
             pdf.setTextColor(255, 255, 255)
-            pdf.setFontSize(20)
+            pdf.setFontSize(16)
             pdf.setFont('helvetica', 'bold')
             const titleLines = pdf.splitTextToSize(carName, pageWidth - 2 * margin)
-            let titleY = 35
+            let titleY = 20
             titleLines.forEach((line: string) => {
                 pdf.text(line, pageWidth / 2, titleY, { align: 'center' })
-                titleY += 8
+                titleY += 7
             })
 
-            let currentY = 65
+            let currentY = 45
 
             // MODERN PRICE CARD
             const priceCardHeight = 28
@@ -670,8 +672,8 @@ export default function ItemDetail() {
                 }
             }
 
-            // DETAILS CARD
-            const detailsCardHeight = 50
+            // DETAILS CARD (Ampliada)
+            const detailsCardHeight = 70
 
             // Card shadow
             pdf.setFillColor(0, 0, 0)
@@ -706,7 +708,7 @@ export default function ItemDetail() {
                 pdf.setFont('helvetica', 'bold')
                 pdf.text(item.brand, detailX + 18, currentY)
                 pdf.setFont('helvetica', 'normal')
-                currentY += 8
+                currentY += 10
             }
 
             if (item?.condition) {
@@ -716,7 +718,7 @@ export default function ItemDetail() {
                 pdf.setFont('helvetica', 'bold')
                 pdf.text(item.condition, detailX + 25, currentY)
                 pdf.setFont('helvetica', 'normal')
-                currentY += 8
+                currentY += 10
             }
 
             if (item?.pieceType) {
@@ -744,7 +746,7 @@ export default function ItemDetail() {
             pdf.setTextColor(148, 163, 184)
             pdf.setFontSize(8)
             pdf.setFont('helvetica', 'normal')
-            pdf.text('Hot Wheels Manager', pageWidth / 2, footerY + 10, { align: 'center' })
+            pdf.text(storeName, pageWidth / 2, footerY + 10, { align: 'center' })
 
             pdf.setTextColor(100, 116, 139)
             pdf.setFontSize(9)

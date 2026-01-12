@@ -131,7 +131,7 @@ export default function Layout({ children }: LayoutProps) {
             >
                 {/* Fixed Sidebar Header */}
                 <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0 bg-white z-10">
-                    <h1 className="text-lg lg:text-xl font-bold text-gray-900 select-none">🏎️ Hot Wheels Manager</h1>
+                    <h1 className="text-lg lg:text-xl font-bold text-gray-900 select-none">🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
                     <button
                         className="lg:hidden p-2 -mr-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
                         onClick={() => setSidebarOpen(false)}

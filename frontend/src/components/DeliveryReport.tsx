@@ -258,7 +258,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       {/* Header with brand colors */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t-lg -mx-8 -mt-8 mb-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-2">🏎️ 2Fast Wheels Garage</h1>
+          <h1 className="text-3xl font-bold mb-2">🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
           <h2 className="text-xl font-semibold opacity-90">Reporte de Entrega</h2>
           <p className="text-sm opacity-75 mt-2">ID: {delivery._id}</p>
         </div>
@@ -390,7 +390,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Footer */}
       <div className="text-center text-sm text-gray-500 mt-8 pt-6 border-t-2 border-gray-200">
-        <p className="font-semibold text-gray-700 mb-1">Generado por 2Fast Wheels Garage</p>
+        <p className="font-semibold text-gray-700 mb-1">Generado por {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</p>
         <p className="text-xs">{new Date().toLocaleString('es-ES', {
           dateStyle: 'long',
           timeStyle: 'short'

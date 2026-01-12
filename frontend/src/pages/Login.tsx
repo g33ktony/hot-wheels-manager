@@ -54,7 +54,7 @@ const Login: React.FC = () => {
         {/* Título */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Hot Wheels Manager
+            {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}
           </h1>
           <p className="text-gray-600">
             Ingresa tus credenciales para continuar
