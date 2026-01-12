@@ -17,7 +17,8 @@ import Stepper from '@/components/common/Stepper'
 import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
 import InventoryQuoteReport from '@/components/InventoryQuoteReport'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText } from 'lucide-react'
+import CollageGenerator from '@/components/CollageGenerator'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
@@ -218,6 +219,8 @@ export default function Inventory() {
     const [showFacebookModal, setShowFacebookModal] = useState(false)
     // Quote report modal
     const [showQuoteModal, setShowQuoteModal] = useState(false)
+    // Collage generator modal
+    const [showCollageModal, setShowCollageModal] = useState(false)
     // Search suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
@@ -1259,6 +1262,14 @@ export default function Inventory() {
                                         size="sm"
                                     >
                                         Generar Cotización ({selectedItems.size})
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        icon={<Image size={18} />}
+                                        onClick={() => setShowCollageModal(true)}
+                                        size="sm"
+                                    >
+                                        Collages para FB
                                     </Button>
                                     <Button
                                         variant="secondary"
@@ -3355,6 +3366,13 @@ export default function Inventory() {
                     onClose={() => setShowQuoteModal(false)}
                 />
             )}
+
+            {/* Collage Generator Modal */}
+            <CollageGenerator
+                isOpen={showCollageModal}
+                onClose={() => setShowCollageModal(false)}
+                selectedItems={filteredItems.filter((item: InventoryItem) => selectedItems.has(item._id!))}
+            />
         </div>
     )
 }
