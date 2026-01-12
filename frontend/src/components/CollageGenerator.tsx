@@ -89,6 +89,8 @@ export default function CollageGenerator({
         const scaleX = image.naturalWidth / image.width
         const scaleY = image.naturalHeight / image.height
 
+        console.log('Canvas setup:', { scaleX, scaleY, naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight })
+
         canvas.width = completedCrop.width
         canvas.height = completedCrop.height
         const ctx = canvas.getContext('2d')
@@ -98,38 +100,52 @@ export default function CollageGenerator({
             return
         }
 
-        ctx.drawImage(
-            image,
-            completedCrop.x * scaleX,
-            completedCrop.y * scaleY,
-            completedCrop.width * scaleX,
-            completedCrop.height * scaleY,
-            0,
-            0,
-            completedCrop.width,
-            completedCrop.height
-        )
+        try {
+            ctx.drawImage(
+                image,
+                completedCrop.x * scaleX,
+                completedCrop.y * scaleY,
+                completedCrop.width * scaleX,
+                completedCrop.height * scaleY,
+                0,
+                0,
+                completedCrop.width,
+                completedCrop.height
+            )
+            console.log('Image drawn to canvas successfully')
+        } catch (error) {
+            console.error('Error drawing image to canvas:', error)
+            return
+        }
 
-        canvas.toBlob((blob) => {
-            if (blob) {
-                console.log('Cropped blob created successfully')
-                const croppedUrl = URL.createObjectURL(blob)
-                const updated = [...collageItems]
-                updated[currentItemIndex].croppedImage = croppedUrl
-                setCollageItems(updated)
+        // Try using canvas.toBlob with error handling
+        try {
+            canvas.toBlob((blob) => {
+                console.log('toBlob callback executed', { hasBlob: !!blob })
+                if (blob) {
+                    console.log('Cropped blob created successfully', blob.size)
+                    const croppedUrl = URL.createObjectURL(blob)
+                    const updated = [...collageItems]
+                    updated[currentItemIndex].croppedImage = croppedUrl
+                    setCollageItems(updated)
 
-                if (currentItemIndex < collageItems.length - 1) {
-                    setCurrentItemIndex(currentItemIndex + 1)
-                    setCrop(undefined)
-                    setCompletedCrop(undefined)
+                    if (currentItemIndex < collageItems.length - 1) {
+                        console.log('Moving to next item')
+                        setCurrentItemIndex(currentItemIndex + 1)
+                        setCrop(undefined)
+                        setCompletedCrop(undefined)
+                    } else {
+                        console.log('Moving to price step')
+                        setCurrentStep('price')
+                        setCurrentItemIndex(0)
+                    }
                 } else {
-                    setCurrentStep('price')
-                    setCurrentItemIndex(0)
+                    console.error('Failed to create blob from canvas')
                 }
-            } else {
-                console.error('Failed to create blob from canvas')
-            }
-        }, 'image/jpeg', 0.95)
+            }, 'image/jpeg', 0.95)
+        } catch (error) {
+            console.error('Error in toBlob:', error)
+        }
     }
 
     const handlePriceEdit = (index: number, newPrice: number) => {
@@ -374,7 +390,7 @@ export default function CollageGenerator({
                                 {currentItem.item.brand} - ${currentItem.customPrice.toFixed(2)}
                             </h4>
                             <p className="text-sm text-gray-600 mb-4">
-                                Arrastra para seleccionar el área a recortar o presiona "Continuar" para usar la imagen completa
+                                Arrastra para seleccionar el área a recortar o presiona "Siguiente" sin seleccionar para usar la imagen completa
                             </p>
                             <div className="flex justify-center bg-white p-4 rounded-lg">
                                 <ReactCrop
