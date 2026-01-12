@@ -62,7 +62,7 @@ export default function CollageGenerator({
     }
 
     const handleCropComplete = () => {
-        if (!completedCrop || !imgRef.current) {
+        if (!completedCrop || !imgRef.current || completedCrop.width === 0 || completedCrop.height === 0) {
             // Skip crop, use original image
             const updated = [...collageItems]
             updated[currentItemIndex].croppedImage = updated[currentItemIndex].originalImage
@@ -88,7 +88,10 @@ export default function CollageGenerator({
         canvas.height = completedCrop.height
         const ctx = canvas.getContext('2d')
 
-        if (!ctx) return
+        if (!ctx) {
+            console.error('Could not get canvas context')
+            return
+        }
 
         ctx.drawImage(
             image,
@@ -117,7 +120,11 @@ export default function CollageGenerator({
                     setCurrentStep('price')
                     setCurrentItemIndex(0)
                 }
+            } else {
+                console.error('Failed to create blob from canvas')
             }
+        }, 'image/jpeg', 0.95)
+    }
         }, 'image/jpeg', 0.95)
     }
 
@@ -370,7 +377,6 @@ export default function CollageGenerator({
                                     crop={crop}
                                     onChange={(c) => setCrop(c)}
                                     onComplete={(c) => setCompletedCrop(c)}
-                                    aspect={1}
                                 >
                                     <img
                                         ref={imgRef}
