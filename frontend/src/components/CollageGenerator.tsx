@@ -388,7 +388,7 @@ export default function CollageGenerator({
 
                 // Load image
                 const img = await loadImageForPDF(generatedCollages[i])
-                
+
                 // Calculate dimensions to fit page while maintaining aspect ratio
                 const imgAspectRatio = img.width / img.height
                 const pageAspectRatio = (pageWidth - 2 * margin) / (pageHeight - 2 * margin)
@@ -672,7 +672,7 @@ export default function CollageGenerator({
                                 </div>
                             </div>
                         ))}
-                        
+
                         {/* PDF Generation Button */}
                         <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
                             <div className="flex items-start gap-4">
@@ -690,8 +690,8 @@ export default function CollageGenerator({
                                         variant="primary"
                                         onClick={generatePDF}
                                         disabled={isGeneratingPDF}
-                                        icon={isGeneratingPDF ? 
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> : 
+                                        icon={isGeneratingPDF ?
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> :
                                             <FileText size={18} />
                                         }
                                     >
