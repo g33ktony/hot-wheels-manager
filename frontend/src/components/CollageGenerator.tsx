@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
 import Button from './common/Button'
 import Modal from './common/Modal'
 import ReactCrop, { Crop as CropType, PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
+import jsPDF from 'jspdf'
 import type { InventoryItem } from '@shared/types'
 
 interface CollageItem {
@@ -31,6 +32,7 @@ export default function CollageGenerator({
     const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
     const [generatedCollages, setGeneratedCollages] = useState<string[]>([])
     const [isGenerating, setIsGenerating] = useState(false)
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
     const imgRef = useRef<HTMLImageElement>(null)
     const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
     const [tempPrice, setTempPrice] = useState('')
@@ -201,14 +203,14 @@ export default function CollageGenerator({
                 return
             }
 
-            // Canvas dimensions
+            // Canvas dimensions - Increased for better quality
             const cols = items.length <= 3 ? items.length : 3
             const rows = Math.ceil(items.length / 3)
-            const cellWidth = 400
-            const cellHeight = 400
-            const padding = 10
-            const headerHeight = 80
-            const footerHeight = 60
+            const cellWidth = 600 // Increased from 400
+            const cellHeight = 600 // Increased from 400
+            const padding = 15 // Increased from 10
+            const headerHeight = 100 // Increased from 80
+            const footerHeight = 80 // Increased from 60
 
             canvas.width = cols * cellWidth + (cols + 1) * padding
             canvas.height = rows * cellHeight + (rows + 1) * padding + headerHeight + footerHeight
@@ -226,9 +228,9 @@ export default function CollageGenerator({
 
             // Store name in header
             ctx.fillStyle = '#ffffff'
-            ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+            ctx.font = 'bold 48px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
             ctx.textAlign = 'center'
-            ctx.fillText(storeName, canvas.width / 2, 50)
+            ctx.fillText(storeName, canvas.width / 2, 65)
 
             let loadedImages = 0
             const totalImages = items.length
@@ -241,9 +243,9 @@ export default function CollageGenerator({
                     ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight)
 
                     ctx.fillStyle = '#94a3b8'
-                    ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                    ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
-                    ctx.fillText('¡Disponibles para entrega!', canvas.width / 2, canvas.height - 30)
+                    ctx.fillText('¡Disponibles para entrega!', canvas.width / 2, canvas.height - 35)
 
                     canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.95)
                     return
@@ -269,27 +271,58 @@ export default function CollageGenerator({
                     ctx.shadowBlur = 0
                     ctx.shadowOffsetY = 0
 
-                    // Draw image (fit and center)
-                    const imageHeight = cellHeight - 60 // Reserve space for price
+                    // Draw image (fit and center) with better quality
+                    const imageHeight = cellHeight - 90 // Reserve space for price and quantity
                     const scale = Math.min(cellWidth / img.width, imageHeight / img.height)
                     const scaledWidth = img.width * scale
                     const scaledHeight = img.height * scale
                     const imgX = x + (cellWidth - scaledWidth) / 2
                     const imgY = y + (imageHeight - scaledHeight) / 2
 
+                    // Enable image smoothing for better quality
+                    ctx.imageSmoothingEnabled = true
+                    ctx.imageSmoothingQuality = 'high'
                     ctx.drawImage(img, imgX, imgY, scaledWidth, scaledHeight)
 
+                    // Quantity badge (top right corner)
+                    const availableQty = item.item.quantity - (item.item.reservedQuantity || 0)
+                    if (availableQty > 0) {
+                        const badgeSize = 70
+                        const badgeX = x + cellWidth - badgeSize - 15
+                        const badgeY = y + 15
+
+                        // Badge background with shadow
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+                        ctx.shadowBlur = 10
+                        ctx.shadowOffsetY = 3
+                        ctx.fillStyle = '#ef4444'
+                        ctx.beginPath()
+                        ctx.arc(badgeX + badgeSize / 2, badgeY + badgeSize / 2, badgeSize / 2, 0, Math.PI * 2)
+                        ctx.fill()
+                        ctx.shadowColor = 'transparent'
+                        ctx.shadowBlur = 0
+                        ctx.shadowOffsetY = 0
+
+                        // Quantity text
+                        ctx.fillStyle = '#ffffff'
+                        ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        ctx.textAlign = 'center'
+                        ctx.textBaseline = 'middle'
+                        ctx.fillText(availableQty.toString(), badgeX + badgeSize / 2, badgeY + badgeSize / 2)
+                        ctx.textBaseline = 'alphabetic'
+                    }
+
                     // Price tag at bottom
-                    const priceGradient = ctx.createLinearGradient(x, y + cellHeight - 60, x + cellWidth, y + cellHeight)
+                    const priceGradient = ctx.createLinearGradient(x, y + cellHeight - 90, x + cellWidth, y + cellHeight)
                     priceGradient.addColorStop(0, '#10b981')
                     priceGradient.addColorStop(1, '#059669')
                     ctx.fillStyle = priceGradient
-                    ctx.fillRect(x, y + cellHeight - 60, cellWidth, 60)
+                    ctx.fillRect(x, y + cellHeight - 90, cellWidth, 90)
 
                     ctx.fillStyle = '#ffffff'
-                    ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                    ctx.font = 'bold 42px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
-                    ctx.fillText(`$${item.customPrice.toFixed(2)}`, x + cellWidth / 2, y + cellHeight - 25)
+                    ctx.fillText(`$${item.customPrice.toFixed(2)}`, x + cellWidth / 2, y + cellHeight - 35)
 
                     loadedImages++
                     drawImagesRecursively(index + 1)
@@ -332,6 +365,86 @@ export default function CollageGenerator({
         } catch (error) {
             console.error('Error sharing:', error)
         }
+    }
+
+    const generatePDF = async () => {
+        setIsGeneratingPDF(true)
+        try {
+            // Create PDF in landscape orientation to fit collages better
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            })
+
+            const pageWidth = pdf.internal.pageSize.getWidth()
+            const pageHeight = pdf.internal.pageSize.getHeight()
+            const margin = 10
+
+            for (let i = 0; i < generatedCollages.length; i++) {
+                if (i > 0) {
+                    pdf.addPage()
+                }
+
+                // Load image
+                const img = await loadImageForPDF(generatedCollages[i])
+                
+                // Calculate dimensions to fit page while maintaining aspect ratio
+                const imgAspectRatio = img.width / img.height
+                const pageAspectRatio = (pageWidth - 2 * margin) / (pageHeight - 2 * margin)
+
+                let imgWidth, imgHeight
+                if (imgAspectRatio > pageAspectRatio) {
+                    // Image is wider - fit to width
+                    imgWidth = pageWidth - 2 * margin
+                    imgHeight = imgWidth / imgAspectRatio
+                } else {
+                    // Image is taller - fit to height
+                    imgHeight = pageHeight - 2 * margin
+                    imgWidth = imgHeight * imgAspectRatio
+                }
+
+                const x = (pageWidth - imgWidth) / 2
+                const y = (pageHeight - imgHeight) / 2
+
+                pdf.addImage(generatedCollages[i], 'JPEG', x, y, imgWidth, imgHeight)
+            }
+
+            // Save PDF as blob
+            const pdfBlob = pdf.output('blob')
+            const pdfFile = new File([pdfBlob], 'collages.pdf', { type: 'application/pdf' })
+
+            // Try to share, fallback to download
+            if (navigator.share && navigator.canShare({ files: [pdfFile] })) {
+                await navigator.share({
+                    files: [pdfFile],
+                    title: 'Collages PDF',
+                    text: `Collages de ${storeName}`
+                })
+            } else {
+                // Fallback: trigger download
+                const url = URL.createObjectURL(pdfBlob)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = 'collages.pdf'
+                link.click()
+                URL.revokeObjectURL(url)
+            }
+        } catch (error) {
+            console.error('Error generating PDF:', error)
+        } finally {
+            setIsGeneratingPDF(false)
+        }
+    }
+
+    const loadImageForPDF = (url: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image()
+            img.crossOrigin = 'anonymous'
+            img.onload = () => resolve(img)
+            img.onerror = reject
+            img.src = url
+        })
     }
 
     const handleClose = () => {
@@ -559,6 +672,35 @@ export default function CollageGenerator({
                                 </div>
                             </div>
                         ))}
+                        
+                        {/* PDF Generation Button */}
+                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0">
+                                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                        <FileText className="text-white" size={24} />
+                                    </div>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-semibold text-gray-900 mb-1">Generar PDF</h4>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Crea un PDF con todos los collages (un collage por página) listo para compartir
+                                    </p>
+                                    <Button
+                                        variant="primary"
+                                        onClick={generatePDF}
+                                        disabled={isGeneratingPDF}
+                                        icon={isGeneratingPDF ? 
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> : 
+                                            <FileText size={18} />
+                                        }
+                                    >
+                                        {isGeneratingPDF ? 'Generando PDF...' : 'Generar y Compartir PDF'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="flex justify-between pt-4 border-t">
                             <Button
                                 variant="secondary"
