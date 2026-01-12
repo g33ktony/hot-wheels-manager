@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Download, Share2, Crop, Edit2, Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import Button from './common/Button'
 import Modal from './common/Modal'
 import ReactCrop, { Crop as CropType, PixelCrop } from 'react-image-crop'
@@ -45,7 +45,7 @@ export default function CollageGenerator({
                 .map(item => ({
                     item,
                     croppedImage: null,
-                    customPrice: item.price || 0,
+                    customPrice: item.actualPrice || item.suggestedPrice || 0,
                     originalImage: item.photos![0]
                 }))
             setCollageItems(items)
