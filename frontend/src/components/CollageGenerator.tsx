@@ -125,10 +125,8 @@ export default function CollageGenerator({
             }
         }, 'image/jpeg', 0.95)
     }
-}, 'image/jpeg', 0.95)
-    }
 
-const handlePriceEdit = (index: number, newPrice: number) => {
+    const handlePriceEdit = (index: number, newPrice: number) => {
     const updated = [...collageItems]
     updated[index].customPrice = newPrice
     setCollageItems(updated)
