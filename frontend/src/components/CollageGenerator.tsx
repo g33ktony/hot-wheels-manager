@@ -62,7 +62,11 @@ export default function CollageGenerator({
     }
 
     const handleCropComplete = () => {
-        if (!completedCrop || !imgRef.current || completedCrop.width === 0 || completedCrop.height === 0) {
+        console.log('handleCropComplete called', { completedCrop, hasImage: !!imgRef.current })
+        
+        // If no crop or crop is too small (less than 10 pixels), use original image
+        if (!completedCrop || !imgRef.current || !completedCrop.width || !completedCrop.height || completedCrop.width < 10 || completedCrop.height < 10) {
+            console.log('Using original image (no valid crop)')
             // Skip crop, use original image
             const updated = [...collageItems]
             updated[currentItemIndex].croppedImage = updated[currentItemIndex].originalImage
@@ -79,6 +83,7 @@ export default function CollageGenerator({
             return
         }
 
+        console.log('Creating cropped image', completedCrop)
         const image = imgRef.current
         const canvas = document.createElement('canvas')
         const scaleX = image.naturalWidth / image.width
@@ -107,6 +112,7 @@ export default function CollageGenerator({
 
         canvas.toBlob((blob) => {
             if (blob) {
+                console.log('Cropped blob created successfully')
                 const croppedUrl = URL.createObjectURL(blob)
                 const updated = [...collageItems]
                 updated[currentItemIndex].croppedImage = croppedUrl
