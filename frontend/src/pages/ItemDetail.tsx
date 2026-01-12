@@ -280,12 +280,14 @@ export default function ItemDetail() {
                         return
                     }
 
-                    // Design constants matching PDF layout
-                    const margin = 30
-                    const headerHeight = 100
-                    const priceBoxHeight = 70
-                    const detailsHeight = 100
-                    const maxImageWidth = 800
+                    // Design constants - Modern layout
+                    const padding = 40
+                    const headerHeight = 140
+                    const priceCardHeight = 100
+                    const detailsCardHeight = 160
+                    const footerHeight = 80
+                    const spacing = 25
+                    const maxImageWidth = 900
 
                     // Calculate image dimensions maintaining aspect ratio
                     let imgWidth = croppedImage.width
@@ -297,32 +299,52 @@ export default function ItemDetail() {
                         imgHeight = imgHeight * ratio
                     }
 
-                    const canvasWidth = Math.max(imgWidth + (margin * 2), 600)
+                    const canvasWidth = Math.max(imgWidth + (padding * 2), 700)
                     canvas.width = canvasWidth
-                    canvas.height = headerHeight + margin + imgHeight + margin + priceBoxHeight + detailsHeight + margin
+                    canvas.height = headerHeight + spacing + imgHeight + spacing + priceCardHeight + spacing + detailsCardHeight + spacing + footerHeight
 
-                    // White background
-                    ctx.fillStyle = '#ffffff'
+                    // BACKGROUND - Subtle gradient
+                    const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
+                    bgGradient.addColorStop(0, '#f8fafc')
+                    bgGradient.addColorStop(1, '#e2e8f0')
+                    ctx.fillStyle = bgGradient
                     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-                    // Header with gradient (matching PDF)
-                    const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
-                    headerGradient.addColorStop(0, '#2980b9') // Primary blue
-                    headerGradient.addColorStop(1, '#1e3a8a')
+                    // HEADER - Modern gradient with brand
+                    const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, headerHeight)
+                    headerGradient.addColorStop(0, '#1e40af')
+                    headerGradient.addColorStop(0.5, '#3b82f6')
+                    headerGradient.addColorStop(1, '#60a5fa')
                     ctx.fillStyle = headerGradient
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
+                    ctx.shadowBlur = 20
+                    ctx.shadowOffsetY = 10
                     ctx.fillRect(0, 0, canvas.width, headerHeight)
+                    ctx.shadowColor = 'transparent'
+                    ctx.shadowBlur = 0
+                    ctx.shadowOffsetY = 0
 
-                    // Title in header
+                    // Racing stripes decoration
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+                    ctx.fillRect(0, 0, canvas.width, 8)
+                    ctx.fillRect(0, headerHeight - 8, canvas.width, 8)
+
+                    // Hot Wheels icon/emoji
+                    ctx.font = '48px Arial, sans-serif'
+                    ctx.textAlign = 'center'
+                    ctx.fillText('🏎️', canvas.width / 2, 50)
+
+                    // Title in header with better typography
                     ctx.fillStyle = '#ffffff'
-                    ctx.font = 'bold 28px Arial, sans-serif'
+                    ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
 
                     // Wrap text if too long
-                    const maxWidth = canvas.width - (margin * 2)
+                    const maxWidth = canvas.width - (padding * 2)
                     const words = carName.split(' ')
                     let line = ''
-                    let y = 35
-                    const lineHeight = 32
+                    let y = 95
+                    const lineHeight = 38
 
                     for (let i = 0; i < words.length; i++) {
                         const testLine = line + words[i] + ' '
@@ -338,9 +360,22 @@ export default function ItemDetail() {
                     }
                     ctx.fillText(line, canvas.width / 2, y)
 
-                    // Draw the cropped image (centered)
-                    const imageY = headerHeight + margin
+                    // PRODUCT IMAGE with modern card style
+                    const imageY = headerHeight + spacing
                     const imageX = (canvas.width - imgWidth) / 2
+
+                    // Card background for image
+                    ctx.fillStyle = '#ffffff'
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.15)'
+                    ctx.shadowBlur = 25
+                    ctx.shadowOffsetY = 8
+                    const imgPadding = 15
+                    ctx.beginPath()
+                    ctx.roundRect(imageX - imgPadding, imageY - imgPadding, imgWidth + imgPadding * 2, imgHeight + imgPadding * 2, 16)
+                    ctx.fill()
+                    ctx.shadowColor = 'transparent'
+                    ctx.shadowBlur = 0
+                    ctx.shadowOffsetY = 0
 
                     // Enable high quality image rendering
                     ctx.imageSmoothingEnabled = true
@@ -348,53 +383,128 @@ export default function ItemDetail() {
 
                     ctx.drawImage(croppedImage, imageX, imageY, imgWidth, imgHeight)
 
-                    // Add subtle border around image
-                    ctx.strokeStyle = '#d1d5db'
-                    ctx.lineWidth = 3
-                    ctx.strokeRect(imageX, imageY, imgWidth, imgHeight)
+                    // PRICE CARD - Eye-catching design
+                    const priceCardY = imageY + imgHeight + spacing
+                    const priceCardWidth = canvas.width - (padding * 2)
+                    const priceCardX = padding
 
-                    // Price box (matching PDF green style)
-                    const priceBoxY = imageY + imgHeight + margin
-                    const priceBoxWidth = canvas.width - (margin * 2)
-                    const priceBoxX = margin
-
-                    // Rounded rectangle for price
-                    const borderRadius = 8
-                    ctx.fillStyle = '#2ecc71' // Green matching PDF
+                    // Price card with vibrant gradient
+                    const priceGradient = ctx.createLinearGradient(priceCardX, priceCardY, priceCardX + priceCardWidth, priceCardY + priceCardHeight)
+                    priceGradient.addColorStop(0, '#10b981')
+                    priceGradient.addColorStop(1, '#059669')
+                    
+                    ctx.fillStyle = priceGradient
+                    ctx.shadowColor = 'rgba(16, 185, 129, 0.4)'
+                    ctx.shadowBlur = 20
+                    ctx.shadowOffsetY = 8
                     ctx.beginPath()
-                    ctx.roundRect(priceBoxX, priceBoxY, priceBoxWidth, priceBoxHeight, borderRadius)
+                    ctx.roundRect(priceCardX, priceCardY, priceCardWidth, priceCardHeight, 16)
+                    ctx.fill()
+                    ctx.shadowColor = 'transparent'
+                    ctx.shadowBlur = 0
+                    ctx.shadowOffsetY = 0
+
+                    // Accent stripe on price card
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'
+                    ctx.beginPath()
+                    ctx.roundRect(priceCardX + 15, priceCardY + 15, 6, priceCardHeight - 30, 3)
                     ctx.fill()
 
-                    // Price text
+                    // Price label
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+                    ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                    ctx.textAlign = 'center'
+                    ctx.fillText('PRECIO', canvas.width / 2, priceCardY + 30)
+
+                    // Price value
                     ctx.fillStyle = '#ffffff'
-                    ctx.font = 'bold 48px Arial, sans-serif'
+                    ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
-                    ctx.fillText(`$${price.toFixed(2)}`, canvas.width / 2, priceBoxY + 50)
+                    ctx.fillText(`$${price.toFixed(2)}`, canvas.width / 2, priceCardY + 78)
 
-                    // Details section with light background
-                    const detailsY = priceBoxY + priceBoxHeight + 10
-                    ctx.fillStyle = '#f5f5f5'
+                    // DETAILS CARD - Professional info section
+                    const detailsCardY = priceCardY + priceCardHeight + spacing
+                    ctx.fillStyle = '#ffffff'
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)'
+                    ctx.shadowBlur = 20
+                    ctx.shadowOffsetY = 6
                     ctx.beginPath()
-                    ctx.roundRect(margin, detailsY, priceBoxWidth, detailsHeight - 10, borderRadius)
+                    ctx.roundRect(priceCardX, detailsCardY, priceCardWidth, detailsCardHeight, 16)
+                    ctx.fill()
+                    ctx.shadowColor = 'transparent'
+                    ctx.shadowBlur = 0
+                    ctx.shadowOffsetY = 0
+
+                    // Details header with accent
+                    ctx.fillStyle = '#f0f9ff'
+                    ctx.beginPath()
+                    ctx.roundRect(priceCardX, detailsCardY, priceCardWidth, 45, 16)
                     ctx.fill()
 
-                    // Details text
-                    ctx.fillStyle = '#374151'
-                    ctx.font = 'bold 18px Arial, sans-serif'
+                    ctx.fillStyle = '#1e40af'
+                    ctx.font = 'bold 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
-                    ctx.fillText('Detalles', canvas.width / 2, detailsY + 25)
+                    ctx.fillText('📋 ESPECIFICACIONES', canvas.width / 2, detailsCardY + 30)
 
-                    ctx.font = '16px Arial, sans-serif'
-                    let detailTextY = detailsY + 50
+                    // Details content with icons
+                    ctx.textAlign = 'left'
+                    ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                    let detailY = detailsCardY + 70
 
                     if (item?.brand) {
-                        ctx.fillText(`Marca: ${item.brand}`, canvas.width / 2, detailTextY)
-                        detailTextY += 22
+                        ctx.fillStyle = '#64748b'
+                        ctx.fillText('🏷️ Marca:', priceCardX + 30, detailY)
+                        ctx.fillStyle = '#1e293b'
+                        ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        ctx.fillText(item.brand, priceCardX + 140, detailY)
+                        ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        detailY += 32
                     }
 
                     if (item?.condition) {
-                        ctx.fillText(`Condición: ${item.condition}`, canvas.width / 2, detailTextY)
+                        ctx.fillStyle = '#64748b'
+                        ctx.fillText('✨ Condición:', priceCardX + 30, detailY)
+                        ctx.fillStyle = '#1e293b'
+                        ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        ctx.fillText(item.condition, priceCardX + 170, detailY)
+                        ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        detailY += 32
                     }
+
+                    if (item?.pieceType) {
+                        ctx.fillStyle = '#64748b'
+                        ctx.fillText('📦 Tipo:', priceCardX + 30, detailY)
+                        ctx.fillStyle = '#1e293b'
+                        ctx.font = 'bold 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        ctx.fillText(item.pieceType, priceCardX + 115, detailY)
+                    }
+
+                    // FOOTER - Professional branding
+                    const footerY = detailsCardY + detailsCardHeight + spacing
+                    
+                    // Footer background
+                    ctx.fillStyle = '#1e293b'
+                    ctx.beginPath()
+                    ctx.roundRect(0, footerY, canvas.width, footerHeight, 0)
+                    ctx.fill()
+
+                    // Decorative top line
+                    const footerLineGradient = ctx.createLinearGradient(0, footerY, canvas.width, footerY)
+                    footerLineGradient.addColorStop(0, 'rgba(59, 130, 246, 0)')
+                    footerLineGradient.addColorStop(0.5, 'rgba(59, 130, 246, 1)')
+                    footerLineGradient.addColorStop(1, 'rgba(59, 130, 246, 0)')
+                    ctx.fillStyle = footerLineGradient
+                    ctx.fillRect(0, footerY, canvas.width, 4)
+
+                    // Footer text
+                    ctx.fillStyle = '#94a3b8'
+                    ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                    ctx.textAlign = 'center'
+                    ctx.fillText('Hot Wheels Manager', canvas.width / 2, footerY + 30)
+                    
+                    ctx.fillStyle = '#64748b'
+                    ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                    ctx.fillText('¡Gracias por tu interés!', canvas.width / 2, footerY + 55)
 
                     // Convert to blob with high quality
                     canvas.toBlob((blob) => {
@@ -403,7 +513,7 @@ export default function ItemDetail() {
                         } else {
                             reject(new Error('Failed to create composite blob'))
                         }
-                    }, 'image/jpeg', 1.0)
+                    }, 'image/jpeg', 0.95)
                 }
 
                 croppedImage.onerror = () => {
@@ -440,39 +550,80 @@ export default function ItemDetail() {
             })
 
             const pageWidth = pdf.internal.pageSize.getWidth()
+            const pageHeight = pdf.internal.pageSize.getHeight()
             const margin = 15
 
-            // Header with background
-            pdf.setFillColor(41, 128, 185) // Primary blue
-            pdf.rect(0, 0, pageWidth, 40, 'F')
+            // MODERN GRADIENT HEADER
+            // Primary gradient rectangle
+            pdf.setFillColor(30, 64, 175) // Dark blue
+            pdf.rect(0, 0, pageWidth, 55, 'F')
+            
+            // Lighter overlay for gradient effect
+            pdf.setFillColor(59, 130, 246) // Lighter blue
+            pdf.setGState(new pdf.GState({ opacity: 0.6 }))
+            pdf.rect(0, 0, pageWidth, 55, 'F')
+            pdf.setGState(new pdf.GState({ opacity: 1 }))
 
-            // Title
+            // Racing stripes decoration
+            pdf.setFillColor(255, 255, 255)
+            pdf.setGState(new pdf.GState({ opacity: 0.15 }))
+            pdf.rect(0, 0, pageWidth, 2, 'F')
+            pdf.rect(0, 53, pageWidth, 2, 'F')
+            pdf.setGState(new pdf.GState({ opacity: 1 }))
+
+            // Icon/Emoji
+            pdf.setFontSize(28)
+            pdf.text('🏎️', pageWidth / 2 - 5, 18)
+
+            // Title with better formatting
             pdf.setTextColor(255, 255, 255)
-            pdf.setFontSize(22)
-            const titleLines = pdf.splitTextToSize(carName, pageWidth - 2 * margin)
-            pdf.text(titleLines, margin, 15)
-
-            // Price box
-            pdf.setFillColor(46, 204, 113) // Green
-            pdf.roundedRect(margin, 45, 70, 20, 3, 3, 'F')
-            pdf.setFontSize(18)
+            pdf.setFontSize(20)
             pdf.setFont('helvetica', 'bold')
-            pdf.text(`$${price.toFixed(2)}`, margin + 35, 58, { align: 'center' })
+            const titleLines = pdf.splitTextToSize(carName, pageWidth - 2 * margin)
+            let titleY = 35
+            titleLines.forEach((line: string) => {
+                pdf.text(line, pageWidth / 2, titleY, { align: 'center' })
+                titleY += 8
+            })
 
-            pdf.setTextColor(0, 0, 0)
-            pdf.setFont('helvetica', 'normal')
+            let currentY = 65
 
-            // Add image if available (use cropped image if available, otherwise use original)
-            let currentY = 75
+            // MODERN PRICE CARD
+            const priceCardHeight = 28
+            
+            // Price card shadow effect
+            pdf.setFillColor(0, 0, 0)
+            pdf.setGState(new pdf.GState({ opacity: 0.1 }))
+            pdf.roundedRect(margin + 1, currentY + 2, pageWidth - 2 * margin, priceCardHeight, 4, 4, 'F')
+            pdf.setGState(new pdf.GState({ opacity: 1 }))
+
+            // Price card with green gradient
+            pdf.setFillColor(16, 185, 129) // Green
+            pdf.roundedRect(margin, currentY, pageWidth - 2 * margin, priceCardHeight, 4, 4, 'F')
+
+            // Accent stripe
+            pdf.setFillColor(255, 255, 255)
+            pdf.setGState(new pdf.GState({ opacity: 0.2 }))
+            pdf.roundedRect(margin + 4, currentY + 4, 2, priceCardHeight - 8, 1, 1, 'F')
+            pdf.setGState(new pdf.GState({ opacity: 1 }))
+
+            // Price label
+            pdf.setTextColor(255, 255, 255)
+            pdf.setFontSize(9)
+            pdf.setFont('helvetica', 'bold')
+            pdf.text('PRECIO', pageWidth / 2, currentY + 9, { align: 'center' })
+
+            // Price value
+            pdf.setFontSize(20)
+            pdf.setFont('helvetica', 'bold')
+            pdf.text(`$${price.toFixed(2)}`, pageWidth / 2, currentY + 22, { align: 'center' })
+
+            currentY += priceCardHeight + 15
+
+            // PRODUCT IMAGE with card background
             if (item?.photos && item.photos.length > 0) {
                 const photo = croppedImageData || item.photos[selectedPhotoIndex]
-                console.log('📄 PDF - Usando imagen:', {
-                    usingCropped: !!croppedImageData,
-                    photoType: croppedImageData ? 'cropped (base64)' : 'original',
-                    photoLength: photo.length
-                })
                 try {
-                    // Create a temporary image to get dimensions
                     const img = new Image()
                     if (!croppedImageData) {
                         img.crossOrigin = 'anonymous'
@@ -483,9 +634,9 @@ export default function ItemDetail() {
                         img.onload = resolve
                     })
 
-                    // Calculate image dimensions to fit width while maintaining aspect ratio
-                    const maxWidth = pageWidth - 2 * margin
-                    const maxHeight = 140
+                    // Calculate image dimensions
+                    const maxWidth = pageWidth - 2 * margin - 8
+                    const maxHeight = 120
                     const imgRatio = img.width / img.height
 
                     let imgWidth = maxWidth
@@ -496,49 +647,108 @@ export default function ItemDetail() {
                         imgWidth = imgHeight * imgRatio
                     }
 
-                    // Center the image
                     const imgX = (pageWidth - imgWidth) / 2
+                    const imgPadding = 4
 
-                    pdf.addImage(photo, 'JPEG', imgX, currentY, imgWidth, imgHeight, undefined, 'FAST')
-                    currentY += imgHeight + 15
+                    // Card background for image with shadow
+                    pdf.setFillColor(0, 0, 0)
+                    pdf.setGState(new pdf.GState({ opacity: 0.08 }))
+                    pdf.roundedRect(imgX - imgPadding + 1, currentY + 2, imgWidth + imgPadding * 2, imgHeight + imgPadding * 2, 3, 3, 'F')
+                    pdf.setGState(new pdf.GState({ opacity: 1 }))
+
+                    pdf.setFillColor(255, 255, 255)
+                    pdf.roundedRect(imgX - imgPadding, currentY, imgWidth + imgPadding * 2, imgHeight + imgPadding * 2, 3, 3, 'F')
+
+                    // Add image
+                    pdf.addImage(photo, 'JPEG', imgX, currentY + imgPadding / 2, imgWidth, imgHeight, undefined, 'FAST')
+                    
+                    currentY += imgHeight + imgPadding * 2 + 15
                 } catch (e) {
                     console.warn('Could not add image to PDF:', e)
                     currentY += 15
                 }
             }
 
-            // Details section
-            pdf.setFillColor(245, 245, 245)
-            pdf.roundedRect(margin, currentY, pageWidth - 2 * margin, 60, 3, 3, 'F')
+            // DETAILS CARD
+            const detailsCardHeight = 50
+            
+            // Card shadow
+            pdf.setFillColor(0, 0, 0)
+            pdf.setGState(new pdf.GState({ opacity: 0.08 }))
+            pdf.roundedRect(margin + 1, currentY + 2, pageWidth - 2 * margin, detailsCardHeight, 4, 4, 'F')
+            pdf.setGState(new pdf.GState({ opacity: 1 }))
 
-            currentY += 10
-            pdf.setFontSize(14)
-            pdf.setFont('helvetica', 'bold')
-            pdf.text('Detalles', margin + 5, currentY)
+            // Card background
+            pdf.setFillColor(255, 255, 255)
+            pdf.roundedRect(margin, currentY, pageWidth - 2 * margin, detailsCardHeight, 4, 4, 'F')
 
-            currentY += 8
+            // Header section of card
+            pdf.setFillColor(240, 249, 255) // Light blue
+            pdf.roundedRect(margin, currentY, pageWidth - 2 * margin, 12, 4, 4, 'F')
+
+            pdf.setTextColor(30, 64, 175)
             pdf.setFontSize(11)
+            pdf.setFont('helvetica', 'bold')
+            pdf.text('📋 ESPECIFICACIONES', pageWidth / 2, currentY + 8, { align: 'center' })
+
+            currentY += 18
+
+            // Details content
+            pdf.setFontSize(10)
             pdf.setFont('helvetica', 'normal')
+            const detailX = margin + 8
 
             if (item?.brand) {
-                pdf.text(`Marca: ${item.brand}`, margin + 5, currentY)
-                currentY += 7
+                pdf.setTextColor(100, 116, 139)
+                pdf.text('🏷️ Marca:', detailX, currentY)
+                pdf.setTextColor(30, 41, 59)
+                pdf.setFont('helvetica', 'bold')
+                pdf.text(item.brand, detailX + 25, currentY)
+                pdf.setFont('helvetica', 'normal')
+                currentY += 8
             }
 
             if (item?.condition) {
-                pdf.text(`Condición: ${item.condition}`, margin + 5, currentY)
-                currentY += 7
+                pdf.setTextColor(100, 116, 139)
+                pdf.text('✨ Condición:', detailX, currentY)
+                pdf.setTextColor(30, 41, 59)
+                pdf.setFont('helvetica', 'bold')
+                pdf.text(item.condition, detailX + 32, currentY)
+                pdf.setFont('helvetica', 'normal')
+                currentY += 8
             }
 
             if (item?.pieceType) {
-                pdf.text(`Tipo: ${item.pieceType}`, margin + 5, currentY)
-                currentY += 7
+                pdf.setTextColor(100, 116, 139)
+                pdf.text('📦 Tipo:', detailX, currentY)
+                pdf.setTextColor(30, 41, 59)
+                pdf.setFont('helvetica', 'bold')
+                pdf.text(item.pieceType, detailX + 20, currentY)
             }
 
-            if (item?.notes) {
-                const notesLines = pdf.splitTextToSize(`Notas: ${item.notes}`, pageWidth - 2 * margin - 10)
-                pdf.text(notesLines, margin + 5, currentY)
-            }
+            // PROFESSIONAL FOOTER
+            const footerY = pageHeight - 25
+            
+            // Footer background
+            pdf.setFillColor(30, 41, 59)
+            pdf.rect(0, footerY, pageWidth, 25, 'F')
+
+            // Decorative line with gradient effect
+            pdf.setFillColor(59, 130, 246)
+            pdf.setGState(new pdf.GState({ opacity: 0.8 }))
+            pdf.rect(pageWidth * 0.25, footerY, pageWidth * 0.5, 1, 'F')
+            pdf.setGState(new pdf.GState({ opacity: 1 }))
+
+            // Footer text
+            pdf.setTextColor(148, 163, 184)
+            pdf.setFontSize(8)
+            pdf.setFont('helvetica', 'normal')
+            pdf.text('Hot Wheels Manager', pageWidth / 2, footerY + 10, { align: 'center' })
+            
+            pdf.setTextColor(100, 116, 139)
+            pdf.setFontSize(9)
+            pdf.setFont('helvetica', 'bold')
+            pdf.text('¡Gracias por tu interés!', pageWidth / 2, footerY + 18, { align: 'center' })
 
             const pdfBlob = pdf.output('blob')
             const file = new File([pdfBlob], `${carName.replace(/\s+/g, '-')}.pdf`, { type: 'application/pdf' })
@@ -802,6 +1012,32 @@ export default function ItemDetail() {
                 maxWidth="md"
             >
                 <div className="space-y-4">
+                    {/* Preview Card */}
+                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-xl border-2 border-blue-200">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <p className="text-sm font-medium text-gray-700">Vista Previa Moderna</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 shadow-sm">
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className="text-2xl">🏎️</span>
+                                <p className="font-semibold text-sm line-clamp-2">{carName}</p>
+                            </div>
+                            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-2 text-center">
+                                <p className="text-xs font-semibold tracking-wide">PRECIO</p>
+                                <p className="text-2xl font-bold">${sharePrice.toFixed(2)}</p>
+                            </div>
+                            <div className="mt-2 bg-gray-50 rounded-lg p-2 text-xs space-y-1">
+                                <p className="font-semibold text-blue-900 text-center">📋 ESPECIFICACIONES</p>
+                                {item?.brand && <p className="text-gray-600">🏷️ <span className="font-medium">{item.brand}</span></p>}
+                                {item?.condition && <p className="text-gray-600">✨ <span className="font-medium">{item.condition}</span></p>}
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-2 text-center">
+                            ✨ Diseño profesional con gradientes y efectos modernos
+                        </p>
+                    </div>
+
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <p className="font-semibold text-lg mb-3">{carName}</p>
                         <div className="space-y-2">
@@ -819,27 +1055,41 @@ export default function ItemDetail() {
                         </div>
                     </div>
 
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-700 font-medium">
                         Selecciona el formato para compartir:
                     </p>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={handleShareImage}
-                            className="p-4 border-2 rounded-lg transition-all border-gray-200 hover:border-primary-600 hover:bg-primary-50"
+                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-gray-200 hover:border-blue-500 hover:shadow-lg bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50"
                         >
-                            <ImageIcon className="w-8 h-8 mx-auto mb-2 text-primary-600" />
-                            <p className="font-medium">Imagen</p>
-                            <p className="text-xs text-gray-500">Recortar y compartir</p>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">Popular</span>
+                            </div>
+                            <ImageIcon className="w-10 h-10 mx-auto mb-2 text-blue-600 group-hover:scale-110 transition-transform" />
+                            <p className="font-bold text-gray-900">Imagen</p>
+                            <p className="text-xs text-gray-600 mt-1">Recortar y compartir</p>
+                            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                <span>Rápido</span>
+                            </div>
                         </button>
 
                         <button
                             onClick={handleSharePDF}
-                            className="p-4 border-2 rounded-lg transition-all border-gray-200 hover:border-primary-600 hover:bg-primary-50"
+                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-gray-200 hover:border-red-500 hover:shadow-lg bg-white hover:bg-gradient-to-br hover:from-red-50 hover:to-orange-50"
                         >
-                            <FileText className="w-8 h-8 mx-auto mb-2 text-primary-600" />
-                            <p className="font-medium">PDF</p>
-                            <p className="text-xs text-gray-500">Documento completo</p>
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full">Pro</span>
+                            </div>
+                            <FileText className="w-10 h-10 mx-auto mb-2 text-red-600 group-hover:scale-110 transition-transform" />
+                            <p className="font-bold text-gray-900">PDF</p>
+                            <p className="text-xs text-gray-600 mt-1">Documento completo</p>
+                            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500">
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                                <span>Profesional</span>
+                            </div>
                         </button>
                     </div>
                 </div>

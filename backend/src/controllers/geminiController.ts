@@ -6,7 +6,7 @@ import path from 'path';
 // Cargar la base de datos de Hot Wheels
 let hotWheelsDatabase: any[] = [];
 try {
-  const dbPath = path.join(__dirname, '../data/hotwheels_database.json');
+  const dbPath = path.join(__dirname, '../../data/hotwheels_database.json');
   const dbContent = fs.readFileSync(dbPath, 'utf-8');
   hotWheelsDatabase = JSON.parse(dbContent);
   console.log(`✅ Hot Wheels database loaded: ${hotWheelsDatabase.length} items`);
