@@ -251,7 +251,7 @@ export default function Inventory() {
             debouncedSearch.cancel()
         }
     }, [searchTerm, debouncedSearch])
-    
+
     const [newItem, setNewItem] = useState({
         carId: '',
         quantity: 1,
@@ -1327,7 +1327,7 @@ export default function Inventory() {
             <Card>
                 <div className="space-y-4 w-full">
                     {/* Search is now shared globally across all pages */}
-                    
+
                     {/* First row: Search and Condition */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 w-full">
                         <div className="relative w-full">
@@ -1473,7 +1473,7 @@ export default function Inventory() {
                                     Solo Fantasías 🎨
                                 </span>
                             </label>
-                            )}
+                        )}
                     </div>
 
                     {/* Tercera fila: Filtros adicionales (ubicación, stock, precio) */}

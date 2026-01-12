@@ -67,7 +67,7 @@ export default function CollageGenerator({
             const updated = [...collageItems]
             updated[currentItemIndex].croppedImage = updated[currentItemIndex].originalImage
             setCollageItems(updated)
-            
+
             if (currentItemIndex < collageItems.length - 1) {
                 setCurrentItemIndex(currentItemIndex + 1)
                 setCrop(undefined)
@@ -83,7 +83,7 @@ export default function CollageGenerator({
         const canvas = document.createElement('canvas')
         const scaleX = image.naturalWidth / image.width
         const scaleY = image.naturalHeight / image.height
-        
+
         canvas.width = completedCrop.width
         canvas.height = completedCrop.height
         const ctx = canvas.getContext('2d')
@@ -212,7 +212,7 @@ export default function CollageGenerator({
                     // Footer
                     ctx.fillStyle = '#1e293b'
                     ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight)
-                    
+
                     ctx.fillStyle = '#94a3b8'
                     ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
@@ -225,7 +225,7 @@ export default function CollageGenerator({
                 const item = items[index]
                 const img = new Image()
                 img.crossOrigin = 'anonymous'
-                
+
                 img.onload = () => {
                     const col = index % 3
                     const row = Math.floor(index / 3)
@@ -345,11 +345,11 @@ export default function CollageGenerator({
                         <div
                             className="h-full bg-blue-600 transition-all duration-300"
                             style={{
-                                width: currentStep === 'crop' 
+                                width: currentStep === 'crop'
                                     ? `${((currentItemIndex + 1) / collageItems.length) * 33}%`
-                                    : currentStep === 'price' 
-                                    ? '66%' 
-                                    : '100%'
+                                    : currentStep === 'price'
+                                        ? '66%'
+                                        : '100%'
                             }}
                         />
                     </div>
