@@ -951,8 +951,8 @@ export default function Inventory() {
         // Get all items from Redux store (has all items cached)
         const allItems = reduxInventory.items || []
 
-        // Filter to only selected IDs
-        return allItems.filter(item => item._id && selectedItems.has(item._id))
+        // Filter to only selected IDs and cast to shared InventoryItem type
+        return allItems.filter(item => item._id && selectedItems.has(item._id)) as InventoryItem[]
     }, [selectedItems, reduxInventory.items])
 
     const handleBulkDelete = async () => {
