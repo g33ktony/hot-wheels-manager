@@ -63,7 +63,7 @@ export default function CollageGenerator({
 
     const handleCropComplete = () => {
         console.log('handleCropComplete called', { completedCrop, hasImage: !!imgRef.current })
-        
+
         // If no crop or crop is too small (less than 10 pixels), use original image
         if (!completedCrop || !imgRef.current || !completedCrop.width || !completedCrop.height || completedCrop.width < 10 || completedCrop.height < 10) {
             console.log('Using original image (no valid crop)')
