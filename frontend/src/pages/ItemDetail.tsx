@@ -560,16 +560,16 @@ export default function ItemDetail() {
 
             // Lighter overlay for gradient effect
             pdf.setFillColor(59, 130, 246) // Lighter blue
-            pdf.setGState(new pdf.GState({ opacity: 0.6 }))
+            pdf.setGState(pdf.GState({ opacity: 0.6 }))
             pdf.rect(0, 0, pageWidth, 55, 'F')
-            pdf.setGState(new pdf.GState({ opacity: 1 }))
+            pdf.setGState(pdf.GState({ opacity: 1 }))
 
             // Racing stripes decoration
             pdf.setFillColor(255, 255, 255)
-            pdf.setGState(new pdf.GState({ opacity: 0.15 }))
+            pdf.setGState(pdf.GState({ opacity: 0.15 }))
             pdf.rect(0, 0, pageWidth, 2, 'F')
             pdf.rect(0, 53, pageWidth, 2, 'F')
-            pdf.setGState(new pdf.GState({ opacity: 1 }))
+            pdf.setGState(pdf.GState({ opacity: 1 }))
 
             // Icon/Emoji
             pdf.setFontSize(28)
@@ -593,9 +593,9 @@ export default function ItemDetail() {
 
             // Price card shadow effect
             pdf.setFillColor(0, 0, 0)
-            pdf.setGState(new pdf.GState({ opacity: 0.1 }))
+            pdf.setGState(pdf.GState({ opacity: 0.1 }))
             pdf.roundedRect(margin + 1, currentY + 2, pageWidth - 2 * margin, priceCardHeight, 4, 4, 'F')
-            pdf.setGState(new pdf.GState({ opacity: 1 }))
+            pdf.setGState(pdf.GState({ opacity: 1 }))
 
             // Price card with green gradient
             pdf.setFillColor(16, 185, 129) // Green
@@ -603,9 +603,9 @@ export default function ItemDetail() {
 
             // Accent stripe
             pdf.setFillColor(255, 255, 255)
-            pdf.setGState(new pdf.GState({ opacity: 0.2 }))
+            pdf.setGState(pdf.GState({ opacity: 0.2 }))
             pdf.roundedRect(margin + 4, currentY + 4, 2, priceCardHeight - 8, 1, 1, 'F')
-            pdf.setGState(new pdf.GState({ opacity: 1 }))
+            pdf.setGState(pdf.GState({ opacity: 1 }))
 
             // Price label
             pdf.setTextColor(255, 255, 255)
@@ -652,9 +652,9 @@ export default function ItemDetail() {
 
                     // Card background for image with shadow
                     pdf.setFillColor(0, 0, 0)
-                    pdf.setGState(new pdf.GState({ opacity: 0.08 }))
+                    pdf.setGState(pdf.GState({ opacity: 0.08 }))
                     pdf.roundedRect(imgX - imgPadding + 1, currentY + 2, imgWidth + imgPadding * 2, imgHeight + imgPadding * 2, 3, 3, 'F')
-                    pdf.setGState(new pdf.GState({ opacity: 1 }))
+                    pdf.setGState(pdf.GState({ opacity: 1 }))
 
                     pdf.setFillColor(255, 255, 255)
                     pdf.roundedRect(imgX - imgPadding, currentY, imgWidth + imgPadding * 2, imgHeight + imgPadding * 2, 3, 3, 'F')
@@ -674,9 +674,9 @@ export default function ItemDetail() {
 
             // Card shadow
             pdf.setFillColor(0, 0, 0)
-            pdf.setGState(new pdf.GState({ opacity: 0.08 }))
+            pdf.setGState(pdf.GState({ opacity: 0.08 }))
             pdf.roundedRect(margin + 1, currentY + 2, pageWidth - 2 * margin, detailsCardHeight, 4, 4, 'F')
-            pdf.setGState(new pdf.GState({ opacity: 1 }))
+            pdf.setGState(pdf.GState({ opacity: 1 }))
 
             // Card background
             pdf.setFillColor(255, 255, 255)
@@ -735,9 +735,9 @@ export default function ItemDetail() {
 
             // Decorative line with gradient effect
             pdf.setFillColor(59, 130, 246)
-            pdf.setGState(new pdf.GState({ opacity: 0.8 }))
+            pdf.setGState(pdf.GState({ opacity: 0.8 }))
             pdf.rect(pageWidth * 0.25, footerY, pageWidth * 0.5, 1, 'F')
-            pdf.setGState(new pdf.GState({ opacity: 1 }))
+            pdf.setGState(pdf.GState({ opacity: 1 }))
 
             // Footer text
             pdf.setTextColor(148, 163, 184)
