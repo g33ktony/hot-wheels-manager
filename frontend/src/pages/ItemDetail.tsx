@@ -392,7 +392,7 @@ export default function ItemDetail() {
                     const priceGradient = ctx.createLinearGradient(priceCardX, priceCardY, priceCardX + priceCardWidth, priceCardY + priceCardHeight)
                     priceGradient.addColorStop(0, '#10b981')
                     priceGradient.addColorStop(1, '#059669')
-                    
+
                     ctx.fillStyle = priceGradient
                     ctx.shadowColor = 'rgba(16, 185, 129, 0.4)'
                     ctx.shadowBlur = 20
@@ -481,7 +481,7 @@ export default function ItemDetail() {
 
                     // FOOTER - Professional branding
                     const footerY = detailsCardY + detailsCardHeight + spacing
-                    
+
                     // Footer background
                     ctx.fillStyle = '#1e293b'
                     ctx.beginPath()
@@ -501,7 +501,7 @@ export default function ItemDetail() {
                     ctx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.textAlign = 'center'
                     ctx.fillText('Hot Wheels Manager', canvas.width / 2, footerY + 30)
-                    
+
                     ctx.fillStyle = '#64748b'
                     ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
                     ctx.fillText('¡Gracias por tu interés!', canvas.width / 2, footerY + 55)
@@ -557,7 +557,7 @@ export default function ItemDetail() {
             // Primary gradient rectangle
             pdf.setFillColor(30, 64, 175) // Dark blue
             pdf.rect(0, 0, pageWidth, 55, 'F')
-            
+
             // Lighter overlay for gradient effect
             pdf.setFillColor(59, 130, 246) // Lighter blue
             pdf.setGState(new pdf.GState({ opacity: 0.6 }))
@@ -590,7 +590,7 @@ export default function ItemDetail() {
 
             // MODERN PRICE CARD
             const priceCardHeight = 28
-            
+
             // Price card shadow effect
             pdf.setFillColor(0, 0, 0)
             pdf.setGState(new pdf.GState({ opacity: 0.1 }))
@@ -661,7 +661,7 @@ export default function ItemDetail() {
 
                     // Add image
                     pdf.addImage(photo, 'JPEG', imgX, currentY + imgPadding / 2, imgWidth, imgHeight, undefined, 'FAST')
-                    
+
                     currentY += imgHeight + imgPadding * 2 + 15
                 } catch (e) {
                     console.warn('Could not add image to PDF:', e)
@@ -671,7 +671,7 @@ export default function ItemDetail() {
 
             // DETAILS CARD
             const detailsCardHeight = 50
-            
+
             // Card shadow
             pdf.setFillColor(0, 0, 0)
             pdf.setGState(new pdf.GState({ opacity: 0.08 }))
@@ -728,7 +728,7 @@ export default function ItemDetail() {
 
             // PROFESSIONAL FOOTER
             const footerY = pageHeight - 25
-            
+
             // Footer background
             pdf.setFillColor(30, 41, 59)
             pdf.rect(0, footerY, pageWidth, 25, 'F')
@@ -744,7 +744,7 @@ export default function ItemDetail() {
             pdf.setFontSize(8)
             pdf.setFont('helvetica', 'normal')
             pdf.text('Hot Wheels Manager', pageWidth / 2, footerY + 10, { align: 'center' })
-            
+
             pdf.setTextColor(100, 116, 139)
             pdf.setFontSize(9)
             pdf.setFont('helvetica', 'bold')
