@@ -750,25 +750,34 @@ export default function ItemDetail() {
             pdf.setFontSize(9)
             pdf.setFont('helvetica', 'bold')
             pdf.text('Gracias por tu interes!', pageWidth / 2, footerY + 18, { align: 'center' })
-            files: [file]
-        })
-        toast.success('PDF compartido exitosamente')
-    } else {
-        // Fallback: download PDF
-        const url = URL.createObjectURL(pdfBlob)
+
+            const pdfBlob = pdf.output('blob')
+            const file = new File([pdfBlob], `${carName.replace(/\s+/g, '-')}.pdf`, { type: 'application/pdf' })
+
+            // Use native share if available
+            if (navigator.share && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: carName,
+                    text: `🏎️ ${carName} - $${price.toFixed(2)}`,
+                    files: [file]
+                })
+                toast.success('PDF compartido exitosamente')
+            } else {
+                // Fallback: download PDF
+                const url = URL.createObjectURL(pdfBlob)
                 const a = document.createElement('a')
                 a.href = url
                 a.download = `${carName.replace(/\s+/g, '-')}.pdf`
                 a.click()
-    URL.revokeObjectURL(url)
-    toast.success('PDF descargado')
-}
+                URL.revokeObjectURL(url)
+                toast.success('PDF descargado')
+            }
 
-setShowShareModal(false)
+            setShowShareModal(false)
         } catch (error) {
-    console.error('Error creating PDF:', error)
-    toast.error('Error al crear PDF')
-}
+            console.error('Error creating PDF:', error)
+            toast.error('Error al crear PDF')
+        }
     }
 
 if (isLoading) {
