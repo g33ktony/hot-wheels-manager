@@ -267,9 +267,9 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       {/* Status Badge */}
       <div className="flex justify-center mb-6">
         <div className={`inline-flex items-center px-6 py-2 rounded-full text-sm font-semibold ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
-            delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-              delivery.status === 'prepared' ? 'bg-blue-100 text-blue-800' :
-                'bg-yellow-100 text-yellow-800'
+          delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+            delivery.status === 'prepared' ? 'bg-blue-100 text-blue-800' :
+              'bg-yellow-100 text-yellow-800'
           }`}>
           Estado: {statusToSpanish(delivery.status as any)}
         </div>

@@ -673,7 +673,7 @@ export default function ItemDetail() {
             }
 
             // DETAILS CARD (Ampliada)
-            const detailsCardHeight = 70
+            const detailsCardHeight = 75
 
             // Card shadow
             pdf.setFillColor(0, 0, 0)

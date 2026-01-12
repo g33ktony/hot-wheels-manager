@@ -158,10 +158,10 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
     if (!reportRef.current) return
     setIsGenerating(true)
     setShowPreview(false)
-    
+
     // Wait for re-render without preview buttons
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     let capturedContainer: HTMLElement | null = null
     try {
       const { canvas, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
@@ -214,10 +214,10 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
     if (!reportRef.current) return
     setIsGenerating(true)
     setShowPreview(false)
-    
+
     // Wait for re-render without preview buttons
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     let capturedContainer: HTMLElement | null = null
     try {
       const nav: any = navigator
@@ -226,9 +226,9 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
       if (!blob) throw new Error('No se pudo generar la imagen')
 
       const file = new File([blob], `cotizacion-${new Date().getTime()}.png`, { type: 'image/png' })
-      const shareMeta: any = { 
-        title: 'Cotización de Inventario', 
-        text: `Cotización de ${quoteItems.length} items - Total: ${formatCurrency(getTotalPrice())}` 
+      const shareMeta: any = {
+        title: 'Cotización de Inventario',
+        text: `Cotización de ${quoteItems.length} items - Total: ${formatCurrency(getTotalPrice())}`
       }
 
       if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) {
@@ -329,9 +329,9 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {item.inventoryItem.photos && item.inventoryItem.photos.length > 0 && (
-                      <img 
-                        src={item.inventoryItem.photos[0]} 
-                        alt="Item" 
+                      <img
+                        src={item.inventoryItem.photos[0]}
+                        alt="Item"
                         className="w-12 h-12 object-cover rounded border"
                       />
                     )}
