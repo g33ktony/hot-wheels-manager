@@ -947,10 +947,10 @@ export default function Inventory() {
     // Get all selected items from Redux store (includes items from all pages)
     const getSelectedItems = useCallback((): InventoryItem[] => {
         if (selectedItems.size === 0) return []
-        
+
         // Get all items from Redux store (has all items cached)
         const allItems = reduxInventory.items || []
-        
+
         // Filter to only selected IDs
         return allItems.filter(item => item._id && selectedItems.has(item._id))
     }, [selectedItems, reduxInventory.items])
