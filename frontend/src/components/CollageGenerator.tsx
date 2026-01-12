@@ -402,6 +402,7 @@ export default function CollageGenerator({
                                         ref={imgRef}
                                         src={currentItem.originalImage}
                                         alt="Crop"
+                                        crossOrigin="anonymous"
                                         style={{ maxHeight: '400px', maxWidth: '100%' }}
                                     />
                                 </ReactCrop>
