@@ -594,44 +594,58 @@ export default function CollageGenerator({
                                             {item.item.brand}
                                         </p>
                                         {editingPriceIndex === index ? (
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="number"
-                                                    value={tempPrice}
-                                                    onChange={(e) => setTempPrice(e.target.value)}
-                                                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                                                    step="0.01"
-                                                    min="0"
-                                                    autoFocus
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') savePriceEdit()
-                                                        if (e.key === 'Escape') cancelPriceEdit()
-                                                    }}
-                                                />
-                                                <button
-                                                    onClick={savePriceEdit}
-                                                    className="p-1 text-green-600 hover:bg-green-50 rounded"
-                                                >
-                                                    <Check size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={cancelPriceEdit}
-                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                >
-                                                    <X size={16} />
-                                                </button>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="number"
+                                                        value={tempPrice}
+                                                        onChange={(e) => setTempPrice(e.target.value)}
+                                                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                                                        step="0.01"
+                                                        min="0"
+                                                        autoFocus
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') savePriceEdit()
+                                                            if (e.key === 'Escape') cancelPriceEdit()
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={savePriceEdit}
+                                                        className="p-1 text-green-600 hover:bg-green-50 rounded"
+                                                    >
+                                                        <Check size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelPriceEdit}
+                                                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+                                                {item.item.purchasePrice !== undefined && item.item.purchasePrice !== null && (
+                                                    <p className="text-xs text-gray-500">
+                                                        Compra: ${item.item.purchasePrice.toFixed(2)}
+                                                    </p>
+                                                )}
                                             </div>
                                         ) : (
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-lg font-bold text-green-600">
-                                                    ${item.customPrice.toFixed(2)}
-                                                </span>
-                                                <button
-                                                    onClick={() => startPriceEdit(index)}
-                                                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
+                                            <div className="space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-lg font-bold text-green-600">
+                                                        ${item.customPrice.toFixed(2)}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => startPriceEdit(index)}
+                                                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                </div>
+                                                {item.item.purchasePrice !== undefined && item.item.purchasePrice !== null && (
+                                                    <p className="text-xs text-gray-500">
+                                                        Compra: ${item.item.purchasePrice.toFixed(2)}
+                                                    </p>
+                                                )}
                                             </div>
                                         )}
                                     </div>
