@@ -158,6 +158,14 @@ export default function CollageGenerator({
     }
 
     const startPriceEdit = (index: number) => {
+        // Si ya estábamos editando otro precio, guardarlo primero
+        if (editingPriceIndex !== null && editingPriceIndex !== index) {
+            const price = parseFloat(tempPrice)
+            if (!isNaN(price) && price >= 0) {
+                handlePriceEdit(editingPriceIndex, price)
+            }
+        }
+        
         setEditingPriceIndex(index)
         setTempPrice(collageItems[index].customPrice.toString())
     }
