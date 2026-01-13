@@ -751,26 +751,26 @@ export default function CollageGenerator({
                                         </Button>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="flex justify-between pt-4 border-t">
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => setCurrentStep('price')}
-                                    icon={<ChevronLeft size={18} />}
-                                >
-                                    Editar precios
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={handleClose}
-                                >
-                                    Cerrar
-                                </Button>
-                            </div>
                         </div>
-                )}
+
+                        <div className="flex justify-between pt-4 border-t">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setCurrentStep('price')}
+                                icon={<ChevronLeft size={18} />}
+                            >
+                                Editar precios
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleClose}
+                            >
+                                Cerrar
+                            </Button>
+                        </div>
                     </div>
+                )}
+            </div>
         </Modal>
     )
 }
