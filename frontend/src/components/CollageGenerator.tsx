@@ -165,7 +165,7 @@ export default function CollageGenerator({
                 handlePriceEdit(editingPriceIndex, price)
             }
         }
-        
+
         setEditingPriceIndex(index)
         setTempPrice(collageItems[index].customPrice.toString())
     }
