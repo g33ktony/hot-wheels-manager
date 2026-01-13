@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
+import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight, FileText, Images } from 'lucide-react'
 import Button from './common/Button'
 import Modal from './common/Modal'
 import ReactCrop, { Crop as CropType, PixelCrop } from 'react-image-crop'
@@ -33,6 +33,7 @@ export default function CollageGenerator({
     const [generatedCollages, setGeneratedCollages] = useState<string[]>([])
     const [isGenerating, setIsGenerating] = useState(false)
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+    const [isDownloadingImages, setIsDownloadingImages] = useState(false)
     const imgRef = useRef<HTMLImageElement>(null)
     const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
     const [tempPrice, setTempPrice] = useState('')
@@ -421,6 +422,52 @@ export default function CollageGenerator({
         })
     }
 
+    const downloadAllImages = async () => {
+        setIsDownloadingImages(true)
+        try {
+            // Try to use Web Share API for mobile devices
+            if (navigator.share && generatedCollages.length > 0) {
+                // Convert all images to files
+                const files = await Promise.all(
+                    generatedCollages.map(async (url, index) => {
+                        const response = await fetch(url)
+                        const blob = await response.blob()
+                        return new File([blob], `collage-${index + 1}.jpg`, { type: 'image/jpeg' })
+                    })
+                )
+
+                // Try sharing multiple files
+                if (navigator.canShare({ files })) {
+                    await navigator.share({
+                        files,
+                        title: 'Collages',
+                        text: `${generatedCollages.length} collages de ${storeName}`
+                    })
+                } else {
+                    // Fallback: download one by one
+                    downloadImagesSequentially()
+                }
+            } else {
+                // Desktop or no Web Share API: download one by one
+                downloadImagesSequentially()
+            }
+        } catch (error) {
+            console.error('Error downloading images:', error)
+            // If sharing failed, try downloading
+            downloadImagesSequentially()
+        } finally {
+            setIsDownloadingImages(false)
+        }
+    }
+
+    const downloadImagesSequentially = () => {
+        generatedCollages.forEach((url, index) => {
+            setTimeout(() => {
+                downloadCollage(url, index)
+            }, index * 500) // Delay each download by 500ms to avoid browser blocking
+        })
+    }
+
     const handleClose = () => {
         setCurrentStep('crop')
         setCurrentItemIndex(0)
@@ -647,31 +694,62 @@ export default function CollageGenerator({
                             </div>
                         ))}
 
-                        {/* PDF Generation Button */}
-                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
-                            <div className="flex items-start gap-4">
-                                <div className="flex-shrink-0">
-                                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                                        <FileText className="text-white" size={24} />
+                        {/* Action Buttons */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Download All Images Button */}
+                            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                                            <Images className="text-white" size={24} />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-gray-900 mb-1">Descargar Imágenes</h4>
+                                        <p className="text-sm text-gray-600 mb-4">
+                                            Descarga todos los collages al carrete fotográfico
+                                        </p>
+                                        <Button
+                                            variant="primary"
+                                            onClick={downloadAllImages}
+                                            disabled={isDownloadingImages}
+                                            icon={isDownloadingImages ?
+                                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> :
+                                                <Images size={18} />
+                                            }
+                                            className="bg-green-600 hover:bg-green-700"
+                                        >
+                                            {isDownloadingImages ? 'Descargando...' : `Descargar ${generatedCollages.length} ${generatedCollages.length === 1 ? 'Imagen' : 'Imágenes'}`}
+                                        </Button>
                                     </div>
                                 </div>
-                                <div className="flex-1">
-                                    <h4 className="font-semibold text-gray-900 mb-1">Generar PDF</h4>
-                                    <p className="text-sm text-gray-600 mb-4">
-                                        Crea un PDF con todos los collages (un collage por página) listo para compartir
-                                    </p>
-                                    <Button
-                                        variant="primary"
-                                        onClick={generatePDF}
-                                        disabled={isGeneratingPDF}
-                                        icon={isGeneratingPDF ?
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> :
-                                            <FileText size={18} />
-                                        }
-                                    >
-                                        {isGeneratingPDF ? 'Generando PDF...' : 'Generar y Compartir PDF'}
-                                    </Button>
-                                </div>
+                            </div>
+
+                            {/* PDF Generation Button */}
+                            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0">
+                                        <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                                            <FileText className="text-white" size={24} />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-gray-900 mb-1">Generar PDF</h4>
+                                        <p className="text-sm text-gray-600 mb-4">
+                                            Crea un PDF con todos los collages (un collage por página) listo para compartir
+                                        </p>
+                                        <Button
+                                            variant="primary"
+                                            onClick={generatePDF}
+                                            disabled={isGeneratingPDF}
+                                            icon={isGeneratingPDF ?
+                                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> :
+                                                <FileText size={18} />
+                                            }
+                                        >
+                                            {isGeneratingPDF ? 'Generando PDF...' : 'Generar y Compartir PDF'}
+                                        </Button>
+                                    </div>
                             </div>
                         </div>
 
