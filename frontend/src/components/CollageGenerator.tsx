@@ -40,9 +40,9 @@ export default function CollageGenerator({
 
     const storeName = import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'
 
-    // Initialize collage items with original photos and prices
+    // Initialize collage items with original photos and prices only when modal opens
     useEffect(() => {
-        if (selectedItems.length > 0) {
+        if (isOpen && selectedItems.length > 0) {
             const items = selectedItems
                 .filter(item => item.photos && item.photos.length > 0)
                 .map(item => ({
@@ -55,7 +55,7 @@ export default function CollageGenerator({
             // Ir directamente a la lista de precios
             setCurrentStep('price')
         }
-    }, [selectedItems])
+    }, [isOpen]) // Solo cuando se abre el modal
 
     // Split items into groups of 6
     const getCollageGroups = () => {
