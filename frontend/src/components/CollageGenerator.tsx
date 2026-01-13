@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight, FileText, Images } from 'lucide-react'
+import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight, FileText, Image as ImageIcon } from 'lucide-react'
 import Button from './common/Button'
 import Modal from './common/Modal'
 import ReactCrop, { Crop as CropType, PixelCrop } from 'react-image-crop'
@@ -701,7 +701,7 @@ export default function CollageGenerator({
                                 <div className="flex items-start gap-4">
                                     <div className="flex-shrink-0">
                                         <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-                                            <Images className="text-white" size={24} />
+                                            <ImageIcon className="text-white" size={24} />
                                         </div>
                                     </div>
                                     <div className="flex-1">
@@ -715,7 +715,7 @@ export default function CollageGenerator({
                                             disabled={isDownloadingImages}
                                             icon={isDownloadingImages ?
                                                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> :
-                                                <Images size={18} />
+                                                <ImageIcon size={18} />
                                             }
                                             className="bg-green-600 hover:bg-green-700"
                                         >
@@ -753,24 +753,26 @@ export default function CollageGenerator({
                                 </div>
                             </div>
 
-                            <div className="flex justify-between pt-4 border-t">
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => setCurrentStep('price')}
-                                    icon={<ChevronLeft size={18} />}
-                                >
-                                    Editar precios
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    onClick={handleClose}
-                                >
-                                    Cerrar
-                                </Button>
-                            </div>
                         </div>
-                )}
+
+                        <div className="flex justify-between pt-4 border-t">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setCurrentStep('price')}
+                                icon={<ChevronLeft size={18} />}
+                            >
+                                Editar precios
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleClose}
+                            >
+                                Cerrar
+                            </Button>
+                        </div>
                     </div>
+                )}
+            </div>
         </Modal>
     )
 }
