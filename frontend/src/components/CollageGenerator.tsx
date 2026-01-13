@@ -695,7 +695,7 @@ export default function CollageGenerator({
                         ))}
 
                         {/* Action Buttons */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Download All Images Button */}
                             <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-6">
                                 <div className="flex items-start gap-4">
@@ -717,7 +717,7 @@ export default function CollageGenerator({
                                                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> :
                                                 <ImageIcon size={18} />
                                             }
-                                            className="bg-green-600 hover:bg-green-700"
+                                            className="bg-green-600 hover:bg-green-700 w-full"
                                         >
                                             {isDownloadingImages ? 'Descargando...' : `Descargar ${generatedCollages.length} ${generatedCollages.length === 1 ? 'Imagen' : 'Imágenes'}`}
                                         </Button>
@@ -746,16 +746,16 @@ export default function CollageGenerator({
                                                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> :
                                                 <FileText size={18} />
                                             }
+                                            className="w-full"
                                         >
                                             {isGeneratingPDF ? 'Generando PDF...' : 'Generar y Compartir PDF'}
                                         </Button>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
 
-                        <div className="flex justify-between pt-4 border-t">
+                        <div className="flex justify-between pt-4 border-t mt-4">
                             <Button
                                 variant="secondary"
                                 onClick={() => setCurrentStep('price')}
