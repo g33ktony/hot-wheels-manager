@@ -948,12 +948,34 @@ export default function Inventory() {
     const getSelectedItems = useCallback((): InventoryItem[] => {
         if (selectedItems.size === 0) return []
 
-        // Get all items from Redux store (has all items cached)
-        const allItems = reduxInventory.items || []
+        // Combine items from both sources: current page (React Query) and all cached items (Redux)
+        const itemsMap = new Map<string, any>()
+
+        // First, add items from Redux cache (all items loaded in background)
+        if (reduxInventory.items) {
+            reduxInventory.items.forEach(item => {
+                if (item._id) {
+                    itemsMap.set(item._id, item)
+                }
+            })
+        }
+
+        // Then, add/override with items from current page (React Query - most up-to-date)
+        if (inventoryData?.items) {
+            inventoryData.items.forEach(item => {
+                if (item._id) {
+                    itemsMap.set(item._id, item)
+                }
+            })
+        }
 
         // Filter to only selected IDs and cast to shared InventoryItem type
-        return allItems.filter(item => item._id && selectedItems.has(item._id)) as InventoryItem[]
-    }, [selectedItems, reduxInventory.items])
+        const selectedItemsList = Array.from(selectedItems)
+            .map(id => itemsMap.get(id))
+            .filter(Boolean) as InventoryItem[]
+
+        return selectedItemsList
+    }, [selectedItems, reduxInventory.items, inventoryData?.items])
 
     const handleBulkDelete = async () => {
         if (selectedItems.size === 0) return
