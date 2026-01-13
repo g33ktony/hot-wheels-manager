@@ -203,51 +203,29 @@ export default function CollageGenerator({
                 return
             }
 
-            // Canvas dimensions - Increased for better quality
+            // Canvas dimensions - High quality, minimal design
             const cols = items.length <= 3 ? items.length : 3
             const rows = Math.ceil(items.length / 3)
-            const cellWidth = 600 // Increased from 400
-            const cellHeight = 600 // Increased from 400
-            const padding = 15 // Increased from 10
-            const headerHeight = 100 // Increased from 80
-            const footerHeight = 80 // Increased from 60
+            const cellWidth = 800 // Increased for better quality
+            const cellHeight = 800 // Increased for better quality
+            const padding = 8 // Minimal padding
+            const headerHeight = 0 // No header - minimalist
+            const footerHeight = 0 // No footer - minimalist
 
             canvas.width = cols * cellWidth + (cols + 1) * padding
             canvas.height = rows * cellHeight + (rows + 1) * padding + headerHeight + footerHeight
 
-            // Background
-            ctx.fillStyle = '#f8fafc'
+            // Simple light gray background
+            ctx.fillStyle = '#e5e7eb'
             ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-            // Header with gradient
-            const headerGradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
-            headerGradient.addColorStop(0, '#1e40af')
-            headerGradient.addColorStop(1, '#3b82f6')
-            ctx.fillStyle = headerGradient
-            ctx.fillRect(0, 0, canvas.width, headerHeight)
-
-            // Store name in header
-            ctx.fillStyle = '#ffffff'
-            ctx.font = 'bold 48px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
-            ctx.textAlign = 'center'
-            ctx.fillText(storeName, canvas.width / 2, 65)
 
             let loadedImages = 0
             const totalImages = items.length
 
             const drawImagesRecursively = (index: number) => {
                 if (index >= totalImages) {
-                    // All images loaded, draw footer and resolve
-                    // Footer
-                    ctx.fillStyle = '#1e293b'
-                    ctx.fillRect(0, canvas.height - footerHeight, canvas.width, footerHeight)
-
-                    ctx.fillStyle = '#94a3b8'
-                    ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
-                    ctx.textAlign = 'center'
-                    ctx.fillText('¡Disponibles para entrega!', canvas.width / 2, canvas.height - 35)
-
-                    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.95)
+                    // All images loaded, resolve with high quality
+                    canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.98)
                     return
                 }
 
@@ -261,68 +239,64 @@ export default function CollageGenerator({
                     const x = col * cellWidth + (col + 1) * padding
                     const y = row * cellHeight + (row + 1) * padding + headerHeight
 
-                    // White background for cell
+                    // White background for cell (no shadows - minimalist)
                     ctx.fillStyle = '#ffffff'
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)'
-                    ctx.shadowBlur = 20
-                    ctx.shadowOffsetY = 4
                     ctx.fillRect(x, y, cellWidth, cellHeight)
-                    ctx.shadowColor = 'transparent'
-                    ctx.shadowBlur = 0
-                    ctx.shadowOffsetY = 0
 
-                    // Draw image (fit and center) with better quality
-                    const imageHeight = cellHeight - 90 // Reserve space for price and quantity
-                    const scale = Math.min(cellWidth / img.width, imageHeight / img.height)
+                    // Draw image - FULL SIZE to maximize quality and visibility
+                    const scale = Math.min(cellWidth / img.width, cellHeight / img.height)
                     const scaledWidth = img.width * scale
                     const scaledHeight = img.height * scale
                     const imgX = x + (cellWidth - scaledWidth) / 2
-                    const imgY = y + (imageHeight - scaledHeight) / 2
+                    const imgY = y + (cellHeight - scaledHeight) / 2
 
-                    // Enable image smoothing for better quality
+                    // Enable image smoothing for best quality
                     ctx.imageSmoothingEnabled = true
                     ctx.imageSmoothingQuality = 'high'
                     ctx.drawImage(img, imgX, imgY, scaledWidth, scaledHeight)
 
-                    // Quantity badge (top right corner)
+                    // Semi-transparent overlay at top for price (minimal, overlaid on image)
+                    const overlayHeight = 90
+                    const gradient = ctx.createLinearGradient(x, y, x, y + overlayHeight)
+                    gradient.addColorStop(0, 'rgba(0, 0, 0, 0.7)')
+                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+                    ctx.fillStyle = gradient
+                    ctx.fillRect(x, y, cellWidth, overlayHeight)
+
+                    // Price text - top center, overlaid on image
+                    ctx.fillStyle = '#ffffff'
+                    ctx.font = 'bold 64px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                    ctx.textAlign = 'center'
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+                    ctx.shadowBlur = 8
+                    ctx.shadowOffsetY = 2
+                    ctx.fillText(`$${item.customPrice.toFixed(2)}`, x + cellWidth / 2, y + 60)
+                    ctx.shadowColor = 'transparent'
+                    ctx.shadowBlur = 0
+                    ctx.shadowOffsetY = 0
+
+                    // Quantity text - bottom center, overlaid on image
                     const availableQty = item.item.quantity - (item.item.reservedQuantity || 0)
                     if (availableQty > 0) {
-                        const badgeSize = 70
-                        const badgeX = x + cellWidth - badgeSize - 15
-                        const badgeY = y + 15
+                        // Semi-transparent overlay at bottom
+                        const bottomOverlayHeight = 70
+                        const bottomGradient = ctx.createLinearGradient(x, y + cellHeight - bottomOverlayHeight, x, y + cellHeight)
+                        bottomGradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
+                        bottomGradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)')
+                        ctx.fillStyle = bottomGradient
+                        ctx.fillRect(x, y + cellHeight - bottomOverlayHeight, cellWidth, bottomOverlayHeight)
 
-                        // Badge background with shadow
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)'
-                        ctx.shadowBlur = 10
-                        ctx.shadowOffsetY = 3
-                        ctx.fillStyle = '#ef4444'
-                        ctx.beginPath()
-                        ctx.arc(badgeX + badgeSize / 2, badgeY + badgeSize / 2, badgeSize / 2, 0, Math.PI * 2)
-                        ctx.fill()
+                        ctx.fillStyle = '#ffffff'
+                        ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        ctx.textAlign = 'center'
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+                        ctx.shadowBlur = 8
+                        ctx.shadowOffsetY = 2
+                        ctx.fillText(`${availableQty} disponibles`, x + cellWidth / 2, y + cellHeight - 25)
                         ctx.shadowColor = 'transparent'
                         ctx.shadowBlur = 0
                         ctx.shadowOffsetY = 0
-
-                        // Quantity text
-                        ctx.fillStyle = '#ffffff'
-                        ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
-                        ctx.textAlign = 'center'
-                        ctx.textBaseline = 'middle'
-                        ctx.fillText(availableQty.toString(), badgeX + badgeSize / 2, badgeY + badgeSize / 2)
-                        ctx.textBaseline = 'alphabetic'
                     }
-
-                    // Price tag at bottom
-                    const priceGradient = ctx.createLinearGradient(x, y + cellHeight - 90, x + cellWidth, y + cellHeight)
-                    priceGradient.addColorStop(0, '#10b981')
-                    priceGradient.addColorStop(1, '#059669')
-                    ctx.fillStyle = priceGradient
-                    ctx.fillRect(x, y + cellHeight - 90, cellWidth, 90)
-
-                    ctx.fillStyle = '#ffffff'
-                    ctx.font = 'bold 42px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
-                    ctx.textAlign = 'center'
-                    ctx.fillText(`$${item.customPrice.toFixed(2)}`, x + cellWidth / 2, y + cellHeight - 35)
 
                     loadedImages++
                     drawImagesRecursively(index + 1)
