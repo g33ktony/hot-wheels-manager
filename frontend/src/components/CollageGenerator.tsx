@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, Download, Share2, Edit2, Check, ChevronLeft, ChevronRight, FileText, Image as ImageIcon } from 'lucide-react'
+import { X, Download, Share2, Edit2, Check, ChevronLeft, FileText, Image as ImageIcon } from 'lucide-react'
 import Button from './common/Button'
 import Modal from './common/Modal'
 import ReactCrop, { Crop as CropType, PixelCrop } from 'react-image-crop'
@@ -47,11 +47,13 @@ export default function CollageGenerator({
                 .filter(item => item.photos && item.photos.length > 0)
                 .map(item => ({
                     item,
-                    croppedImage: null,
+                    croppedImage: item.photos![0], // Usar imagen original por defecto
                     customPrice: item.actualPrice || item.suggestedPrice || 0,
                     originalImage: item.photos![0]
                 }))
             setCollageItems(items)
+            // Ir directamente a la lista de precios
+            setCurrentStep('price')
         }
     }, [selectedItems])
 
@@ -75,14 +77,8 @@ export default function CollageGenerator({
             updated[currentItemIndex].croppedImage = updated[currentItemIndex].originalImage
             setCollageItems(updated)
 
-            if (currentItemIndex < collageItems.length - 1) {
-                setCurrentItemIndex(currentItemIndex + 1)
-                setCrop(undefined)
-                setCompletedCrop(undefined)
-            } else {
-                setCurrentStep('price')
-                setCurrentItemIndex(0)
-            }
+            // Volver a la lista de precios
+            setCurrentStep('price')
             return
         }
 
@@ -132,16 +128,9 @@ export default function CollageGenerator({
                     updated[currentItemIndex].croppedImage = croppedUrl
                     setCollageItems(updated)
 
-                    if (currentItemIndex < collageItems.length - 1) {
-                        console.log('Moving to next item')
-                        setCurrentItemIndex(currentItemIndex + 1)
-                        setCrop(undefined)
-                        setCompletedCrop(undefined)
-                    } else {
-                        console.log('Moving to price step')
-                        setCurrentStep('price')
-                        setCurrentItemIndex(0)
-                    }
+                    // Volver a la lista de precios
+                    console.log('Moving to price step')
+                    setCurrentStep('price')
                 } else {
                     console.error('Failed to create blob from canvas')
                 }
@@ -184,6 +173,36 @@ export default function CollageGenerator({
     const cancelPriceEdit = () => {
         setEditingPriceIndex(null)
         setTempPrice('')
+    }
+
+    const handleDeleteItem = (index: number) => {
+        const updated = collageItems.filter((_, i) => i !== index)
+        setCollageItems(updated)
+        // Si estábamos editando este item, cancelar edición
+        if (editingPriceIndex === index) {
+            setEditingPriceIndex(null)
+            setTempPrice('')
+        } else if (editingPriceIndex !== null && editingPriceIndex > index) {
+            // Ajustar el índice si estábamos editando un item posterior
+            setEditingPriceIndex(editingPriceIndex - 1)
+        }
+    }
+
+    const handleEditImage = (index: number) => {
+        // Guardar precio si estaba editando
+        if (editingPriceIndex !== null) {
+            const price = parseFloat(tempPrice)
+            if (!isNaN(price) && price >= 0) {
+                handlePriceEdit(editingPriceIndex, price)
+            }
+            setEditingPriceIndex(null)
+            setTempPrice('')
+        }
+        // Ir al paso de recorte para este item específico
+        setCurrentItemIndex(index)
+        setCurrentStep('crop')
+        setCrop(undefined)
+        setCompletedCrop(undefined)
     }
 
     const generateCollages = async () => {
@@ -554,23 +573,21 @@ export default function CollageGenerator({
                             <Button
                                 variant="secondary"
                                 onClick={() => {
-                                    if (currentItemIndex > 0) {
-                                        setCurrentItemIndex(currentItemIndex - 1)
-                                        setCrop(undefined)
-                                        setCompletedCrop(undefined)
-                                    }
+                                    // Volver a la lista de precios sin guardar cambios
+                                    setCurrentStep('price')
+                                    setCrop(undefined)
+                                    setCompletedCrop(undefined)
                                 }}
-                                disabled={currentItemIndex === 0}
                                 icon={<ChevronLeft size={18} />}
                             >
-                                Anterior
+                                Cancelar
                             </Button>
                             <Button
                                 variant="primary"
                                 onClick={handleCropComplete}
-                                icon={currentItemIndex < collageItems.length - 1 ? <ChevronRight size={18} /> : <Check size={18} />}
+                                icon={<Check size={18} />}
                             >
-                                {currentItemIndex < collageItems.length - 1 ? 'Siguiente' : 'Finalizar recorte'}
+                                Aplicar recorte
                             </Button>
                         </div>
                     </div>
@@ -581,13 +598,33 @@ export default function CollageGenerator({
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {collageItems.map((item, index) => (
-                                <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                    <div className="aspect-square relative">
+                                <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden relative group">
+                                    {/* Bot\u00f3n de eliminar */}
+                                    <button
+                                        onClick={() => handleDeleteItem(index)}
+                                        className="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                        title="Eliminar item"
+                                    >
+                                        <X size={16} />
+                                    </button>
+
+                                    {/* Imagen clickeable para editar */}
+                                    <div
+                                        className="aspect-square relative cursor-pointer hover:opacity-90 transition-opacity"
+                                        onClick={() => handleEditImage(index)}
+                                        title="Click para ajustar recorte"
+                                    >
                                         <img
                                             src={item.croppedImage || item.originalImage}
                                             alt={item.item.brand}
                                             className="w-full h-full object-cover"
                                         />
+                                        {/* Overlay de edici\u00f3n */}
+                                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                            <div className="bg-white rounded-full p-2 shadow-lg">
+                                                <Edit2 size={20} className="text-gray-700" />
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="p-3">
                                         <p className="text-sm font-medium text-gray-900 truncate mb-2">
@@ -652,21 +689,11 @@ export default function CollageGenerator({
                                 </div>
                             ))}
                         </div>
-                        <div className="flex justify-between pt-4 border-t">
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    setCurrentStep('crop')
-                                    setCurrentItemIndex(collageItems.length - 1)
-                                }}
-                                icon={<ChevronLeft size={18} />}
-                            >
-                                Volver a recortar
-                            </Button>
+                        <div className="flex justify-end pt-4 border-t">
                             <Button
                                 variant="primary"
                                 onClick={generateCollages}
-                                disabled={isGenerating}
+                                disabled={isGenerating || collageItems.length === 0}
                                 icon={isGenerating ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" /> : <Check size={18} />}
                             >
                                 {isGenerating ? 'Generando...' : 'Generar Collages'}
