@@ -381,26 +381,38 @@ class PreSaleItemService {
 
     if (status === 'received') {
       // When a PreSaleItem is received, create PendingItems for each unit
-      for (const unit of preSaleItem.units) {
-        const newPendingItem = new PendingItemModel({
-          carId: preSaleItem.carId,
-          quantity: 1, // Each unit becomes one pending item
-          unitPrice: preSaleItem.basePricePerUnit, // Use base price for consistency
-          condition: preSaleItem.condition,
-          brand: preSaleItem.brand,
-          pieceType: preSaleItem.pieceType,
-          isTreasureHunt: preSaleItem.isTreasureHunt, // Assuming these fields exist in PreSaleItem
-          isSuperTreasureHunt: preSaleItem.isSuperTreasureHunt,
-          isChase: preSaleItem.isChase,
-          photos: preSaleItem.photo ? [preSaleItem.photo] : [],
-          notes: `Item de pre-venta #${preSaleItem._id} (unidad: ${unit.unitId}) recibido.`,
-          status: 'pending-reshipment', // Crucial for inventory processing
-          linkedToPurchaseId: unit.purchaseId // Link to original purchase for processing
-        });
-        await newPendingItem.save();
-        console.log(`✅ Created PendingItem for PreSaleItem unit: ${unit.unitId}`);
+      try {
+        for (const unit of preSaleItem.units) {
+          try {
+            const newPendingItem = new PendingItemModel({
+              originalPurchaseId: unit.purchaseId, // FIXED: Was 'linkedToPurchaseId'
+              carId: preSaleItem.carId,
+              quantity: 1, // Each unit becomes one pending item
+              unitPrice: preSaleItem.basePricePerUnit, // Use base price for consistency
+              condition: preSaleItem.condition || 'good', // Provide default if missing
+              brand: preSaleItem.brand,
+              pieceType: preSaleItem.pieceType,
+              isTreasureHunt: preSaleItem.isTreasureHunt || false,
+              isSuperTreasureHunt: preSaleItem.isSuperTreasureHunt || false,
+              isChase: preSaleItem.isChase || false,
+              photos: preSaleItem.photo ? [preSaleItem.photo] : [],
+              notes: `Item de pre-venta #${preSaleItem._id} (unidad: ${unit.unitId}) recibido.`,
+              status: 'pending-reshipment', // Status for inventory processing
+              linkedToPurchaseId: unit.purchaseId // Link to original purchase for reference
+            });
+            await newPendingItem.save();
+            console.log(`✅ Created PendingItem for PreSaleItem unit: ${unit.unitId} from purchase: ${unit.purchaseId}`);
+          } catch (unitError: any) {
+            console.error(`❌ Failed to create PendingItem for unit ${unit.unitId}:`, unitError.message);
+            throw new Error(`Failed to create inventory item for unit ${unit.unitId}: ${unitError.message}`);
+          }
+        }
+        preSaleItem.endDate = new Date()
+      } catch (conversionError: any) {
+        // Re-throw conversion errors to be handled by the route
+        console.error(`❌ Error during received status conversion for PreSaleItem ${preSaleItemId}:`, conversionError.message);
+        throw new Error(`Failed to convert pre-sale items to inventory: ${conversionError.message}`);
       }
-      preSaleItem.endDate = new Date()
     } else if (status === 'delivered' || status === 'cancelled') {
       preSaleItem.endDate = new Date()
     }

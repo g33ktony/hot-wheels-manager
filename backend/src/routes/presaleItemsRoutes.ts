@@ -275,17 +275,31 @@ router.put('/:id/status', async (req: Request, res: Response) => {
       })
     }
 
+    console.log(`📌 Updating PreSaleItem ${id} status to: ${status}`);
     const item = await PreSaleItemService.updateStatus(id, status)
+    console.log(`✅ Successfully updated PreSaleItem ${id} status to: ${status}`);
 
     res.json({
       success: true,
-      message: 'Status updated successfully',
+      message: `Status updated to ${status} successfully${status === 'received' ? ' and inventory items created' : ''}`,
       data: item
     })
   } catch (error: any) {
+    console.error(`❌ Error updating PreSaleItem ${req.params.id} status:`, error.message);
+    
+    // Provide more specific error messages for different failure scenarios
+    if (error.message.includes('Failed to convert')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Failed to create inventory items from pre-sale items. Some units may not have been processed.',
+        details: error.message
+      })
+    }
+    
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to update status'
+      error: error.message || 'Failed to update status',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     })
   }
 })
