@@ -166,17 +166,37 @@ export default function Deliveries() {
             }
 
             // Check if items have sufficient available quantity
+            // When editing, we need to consider the quantities already reserved by this delivery
             const insufficientItems = inventoryItems_toValidate.filter(item => {
                 const inventoryItem = inventoryItems.find((inv: InventoryItem) => inv._id === item.inventoryItemId)
                 if (!inventoryItem) return true
-                const availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0)
+
+                let availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0)
+
+                // If editing, add back the quantity that was reserved by this delivery
+                if (isEditMode && editingDelivery) {
+                    const originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+                    if (originalItem) {
+                        availableQuantity += originalItem.quantity
+                    }
+                }
+
                 return availableQuantity < item.quantity
             })
 
             if (insufficientItems.length > 0) {
                 const itemDetails = insufficientItems.map(item => {
                     const inventoryItem = inventoryItems.find((inv: InventoryItem) => inv._id === item.inventoryItemId)
-                    const availableQuantity = inventoryItem ? inventoryItem.quantity - (inventoryItem.reservedQuantity || 0) : 0
+                    let availableQuantity = inventoryItem ? inventoryItem.quantity - (inventoryItem.reservedQuantity || 0) : 0
+
+                    // If editing, add back the quantity that was reserved by this delivery
+                    if (isEditMode && editingDelivery) {
+                        const originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+                        if (originalItem) {
+                            availableQuantity += originalItem.quantity
+                        }
+                    }
+
                     return `• ${item.carName}: disponible ${availableQuantity}, solicitado ${item.quantity}`
                 }).join('\n')
                 alert(`❌ Cantidad insuficiente para los siguientes items:\n\n${itemDetails}`)
