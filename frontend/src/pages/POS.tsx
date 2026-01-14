@@ -5,7 +5,6 @@ import { useInventorySyncInBackground } from '@/hooks/useInventoryCache';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { setInventoryItems, setLoading, setError } from '@/store/slices/inventorySlice';
 import { addToCart as addToCartAction, removeFromCart as removeFromCartAction, updateCartQuantity as updateCartQuantityAction, updateCartPrice, clearCart } from '@/store/slices/cartSlice';
-import type { CartItem } from '@/store/slices/cartSlice';
 import { calculateSimilarity } from '@/utils/searchUtils';
 import { inventoryService } from '@/services/inventory';
 import type { InventoryItem as ReduxInventoryItem } from '@/store/slices/inventorySlice';
