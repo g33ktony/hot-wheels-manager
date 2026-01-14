@@ -279,10 +279,20 @@ router.put('/:id/status', async (req: Request, res: Response) => {
     const item = await PreSaleItemService.updateStatus(id, status)
     console.log(`✅ Successfully updated PreSaleItem ${id} status to: ${status}`);
 
+    const responseMessage = status === 'received' 
+      ? `Status updated to ${status} successfully - Created ${item.units.length > 0 ? item.units.length : item.totalQuantity} inventory item(s)` 
+      : `Status updated to ${status} successfully`;
+
     res.json({
       success: true,
-      message: `Status updated to ${status} successfully${status === 'received' ? ' and inventory items created' : ''}`,
-      data: item
+      message: responseMessage,
+      data: item,
+      conversionDetails: status === 'received' ? {
+        itemsCreated: item.units.length > 0 ? item.units.length : item.totalQuantity,
+        totalQuantity: item.totalQuantity,
+        unitsTracked: item.units.length,
+        purchasesLinked: item.purchaseIds.length
+      } : undefined
     })
   } catch (error: any) {
     console.error(`❌ Error updating PreSaleItem ${req.params.id} status:`, error.message);

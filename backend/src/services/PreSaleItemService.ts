@@ -2,6 +2,7 @@ import PreSaleItem, { PreSaleItem as PreSaleItemType } from '../models/PreSaleIt
 import Purchase from '../models/Purchase'
 import { HotWheelsCarModel } from '../models/HotWheelsCar'
 import { PendingItemModel } from '../models/PendingItem'
+import { processPendingItemsOnPurchaseReceived } from '../controllers/pendingItemsController'
 
 /**
  * PreSaleItemService
@@ -380,34 +381,94 @@ class PreSaleItemService {
     preSaleItem.status = status
 
     if (status === 'received') {
-      // When a PreSaleItem is received, create PendingItems for each unit
+      // When a PreSaleItem is received, create PendingItems for each unit or totalQuantity
       try {
-        for (const unit of preSaleItem.units) {
-          try {
-            const newPendingItem = new PendingItemModel({
-              originalPurchaseId: unit.purchaseId, // FIXED: Was 'linkedToPurchaseId'
-              carId: preSaleItem.carId,
-              quantity: 1, // Each unit becomes one pending item
-              unitPrice: preSaleItem.basePricePerUnit, // Use base price for consistency
-              condition: preSaleItem.condition || 'good', // Provide default if missing
-              brand: preSaleItem.brand,
-              pieceType: preSaleItem.pieceType,
-              isTreasureHunt: preSaleItem.isTreasureHunt || false,
-              isSuperTreasureHunt: preSaleItem.isSuperTreasureHunt || false,
-              isChase: preSaleItem.isChase || false,
-              photos: preSaleItem.photo ? [preSaleItem.photo] : [],
-              notes: `Item de pre-venta #${preSaleItem._id} (unidad: ${unit.unitId}) recibido.`,
-              status: 'pending-reshipment', // Status for inventory processing
-              linkedToPurchaseId: unit.purchaseId // Link to original purchase for reference
-            });
-            await newPendingItem.save();
-            console.log(`✅ Created PendingItem for PreSaleItem unit: ${unit.unitId} from purchase: ${unit.purchaseId}`);
-          } catch (unitError: any) {
-            console.error(`❌ Failed to create PendingItem for unit ${unit.unitId}:`, unitError.message);
-            throw new Error(`Failed to create inventory item for unit ${unit.unitId}: ${unitError.message}`);
+        console.log(`🔍 Converting PreSaleItem ${preSaleItemId} to received. Units: ${preSaleItem.units.length}, TotalQuantity: ${preSaleItem.totalQuantity}`);
+        
+        // If units were tracked (via delivery assignments), create PendingItem for each unit
+        if (preSaleItem.units && preSaleItem.units.length > 0) {
+          console.log(`📦 Creating PendingItems from ${preSaleItem.units.length} tracked units`);
+          for (const unit of preSaleItem.units) {
+            try {
+              const newPendingItem = new PendingItemModel({
+                originalPurchaseId: unit.purchaseId, // FIXED: Was 'linkedToPurchaseId'
+                carId: preSaleItem.carId,
+                quantity: 1, // Each unit becomes one pending item
+                unitPrice: preSaleItem.basePricePerUnit, // Use base price for consistency
+                condition: preSaleItem.condition || 'good', // Provide default if missing
+                brand: preSaleItem.brand,
+                pieceType: preSaleItem.pieceType,
+                isTreasureHunt: preSaleItem.isTreasureHunt || false,
+                isSuperTreasureHunt: preSaleItem.isSuperTreasureHunt || false,
+                isChase: preSaleItem.isChase || false,
+                photos: preSaleItem.photo ? [preSaleItem.photo] : [],
+                notes: `Item de pre-venta #${preSaleItem._id} (unidad: ${unit.unitId}) recibido.`,
+                status: 'pending-reshipment', // Status for inventory processing
+                linkedToPurchaseId: unit.purchaseId // Link to original purchase for reference
+              });
+              await newPendingItem.save();
+              console.log(`✅ Created PendingItem for PreSaleItem unit: ${unit.unitId} from purchase: ${unit.purchaseId}`);
+            } catch (unitError: any) {
+              console.error(`❌ Failed to create PendingItem for unit ${unit.unitId}:`, unitError.message);
+              throw new Error(`Failed to create inventory item for unit ${unit.unitId}: ${unitError.message}`);
+            }
+          }
+        } else {
+          // If no units were tracked, create PendingItems based on totalQuantity and purchaseIds
+          console.log(`📦 Creating PendingItems from totalQuantity (${preSaleItem.totalQuantity}) and ${preSaleItem.purchaseIds.length} purchase(s)`);
+          
+          if (preSaleItem.totalQuantity > 0 && preSaleItem.purchaseIds.length > 0) {
+            // Distribute quantity across purchases proportionally or use first purchase
+            const primaryPurchaseId = preSaleItem.purchaseIds[0];
+            
+            for (let i = 0; i < preSaleItem.totalQuantity; i++) {
+              try {
+                const newPendingItem = new PendingItemModel({
+                  originalPurchaseId: primaryPurchaseId,
+                  carId: preSaleItem.carId,
+                  quantity: 1,
+                  unitPrice: preSaleItem.basePricePerUnit,
+                  condition: preSaleItem.condition || 'good',
+                  brand: preSaleItem.brand,
+                  pieceType: preSaleItem.pieceType,
+                  isTreasureHunt: preSaleItem.isTreasureHunt || false,
+                  isSuperTreasureHunt: preSaleItem.isSuperTreasureHunt || false,
+                  isChase: preSaleItem.isChase || false,
+                  photos: preSaleItem.photo ? [preSaleItem.photo] : [],
+                  notes: `Item de pre-venta #${preSaleItem._id} (unidad ${i + 1}/${preSaleItem.totalQuantity}) recibido.`,
+                  status: 'pending-reshipment',
+                  linkedToPurchaseId: primaryPurchaseId
+                });
+                await newPendingItem.save();
+                console.log(`✅ Created PendingItem ${i + 1}/${preSaleItem.totalQuantity} for PreSaleItem from purchase: ${primaryPurchaseId}`);
+              } catch (unitError: any) {
+                console.error(`❌ Failed to create PendingItem ${i + 1}/${preSaleItem.totalQuantity}:`, unitError.message);
+                throw new Error(`Failed to create inventory item ${i + 1}/${preSaleItem.totalQuantity}: ${unitError.message}`);
+              }
+            }
+          } else {
+            console.warn(`⚠️ PreSaleItem has no quantity or purchases to convert`);
           }
         }
         preSaleItem.endDate = new Date()
+        console.log(`✅ Successfully converted ${preSaleItem.units.length > 0 ? preSaleItem.units.length : preSaleItem.totalQuantity} items to pending inventory`);
+        
+        // CRITICAL FIX: Process pending items to automatically convert them to inventory items
+        // Get the primary purchase ID used for linking
+        const primaryPurchaseId = preSaleItem.units.length > 0 
+          ? preSaleItem.units[0].purchaseId 
+          : preSaleItem.purchaseIds[0];
+        
+        if (primaryPurchaseId) {
+          try {
+            console.log(`🔄 Processing pending items for purchase: ${primaryPurchaseId}`);
+            await processPendingItemsOnPurchaseReceived(primaryPurchaseId);
+            console.log(`✅ Pending items processed and added to inventory`);
+          } catch (processError: any) {
+            console.warn(`⚠️ Could not auto-process pending items: ${processError.message}. Items remain as pending-reshipment and can be processed manually.`);
+            // Don't throw - the pending items were created successfully, they just won't auto-convert
+          }
+        }
       } catch (conversionError: any) {
         // Re-throw conversion errors to be handled by the route
         console.error(`❌ Error during received status conversion for PreSaleItem ${preSaleItemId}:`, conversionError.message);
