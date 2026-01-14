@@ -157,7 +157,10 @@ const connectDB = async () => {
       return false
     }
     
-    console.log('🔌 Connecting to MongoDB Atlas...')
+    // Log connection attempt (hide password)
+    const sanitizedURI = mongoURI.replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@')
+    console.log('🔌 Connecting to MongoDB...')
+    console.log('📍 URI:', sanitizedURI)
     
     // Set a connection timeout to prevent hanging
     await mongoose.connect(mongoURI, {
@@ -167,7 +170,10 @@ const connectDB = async () => {
     })
     
     mongoose.set('strictPopulate', false)
-    console.log('✅ MongoDB Atlas connected successfully')
+    
+    // Log database name
+    const dbName = mongoose.connection.db?.databaseName || 'unknown'
+    console.log('✅ MongoDB connected successfully to database:', dbName)
     return true
   } catch (error) {
     console.error('❌ MongoDB connection error:', error)
