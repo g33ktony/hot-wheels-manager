@@ -391,11 +391,13 @@ export async function processPendingItemsOnPurchaseReceived(purchaseId: string) 
       } else {
         // Create new inventory item
         console.log(`✅ Creating new inventory item`)
+        const suggestedPrice = pendingItem.unitPrice * 1.3 // Default 30% markup
         const newInventoryItem = new InventoryItemModel({
           carId: pendingItem.carId,
           quantity: pendingItem.quantity,
           purchasePrice: pendingItem.unitPrice,
-          suggestedPrice: pendingItem.unitPrice * 1.3, // Default 30% markup
+          suggestedPrice: suggestedPrice,
+          actualPrice: suggestedPrice, // Set actualPrice to match suggestedPrice initially
           condition: pendingItem.condition,
           brand: pendingItem.brand,
           pieceType: pendingItem.pieceType,
