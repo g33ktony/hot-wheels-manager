@@ -64,7 +64,12 @@ const pendingItemSchema = new Schema<IPendingItem>({
   },
   pieceType: {
     type: String,
-    enum: ['basic', 'premium', 'rlc']
+    enum: {
+      values: ['basic', 'premium', 'rlc'],
+      message: 'pieceType debe ser uno de: basic, premium, rlc'
+    },
+    default: null,
+    sparse: true
   },
   isTreasureHunt: {
     type: Boolean,

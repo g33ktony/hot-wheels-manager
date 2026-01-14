@@ -26,7 +26,15 @@ const inventoryItemSchema = new Schema({
   lastUpdated: { type: Date, default: Date.now },
   // Brand and type fields
   brand: { type: String }, // Hot Wheels, Kaido House, Mini GT, M2, etc.
-  pieceType: { type: String, enum: ['basic', 'premium', 'rlc', 'silver_series', 'elite_64'] }, // Basic, Premium, RLC
+  pieceType: { 
+    type: String, 
+    enum: {
+      values: ['basic', 'premium', 'rlc', 'silver_series', 'elite_64'],
+      message: 'pieceType debe ser uno de: basic, premium, rlc, silver_series, elite_64'
+    },
+    default: null,
+    sparse: true // Permite múltiples documentos sin pieceType
+  }, // Basic, Premium, RLC
   isTreasureHunt: { type: Boolean, default: false }, // Only for Hot Wheels basic
   isSuperTreasureHunt: { type: Boolean, default: false }, // Only for Hot Wheels basic
   isChase: { type: Boolean, default: false }, // Only for Mini GT, Kaido House, M2

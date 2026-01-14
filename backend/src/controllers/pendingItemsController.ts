@@ -392,13 +392,6 @@ export async function processPendingItemsOnPurchaseReceived(purchaseId: string) 
         // Create new inventory item
         console.log(`✅ Creating new inventory item`)
         const suggestedPrice = pendingItem.unitPrice * 1.3 // Default 30% markup
-        
-        // Validate pieceType - must be undefined or a valid enum value, never empty string
-        const validPieceTypes = ['basic', 'premium', 'rlc', 'silver_series', 'elite_64']
-        const validPieceType = pendingItem.pieceType && validPieceTypes.includes(pendingItem.pieceType) 
-          ? pendingItem.pieceType 
-          : undefined
-        
         const newInventoryItem = new InventoryItemModel({
           carId: pendingItem.carId,
           quantity: pendingItem.quantity,
@@ -407,7 +400,7 @@ export async function processPendingItemsOnPurchaseReceived(purchaseId: string) 
           actualPrice: suggestedPrice, // Set actualPrice to match suggestedPrice initially
           condition: pendingItem.condition,
           brand: pendingItem.brand,
-          pieceType: validPieceType, // Only set if valid, otherwise undefined
+          pieceType: pendingItem.pieceType || null, // Ensure null instead of empty string
           isTreasureHunt: pendingItem.isTreasureHunt || false,
           isSuperTreasureHunt: pendingItem.isSuperTreasureHunt || false,
           isChase: pendingItem.isChase || false,
