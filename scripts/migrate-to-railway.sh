@@ -23,15 +23,30 @@ if ! command -v mongorestore &> /dev/null; then
 fi
 
 # Solicitar la URL de Railway MongoDB
-echo "📝 Necesito la URL de conexión de Railway MongoDB"
+echo "📝 Necesito la URL de conexión PÚBLICA de Railway MongoDB"
+echo ""
+echo "⚠️  IMPORTANTE: Necesitas la URL PÚBLICA (no la interna)"
 echo ""
 echo "Para obtenerla:"
 echo "1. Ve a https://railway.app/dashboard"
 echo "2. Abre tu servicio de MongoDB"
-echo "3. Ve a la pestaña 'Variables'"
-echo "4. Copia el valor de MONGO_URL"
+echo "3. Ve a la pestaña 'Connect'"
+echo "4. Busca 'Public URL' o 'TCP Proxy URL'"
+echo "5. Debe verse como: mongodb://mongo:pass@monorail.proxy.rlwy.net:XXXXX"
+echo "   (NO debe contener 'railway.internal')"
 echo ""
-read -p "Pega aquí la URL de Railway MongoDB: " RAILWAY_MONGO_URL
+read -p "Pega aquí la URL PÚBLICA de Railway MongoDB: " RAILWAY_MONGO_URL
+
+# Validar que no sea URL interna
+if [[ "$RAILWAY_MONGO_URL" == *"railway.internal"* ]]; then
+    echo ""
+    echo "❌ Error: Esta es la URL interna de Railway"
+    echo "   La URL interna solo funciona desde dentro de Railway"
+    echo "   Necesitas la URL PÚBLICA que incluye 'monorail.proxy.rlwy.net'"
+    echo ""
+    echo "   Intenta de nuevo con la URL pública"
+    exit 1
+fi
 
 if [ -z "$RAILWAY_MONGO_URL" ]; then
     echo "❌ Error: La URL no puede estar vacía"
@@ -70,7 +85,9 @@ fi
 # Restaurar en Railway
 echo ""
 echo "🚀 Migrando datos a Railway..."
-mongorestore --uri="$RAILWAY_MONGO_URL" --dir="$BACKUP_DIR/hot-wheels-manager" --drop
+# Extraer el nombre de la base de datos de la URL de Railway
+# Railway usa la base de datos "railway" por defecto
+mongorestore --uri="$RAILWAY_MONGO_URL" --nsInclude="hot-wheels-manager.*" --nsFrom="hot-wheels-manager.*" --nsTo="railway.*" --dir="$BACKUP_DIR" --drop
 
 if [ $? -eq 0 ]; then
     echo ""

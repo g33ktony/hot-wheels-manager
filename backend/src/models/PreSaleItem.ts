@@ -48,6 +48,9 @@ export interface PreSaleItem extends Document {
   brand?: string;
   pieceType?: 'basic' | 'premium' | 'rlc' | 'silver_series' | 'elite_64';
   condition?: 'mint' | 'mint_loose' | 'good' | 'fair' | 'poor';
+  isTreasureHunt?: boolean;
+  isSuperTreasureHunt?: boolean;
+  isChase?: boolean;
   photo?: string; // Base64 encoded image or image URL
 
   // Related purchases

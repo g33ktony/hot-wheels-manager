@@ -1,7 +1,7 @@
 import PreSaleItem, { PreSaleItem as PreSaleItemType } from '../models/PreSaleItem'
 import Purchase from '../models/Purchase'
 import { HotWheelsCarModel } from '../models/HotWheelsCar'
-import PendingItemModel from '../models/PendingItem'
+import { PendingItemModel } from '../models/PendingItem'
 
 /**
  * PreSaleItemService
