@@ -212,6 +212,7 @@ export default function Deliveries() {
                     customerId: newDelivery.customerId,
                     items: newDelivery.items,
                     scheduledDate: new Date(newDelivery.scheduledDate),
+                    scheduledTime: newDelivery.scheduledTime,
                     location: newDelivery.location,
                     totalAmount: newDelivery.totalAmount,
                     notes: newDelivery.notes || undefined
