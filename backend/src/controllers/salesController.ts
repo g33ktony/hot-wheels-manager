@@ -299,17 +299,29 @@ export const createPOSSale = async (req: Request, res: Response) => {
       const finalPrice = customPrice !== undefined ? customPrice : itemPrice;
       
       // Extraer carId y carName correctamente
+      // Manejar casos donde carId puede ser string o objeto
       let carIdStr: string;
       let carName: string;
       
-      if (typeof inventoryItem.carId === 'object' && inventoryItem.carId !== null) {
-        // carId está poblado
-        carIdStr = (inventoryItem.carId as any)._id?.toString() || '';
-        carName = (inventoryItem.carId as any).name || carIdStr;
-      } else {
-        // carId es string
-        carIdStr = inventoryItem.carId?.toString() || '';
-        carName = carIdStr; // Usar el ID como nombre si no hay populate
+      try {
+        if (typeof inventoryItem.carId === 'object' && inventoryItem.carId !== null) {
+          // carId está poblado como objeto
+          carIdStr = (inventoryItem.carId as any)._id?.toString() || (inventoryItem.carId as any).toString() || '';
+          carName = (inventoryItem.carId as any).name || carIdStr;
+        } else if (inventoryItem.carId) {
+          // carId es un string
+          carIdStr = inventoryItem.carId.toString();
+          carName = carIdStr; // Usar el ID como nombre si no hay metadata
+        } else {
+          throw new Error('Item no tiene carId válido');
+        }
+      } catch (parseError) {
+        console.error(`❌ Error parsing carId for item ${inventoryItemId}:`, parseError);
+        return res.status(400).json({
+          success: false,
+          data: null,
+          message: `Item de inventario ${inventoryItemId} tiene datos incompletos o corruptos (carId faltante)`
+        });
       }
       
       console.log(`📦 Item: carIdStr=${carIdStr}, carName=${carName}, price=${finalPrice}, quantity=${quantity}`);
@@ -334,11 +346,27 @@ export const createPOSSale = async (req: Request, res: Response) => {
     }
 
     // Crear la venta
+    if (!saleItems || saleItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'No se procesaron items válidos para la venta'
+      });
+    }
+
+    if (totalAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'El monto total debe ser mayor a 0'
+      });
+    }
+
     const sale = new SaleModel({
       items: saleItems,
       totalAmount,
       saleDate: new Date(),
-      paymentMethod,
+      paymentMethod: paymentMethod || 'cash',
       status: 'completed', // Ventas POS siempre son completadas inmediatamente
       saleType: 'pos',
       notes: notes || 'Venta en sitio (POS)'
@@ -355,10 +383,13 @@ export const createPOSSale = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('❌ Error creating POS sale:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Error al crear la venta POS'
+      message: 'Error al crear la venta POS',
+      error: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+      details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
     });
   }
 };
