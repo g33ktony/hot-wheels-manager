@@ -361,15 +361,7 @@ export async function processPendingItemsOnPurchaseReceived(purchaseId: string) 
         inventoryItem.purchasePrice = pendingItem.unitPrice
         
         if (pendingItem.brand) inventoryItem.brand = pendingItem.brand
-        
-        // Only update pieceType if it's a valid value
-        if (pendingItem.pieceType && typeof pendingItem.pieceType === 'string') {
-          const validPieceTypes = ['basic', 'premium', 'rlc', 'silver_series', 'elite_64'];
-          if (validPieceTypes.includes(pendingItem.pieceType)) {
-            inventoryItem.pieceType = pendingItem.pieceType;
-          }
-        }
-        
+        if (pendingItem.pieceType) inventoryItem.pieceType = pendingItem.pieceType
         if (pendingItem.isTreasureHunt) inventoryItem.isTreasureHunt = true
         if (pendingItem.isSuperTreasureHunt) inventoryItem.isSuperTreasureHunt = true
         if (pendingItem.isChase) inventoryItem.isChase = true
@@ -401,16 +393,11 @@ export async function processPendingItemsOnPurchaseReceived(purchaseId: string) 
         console.log(`✅ Creating new inventory item`)
         const suggestedPrice = pendingItem.unitPrice * 1.3 // Default 30% markup
         
-        // Sanitize enum values - convert empty strings to undefined
-        const sanitizePieceType = (value: any) => {
-          const validPieceTypes = ['basic', 'premium', 'rlc', 'silver_series', 'elite_64'];
-          return value && typeof value === 'string' && validPieceTypes.includes(value) ? value : undefined;
-        }
-        
-        const sanitizeCondition = (value: any) => {
-          const validConditions = ['mint', 'mint_loose', 'good', 'fair', 'poor'];
-          return value && typeof value === 'string' && validConditions.includes(value) ? value : 'good';
-        }
+        // Validate pieceType - must be undefined or a valid enum value, never empty string
+        const validPieceTypes = ['basic', 'premium', 'rlc', 'silver_series', 'elite_64']
+        const validPieceType = pendingItem.pieceType && validPieceTypes.includes(pendingItem.pieceType) 
+          ? pendingItem.pieceType 
+          : undefined
         
         const newInventoryItem = new InventoryItemModel({
           carId: pendingItem.carId,
@@ -418,9 +405,9 @@ export async function processPendingItemsOnPurchaseReceived(purchaseId: string) 
           purchasePrice: pendingItem.unitPrice,
           suggestedPrice: suggestedPrice,
           actualPrice: suggestedPrice, // Set actualPrice to match suggestedPrice initially
-          condition: sanitizeCondition(pendingItem.condition),
+          condition: pendingItem.condition,
           brand: pendingItem.brand,
-          pieceType: sanitizePieceType(pendingItem.pieceType),
+          pieceType: validPieceType, // Only set if valid, otherwise undefined
           isTreasureHunt: pendingItem.isTreasureHunt || false,
           isSuperTreasureHunt: pendingItem.isSuperTreasureHunt || false,
           isChase: pendingItem.isChase || false,
