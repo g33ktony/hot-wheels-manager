@@ -236,12 +236,12 @@ export default function CollageGenerator({
             const rows = Math.ceil(items.length / 3)
             const cellWidth = 800 // Increased for better quality
             const cellHeight = 800 // Increased for better quality
-            const padding = 2 // Ultra-minimal padding between images
+            const borderWidth = 1 // Thin border to separate images
             const headerHeight = 0 // No header - minimalist
             const footerHeight = 0 // No footer - minimalist
 
-            canvas.width = cols * cellWidth + (cols - 1) * padding
-            canvas.height = rows * cellHeight + (rows - 1) * padding + headerHeight + footerHeight
+            canvas.width = cols * cellWidth + (cols - 1) * borderWidth
+            canvas.height = rows * cellHeight + (rows - 1) * borderWidth + headerHeight + footerHeight
 
             // White background for clean look
             ctx.fillStyle = '#ffffff'
@@ -264,8 +264,8 @@ export default function CollageGenerator({
                 img.onload = () => {
                     const col = index % 3
                     const row = Math.floor(index / 3)
-                    const x = col * (cellWidth + padding)
-                    const y = row * (cellHeight + padding) + headerHeight
+                    const x = col * (cellWidth + borderWidth)
+                    const y = row * (cellHeight + borderWidth) + headerHeight
 
                     // White background for cell
                     ctx.fillStyle = '#ffffff'
