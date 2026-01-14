@@ -283,7 +283,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
         </h3>
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
           <p className="text-xl font-bold text-gray-900 mb-2">{delivery.customer?.name}</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+          <div className="flex flex-col gap-2 text-sm">
             {delivery.customer?.phone && (
               <p className="text-gray-700">📱 {delivery.customer.phone}</p>
             )}
@@ -301,13 +301,13 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
           Detalles de Entrega
         </h3>
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="bg-white p-3 rounded-lg">
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
               <p className="text-xs text-gray-600 mb-1">📅 Fecha programada</p>
               <p className="font-bold text-gray-900">{formatDate(delivery.scheduledDate)}</p>
             </div>
             {delivery.scheduledTime && (
-              <div className="bg-white p-3 rounded-lg">
+              <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
                 <p className="text-xs text-gray-600 mb-1">🕐 Hora</p>
                 <p className="font-bold text-gray-900">{formatTime(delivery.scheduledTime)}</p>
               </div>
@@ -328,27 +328,27 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
           Artículos
         </h3>
         <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
-          <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[640px]">
+          <div className="w-full">
+            <table className="w-full" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-bold">Artículo</th>
-                  <th className="px-4 py-3 text-center text-sm font-bold">Cant.</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold">Precio Unit.</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold">Total</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '50%' }}>Artículo</th>
+                  <th className="px-4 py-3 text-center text-sm font-bold" style={{ width: '15%' }}>Cant.</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Precio Unit.</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {delivery.items.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.carName}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900" style={{ wordBreak: 'break-word' }}>{item.carName}</td>
                     <td className="px-4 py-3 text-center text-sm text-gray-900">
                       <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold">
                         {item.quantity}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-gray-900">{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">{formatCurrency(item.unitPrice * item.quantity)}</td>
+                    <td className="px-4 py-3 text-right text-sm text-gray-900" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(item.unitPrice)}</td>
+                    <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(item.unitPrice * item.quantity)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -374,12 +374,12 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             Información de Pago
           </h3>
           <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border border-green-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="bg-white p-3 rounded-lg">
+            <div className="flex flex-wrap gap-3">
+              <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
                 <p className="text-xs text-gray-600 mb-1">💵 Monto Pagado</p>
                 <p className="text-lg font-bold text-green-700">{formatCurrency(delivery.paidAmount || 0)}</p>
               </div>
-              <div className="bg-white p-3 rounded-lg">
+              <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
                 <p className="text-xs text-gray-600 mb-1">📊 Estado del Pago</p>
                 <p className="text-lg font-bold text-gray-900 capitalize">{delivery.paymentStatus || 'Pendiente'}</p>
               </div>
