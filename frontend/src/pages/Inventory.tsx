@@ -7,6 +7,7 @@ import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { inventoryService } from '@/services/inventory'
 import { useAppSelector, useAppDispatch } from '@/hooks/redux'
 import { setInventoryItems } from '@/store/slices/inventorySlice'
+import { addMultipleToCart } from '@/store/slices/cartSlice'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import { LazyImage } from '@/components/LazyImage'
@@ -18,7 +19,7 @@ import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
 import InventoryQuoteReport from '@/components/InventoryQuoteReport'
 import CollageGenerator from '@/components/CollageGenerator'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image, ShoppingCart } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
@@ -977,6 +978,21 @@ export default function Inventory() {
         return selectedItemsList
     }, [selectedItems, reduxInventory.items, inventoryData?.items])
 
+    const handleAddToCart = () => {
+        if (selectedItems.size === 0) return
+
+        const itemsToAdd = getSelectedItems()
+
+        // Convert to ReduxInventoryItem format and add to cart
+        dispatch(addMultipleToCart(itemsToAdd as any))
+
+        toast.success(`${itemsToAdd.length} ${itemsToAdd.length === 1 ? 'item agregado' : 'items agregados'} al carrito`)
+
+        // Clear selection and exit selection mode
+        setSelectedItems(new Set())
+        setIsSelectionMode(false)
+    }
+
     const handleBulkDelete = async () => {
         if (selectedItems.size === 0) return
 
@@ -1287,6 +1303,14 @@ export default function Inventory() {
                                         size="sm"
                                     >
                                         Deseleccionar ({selectedItems.size})
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        icon={<ShoppingCart size={18} />}
+                                        onClick={handleAddToCart}
+                                        size="sm"
+                                    >
+                                        Agregar al Carrito ({selectedItems.size})
                                     </Button>
                                     <Button
                                         variant="primary"

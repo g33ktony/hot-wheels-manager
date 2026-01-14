@@ -4,6 +4,8 @@ import { useSearch } from '@/contexts/SearchContext';
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { setInventoryItems, setLoading, setError } from '@/store/slices/inventorySlice';
+import { addToCart as addToCartAction, removeFromCart as removeFromCartAction, updateCartQuantity as updateCartQuantityAction, updateCartPrice, clearCart } from '@/store/slices/cartSlice';
+import type { CartItem } from '@/store/slices/cartSlice';
 import { calculateSimilarity } from '@/utils/searchUtils';
 import { inventoryService } from '@/services/inventory';
 import type { InventoryItem as ReduxInventoryItem } from '@/store/slices/inventorySlice';
@@ -20,11 +22,6 @@ const formatPieceType = (pieceType: string | undefined): string => {
   };
   return typeMap[pieceType] || pieceType;
 };
-
-interface CartItem extends ReduxInventoryItem {
-  customPrice: number;
-  cartQuantity: number;
-}
 
 const POS: React.FC = () => {
   // Sync inventory in background (keeps Redux cache fresh)
@@ -46,9 +43,11 @@ const POS: React.FC = () => {
 
   // Get inventory from Redux cache
   const reduxInventory = useAppSelector(state => state.inventory);
+  const reduxCart = useAppSelector(state => state.cart);
   const dispatch = useAppDispatch();
 
   const inventoryItems = useMemo(() => reduxInventory.items || [], [reduxInventory.items]);
+  const cart = useMemo(() => reduxCart.items || [], [reduxCart.items]);
 
   console.log('🔍 POS Redux State:', {
     itemsCount: inventoryItems.length,
@@ -57,7 +56,6 @@ const POS: React.FC = () => {
     hasItems: inventoryItems.length > 0
   });
 
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [processing, setProcessing] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
@@ -367,7 +365,12 @@ const POS: React.FC = () => {
         toast.error('No hay suficiente inventario disponible');
         return;
       }
-      updateCartQuantity(item._id, newQuantity);
+      dispatch(updateCartQuantityAction({ itemId: item._id, quantity: newQuantity }));
+      return;
+    }
+
+    if (quantity > availableQty) {
+      toast.error('No hay suficiente inventario disponible');
       return;
     }
 
@@ -378,28 +381,20 @@ const POS: React.FC = () => {
 
     const price = item.actualPrice || item.suggestedPrice || 0;
 
-    const cartItem: CartItem = {
-      ...item,
-      customPrice: price,
-      cartQuantity: quantity
-    };
-
-    setCart([...cart, cartItem]);
+    dispatch(addToCartAction({ item, quantity, customPrice: price }));
     toast.success(`${displayName} agregado al carrito`);
   };
 
   // Remover item del carrito
   const removeFromCart = (itemId: string | undefined) => {
     if (!itemId) return;
-    setCart(cart.filter(item => item._id !== itemId));
+    dispatch(removeFromCartAction(itemId));
   };
 
   // Actualizar precio personalizado
   const updatePrice = (itemId: string | undefined, newPrice: number) => {
     if (!itemId) return;
-    setCart(cart.map(item =>
-      item._id === itemId ? { ...item, customPrice: newPrice } : item
-    ));
+    dispatch(updateCartPrice({ itemId, price: newPrice }));
   };
 
   // Actualizar cantidad en carrito
@@ -421,9 +416,7 @@ const POS: React.FC = () => {
       return;
     }
 
-    setCart(cart.map(cartItem =>
-      cartItem._id === itemId ? { ...cartItem, cartQuantity: newQuantity } : cartItem
-    ));
+    dispatch(updateCartQuantityAction({ itemId, quantity: newQuantity }));
   };
 
   // Calcular total
@@ -468,7 +461,7 @@ const POS: React.FC = () => {
       }
 
       toast.success(`¡Venta completada! Total: $${calculateTotal().toFixed(2)}`);
-      setCart([]);
+      dispatch(clearCart());
 
       // Redux sync en background refrescará automáticamente el inventario
     } catch (error: any) {
@@ -958,7 +951,7 @@ const POS: React.FC = () => {
               </button>
 
               <button
-                onClick={() => setCart([])}
+                onClick={() => dispatch(clearCart())}
                 disabled={cart.length === 0}
                 className="w-full mt-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >

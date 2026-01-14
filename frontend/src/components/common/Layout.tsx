@@ -18,6 +18,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useBoxes } from '@/hooks/useBoxes'
+import { useAppSelector } from '@/hooks/redux'
 
 interface LayoutProps {
     children: ReactNode
@@ -33,6 +34,8 @@ export default function Layout({ children }: LayoutProps) {
     const { user, logout } = useAuth()
     const { data: pendingItemsStats } = usePendingItemsStats()
     const { data: boxes } = useBoxes()
+    const cartItems = useAppSelector(state => state.cart.items)
+    const cartItemCount = cartItems.length
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50
@@ -43,7 +46,12 @@ export default function Layout({ children }: LayoutProps) {
     const navigationItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Inventario', href: '/inventory', icon: Package },
-        { name: '🛒 POS', href: '/pos', icon: ShoppingCart },
+        {
+            name: '🛒 POS',
+            href: '/pos',
+            icon: ShoppingCart,
+            ...(cartItemCount > 0 && { badge: cartItemCount })
+        },
         { name: 'Ventas', href: '/sales', icon: ShoppingCart },
         { name: 'Compras', href: '/purchases', icon: ShoppingBag },
         { name: 'Pre-Ventas', href: '/presale', icon: Package },
