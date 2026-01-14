@@ -32,11 +32,55 @@ npm run install:all
 
 3. Configura variables de entorno:
    - Copia `.env.example` a `.env` en `backend/`
-   - Configura tu URL de MongoDB
+   - Configura tu base de datos MongoDB (ver sección Base de Datos)
 
-4. Ejecuta en modo desarrollo:
+4. Configura MongoDB:
+```bash
+# Ver instrucciones completas en MONGODB_LOCAL_SETUP.md
+# Para desarrollo local (recomendado):
+brew tap mongodb/brew
+brew install mongodb-community
+brew services start mongodb-community
+```
+
+5. Ejecuta en modo desarrollo:
 ```bash
 npm run dev
+```
+
+## 💾 Base de Datos
+
+Este proyecto soporta dos opciones de base de datos:
+
+### Opción 1: MongoDB Local (Recomendado para desarrollo)
+
+✅ **Ventajas**: Gratis, rápido, sin límites, ideal para desarrollo
+
+```bash
+# Instalar MongoDB (macOS)
+brew tap mongodb/brew
+brew install mongodb-community
+brew services start mongodb-community
+
+# Verificar instalación
+./scripts/check-mongodb.sh
+
+# Configurar .env
+MONGODB_URI=mongodb://localhost:27017/hot-wheels-manager
+```
+
+**Scripts útiles:**
+- `./scripts/check-mongodb.sh` - Verifica que MongoDB esté funcionando
+- `./scripts/backup-mongodb.sh` - Crea backup de tu base de datos
+- `./scripts/restore-mongodb.sh` - Restaura un backup
+
+Ver [MONGODB_LOCAL_SETUP.md](MONGODB_LOCAL_SETUP.md) para instrucciones completas.
+
+### Opción 2: MongoDB Atlas (Para producción en la nube)
+
+```bash
+# Configurar .env
+MONGODB_URI=mongodb+srv://usuario:password@cluster.mongodb.net/database
 ```
 
 ## 📱 Uso
