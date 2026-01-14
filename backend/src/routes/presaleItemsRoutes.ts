@@ -4,7 +4,7 @@ import PreSaleItemService from '../services/PreSaleItemService'
 const router = Router()
 
 // Log when routes are loaded - helps verify deployment
-console.log('✅ Presale Items Routes loaded - v1.0.1 with fixed route ordering')
+console.log('✅ Presale Items Routes loaded - v1.0.2 with improved error handling and conversion logging')
 
 /**
  * Pre-Sale Items Routes
