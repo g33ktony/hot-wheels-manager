@@ -271,8 +271,9 @@ export default function CollageGenerator({
                     ctx.fillStyle = '#ffffff'
                     ctx.fillRect(x, y, cellWidth, cellHeight)
 
-                    // Draw image - FULL SIZE to maximize quality and visibility
-                    const scale = Math.min(cellWidth / img.width, cellHeight / img.height)
+                    // Draw image - COVER mode to fill the entire cell (like object-fit: cover)
+                    // This makes images look bigger and better by filling the available space
+                    const scale = Math.max(cellWidth / img.width, cellHeight / img.height)
                     const scaledWidth = img.width * scale
                     const scaledHeight = img.height * scale
                     const imgX = x + (cellWidth - scaledWidth) / 2
