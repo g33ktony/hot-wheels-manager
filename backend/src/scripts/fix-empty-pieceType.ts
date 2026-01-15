@@ -37,9 +37,9 @@ async function fixInventoryItems() {
       
       for (const item of emptyPieceTypeItems) {
         const oldValue = item.pieceType
-        item.pieceType = null // Usar null en lugar de 'basic' para respetar el nuevo modelo
+        item.pieceType = 'basic' as any // Usar 'basic' como valor por defecto
         await item.save()
-        console.log(`  ✏️  Item ${item._id}: "${oldValue}" → null`)
+        console.log(`  ✏️  Item ${item._id}: "${oldValue}" → basic`)
       }
       
       console.log(`✅ Actualizados ${emptyPieceTypeItems.length} InventoryItems`)
@@ -68,9 +68,9 @@ async function fixPendingItems() {
       
       for (const item of emptyPieceTypeItems) {
         const oldValue = item.pieceType
-        item.pieceType = null
+        item.pieceType = 'basic' as any // Usar 'basic' como valor por defecto
         await item.save()
-        console.log(`  ✏️  Item ${item._id}: "${oldValue}" → null`)
+        console.log(`  ✏️  Item ${item._id}: "${oldValue}" → basic`)
       }
       
       console.log(`✅ Actualizados ${emptyPieceTypeItems.length} PendingItems`)
