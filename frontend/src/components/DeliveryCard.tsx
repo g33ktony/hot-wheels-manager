@@ -110,7 +110,7 @@ export default function DeliveryCard({
                 <div className="space-y-3 overflow-hidden">
                     {/* Recipient info - Only show if third party */}
                     {delivery.isThirdPartyDelivery && delivery.thirdPartyRecipient && (
-                        <div className="bg-purple-50 rounded-lg p-2 border border-purple-200 flex-shrink-0">
+                        <div className="bg-purple-50 rounded-lg p-2 border border-purple-200">
                             <p className="text-xs text-purple-900 font-medium">Entrega a tercero</p>
                             <p className="text-sm font-semibold text-purple-900 truncate">{delivery.thirdPartyRecipient}</p>
                             {delivery.thirdPartyPhone && (
@@ -120,7 +120,7 @@ export default function DeliveryCard({
                     )}
 
                     {/* Date and location */}
-                    <div className="space-y-2 flex-shrink-0">
+                    <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Calendar size={16} className="text-gray-400 flex-shrink-0" />
                             <span>{formattedDate}{delivery.scheduledTime ? ` a las ${delivery.scheduledTime}` : ''}</span>
@@ -132,7 +132,7 @@ export default function DeliveryCard({
                     </div>
 
                     {/* Amount and payment status */}
-                    <div className="bg-gray-50 rounded-lg p-3 space-y-2 flex-shrink-0">
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Total:</span>
                             <span className="text-xl font-bold text-gray-900">${delivery.totalAmount.toFixed(2)}</span>
@@ -147,90 +147,91 @@ export default function DeliveryCard({
 
                     {/* Notes */}
                     {delivery.notes && (
-                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200 flex-shrink-0">
+                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
                             <p className="text-xs text-blue-900">{delivery.notes}</p>
                         </div>
                     )}
+                </div>
 
-                    {/* Action buttons - Always at bottom */}
-                    <div className="flex items-center gap-2 pt-4 flex-wrap flex-shrink-0 border-t border-gray-100 mt-auto">
-                        {delivery.status === 'scheduled' && (
-                            <Button
-                                size="sm"
-                                onClick={() => onMarkAsPrepared(delivery._id!)}
-                                disabled={isLoadingPrepared}
-                                className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
-                                title="Marcar como preparada"
-                            >
-                                <Package size={14} />
-                                <span className="hidden sm:inline">Preparar</span>
-                            </Button>
-                        )}
-                        {delivery.status === 'prepared' && (
-                            <Button
-                                size="sm"
-                                onClick={() => {
-                                    if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada?')) {
-                                        onMarkAsCompleted(delivery._id!)
-                                    }
-                                }}
-                                disabled={isLoadingCompleted}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                                title="Marcar como completada"
-                            >
-                                <CheckCircle size={14} />
-                                <span className="hidden sm:inline">Completar</span>
-                            </Button>
-                        )}
-                        {delivery.status === 'completed' && (
-                            <div className="flex-1 text-xs text-gray-500 text-center">No reversible</div>
-                        )}
+                {/* Action buttons - Always at bottom */}
+                <div className="flex items-center gap-2 pt-4 flex-wrap border-t border-gray-100 mt-auto">
+                    {delivery.status === 'scheduled' && (
+                        <Button
+                            size="sm"
+                            onClick={() => onMarkAsPrepared(delivery._id!)}
+                            disabled={isLoadingPrepared}
+                            className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                            title="Marcar como preparada"
+                        >
+                            <Package size={14} />
+                            <span className="hidden sm:inline">Preparar</span>
+                        </Button>
+                    )}
+                    {delivery.status === 'prepared' && (
+                        <Button
+                            size="sm"
+                            onClick={() => {
+                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada?')) {
+                                    onMarkAsCompleted(delivery._id!)
+                                }
+                            }}
+                            disabled={isLoadingCompleted}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                            title="Marcar como completada"
+                        >
+                            <CheckCircle size={14} />
+                            <span className="hidden sm:inline">Completar</span>
+                        </Button>
+                    )}
+                    {delivery.status === 'completed' && (
+                        <div className="flex-1 text-xs text-gray-500 text-center">No reversible</div>
+                    )}
 
-                        {/* Secondary actions */}
+                    {/* Secondary actions */}
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => onViewDetails(delivery)}
+                        title="Ver detalles"
+                        className="px-2"
+                    >
+                        <Eye size={14} />
+                    </Button>
+
+                    {delivery.status !== 'completed' && (
                         <Button
                             size="sm"
                             variant="secondary"
-                            onClick={() => onViewDetails(delivery)}
-                            title="Ver detalles"
-                            className="px-2"
+                            onClick={() => onEdit(delivery)}
+                            title="Editar"
+                            className="px-2 !text-blue-600 hover:!text-blue-700 !bg-blue-50"
                         >
-                            <Eye size={14} />
+                            <Edit size={14} />
                         </Button>
+                    )}
 
-                        {delivery.status !== 'completed' && (
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => onEdit(delivery)}
-                                title="Editar"
-                                className="px-2 !text-blue-600 hover:!text-blue-700 !bg-blue-50"
-                            >
-                                <Edit size={14} />
-                            </Button>
-                        )}
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => onShare(delivery)}
+                        title="Compartir"
+                        className="px-2"
+                    >
+                        <Share2 size={14} />
+                    </Button>
 
-                        <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => onShare(delivery)}
-                            title="Compartir"
-                            className="px-2"
-                        >
-                            <Share2 size={14} />
-                        </Button>
-
-                        <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() => onDelete(delivery._id!)}
-                            disabled={isLoadingDelete || delivery.status === 'completed'}
-                            title={delivery.status === 'completed' ? 'No se puede eliminar' : 'Eliminar'}
-                            className="px-2"
-                        >
-                            <Trash2 size={14} />
-                        </Button>
-                    </div>
+                    <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => onDelete(delivery._id!)}
+                        disabled={isLoadingDelete || delivery.status === 'completed'}
+                        title={delivery.status === 'completed' ? 'No se puede eliminar' : 'Eliminar'}
+                        className="px-2"
+                    >
+                        <Trash2 size={14} />
+                    </Button>
                 </div>
             </div>
-            )
+        </div>
+    )
 }

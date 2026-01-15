@@ -339,6 +339,9 @@ export interface CreateDeliveryDto {
   totalAmount: number;
   notes?: string;
   forPreSale?: boolean; // Flag to indicate this delivery is for PreSale items (allows empty items array)
+  isThirdPartyDelivery?: boolean;
+  thirdPartyRecipient?: string | null;
+  thirdPartyPhone?: string | null;
 }
 
 export interface UpdateDeliveryDto {
@@ -347,6 +350,9 @@ export interface UpdateDeliveryDto {
   location?: string;
   notes?: string;
   completedDate?: Date;
+  isThirdPartyDelivery?: boolean;
+  thirdPartyRecipient?: string | null;
+  thirdPartyPhone?: string | null;
 }
 
 export interface CreateCustomerDto {
