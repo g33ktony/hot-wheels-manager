@@ -11,6 +11,7 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
+import DeliveryCard from '@/components/DeliveryCard'
 import { Plus, Search, Truck, Trash2, X, Calendar, MapPin, Package, CheckCircle, Clock, Eye, UserPlus, Edit, DollarSign, Share2 } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
@@ -863,208 +864,29 @@ export default function Deliveries() {
                 </div>
             )}
 
-            {/* Deliveries List */}
+            {/* Deliveries Grid */}
             <Card className="p-4 lg:p-6">
                 <div className="flex items-center justify-between mb-4 lg:mb-6">
                     <h2 className="text-base lg:text-lg font-semibold text-gray-900">Lista de Entregas</h2>
                 </div>
 
                 {filteredDeliveries && filteredDeliveries.length > 0 ? (
-                    <div className="space-y-3 lg:space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         {filteredDeliveries.map((delivery) => (
-                            <div key={delivery._id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors">
-                                <div className="flex-1 mb-3 lg:mb-0">
-                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-0 mb-2">
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                                            <h3 className="font-medium text-gray-900 text-sm lg:text-base">{delivery.customer?.name}</h3>
-                                            <span className={`px-2 py-1 text-xs rounded-full self-start ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                delivery.status === 'prepared' ? 'bg-orange-100 text-orange-800' :
-                                                    delivery.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                                                        delivery.status === 'rescheduled' ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-red-100 text-red-800'
-                                                }`}>
-                                                {delivery.status === 'completed' ? 'Completada' :
-                                                    delivery.status === 'prepared' ? 'Preparada' :
-                                                        delivery.status === 'scheduled' ? 'Programada' :
-                                                            delivery.status === 'rescheduled' ? 'Reprogramada' : 'Cancelada'}
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2 lg:hidden">
-                                            {delivery.status === 'scheduled' && (
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleMarkAsPrepared(delivery._id!)}
-                                                    disabled={markPreparedMutation.isLoading}
-                                                    className="text-orange-600 hover:text-orange-800 min-w-[44px] min-h-[44px]"
-                                                    title="Marcar como preparada"
-                                                >
-                                                    📦
-                                                </Button>
-                                            )}
-                                            {delivery.status === 'prepared' && (
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
-                                                            handleMarkAsCompleted(delivery._id!)
-                                                        }
-                                                    }}
-                                                    disabled={markCompletedMutation.isLoading}
-                                                    className="text-green-600 hover:text-green-800 min-w-[44px] min-h-[44px]"
-                                                    title="Marcar como completada y pagada (eliminará items del inventario)"
-                                                >
-                                                    <CheckCircle size={16} />
-                                                </Button>
-                                            )}
-                                            {delivery.status === 'completed' && (
-                                                <span className="text-xs text-gray-500">No se puede revertir</span>
-                                            )}
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={() => handleViewDetails(delivery)}
-                                                title="Ver detalles"
-                                                className="min-w-[44px] min-h-[44px]"
-                                            >
-                                                <Eye size={16} />
-                                            </Button>
-                                            {delivery.status !== 'completed' && (
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleEditDelivery(delivery)}
-                                                    title="Editar entrega"
-                                                    className="min-w-[44px] min-h-[44px] !text-blue-600 hover:!text-blue-700 !bg-blue-50 hover:!bg-blue-100"
-                                                >
-                                                    <Edit size={16} />
-                                                </Button>
-                                            )}
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                onClick={() => handleShowReport(delivery)}
-                                                title="Compartir reporte"
-                                                aria-label="Compartir reporte"
-                                                className="min-w-[44px] min-h-[44px]"
-                                            >
-                                                <Share2 size={16} />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="danger"
-                                                onClick={() => handleDeleteDelivery(delivery._id!)}
-                                                disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
-                                                title={delivery.status === 'completed' ? 'No se puede eliminar entrega completada' : 'Eliminar entrega'}
-                                                className="min-w-[44px] min-h-[44px]"
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="text-sm lg:text-base text-gray-600 space-y-1">
-                                        <div className="flex flex-wrap items-center gap-2 lg:gap-4 text-xs lg:text-sm">
-                                            <span className="flex items-center gap-1">
-                                                <Calendar size={14} />
-                                                {(() => {
-                                                    // Extract date without timezone issues
-                                                    const dateStr = delivery.scheduledDate.toString().split('T')[0];
-                                                    const [year, month, day] = dateStr.split('-');
-                                                    return `${day}/${month}/${year}`;
-                                                })()}{delivery.scheduledTime ? ` ${delivery.scheduledTime}` : ''}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <MapPin size={14} />
-                                                {delivery.location}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <Package size={14} />
-                                                {delivery.items.length} items
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-3 flex-wrap">
-                                            <p className="text-xs lg:text-sm font-medium">Total: ${delivery.totalAmount.toFixed(2)}</p>
-                                            <span className={`px-2 py-1 text-xs rounded-full ${(delivery.paymentStatus || 'pending') === 'paid' ? 'bg-green-100 text-green-800' :
-                                                (delivery.paymentStatus || 'pending') === 'partial' ? 'bg-orange-100 text-orange-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
-                                                {(delivery.paymentStatus || 'pending') === 'paid' ? '✓ Pagado' :
-                                                    (delivery.paymentStatus || 'pending') === 'partial' ? `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` :
-                                                        'Sin pagar'}
-                                            </span>
-                                        </div>
-                                        {delivery.notes && <p className="text-xs lg:text-sm">Notas: {delivery.notes}</p>}
-                                    </div>
-                                </div>
-                                {/* Desktop actions */}
-                                <div className="hidden lg:flex items-center gap-2">
-                                    {delivery.status === 'scheduled' && (
-                                        <Button
-                                            size="sm"
-                                            onClick={() => handleMarkAsPrepared(delivery._id!)}
-                                            disabled={markPreparedMutation.isLoading}
-                                            className="text-orange-600 hover:text-orange-800"
-                                            title="Marcar como preparada"
-                                        >
-                                            📦
-                                        </Button>
-                                    )}
-                                    {delivery.status === 'prepared' && (
-                                        <Button
-                                            size="sm"
-                                            onClick={() => {
-                                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
-                                                    handleMarkAsCompleted(delivery._id!)
-                                                }
-                                            }}
-                                            disabled={markCompletedMutation.isLoading}
-                                            className="text-green-600 hover:text-green-800"
-                                            title="Marcar como completada y pagada (eliminará items del inventario)"
-                                        >
-                                            <CheckCircle size={16} />
-                                        </Button>
-                                    )}
-                                    {delivery.status === 'completed' && (
-                                        <span className="text-xs text-gray-500">No se puede revertir</span>
-                                    )}
-                                    <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        onClick={() => handleViewDetails(delivery)}
-                                        title="Ver detalles"
-                                    >
-                                        <Eye size={16} />
-                                    </Button>
-                                    {delivery.status !== 'completed' && (
-                                        <Button
-                                            size="sm"
-                                            variant="secondary"
-                                            onClick={() => handleEditDelivery(delivery)}
-                                            title="Editar entrega"
-                                            className="!text-blue-600 hover:!text-blue-700 !bg-blue-50 hover:!bg-blue-100"
-                                        >
-                                            <Edit size={16} />
-                                        </Button>
-                                    )}
-                                    <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        onClick={() => handleShowReport(delivery)}
-                                        title="Compartir reporte"
-                                        aria-label="Compartir reporte"
-                                    >
-                                        <Share2 size={16} />
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => handleDeleteDelivery(delivery._id!)}
-                                        disabled={deleteDeliveryMutation.isLoading || delivery.status === 'completed'}
-                                        title={delivery.status === 'completed' ? 'No se puede eliminar entrega completada' : 'Eliminar entrega'}
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </div>
-                            </div>
+                            <DeliveryCard
+                                key={delivery._id}
+                                delivery={delivery}
+                                inventoryItems={inventoryItems}
+                                onViewDetails={handleViewDetails}
+                                onEdit={handleEditDelivery}
+                                onMarkAsPrepared={handleMarkAsPrepared}
+                                onMarkAsCompleted={handleMarkAsCompleted}
+                                onDelete={handleDeleteDelivery}
+                                onShare={handleShowReport}
+                                isLoadingPrepared={markPreparedMutation.isLoading}
+                                isLoadingCompleted={markCompletedMutation.isLoading}
+                                isLoadingDelete={deleteDeliveryMutation.isLoading}
+                            />
                         ))}
                     </div>
                 ) : (
