@@ -62,7 +62,11 @@ export default function Deliveries() {
         scheduledTime: '09:00',
         location: '',
         totalAmount: 0,
-        notes: ''
+        notes: '',
+        // Third party delivery fields
+        isThirdPartyDelivery: false,
+        thirdPartyRecipient: '',
+        thirdPartyPhone: ''
     })
     const [newCustomer, setNewCustomer] = useState({
         name: '',
@@ -224,7 +228,10 @@ export default function Deliveries() {
                         scheduledTime: newDelivery.scheduledTime,
                         location: newDelivery.location,
                         totalAmount: newDelivery.totalAmount,
-                        notes: newDelivery.notes || undefined
+                        notes: newDelivery.notes || undefined,
+                        isThirdPartyDelivery: newDelivery.isThirdPartyDelivery,
+                        thirdPartyRecipient: newDelivery.thirdPartyRecipient || undefined,
+                        thirdPartyPhone: newDelivery.thirdPartyPhone || undefined
                     }
                 })
             } else {
@@ -236,7 +243,10 @@ export default function Deliveries() {
                     scheduledTime: newDelivery.scheduledTime,
                     location: newDelivery.location,
                     totalAmount: newDelivery.totalAmount,
-                    notes: newDelivery.notes || undefined
+                    notes: newDelivery.notes || undefined,
+                    isThirdPartyDelivery: newDelivery.isThirdPartyDelivery,
+                    thirdPartyRecipient: newDelivery.thirdPartyRecipient || undefined,
+                    thirdPartyPhone: newDelivery.thirdPartyPhone || undefined
                 })
 
                 // If payment plan is enabled for presale items, create it
@@ -481,7 +491,10 @@ export default function Deliveries() {
             scheduledTime: delivery.scheduledTime || '09:00',
             location: delivery.location || '',
             totalAmount: delivery.totalAmount || 0,
-            notes: delivery.notes || ''
+            notes: delivery.notes || '',
+            isThirdPartyDelivery: delivery.isThirdPartyDelivery || false,
+            thirdPartyRecipient: delivery.thirdPartyRecipient || '',
+            thirdPartyPhone: delivery.thirdPartyPhone || ''
         }
 
         setNewDelivery(formattedDelivery)
@@ -504,7 +517,10 @@ export default function Deliveries() {
             scheduledTime: '09:00',
             location: '',
             totalAmount: 0,
-            notes: ''
+            notes: '',
+            isThirdPartyDelivery: false,
+            thirdPartyRecipient: '',
+            thirdPartyPhone: ''
         })
         // Reset payment plan config
         setPaymentPlanConfig({
@@ -1252,6 +1268,53 @@ export default function Deliveries() {
                             value={newDelivery.notes}
                             onChange={(e) => setNewDelivery({ ...newDelivery, notes: e.target.value })}
                         />
+                    </div>
+
+                    {/* Third Party Delivery Section */}
+                    <div className="border rounded-lg p-4 bg-purple-50 border-purple-200">
+                        <div className="flex items-center gap-2 mb-4">
+                            <input
+                                type="checkbox"
+                                id="isThirdParty"
+                                checked={newDelivery.isThirdPartyDelivery}
+                                onChange={(e) => setNewDelivery({
+                                    ...newDelivery,
+                                    isThirdPartyDelivery: e.target.checked,
+                                    thirdPartyRecipient: e.target.checked ? newDelivery.thirdPartyRecipient : '',
+                                    thirdPartyPhone: e.target.checked ? newDelivery.thirdPartyPhone : ''
+                                })}
+                                className="h-4 w-4 text-purple-600 rounded cursor-pointer"
+                            />
+                            <label htmlFor="isThirdParty" className="font-medium text-purple-900 cursor-pointer">
+                                ¿Entregar a una tercera persona?
+                            </label>
+                        </div>
+
+                        {newDelivery.isThirdPartyDelivery && (
+                            <div className="space-y-3">
+                                <Input
+                                    type="text"
+                                    label="Nombre del Receptor *"
+                                    placeholder="Nombre de la persona que recibirá la entrega"
+                                    value={newDelivery.thirdPartyRecipient}
+                                    onChange={(e) => setNewDelivery({
+                                        ...newDelivery,
+                                        thirdPartyRecipient: e.target.value
+                                    })}
+                                    required={newDelivery.isThirdPartyDelivery}
+                                />
+                                <Input
+                                    type="tel"
+                                    label="Teléfono del Receptor (Opcional)"
+                                    placeholder="Número de teléfono para contacto"
+                                    value={newDelivery.thirdPartyPhone}
+                                    onChange={(e) => setNewDelivery({
+                                        ...newDelivery,
+                                        thirdPartyPhone: e.target.value
+                                    })}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Payment Plan Configuration - Only show if delivery has presale items and not in edit mode */}

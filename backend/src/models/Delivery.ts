@@ -15,6 +15,10 @@ export interface IDelivery extends Document {
   notes?: string;
   status: 'scheduled' | 'prepared' | 'completed' | 'cancelled' | 'rescheduled';
   completedDate?: Date;
+  // Third party delivery fields
+  isThirdPartyDelivery?: boolean; // true if delivery is for a third party (not the customer)
+  thirdPartyRecipient?: string; // Name of the person receiving the delivery
+  thirdPartyPhone?: string; // Phone number of third party recipient
   // Pre-sale fields
   hasPresaleItems?: boolean; // true if delivery includes pre-sale items
   preSalePaymentPlanId?: string; // Reference to PreSalePaymentPlan if applicable
@@ -160,6 +164,19 @@ const DeliverySchema = new Schema<IDelivery>({
   },
   completedDate: {
     type: Date
+  },
+  // Third party delivery fields
+  isThirdPartyDelivery: {
+    type: Boolean,
+    default: false
+  },
+  thirdPartyRecipient: {
+    type: String,
+    trim: true
+  },
+  thirdPartyPhone: {
+    type: String,
+    trim: true
   },
   // Pre-sale fields
   hasPresaleItems: {
