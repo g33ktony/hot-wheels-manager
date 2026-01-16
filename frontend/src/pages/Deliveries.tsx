@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from 'react-query'
 import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
@@ -12,13 +13,14 @@ import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import DeliveryCard from '@/components/DeliveryCard'
-import { Plus, Search, Truck, Trash2, X, Package, CheckCircle, Clock, UserPlus, Edit, DollarSign, Share2 } from 'lucide-react'
+import { Plus, Search, Truck, Trash2, X, Package, CheckCircle, Clock, UserPlus, Edit, DollarSign, Share2, User, TrendingUp } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
 import DeliveryReport from '@/components/DeliveryReport'
 import type { InventoryItem } from '../../../shared/types'
 
 export default function Deliveries() {
+    const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState<string>()
     const [showCreateModal, setShowCreateModal] = useState(false)
@@ -756,13 +758,22 @@ export default function Deliveries() {
                     <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Entregas</h1>
                     <p className="text-sm lg:text-base text-gray-600">Calendario y gestión de entregas</p>
                 </div>
-                <Button
-                    onClick={() => setShowCreateModal(true)}
-                    className="flex items-center justify-center gap-2 w-full sm:w-auto"
-                >
-                    <Plus size={20} />
-                    <span className="sm:inline">Nueva Entrega</span>
-                </Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                        onClick={() => navigate('/delivery-analytics')}
+                        className="flex items-center justify-center gap-2 flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                    >
+                        <TrendingUp size={20} />
+                        <span className="hidden sm:inline">Analíticas</span>
+                    </Button>
+                    <Button
+                        onClick={() => setShowCreateModal(true)}
+                        className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
+                    >
+                        <Plus size={20} />
+                        <span className="sm:inline">Nueva</span>
+                    </Button>
+                </div>
             </div>
 
             {/* Stats Cards - 2 columns on mobile, 4 on desktop - Clickable to filter */}
@@ -1612,6 +1623,22 @@ export default function Deliveries() {
                                         <span>Editar</span>
                                     </Button>
                                 )}
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    onClick={() => {
+                                        if (selectedDelivery.customerId) {
+                                            const customerId = typeof selectedDelivery.customerId === 'string'
+                                                ? selectedDelivery.customerId
+                                                : selectedDelivery.customerId._id
+                                            navigate(`/customers/${customerId}`)
+                                        }
+                                    }}
+                                    className="flex items-center gap-2"
+                                >
+                                    <User size={16} />
+                                    <span>Ver Perfil del Cliente</span>
+                                </Button>
                                 <Button
                                     size="sm"
                                     variant="secondary"

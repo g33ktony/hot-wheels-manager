@@ -36,7 +36,7 @@ export default function Dashboard() {
     }
 
     // Calcular métricas adicionales
-    const profitMargin = metrics.monthlyRevenue > 0 
+    const profitMargin = metrics.monthlyRevenue > 0
         ? ((metrics.monthlyProfit / metrics.monthlyRevenue) * 100).toFixed(1)
         : '0.0';
 
@@ -80,13 +80,26 @@ export default function Dashboard() {
             color: 'text-emerald-600',
             bgColor: 'bg-emerald-100',
         },
-        // 6. Entregas Pendientes
         {
             title: 'Entregas Pendientes',
             value: metrics.pendingDeliveries.toString(),
             icon: Truck,
             color: 'text-orange-600',
             bgColor: 'bg-orange-100',
+        },
+        {
+            title: 'Entregas sin Pagar',
+            value: metrics.unpaidDeliveries.toString(),
+            icon: AlertTriangle,
+            color: 'text-red-600',
+            bgColor: 'bg-red-100',
+        },
+        {
+            title: 'Items para Preparar',
+            value: (metrics.itemsToPrepare || 0).toString(),
+            icon: Package,
+            color: 'text-amber-600',
+            bgColor: 'bg-amber-100',
         },
         {
             title: 'Ganancia del Mes',

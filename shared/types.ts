@@ -414,6 +414,8 @@ export interface DashboardMetrics {
   totalRevenue: number;
   monthlyRevenue: number;
   dailyRevenue: number;
+  unpaidDeliveries: number;
+  itemsToPrepare: number;
   recentActivity: RecentActivity[];
   todaysDeliveries: TodaysDelivery[];
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from '@/hooks/useCustomers'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -7,6 +8,7 @@ import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 
 export default function Customers() {
+    const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [editingCustomer, setEditingCustomer] = useState<any>(null)
@@ -142,12 +144,20 @@ export default function Customers() {
                             <div className="flex gap-2">
                                 <Button
                                     size="sm"
+                                    onClick={() => navigate(`/customers/${customer._id}`)}
+                                >
+                                    Ver Perfil
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
                                     onClick={() => handleEdit(customer)}
                                 >
                                     Editar
                                 </Button>
                                 <Button
                                     size="sm"
+                                    variant="danger"
                                     onClick={() => handleDelete(customer._id!)}
                                 >
                                     Eliminar

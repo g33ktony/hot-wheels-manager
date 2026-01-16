@@ -257,6 +257,10 @@ export interface Delivery {
   notes?: string;
   status: 'scheduled' | 'prepared' | 'completed' | 'cancelled' | 'rescheduled';
   completedDate?: Date;
+  // Third party delivery fields
+  isThirdPartyDelivery?: boolean; // true if delivery is for a third party (not the customer)
+  thirdPartyRecipient?: string; // Name of the person receiving the delivery
+  thirdPartyPhone?: string; // Phone number of third party recipient
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -410,6 +414,8 @@ export interface DashboardMetrics {
   totalRevenue: number;
   monthlyRevenue: number;
   dailyRevenue: number;
+  unpaidDeliveries: number;
+  itemsToPrepare: number;
   recentActivity: RecentActivity[];
   todaysDeliveries: TodaysDelivery[];
 }

@@ -15,6 +15,7 @@ import CloudinaryDebug from './pages/CloudinaryDebug'
 
 // POS y Gemini Vision integrados
 import Customers from './pages/Customers'
+import CustomerProfile from './pages/CustomerProfile'
 import Suppliers from './pages/Suppliers'
 import Boxes from './pages/Boxes'
 import PendingItemsPage from './pages/PendingItemsPage'
@@ -22,6 +23,7 @@ import PreSaleHub from './pages/PreSaleHub'
 import PreSaleEditPage from './pages/PreSaleEditPage'
 import POS from './pages/POS'
 import GeminiTest from './pages/GeminiTest'
+import { DeliveryAnalytics } from './pages/DeliveryAnalytics'
 
 // Test: Deployment optimization - only frontend changes
 function App() {
@@ -52,7 +54,9 @@ function App() {
                                             <Route path="/presale" element={<PreSaleHub />} />
                                             <Route path="/pending-items" element={<PendingItemsPage />} />
                                             <Route path="/deliveries" element={<Deliveries />} />
+                                            <Route path="/delivery-analytics" element={<DeliveryAnalytics />} />
                                             <Route path="/customers" element={<Customers />} />
+                                            <Route path="/customers/:customerId" element={<CustomerProfile />} />
                                             <Route path="/suppliers" element={<Suppliers />} />
                                             <Route path="/boxes" element={<Boxes />} />
                                             <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />

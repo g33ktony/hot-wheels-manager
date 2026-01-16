@@ -124,6 +124,8 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
           totalRevenue: 0,
           monthlyRevenue: 0,
           dailyRevenue: 0,
+          unpaidDeliveries: 0,
+          itemsToPrepare: 0,
           recentActivity: [
             {
               id: 'activity1',
@@ -257,7 +259,17 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const pendingDeliveries = await DeliveryModel.countDocuments({
       status: { $in: ['scheduled', 'prepared'] }
     });
+    // Get unpaid deliveries (pending or partial payment)
+    const unpaidDeliveries = await DeliveryModel.countDocuments({
+      paymentStatus: { $in: ['pending', 'partial'] }
+    });
 
+    // Get items to prepare (scheduled deliveries that are not yet prepared)
+    const itemsToPrepare = await DeliveryModel.aggregate([
+      { $match: { status: 'scheduled' } },
+      { $unwind: '$items' },
+      { $group: { _id: null, total: { $sum: '$items.quantity' } } }
+    ]);
     // Get today's deliveries
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -295,6 +307,8 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       totalRevenue: totalRevenue[0]?.total || 0,
       monthlyRevenue: monthlyRevenue[0]?.total || 0,
       dailyRevenue,
+      unpaidDeliveries,
+      itemsToPrepare: itemsToPrepare[0]?.total || 0,
       todaysDeliveries: todaysDeliveries.map(delivery => ({
         id: delivery._id,
         customerName: (delivery.customerId as any)?.name || 'Cliente desconocido',
