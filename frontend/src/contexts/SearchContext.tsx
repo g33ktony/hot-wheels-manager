@@ -49,7 +49,7 @@ interface SearchProviderProps {
 export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   const location = useLocation()
   const currentPage = location.pathname.split('/')[1] || 'dashboard'
-  
+
   const [filters, setFilters] = useState<SearchFilters>(() => {
     // Only load searchTerm from localStorage (global), not page-specific filters
     const saved = localStorage.getItem('globalSearchTerm')
@@ -65,7 +65,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     // Restore search term from localStorage to ensure it persists across pages
     const savedSearchTerm = localStorage.getItem('globalSearchTerm')
     const searchTermValue = savedSearchTerm ? JSON.parse(savedSearchTerm) : ''
-    
+
     // Keep search term but reset all other filters when navigating to a different page
     setFilters(prev => ({
       ...defaultFilters,

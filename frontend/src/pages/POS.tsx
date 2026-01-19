@@ -159,7 +159,7 @@ const POS: React.FC = () => {
   useEffect(() => {
     if (currentPage === 'pos' && initialLoadDone) {
       console.log('📍 POS Page Detected - Reloading full inventory to clear any previous filters');
-      
+
       const reloadFullInventory = async () => {
         try {
           dispatch(setLoading(true));
