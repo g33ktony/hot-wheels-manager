@@ -43,7 +43,6 @@ export default function PreSaleEditPage() {
         endDate: '',
     })
     const [isSaving, setIsSaving] = useState(false)
-    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
     const [photo, setPhoto] = useState<string>('')
     const [photoPreview, setPhotoPreview] = useState<string>('')
 

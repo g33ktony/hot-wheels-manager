@@ -3,6 +3,8 @@
  * Helper functions and hooks for responsive design
  */
 
+import { useEffect, useState } from 'react'
+
 // Breakpoints matching Tailwind
 export const BREAKPOINTS = {
   sm: 640,

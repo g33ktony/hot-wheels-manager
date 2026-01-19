@@ -8,7 +8,7 @@ interface AlertProps {
     title: string
     message: string
     details?: string
-    onClose?: (id?: string) => void
+    onClose?: (id: string) => void
     autoClose?: boolean
     autoCloseDuration?: number
     action?: {
@@ -148,7 +148,7 @@ const getTextColor = (type: AlertType): string => {
     }
 }
 
-const Alert: React.FC<AlertProps & { id: string; onClose: (id: string) => void }> = ({
+const Alert: React.FC<AlertProps & { id: string }> = ({
     id,
     type,
     title,
@@ -184,13 +184,15 @@ const Alert: React.FC<AlertProps & { id: string; onClose: (id: string) => void }
                         </button>
                     )}
                 </div>
-                <button
-                    onClick={() => onClose(id)}
-                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
-                    aria-label="Close alert"
-                >
-                    ✕
-                </button>
+                {onClose && (
+                    <button
+                        onClick={() => onClose(id)}
+                        className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                        aria-label="Close alert"
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
         </div>
     )
