@@ -407,6 +407,17 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
       return;
     }
 
+    // Sync price changes to associated deliveries if actualPrice or suggestedPrice changed
+    if (updates.actualPrice || updates.suggestedPrice) {
+      const { applyPriceSync } = await import('../middleware/syncPriceMiddleware');
+      try {
+        await applyPriceSync(inventoryItem);
+      } catch (syncError) {
+        console.error('Warning: Could not sync prices to deliveries:', syncError);
+        // Don't fail the request, just log the warning
+      }
+    }
+
     res.json({
       success: true,
       data: inventoryItem

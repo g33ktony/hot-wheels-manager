@@ -27,7 +27,7 @@ const POS: React.FC = () => {
   useInventorySyncInBackground();
 
   // Use global search context
-  const { filters, updateFilter } = useSearch();
+  const { filters, updateFilter, currentPage } = useSearch();
   const {
     searchTerm,
     filterCondition,
@@ -154,6 +154,72 @@ const POS: React.FC = () => {
 
     loadInitialInventory();
   }, []);
+
+  // When navigating to POS page, reload full inventory to avoid filtered/cached inventory from other pages
+  useEffect(() => {
+    if (currentPage === 'pos' && initialLoadDone) {
+      console.log('📍 POS Page Detected - Reloading full inventory to clear any previous filters');
+      
+      const reloadFullInventory = async () => {
+        try {
+          dispatch(setLoading(true));
+          const INITIAL_BATCH_SIZE = 100;
+          const allItems = [];
+          let totalItems = 0;
+          let totalPages = 0;
+
+          const firstBatch = await inventoryService.getAll(1, INITIAL_BATCH_SIZE, {});
+
+          if (!firstBatch || !firstBatch.items) {
+            throw new Error('Respuesta inválida del servidor');
+          }
+
+          allItems.push(...firstBatch.items);
+          totalItems = firstBatch.pagination?.totalItems || firstBatch.items.length;
+          totalPages = Math.ceil(totalItems / INITIAL_BATCH_SIZE);
+
+          console.log('✅ POS Reload: First batch loaded -', firstBatch.items.length, 'of', totalItems);
+
+          dispatch(setInventoryItems({
+            items: firstBatch.items,
+            totalItems: totalItems,
+            currentPage: 1,
+            totalPages: totalPages,
+            itemsPerPage: INITIAL_BATCH_SIZE
+          }));
+
+          // Load remaining batches in background
+          if (totalPages > 1) {
+            for (let page = 2; page <= totalPages; page++) {
+              try {
+                const batch = await inventoryService.getAll(page, INITIAL_BATCH_SIZE, {});
+                allItems.push(...(batch.items || []));
+              } catch (pageError) {
+                console.warn('⚠️ Error loading page', page);
+              }
+            }
+
+            dispatch(setInventoryItems({
+              items: allItems,
+              totalItems: totalItems,
+              currentPage: 1,
+              totalPages: totalPages,
+              itemsPerPage: INITIAL_BATCH_SIZE
+            }));
+          }
+
+          dispatch(setError(null));
+        } catch (error: any) {
+          console.error('❌ Error reloading inventory for POS:', error?.message);
+          dispatch(setError(`Error al recargar inventario: ${error?.message}`));
+        } finally {
+          dispatch(setLoading(false));
+        }
+      };
+
+      reloadFullInventory();
+    }
+  }, [currentPage, initialLoadDone]);
 
   // Smart search con scoring multi-criterio + filtros
   const filteredInventory = useMemo(() => {
@@ -356,32 +422,41 @@ const POS: React.FC = () => {
     }
 
     const existingItem = cart.find(c => c._id === item._id);
-    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+    const totalQuantity = item.quantity || 0;
+    const reservedQuantity = item.reservedQuantity || 0;
+    const availableQty = totalQuantity - reservedQuantity;
 
-    if (existingItem) {
-      const newQuantity = existingItem.cartQuantity + quantity;
-      if (newQuantity > availableQty) {
-        toast.error('No hay suficiente inventario disponible');
-        return;
-      }
-      dispatch(updateCartQuantityAction({ itemId: item._id, quantity: newQuantity }));
-      return;
-    }
-
-    if (quantity > availableQty) {
-      toast.error('No hay suficiente inventario disponible');
-      return;
-    }
-
-    // Extraer nombre del carId
+    // Extraer nombre del carId para mensaje más claro
     const carData = typeof item.carId === 'object' ? item.carId : null;
     const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
     const displayName = carData?.name || carIdStr || 'Sin nombre';
 
+    if (existingItem) {
+      const newQuantity = existingItem.cartQuantity + quantity;
+      if (newQuantity > availableQty) {
+        const available = Math.max(0, availableQty - existingItem.cartQuantity);
+        toast.error(`Solo hay ${available} unidad(es) disponible(s) para agregar`);
+        return;
+      }
+      dispatch(updateCartQuantityAction({ itemId: item._id, quantity: newQuantity }));
+      toast.success(`Cantidad actualizada a ${newQuantity}`);
+      return;
+    }
+
+    if (quantity > availableQty) {
+      if (availableQty <= 0) {
+        toast.error(`${displayName} está agotado (Total: ${totalQuantity}, Reservado: ${reservedQuantity})`);
+      } else {
+        toast.error(`Solo hay ${availableQty} unidad(es) disponible(s) de ${displayName}`);
+      }
+      return;
+    }
+
+    // Extraer nombre del carId
     const price = item.actualPrice || item.suggestedPrice || 0;
 
     dispatch(addToCartAction({ item, quantity, customPrice: price }));
-    toast.success(`${displayName} agregado al carrito`);
+    toast.success(`${displayName} agregado al carrito (${availableQty - quantity} disponibles)`);
   };
 
   // Remover item del carrito

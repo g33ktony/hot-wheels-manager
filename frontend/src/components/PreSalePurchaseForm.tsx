@@ -7,6 +7,7 @@ import Input from '@/components/common/Input'
 import LoadingSpinner from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import AutocompleteCarId from '@/components/AutocompleteCarId'
+import { uploadImageToCloudinary } from '@/services/cloudinary'
 import { Plus, DollarSign, Users, Calendar, Package, Info } from 'lucide-react'
 
 interface PreSalePurchaseFormProps {
@@ -54,9 +55,10 @@ export default function PreSalePurchaseForm({
 
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [isLoading, setIsLoading] = useState(false)
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
 
-    // Handle photo upload
-    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Handle photo upload to Cloudinary
+    const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
@@ -64,13 +66,17 @@ export default function PreSalePurchaseForm({
                 return
             }
 
-            const reader = new FileReader()
-            reader.onload = (event) => {
-                const base64 = event.target?.result as string
-                setFormData({ ...formData, photo: base64 })
+            try {
+                setIsUploadingPhoto(true)
+                const cloudinaryUrl = await uploadImageToCloudinary(file, 'hot-wheels-manager/presales')
+                setFormData({ ...formData, photo: cloudinaryUrl })
                 setErrors({ ...errors, photo: '' })
+            } catch (err) {
+                setErrors({ ...errors, photo: 'Failed to upload photo to Cloudinary' })
+                console.error('Photo upload error:', err)
+            } finally {
+                setIsUploadingPhoto(false)
             }
-            reader.readAsDataURL(file)
         }
     }
 
@@ -528,6 +534,7 @@ export default function PreSalePurchaseForm({
                                         className="hidden"
                                         accept="image/*"
                                         onChange={handlePhotoUpload}
+                                        disabled={isUploadingPhoto}
                                     />
                                 </label>
                             )}

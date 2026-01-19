@@ -6,6 +6,7 @@ import { SaleModel } from '../models/Sale';
 import { DeliveryModel } from '../models/Delivery';
 import Purchase from '../models/Purchase';
 import { RecentActivity } from '../shared/types';
+import { dashboardCache, CACHE_KEYS } from '../services/cacheService';
 
 // Helper function to get recent activity data
 async function getRecentActivityData(totalCatalogCars: number, totalSales: number): Promise<RecentActivity[]> {
@@ -102,6 +103,17 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('🔍 Fetching dashboard metrics...');
+    
+    // Check cache first
+    const cachedMetrics = dashboardCache.get(CACHE_KEYS.DASHBOARD_METRICS);
+    if (cachedMetrics) {
+      console.log('✅ Returning cached dashboard metrics (5min TTL)');
+      return res.json({
+        success: true,
+        data: cachedMetrics,
+        cached: true
+      });
+    }
     
     // Check if database is connected
     if (mongoose.connection.readyState !== 1) {
@@ -334,6 +346,10 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       recentActivity: await getRecentActivityData(totalCatalogCars, totalSales)
     };
 
+    console.log('✅ Dashboard metrics fetched successfully');
+    // Cache the metrics for 5 minutes
+    dashboardCache.set(CACHE_KEYS.DASHBOARD_METRICS, dashboardData, 5 * 60 * 1000);
+    
     console.log('✅ Dashboard metrics fetched successfully');
     res.json({
       success: true,

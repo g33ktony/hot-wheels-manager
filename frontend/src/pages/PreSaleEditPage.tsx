@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { usePreSaleItem, useUpdatePreSaleItem } from '@/hooks/usePresale'
 import { useUpdatePreSalePhoto } from '@/hooks/usePresale'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
+import { uploadImageToCloudinary } from '@/services/cloudinary'
 import { DollarSign, Calendar, ArrowLeft, Upload, X, Package } from 'lucide-react'
 import LoadingSpinner from '@/components/common/Loading'
 
@@ -42,6 +43,7 @@ export default function PreSaleEditPage() {
         endDate: '',
     })
     const [isSaving, setIsSaving] = useState(false)
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
     const [photo, setPhoto] = useState<string>('')
     const [photoPreview, setPhotoPreview] = useState<string>('')
 
@@ -78,17 +80,26 @@ export default function PreSaleEditPage() {
         }
     }, [item])
 
-    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            const base64 = reader.result as string
-            setPhoto(base64)
-            setPhotoPreview(base64)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Photo must be less than 5MB')
+            return
         }
-        reader.readAsDataURL(file)
+
+        try {
+            setIsUploadingPhoto(true)
+            const cloudinaryUrl = await uploadImageToCloudinary(file, 'hot-wheels-manager/presales')
+            setPhoto(cloudinaryUrl)
+            setPhotoPreview(cloudinaryUrl)
+        } catch (err) {
+            console.error('Photo upload error:', err)
+            alert('Failed to upload photo')
+        } finally {
+            setIsUploadingPhoto(false)
+        }
     }
 
     const handleRemovePhoto = () => {

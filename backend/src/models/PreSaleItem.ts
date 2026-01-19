@@ -51,7 +51,7 @@ export interface PreSaleItem extends Document {
   isTreasureHunt?: boolean;
   isSuperTreasureHunt?: boolean;
   isChase?: boolean;
-  photo?: string; // Base64 encoded image or image URL
+  photo?: string; // Cloudinary CDN URL (previously base64)
 
   // Related purchases
   purchaseIds: string[] // Array of Purchase IDs that contribute to this item
