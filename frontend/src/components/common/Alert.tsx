@@ -8,7 +8,7 @@ interface AlertProps {
     title: string
     message: string
     details?: string
-    onClose?: () => void
+    onClose?: (id?: string) => void
     autoClose?: boolean
     autoCloseDuration?: number
     action?: {
@@ -205,7 +205,7 @@ export const AlertContainer: React.FC<AlertContainerProps> = ({ alerts, onRemove
     return (
         <div className="fixed top-4 right-4 z-50 max-w-md space-y-2">
             {alerts.map((alert) => (
-                <Alert key={alert.id} {...alert} onClose={(id: string) => onRemoveAlert(id)} />
+                <Alert key={alert.id} {...alert} onClose={onRemoveAlert} />
             ))}
         </div>
     )
