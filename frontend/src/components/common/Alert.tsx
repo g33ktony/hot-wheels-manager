@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react'
 import { AlertCircle, CheckCircle, InfoIcon, XCircle } from 'lucide-react'
-import toast from 'react-hot-toast'
 
 export type AlertType = 'error' | 'success' | 'warning' | 'info'
 
@@ -206,7 +205,7 @@ export const AlertContainer: React.FC<AlertContainerProps> = ({ alerts, onRemove
     return (
         <div className="fixed top-4 right-4 z-50 max-w-md space-y-2">
             {alerts.map((alert) => (
-                <Alert key={alert.id} {...alert} onClose={onRemoveAlert} />
+                <Alert key={alert.id} {...alert} onClose={(id: string) => onRemoveAlert(id)} />
             ))}
         </div>
     )
