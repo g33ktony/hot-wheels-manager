@@ -414,6 +414,8 @@ export interface DashboardMetrics {
   totalRevenue: number;
   monthlyRevenue: number;
   dailyRevenue: number;
+  dailySales: number; // Profit from actual sales made today
+  dailySalesRevenue: number; // Total amount sold today (before deducting cost)
   unpaidDeliveries: number;
   itemsToPrepare: number;
   recentActivity: RecentActivity[];

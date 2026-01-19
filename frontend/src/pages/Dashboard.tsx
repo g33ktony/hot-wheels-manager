@@ -110,14 +110,38 @@ export default function Dashboard() {
         }
     ]
 
-    // Add daily revenue card only if there are sales today
-    if (metrics.dailyRevenue > 0) {
+    // Add daily sales profit card only if there are actual sales today
+    if (metrics.dailySales > 0) {
         metricCards.splice(2, 0, {
-            title: 'Ventas del Día',
-            value: `$${metrics.dailyRevenue.toLocaleString()}`,
+            title: 'Ganancia Ventas Hoy',
+            value: `$${metrics.dailySales.toLocaleString()}`,
             icon: DollarSign,
             color: 'text-emerald-600',
             bgColor: 'bg-emerald-100',
+        })
+    }
+
+    // Add total sales amount card (what was sold, before deducting costs)
+    if (metrics.dailySalesRevenue > 0) {
+        const insertIndex = metrics.dailySales > 0 ? 3 : 2;
+        metricCards.splice(insertIndex, 0, {
+            title: 'Vendido Hoy',
+            value: `$${metrics.dailySalesRevenue.toLocaleString()}`,
+            icon: DollarSign,
+            color: 'text-purple-600',
+            bgColor: 'bg-purple-100',
+        })
+    }
+
+    // Add daily total profit card (sales profit + delivery profit)
+    if (metrics.dailyRevenue > 0) {
+        const insertIndex = metrics.dailySales > 0 && metrics.dailySalesRevenue > 0 ? 4 : (metrics.dailySales > 0 || metrics.dailySalesRevenue > 0 ? 3 : 2);
+        metricCards.splice(insertIndex, 0, {
+            title: 'Ganancia Total Hoy',
+            value: `$${metrics.dailyRevenue.toLocaleString()}`,
+            icon: DollarSign,
+            color: 'text-blue-600',
+            bgColor: 'bg-blue-100',
         })
     }
 

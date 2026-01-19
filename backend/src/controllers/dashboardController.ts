@@ -187,34 +187,46 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const endOfToday = new Date();
     endOfToday.setHours(23, 59, 59, 999);
 
-    // Daily revenue from completed sales (POS)
-    const dailySalesRevenue = await SaleModel.aggregate([
-      { 
-        $match: { 
-          saleDate: { $gte: startOfToday, $lte: endOfToday },
-          status: 'completed'
-        } 
-      },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-    ]);
+    // Daily sales from completed sales (POS)
+    const dailySalesData = await SaleModel.find({
+      saleDate: { $gte: startOfToday, $lte: endOfToday },
+      status: 'completed'
+    }).populate({
+      path: 'items.inventoryItemId',
+      select: 'purchasePrice'
+    });
 
-    // Daily revenue from delivery payments made today
-    const dailyDeliveryPayments = await DeliveryModel.aggregate([
-      {
-        $match: {
-          'paymentHistory.date': { $gte: startOfToday, $lte: endOfToday }
-        }
-      },
-      { $unwind: '$paymentHistory' },
-      {
-        $match: {
-          'paymentHistory.date': { $gte: startOfToday, $lte: endOfToday }
-        }
-      },
-      { $group: { _id: null, total: { $sum: '$paymentHistory.amount' } } }
-    ]);
+    // Calculate daily sales profit (real profit = selling price - cost price)
+    let dailySales = 0;
+    let dailySalesRevenue = 0; // Total amount sold (without deducting cost)
+    dailySalesData.forEach(sale => {
+      sale.items.forEach((item: any) => {
+        const salePrice = item.unitPrice * item.quantity;
+        const purchasePrice = (item.inventoryItemId?.purchasePrice || 0) * item.quantity;
+        dailySalesRevenue += salePrice;
+        dailySales += (salePrice - purchasePrice); // Profit = Selling - Cost
+      });
+    });
 
-    const dailyRevenue = (dailySalesRevenue[0]?.total || 0) + (dailyDeliveryPayments[0]?.total || 0);
+    // Daily profit from delivery payments made today
+    const dailyDeliveryPaymentsData = await DeliveryModel.find({
+      'paymentHistory.date': { $gte: startOfToday, $lte: endOfToday }
+    }).populate({
+      path: 'items.inventoryItemId',
+      select: 'purchasePrice'
+    });
+
+    let dailyDeliveryProfit = 0;
+    dailyDeliveryPaymentsData.forEach(delivery => {
+      delivery.items.forEach((item: any) => {
+        const salePrice = item.unitPrice * item.quantity;
+        const purchasePrice = (item.inventoryItemId?.purchasePrice || 0) * item.quantity;
+        dailyDeliveryProfit += (salePrice - purchasePrice); // Profit = Selling - Cost
+      });
+    });
+
+    // Total daily revenue is the profit from all sources
+    const dailyRevenue = dailySales + dailyDeliveryProfit;
 
     // Calculate REAL profit by looking up purchase prices from inventory
     console.log('💵 Calculating profits...');
@@ -307,6 +319,8 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       totalRevenue: totalRevenue[0]?.total || 0,
       monthlyRevenue: monthlyRevenue[0]?.total || 0,
       dailyRevenue,
+      dailySales, // Profit from actual sales made today
+      dailySalesRevenue, // Total amount sold today (before deducting cost)
       unpaidDeliveries,
       itemsToPrepare: itemsToPrepare[0]?.total || 0,
       todaysDeliveries: todaysDeliveries.map(delivery => ({
