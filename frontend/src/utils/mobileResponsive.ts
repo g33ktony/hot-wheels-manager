@@ -3,7 +3,7 @@
  * Helper functions and hooks for responsive design
  */
 
-import { useEffect, useState } from 'react'
+import React from 'react'
 
 // Breakpoints matching Tailwind
 export const BREAKPOINTS = {

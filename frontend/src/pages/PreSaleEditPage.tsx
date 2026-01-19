@@ -89,15 +89,12 @@ export default function PreSaleEditPage() {
         }
 
         try {
-            setIsUploadingPhoto(true)
             const cloudinaryUrl = await uploadImageToCloudinary(file, 'hot-wheels-manager/presales')
             setPhoto(cloudinaryUrl)
             setPhotoPreview(cloudinaryUrl)
         } catch (err) {
             console.error('Photo upload error:', err)
             alert('Failed to upload photo')
-        } finally {
-            setIsUploadingPhoto(false)
         }
     }
 
