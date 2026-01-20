@@ -316,6 +316,9 @@ export interface CreateInventoryItemDto {
   isTreasureHunt?: boolean;
   isSuperTreasureHunt?: boolean;
   isChase?: boolean;
+  isFantasy?: boolean;
+  isMoto?: boolean;
+  isCamioneta?: boolean;
   // Series fields
   seriesId?: string;
   seriesName?: string;

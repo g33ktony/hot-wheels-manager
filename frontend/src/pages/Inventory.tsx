@@ -705,7 +705,10 @@ export default function Inventory() {
                         pieceType: newItem.pieceType || undefined,
                         isTreasureHunt: newItem.isTreasureHunt,
                         isSuperTreasureHunt: newItem.isSuperTreasureHunt,
-                        isChase: newItem.isChase
+                        isChase: newItem.isChase,
+                        isFantasy: newItem.isFantasy,
+                        isMoto: newItem.isMoto,
+                        isCamioneta: newItem.isCamioneta
                     }
                 })
             } else if (newItem.isMultipleCars && newItem.cars.length > 0) {
@@ -736,6 +739,9 @@ export default function Inventory() {
                         isTreasureHunt: newItem.isTreasureHunt,
                         isSuperTreasureHunt: newItem.isSuperTreasureHunt,
                         isChase: newItem.isChase,
+                        isFantasy: newItem.isFantasy,
+                        isMoto: newItem.isMoto,
+                        isCamioneta: newItem.isCamioneta,
                         // Include series info if this is a series
                         ...(newItem.seriesId && {
                             seriesId: newItem.seriesId,
@@ -769,6 +775,9 @@ export default function Inventory() {
                     isTreasureHunt: newItem.isTreasureHunt,
                     isSuperTreasureHunt: newItem.isSuperTreasureHunt,
                     isChase: newItem.isChase,
+                    isFantasy: newItem.isFantasy,
+                    isMoto: newItem.isMoto,
+                    isCamioneta: newItem.isCamioneta,
                     // Include series info if this is a series
                     ...(newItem.seriesId && {
                         seriesId: newItem.seriesId,
@@ -806,6 +815,8 @@ export default function Inventory() {
             isSuperTreasureHunt: false,
             isChase: false,
             isFantasy: false,
+            isMoto: false,
+            isCamioneta: false,
             isBox: false,
             boxSize: 10,
             pricePerPiece: 0,
@@ -872,6 +883,8 @@ export default function Inventory() {
         'isSuperTreasureHunt',
         'isChase',
         'isFantasy',
+        'isMoto',
+        'isCamioneta',
         'seriesId',
         'seriesName',
         'seriesSize',
@@ -1098,6 +1111,8 @@ export default function Inventory() {
             isSuperTreasureHunt: item.isSuperTreasureHunt || false,
             isChase: item.isChase || false,
             isFantasy: item.isFantasy || false,
+            isMoto: item.isMoto || false,
+            isCamioneta: item.isCamioneta || false,
             isBox: false,
             boxSize: 10,
             pricePerPiece: 0,

@@ -47,6 +47,8 @@ export interface InventoryItem {
   isSuperTreasureHunt?: boolean; // Only for Hot Wheels basic
   isChase?: boolean; // Only for Mini GT, Kaido House, M2
   isFantasy?: boolean; // Only for Hot Wheels - indicates fantasy/original design (not based on real car)
+  isMoto?: boolean; // Indicates if the item is a motorcycle
+  isCamioneta?: boolean; // Indicates if the item is a pickup truck/van
   // Series fields for selling items as a complete series
   seriesId?: string; // Unique identifier (e.g., "MARVEL-2024-001")
   seriesName?: string; // Display name (e.g., "Marvel Series 2024")
@@ -103,6 +105,8 @@ export interface PurchaseItem {
   isTreasureHunt?: boolean;
   isSuperTreasureHunt?: boolean;
   isChase?: boolean;
+  isMoto?: boolean;
+  isCamioneta?: boolean;
   // Series fields
   seriesId?: string;
   seriesName?: string;
@@ -194,6 +198,7 @@ export interface Sale {
   deliveryId?: string;
   delivery?: Delivery;
   paymentMethod: 'cash' | 'transfer' | 'paypal' | 'mercadopago' | 'other';
+  saleType: 'delivery' | 'pos';
   status: 'pending' | 'completed' | 'cancelled';
   notes: string;
   createdAt?: Date;
@@ -311,6 +316,9 @@ export interface CreateInventoryItemDto {
   isTreasureHunt?: boolean;
   isSuperTreasureHunt?: boolean;
   isChase?: boolean;
+  isFantasy?: boolean;
+  isMoto?: boolean;
+  isCamioneta?: boolean;
   // Series fields
   seriesId?: string;
   seriesName?: string;
