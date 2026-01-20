@@ -15,7 +15,8 @@
     "migrate:add-fantasy": "tsx src/scripts/add-fantasy-field.ts",
     "reset-db": "tsx src/scripts/reset-database.ts",
     "create-admin": "tsx src/scripts/create-admin-interactive.ts",
-    "check-users": "tsx src/scripts/check-users.ts"
+    "check-users": "tsx src/scripts/check-users.ts",
+    "migrate:recreate-deliveries": "tsx src/scripts/recreateCompletedDeliveries.ts"
   },
   "keywords": [
     "hot-wheels",
