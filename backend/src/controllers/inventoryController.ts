@@ -29,6 +29,8 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     const filterTreasureHunt = req.query.treasureHunt as string; // 'all' | 'th' | 'sth'
     const filterChase = req.query.chase === 'true';
     const filterFantasy = req.query.fantasy === 'true';
+    const filterMoto = req.query.moto === 'true';
+    const filterCamioneta = req.query.camioneta === 'true';
 
     // Build query object (without search term for now - will do fuzzy search in memory)
     const query: any = {};
@@ -65,6 +67,16 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     // Fantasy filter
     if (filterFantasy) {
       query.isFantasy = true;
+    }
+
+    // Moto filter
+    if (filterMoto) {
+      query.isMoto = true;
+    }
+
+    // Camioneta filter
+    if (filterCamioneta) {
+      query.isCamioneta = true;
     }
 
     // Get all items matching non-search filters

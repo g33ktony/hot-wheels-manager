@@ -37,7 +37,9 @@ const POS: React.FC = () => {
     filterLowStock,
     filterTreasureHunt,
     filterChase,
-    filterFantasy
+    filterFantasy,
+    filterMoto,
+    filterCamioneta
   } = filters;
 
   // Get inventory from Redux cache
@@ -264,6 +266,12 @@ const POS: React.FC = () => {
       // Filtro Fantasy (solo para Hot Wheels)
       if (filterFantasy && item.brand === 'Hot Wheels' && !item.isFantasy) return false;
 
+      // Filtro Moto
+      if (filterMoto && !item.isMoto) return false;
+
+      // Filtro Camioneta
+      if (filterCamioneta && !item.isCamioneta) return false;
+
       return true;
     });
 
@@ -373,7 +381,7 @@ const POS: React.FC = () => {
     console.log('🔍 Smart Search:', {
       query,
       queryWords,
-      filtersApplied: { filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock, filterTreasureHunt, filterChase, filterFantasy },
+      filtersApplied: { filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock, filterTreasureHunt, filterChase, filterFantasy, filterMoto, filterCamioneta },
       itemsAfterFilters: items.length,
       resultsFound: scoredItems.length,
       availableStockOnly: true, // POS solo muestra items con stock disponible
@@ -385,7 +393,7 @@ const POS: React.FC = () => {
     });
 
     return scoredItems;
-  }, [inventoryItems, searchTerm, filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock, filterTreasureHunt, filterChase, filterFantasy]);
+  }, [inventoryItems, searchTerm, filterCondition, filterBrand, filterPieceType, filterLocation, filterLowStock, filterTreasureHunt, filterChase, filterFantasy, filterMoto, filterCamioneta]);
 
   // Extraer marcas únicas para el filtro
   const uniqueBrands = useMemo(() => {
@@ -724,7 +732,33 @@ const POS: React.FC = () => {
                   </label>
                 )}
 
-                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy) && (
+                {/* Filtro Moto */}
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 bg-orange-50">
+                  <input
+                    type="checkbox"
+                    checked={filterMoto}
+                    onChange={(e) => updateFilter('filterMoto', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm font-medium text-orange-700">
+                    Solo Motos 🏍️
+                  </span>
+                </label>
+
+                {/* Filtro Camioneta */}
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 bg-blue-50">
+                  <input
+                    type="checkbox"
+                    checked={filterCamioneta}
+                    onChange={(e) => updateFilter('filterCamioneta', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-sm font-medium text-blue-700">
+                    Solo Camionetas 🚚
+                  </span>
+                </label>
+
+                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
                   <button
                     onClick={() => {
                       updateFilter('searchTerm', '');
@@ -736,6 +770,8 @@ const POS: React.FC = () => {
                       updateFilter('filterTreasureHunt', 'all');
                       updateFilter('filterChase', false);
                       updateFilter('filterFantasy', false);
+                      updateFilter('filterMoto', false);
+                      updateFilter('filterCamioneta', false);
                     }}
                     className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
                   >
@@ -746,7 +782,7 @@ const POS: React.FC = () => {
             </div>
 
             {/* Contador de resultados */}
-            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy) && (
+            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
               <div className="mb-3 text-sm text-gray-600">
                 {filteredInventory.length} resultado(s) encontrado(s)
               </div>

@@ -196,7 +196,9 @@ export default function Inventory() {
         filterChase,
         filterLocation,
         filterLowStock,
-        filterFantasy
+        filterFantasy,
+        filterMoto,
+        filterCamioneta
     } = filters
 
     const [currentPage, setCurrentPage] = useState(1)
@@ -270,6 +272,8 @@ export default function Inventory() {
         isSuperTreasureHunt: false,
         isChase: false,
         isFantasy: false,
+        isMoto: false,
+        isCamioneta: false,
         // Box/Series support
         isBox: false,
         boxSize: 10 as 5 | 8 | 10,
@@ -298,7 +302,9 @@ export default function Inventory() {
         pieceType: filterPieceType,
         treasureHunt: filterTreasureHunt,
         chase: filterChase,
-        fantasy: filterFantasy
+        fantasy: filterFantasy,
+        moto: filterMoto,
+        camioneta: filterCamioneta
     })
     const { data: customBrands } = useCustomBrands()
     const createItemMutation = useCreateInventoryItem()
@@ -369,7 +375,7 @@ export default function Inventory() {
 
         setIsPrefetchingNext(true)
         queryClient.prefetchQuery(
-            ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy],
+            ['inventory', nextPage, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy, filterMoto, filterCamioneta],
             () => inventoryService.getAll(nextPage, itemsPerPage, {
                 search: debouncedSearchTerm,
                 condition: filterCondition,
@@ -377,18 +383,20 @@ export default function Inventory() {
                 pieceType: filterPieceType,
                 treasureHunt: filterTreasureHunt,
                 chase: filterChase,
-                fantasy: filterFantasy
+                fantasy: filterFantasy,
+                moto: filterMoto,
+                camioneta: filterCamioneta
             })
         ).then(() => {
             prefetchedPagesRef.current.add(nextPage)
         }).catch(() => {
             // Allow retry on failure by not marking the page as prefetched
         }).finally(() => setIsPrefetchingNext(false))
-    }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy, queryClient])
+    }, [currentPage, pagination, itemsPerPage, debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy, filterMoto, filterCamioneta, queryClient])
 
     useEffect(() => {
         prefetchedPagesRef.current.clear()
-    }, [debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy])
+    }, [debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy, filterMoto, filterCamioneta])
 
     // Combine predefined and custom brands
     const allBrands = [
@@ -430,6 +438,12 @@ export default function Inventory() {
                 break
             case 'fantasy':
                 updateFilter('filterFantasy', value)
+                break
+            case 'moto':
+                updateFilter('filterMoto', value)
+                break
+            case 'camioneta':
+                updateFilter('filterCamioneta', value)
                 break
         }
     }
@@ -828,6 +842,9 @@ export default function Inventory() {
             isTreasureHunt: item.isTreasureHunt || false,
             isSuperTreasureHunt: item.isSuperTreasureHunt || false,
             isChase: item.isChase || false,
+            isFantasy: item.isFantasy || false,
+            isMoto: item.isMoto || false,
+            isCamioneta: item.isCamioneta || false,
             seriesId: item.seriesId || '',
             seriesName: item.seriesName || '',
             seriesSize: item.seriesSize,
@@ -1531,6 +1548,32 @@ export default function Inventory() {
                                 </span>
                             </label>
                         )}
+
+                        {/* Moto filter */}
+                        <label className="flex items-center gap-2 input cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={filterMoto}
+                                onChange={(e) => handleFilterChange('moto', e.target.checked)}
+                                className="rounded"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                Solo Motos 🏍️
+                            </span>
+                        </label>
+
+                        {/* Camioneta filter */}
+                        <label className="flex items-center gap-2 input cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={filterCamioneta}
+                                onChange={(e) => handleFilterChange('camioneta', e.target.checked)}
+                                className="rounded"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                Solo Camionetas 🚚
+                            </span>
+                        </label>
                     </div>
 
                     {/* Tercera fila: Filtros adicionales (ubicación, stock, precio) */}
@@ -1601,7 +1644,7 @@ export default function Inventory() {
                     </div>
 
                     {/* Clear filters button */}
-                    {(searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase || filterLocation || filterLowStock || filterFantasy || filterPriceMin || filterPriceMax) && (
+                    {(searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase || filterLocation || filterLowStock || filterFantasy || filterMoto || filterCamioneta || filterPriceMin || filterPriceMax) && (
                         <div className="flex justify-end">
                             <Button
                                 variant="secondary"
@@ -1615,6 +1658,8 @@ export default function Inventory() {
                                     updateFilter('filterTreasureHunt', 'all')
                                     updateFilter('filterChase', false)
                                     updateFilter('filterFantasy', false)
+                                    updateFilter('filterMoto', false)
+                                    updateFilter('filterCamioneta', false)
                                     updateFilter('filterLocation', '')
                                     updateFilter('filterLowStock', false)
                                     setFilterPriceMin('')
@@ -2659,6 +2704,36 @@ export default function Inventory() {
                             </div>
                         )}
 
+                        {/* Moto flag */}
+                        <div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={newItem.isMoto}
+                                    onChange={(e) => setNewItem({ ...newItem, isMoto: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    🏍️ Moto
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Camioneta flag */}
+                        <div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={newItem.isCamioneta}
+                                    onChange={(e) => setNewItem({ ...newItem, isCamioneta: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    🚙 Camioneta
+                                </span>
+                            </label>
+                        </div>
+
                         {/* Chase (only for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
                         {(newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) ||
                             (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium') ? (
@@ -3163,6 +3238,36 @@ export default function Inventory() {
                                 </label>
                             </div>
                         ) : null}
+
+                        {/* Moto - Edit Mode */}
+                        <div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={editingItem.isMoto || false}
+                                    onChange={(e) => setEditingItem({ ...editingItem, isMoto: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    🏍️ Moto
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Camioneta - Edit Mode */}
+                        <div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={editingItem.isCamioneta || false}
+                                    onChange={(e) => setEditingItem({ ...editingItem, isCamioneta: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    🚚 Camioneta
+                                </span>
+                            </label>
+                        </div>
 
                         {/* Series Information Section */}
                         <div className="pt-4 border-t border-gray-200">
