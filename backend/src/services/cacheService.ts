@@ -14,7 +14,7 @@ interface CacheEntry<T> {
 class DashboardCache {
   private cache = new Map<string, CacheEntry<any>>();
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes default
-  private cleanupInterval: NodeJS.Timer | null = null;
+  private cleanupInterval: NodeJS.Timeout | null = null;
 
   constructor() {
     // Cleanup expired cache entries every minute

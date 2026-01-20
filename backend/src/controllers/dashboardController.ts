@@ -100,7 +100,7 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
 }
 
 // Get dashboard metrics
-export const getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
+export const getDashboardMetrics = async (req: Request, res: Response): Promise<Response | void> => {
   try {
     console.log('🔍 Fetching dashboard metrics...');
     
