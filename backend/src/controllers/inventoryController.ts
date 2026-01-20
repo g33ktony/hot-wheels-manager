@@ -109,13 +109,17 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
         const color = typeof item.carId === 'object' ? item.carId?.color || '' : '';
         
         // Combine all text for multi-word search
-        const allText = `${carIdText} ${brand} ${pieceType} ${condition} ${location} ${notes} ${year} ${series} ${color}`.toLowerCase();
+        const motoKeyword = item.isMoto ? 'moto motorcycle' : '';
+        const camionetaKeyword = item.isCamioneta ? 'camioneta truck pickup' : '';
+        const allText = `${carIdText} ${brand} ${pieceType} ${condition} ${location} ${notes} ${year} ${series} ${color} ${motoKeyword} ${camionetaKeyword}`.toLowerCase();
         
         // Special keyword searches (exact match)
         if (searchLower === 'th' && item.isTreasureHunt) return true;
         if (searchLower === 'sth' && item.isSuperTreasureHunt) return true;
         if (searchLower === 'chase' && item.isChase) return true;
         if ((searchLower === 'fantasy' || searchLower === 'fantasia') && item.isFantasy) return true;
+        if ((searchLower === 'moto' || searchLower === 'motorcycle') && item.isMoto) return true;
+        if ((searchLower === 'camioneta' || searchLower === 'truck' || searchLower === 'pickup') && item.isCamioneta) return true;
         
         // Multi-word search: ALL words must match somewhere
         if (searchWords.length > 1) {
