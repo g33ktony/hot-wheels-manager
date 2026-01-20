@@ -1852,7 +1852,7 @@ export default function Deliveries() {
                             {/* Items List */}
                             <div>
                                 <h3 className="font-medium text-gray-900 mb-4">Piezas en la Entrega</h3>
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {selectedDelivery.items?.map((item: any, index: number) => {
                                         // Find inventory item for cost information
                                         let inventoryItem;
@@ -1881,13 +1881,38 @@ export default function Deliveries() {
                                             ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0)
                                             : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0);
                                         const profit = item.unitPrice - cost;
+                                        const itemPhotos = inventoryItem?.photos || [];
 
                                         return (
-                                            <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-2">
+                                            <div key={index} className="border rounded-lg overflow-hidden">
+                                                {/* Item Photos */}
+                                                {itemPhotos.length > 0 && (
+                                                    <div className="bg-gray-100 p-3 border-b">
+                                                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                                            {itemPhotos.slice(0, 6).map((photo, photoIdx) => (
+                                                                <div
+                                                                    key={photoIdx}
+                                                                    className="aspect-square rounded overflow-hidden bg-gray-200 border border-gray-300 hover:shadow-md transition-shadow"
+                                                                >
+                                                                    <img
+                                                                        src={photo}
+                                                                        alt={`${item.carName} - Foto ${photoIdx + 1}`}
+                                                                        className="w-full h-full object-cover hover:scale-110 transition-transform"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).style.display = 'none'
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Item Info */}
+                                                <div className="p-4">
+                                                    <div className="flex items-center justify-between mb-3">
                                                         <h4 className="font-medium text-gray-900">{item.carName || item.carId}</h4>
-                                                        <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+                                                        <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">Qty: {item.quantity}</span>
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-4 text-sm">
                                                         <div>
