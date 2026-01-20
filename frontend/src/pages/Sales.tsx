@@ -147,9 +147,7 @@ export default function Sales() {
                                         {sale.customer?.phone && (
                                             <p><span className="font-medium">Teléfono:</span> {sale.customer.phone}</p>
                                         )}
-                                        {sale.delivery && (
-                                            <p><span className="font-medium">Entrega:</span> {sale.delivery.location} - {new Date(sale.delivery.scheduledDate).toLocaleDateString()}</p>
-                                        )}
+                                        <p><span className="font-medium">Tipo:</span> {sale.saleType === 'delivery' ? '🚚 Entrega' : '🏪 POS'}</p>
                                         <p><span className="font-medium">Método de Pago:</span> {sale.paymentMethod}</p>
                                         <p><span className="font-medium">Estado:</span>
                                             <span className={`ml-1 px-2 py-1 text-xs rounded-full ${sale.status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -160,8 +158,11 @@ export default function Sales() {
                                                     sale.status === 'pending' ? 'Pendiente' : 'Cancelada'}
                                             </span>
                                         </p>
+                                        {sale.delivery && (
+                                            <p><span className="font-medium">Entrega:</span> {sale.delivery.location} - {new Date(sale.delivery.scheduledDate).toLocaleDateString()}</p>
+                                        )}
                                         {sale.notes && (
-                                            <p><span className="font-medium">Notas:</span> {sale.notes}</p>
+                                            <p className="bg-blue-50 rounded px-2 py-1 text-blue-900 mt-2"><span className="font-medium">📝 Notas:</span> {sale.notes}</p>
                                         )}
                                     </div>
                                 </div>
