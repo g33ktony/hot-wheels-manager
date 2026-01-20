@@ -13,6 +13,7 @@ interface SearchFilters {
   filterFantasy: boolean
   filterMoto: boolean
   filterCamioneta: boolean
+  filterFastFurious: boolean
 }
 
 interface SearchContextType {
@@ -33,7 +34,8 @@ const defaultFilters: SearchFilters = {
   filterChase: false,
   filterFantasy: false,
   filterMoto: false,
-  filterCamioneta: false
+  filterCamioneta: false,
+  filterFastFurious: false
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined)

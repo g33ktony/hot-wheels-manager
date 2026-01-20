@@ -31,6 +31,7 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     const filterFantasy = req.query.fantasy === 'true';
     const filterMoto = req.query.moto === 'true';
     const filterCamioneta = req.query.camioneta === 'true';
+    const filterFastFurious = req.query.fastFurious === 'true';
 
     // Build query object (without search term for now - will do fuzzy search in memory)
     const query: any = {};
@@ -79,6 +80,11 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
       query.isCamioneta = true;
     }
 
+    // Fast and Furious filter
+    if (filterFastFurious) {
+      query.isFastFurious = true;
+    }
+
     // Get all items matching non-search filters
     let allItems = await InventoryItemModel.find(query)
       .select('-__v -updatedAt')
@@ -111,7 +117,8 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
         // Combine all text for multi-word search
         const motoKeyword = item.isMoto ? 'moto motorcycle' : '';
         const camionetaKeyword = item.isCamioneta ? 'camioneta truck pickup' : '';
-        const allText = `${carIdText} ${brand} ${pieceType} ${condition} ${location} ${notes} ${year} ${series} ${color} ${motoKeyword} ${camionetaKeyword}`.toLowerCase();
+        const fastFuriousKeyword = item.isFastFurious ? 'fast furious f&f' : '';
+        const allText = `${carIdText} ${brand} ${pieceType} ${condition} ${location} ${notes} ${year} ${series} ${color} ${motoKeyword} ${camionetaKeyword} ${fastFuriousKeyword}`.toLowerCase();
         
         // Special keyword searches (exact match)
         if (searchLower === 'th' && item.isTreasureHunt) return true;
@@ -120,6 +127,7 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
         if ((searchLower === 'fantasy' || searchLower === 'fantasia') && item.isFantasy) return true;
         if ((searchLower === 'moto' || searchLower === 'motorcycle') && item.isMoto) return true;
         if ((searchLower === 'camioneta' || searchLower === 'truck' || searchLower === 'pickup') && item.isCamioneta) return true;
+        if ((searchLower === 'fast furious' || searchLower === 'fastfurious' || searchLower === 'f&f' || searchLower === 'ff') && item.isFastFurious) return true;
         
         // Multi-word search: ALL words must match somewhere
         if (searchWords.length > 1) {

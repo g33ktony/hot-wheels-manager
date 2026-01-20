@@ -49,6 +49,7 @@ export interface InventoryItem {
   isFantasy?: boolean; // Only for Hot Wheels - indicates fantasy/original design (not based on real car)
   isMoto?: boolean; // Indicates if the item is a motorcycle
   isCamioneta?: boolean; // Indicates if the item is a pickup truck/van
+  isFastFurious?: boolean; // Indicates if the item is from Fast and Furious collection
   // Series fields for selling items as a complete series
   seriesId?: string; // Unique identifier (e.g., "MARVEL-2024-001")
   seriesName?: string; // Display name (e.g., "Marvel Series 2024")
@@ -107,6 +108,7 @@ export interface PurchaseItem {
   isChase?: boolean;
   isMoto?: boolean;
   isCamioneta?: boolean;
+  isFastFurious?: boolean;
   // Series fields
   seriesId?: string;
   seriesName?: string;
@@ -319,6 +321,7 @@ export interface CreateInventoryItemDto {
   isFantasy?: boolean;
   isMoto?: boolean;
   isCamioneta?: boolean;
+  isFastFurious?: boolean;
   // Series fields
   seriesId?: string;
   seriesName?: string;

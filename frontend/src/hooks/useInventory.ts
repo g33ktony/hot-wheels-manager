@@ -17,6 +17,7 @@ interface UseInventoryOptions {
   fantasy?: boolean
   moto?: boolean
   camioneta?: boolean
+  fastFurious?: boolean
   useRedux?: boolean // Use Redux cache alongside React Query
 }
 
@@ -33,14 +34,15 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
     fantasy = false,
     moto = false,
     camioneta = false,
+    fastFurious = false,
     useRedux = true
   } = options
 
   const dispatch = useAppDispatch()
   
   return useQuery<PaginatedInventoryResponse, Error>(
-    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase, fantasy, moto, camioneta],
-    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase, fantasy, moto, camioneta }),
+    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase, fantasy, moto, camioneta, fastFurious],
+    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase, fantasy, moto, camioneta, fastFurious }),
     {
       staleTime: 2 * 60 * 1000, // 2 minutes - shorter for more frequent updates
       cacheTime: 10 * 60 * 1000, // 10 minutes in cache

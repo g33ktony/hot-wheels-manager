@@ -198,7 +198,8 @@ export default function Inventory() {
         filterLowStock,
         filterFantasy,
         filterMoto,
-        filterCamioneta
+        filterCamioneta,
+        filterFastFurious
     } = filters
 
     const [currentPage, setCurrentPage] = useState(1)
@@ -274,6 +275,7 @@ export default function Inventory() {
         isFantasy: false,
         isMoto: false,
         isCamioneta: false,
+        isFastFurious: false,
         // Box/Series support
         isBox: false,
         boxSize: 10 as 5 | 8 | 10,
@@ -304,7 +306,8 @@ export default function Inventory() {
         chase: filterChase,
         fantasy: filterFantasy,
         moto: filterMoto,
-        camioneta: filterCamioneta
+        camioneta: filterCamioneta,
+        fastFurious: filterFastFurious
     })
     const { data: customBrands } = useCustomBrands()
     const createItemMutation = useCreateInventoryItem()
@@ -444,6 +447,9 @@ export default function Inventory() {
                 break
             case 'camioneta':
                 updateFilter('filterCamioneta', value)
+                break
+            case 'fastFurious':
+                updateFilter('filterFastFurious', value)
                 break
         }
     }
@@ -708,7 +714,8 @@ export default function Inventory() {
                         isChase: newItem.isChase,
                         isFantasy: newItem.isFantasy,
                         isMoto: newItem.isMoto,
-                        isCamioneta: newItem.isCamioneta
+                        isCamioneta: newItem.isCamioneta,
+                        isFastFurious: newItem.isFastFurious
                     }
                 })
             } else if (newItem.isMultipleCars && newItem.cars.length > 0) {
@@ -742,6 +749,7 @@ export default function Inventory() {
                         isFantasy: newItem.isFantasy,
                         isMoto: newItem.isMoto,
                         isCamioneta: newItem.isCamioneta,
+                        isFastFurious: newItem.isFastFurious,
                         // Include series info if this is a series
                         ...(newItem.seriesId && {
                             seriesId: newItem.seriesId,
@@ -778,6 +786,7 @@ export default function Inventory() {
                     isFantasy: newItem.isFantasy,
                     isMoto: newItem.isMoto,
                     isCamioneta: newItem.isCamioneta,
+                    isFastFurious: newItem.isFastFurious,
                     // Include series info if this is a series
                     ...(newItem.seriesId && {
                         seriesId: newItem.seriesId,
@@ -817,6 +826,7 @@ export default function Inventory() {
             isFantasy: false,
             isMoto: false,
             isCamioneta: false,
+            isFastFurious: false,
             isBox: false,
             boxSize: 10,
             pricePerPiece: 0,
@@ -885,6 +895,7 @@ export default function Inventory() {
         'isFantasy',
         'isMoto',
         'isCamioneta',
+        'isFastFurious',
         'seriesId',
         'seriesName',
         'seriesSize',
@@ -1110,6 +1121,7 @@ export default function Inventory() {
             isTreasureHunt: item.isTreasureHunt || false,
             isSuperTreasureHunt: item.isSuperTreasureHunt || false,
             isChase: item.isChase || false,
+            isFastFurious: item.isFastFurious || false,
             isFantasy: item.isFantasy || false,
             isMoto: item.isMoto || false,
             isCamioneta: item.isCamioneta || false,
@@ -1589,6 +1601,19 @@ export default function Inventory() {
                                 Solo Camionetas 🚚
                             </span>
                         </label>
+
+                        {/* Fast and Furious filter */}
+                        <label className="flex items-center gap-2 input cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={filterFastFurious}
+                                onChange={(e) => handleFilterChange('fastFurious', e.target.checked)}
+                                className="rounded"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                Solo Fast and Furious 🏎️
+                            </span>
+                        </label>
                     </div>
 
                     {/* Tercera fila: Filtros adicionales (ubicación, stock, precio) */}
@@ -1659,7 +1684,7 @@ export default function Inventory() {
                     </div>
 
                     {/* Clear filters button */}
-                    {(searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase || filterLocation || filterLowStock || filterFantasy || filterMoto || filterCamioneta || filterPriceMin || filterPriceMax) && (
+                    {(searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase || filterLocation || filterLowStock || filterFantasy || filterMoto || filterCamioneta || filterFastFurious || filterPriceMin || filterPriceMax) && (
                         <div className="flex justify-end">
                             <Button
                                 variant="secondary"
@@ -1675,6 +1700,7 @@ export default function Inventory() {
                                     updateFilter('filterFantasy', false)
                                     updateFilter('filterMoto', false)
                                     updateFilter('filterCamioneta', false)
+                                    updateFilter('filterFastFurious', false)
                                     updateFilter('filterLocation', '')
                                     updateFilter('filterLowStock', false)
                                     setFilterPriceMin('')
@@ -2749,6 +2775,21 @@ export default function Inventory() {
                             </label>
                         </div>
 
+                        {/* Fast and Furious flag */}
+                        <div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={newItem.isFastFurious}
+                                    onChange={(e) => setNewItem({ ...newItem, isFastFurious: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    🏎️ Fast and Furious
+                                </span>
+                            </label>
+                        </div>
+
                         {/* Chase (only for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
                         {(newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) ||
                             (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium') ? (
@@ -3280,6 +3321,21 @@ export default function Inventory() {
                                 />
                                 <span className="text-sm font-medium text-gray-700">
                                     🚚 Camioneta
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Fast and Furious - Edit Mode */}
+                        <div>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={editingItem.isFastFurious || false}
+                                    onChange={(e) => setEditingItem({ ...editingItem, isFastFurious: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">
+                                    🏎️ Fast and Furious
                                 </span>
                             </label>
                         </div>

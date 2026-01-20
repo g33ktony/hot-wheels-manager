@@ -41,6 +41,7 @@ const inventoryItemSchema = new Schema({
   isFantasy: { type: Boolean, default: false }, // Only for Hot Wheels - fantasy casting
   isMoto: { type: Boolean, default: false }, // Indicates if the item is a motorcycle
   isCamioneta: { type: Boolean, default: false }, // Indicates if the item is a pickup truck/van
+  isFastFurious: { type: Boolean, default: false }, // Indicates if the item is from Fast and Furious collection
   // Series fields
   seriesId: { type: String }, // Unique identifier for the series (e.g., "MARVEL-2024-001")
   seriesName: { type: String }, // Display name (e.g., "Marvel Series 2024")

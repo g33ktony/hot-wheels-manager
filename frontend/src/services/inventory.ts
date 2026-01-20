@@ -25,6 +25,7 @@ export interface InventoryFilters {
   fantasy?: boolean
   moto?: boolean
   camioneta?: boolean
+  fastFurious?: boolean
 }
 
 export const inventoryService = {
@@ -67,6 +68,9 @@ export const inventoryService = {
     }
     if (filters.camioneta) {
       params.append('camioneta', 'true')
+    }
+    if (filters.fastFurious) {
+      params.append('fastFurious', 'true')
     }
 
     const response = await api.get<ApiResponse<PaginatedInventoryResponse>>(
