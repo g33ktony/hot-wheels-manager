@@ -3,8 +3,9 @@ import { useSales, useDeleteSale } from '@/hooks/useSales'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import SaleCard from '@/components/SaleCard'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, ShoppingCart, Eye, Trash2, X } from 'lucide-react'
+import { Plus, Search, ShoppingCart, X } from 'lucide-react'
 
 export default function Sales() {
     const [searchTerm, setSearchTerm] = useState('')
@@ -109,78 +110,15 @@ export default function Sales() {
                     </div>
                 </Card>
             ) : (
-                <div className="grid gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     {filteredSales.map((sale) => (
-                        <Card key={sale._id} hover>
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div>
-                                            <h3 className="font-medium text-gray-900">
-                                                Venta #{sale._id?.slice(-8)}
-                                            </h3>
-                                            <p className="text-sm text-gray-500">
-                                                {new Date(sale.saleDate).toLocaleDateString('es-ES', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric'
-                                                })}
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-lg font-semibold text-green-600">
-                                                ${sale.totalAmount}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                {sale.items?.length || 0} pieza{sale.items?.length !== 1 ? 's' : ''}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1 text-sm text-gray-600">
-                                        {sale.customer?.name && (
-                                            <p><span className="font-medium">Cliente:</span> {sale.customer.name}</p>
-                                        )}
-                                        {sale.customer?.email && (
-                                            <p><span className="font-medium">Email:</span> {sale.customer.email}</p>
-                                        )}
-                                        {sale.customer?.phone && (
-                                            <p><span className="font-medium">Teléfono:</span> {sale.customer.phone}</p>
-                                        )}
-                                        <p><span className="font-medium">Tipo:</span> {sale.saleType === 'delivery' ? '🚚 Entrega' : '🏪 POS'}</p>
-                                        <p><span className="font-medium">Método de Pago:</span> {sale.paymentMethod}</p>
-                                        <p><span className="font-medium">Estado:</span>
-                                            <span className={`ml-1 px-2 py-1 text-xs rounded-full ${sale.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                sale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
-                                                {sale.status === 'completed' ? 'Completada' :
-                                                    sale.status === 'pending' ? 'Pendiente' : 'Cancelada'}
-                                            </span>
-                                        </p>
-                                        {sale.delivery && (
-                                            <p><span className="font-medium">Entrega:</span> {sale.delivery.location} - {new Date(sale.delivery.scheduledDate).toLocaleDateString()}</p>
-                                        )}
-                                        {sale.notes && (
-                                            <p className="bg-blue-50 rounded px-2 py-1 text-blue-900 mt-2"><span className="font-medium">📝 Notas:</span> {sale.notes}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="flex space-x-2 ml-4">
-                                    <Button size="sm" variant="secondary" onClick={() => handleViewDetails(sale)}>
-                                        <Eye size={16} />
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="danger"
-                                        onClick={() => sale._id && handleDeleteSale(sale._id)}
-                                    >
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
+                        <SaleCard
+                            key={sale._id}
+                            sale={sale}
+                            onViewDetails={handleViewDetails}
+                            onDelete={handleDeleteSale}
+                            isLoadingDelete={deleteSaleMutation.isLoading}
+                        />
                     ))}
                 </div>
             )}

@@ -194,6 +194,7 @@ export interface Sale {
   deliveryId?: string;
   delivery?: Delivery;
   paymentMethod: 'cash' | 'transfer' | 'paypal' | 'mercadopago' | 'other';
+  saleType: 'delivery' | 'pos';
   status: 'pending' | 'completed' | 'cancelled';
   notes: string;
   createdAt?: Date;
