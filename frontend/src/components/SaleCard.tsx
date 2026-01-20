@@ -1,4 +1,3 @@
-import React from 'react'
 import { Eye, Trash2 } from 'lucide-react'
 import Button from '@/components/common/Button'
 
