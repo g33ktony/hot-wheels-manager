@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from 'react-query'
-import { useDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
+import { useDeliveries, useAllDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
 import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
@@ -87,6 +87,7 @@ export default function Deliveries() {
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
     const { data: deliveries, isLoading, error } = useDeliveries(statusFilter)
+    const { data: allDeliveries } = useAllDeliveries() // Always loaded for widget stats
     const { data: customers } = useCustomers()
     // Only load inventory when creating/editing a delivery
     const { data: inventoryData } = useInventory({
@@ -98,6 +99,8 @@ export default function Deliveries() {
 
     // Use empty array as default to avoid initial zero values, but still show loading state
     const deliveriesData = deliveries || []
+    // For widget stats, use allDeliveries to always have counts, filtering by date locally
+    const allDeliveriesData = allDeliveries || []
     const createDeliveryMutation = useCreateDelivery()
     const updateDeliveryMutation = useUpdateDelivery()
     const createCustomerMutation = useCreateCustomer()
@@ -735,10 +738,17 @@ export default function Deliveries() {
         return newDelivery.items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0)
     }
 
-    // Calculate stats from filtered deliveries (respecting date and search filters)
-    const scheduledCount = filteredDeliveries.filter(d => d.status === 'scheduled').length
-    const preparedCount = filteredDeliveries.filter(d => d.status === 'prepared').length
-    const completedCount = filteredDeliveries.filter(d => d.status === 'completed').length
+    // Calculate stats from allDeliveries (all deliveries regardless of status filter)
+    // but respecting the date filter
+    const allDeliveriesFiltered = allDeliveriesData?.filter(delivery => {
+        const deliveryDate = delivery.scheduledDate.toString().split('T')[0]
+        const matchesDate = !selectedDate || deliveryDate >= selectedDate
+        return matchesDate
+    }) || []
+
+    const scheduledCount = allDeliveriesFiltered.filter(d => d.status === 'scheduled').length
+    const preparedCount = allDeliveriesFiltered.filter(d => d.status === 'prepared').length
+    const completedCount = allDeliveriesFiltered.filter(d => d.status === 'completed').length
 
     // Total active deliveries = scheduled + prepared (not completed)
     const totalDeliveries = scheduledCount + preparedCount
