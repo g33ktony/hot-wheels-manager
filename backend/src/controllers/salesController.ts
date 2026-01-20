@@ -8,6 +8,10 @@ export const getSales = async (req: Request, res: Response) => {
     const sales = await SaleModel.find()
       .populate('customerId')
       .populate('deliveryId')
+      .populate({
+        path: 'items.inventoryItemId',
+        select: 'photos' // Only get photos from inventory items
+      })
       .sort({ saleDate: -1 });
 
     res.json({

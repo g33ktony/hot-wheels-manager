@@ -219,23 +219,56 @@ export default function Sales() {
                                 <Card>
                                     <h4 className="font-medium text-gray-900 mb-3">Piezas Vendidas</h4>
                                     <div className="space-y-3">
-                                        {selectedSale.items?.map((item: any, index: number) => (
-                                            <div key={index} className="border rounded-lg p-3 bg-gray-50">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <h5 className="font-medium text-gray-900">{item.carName}</h5>
-                                                        <p className="text-sm text-gray-600">ID: {item.carId}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="font-semibold text-green-600">${item.unitPrice}</p>
-                                                        <p className="text-sm text-gray-500">Cant: {item.quantity}</p>
+                                        {selectedSale.items?.map((item: any, index: number) => {
+                                            // Get photos from populated inventory item
+                                            const itemPhotos = (typeof item.inventoryItemId === 'object' && item.inventoryItemId?.photos)
+                                                ? item.inventoryItemId.photos
+                                                : [];
+
+                                            return (
+                                                <div key={index} className="border rounded-lg overflow-hidden">
+                                                    {/* Item Photos */}
+                                                    {itemPhotos.length > 0 && (
+                                                        <div className="bg-gray-100 p-3 border-b">
+                                                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                                                {itemPhotos.slice(0, 6).map((photo: string, photoIdx: number) => (
+                                                                    <div
+                                                                        key={photoIdx}
+                                                                        className="aspect-square rounded overflow-hidden bg-gray-200 border border-gray-300 hover:shadow-md transition-shadow"
+                                                                    >
+                                                                        <img
+                                                                            src={photo}
+                                                                            alt={`${item.carName} - Foto ${photoIdx + 1}`}
+                                                                            className="w-full h-full object-cover hover:scale-110 transition-transform"
+                                                                            onError={(e) => {
+                                                                                (e.target as HTMLImageElement).style.display = 'none'
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Item Info */}
+                                                    <div className="p-3 bg-gray-50">
+                                                        <div className="flex justify-between items-start mb-2">
+                                                            <div>
+                                                                <h5 className="font-medium text-gray-900">{item.carName}</h5>
+                                                                <p className="text-sm text-gray-600">ID: {item.carId}</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="font-semibold text-green-600">${item.unitPrice}</p>
+                                                                <p className="text-sm text-gray-500">Cant: {item.quantity}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-sm text-gray-600">
+                                                            <p>Subtotal: ${(item.unitPrice * item.quantity).toFixed(2)}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="text-sm text-gray-600">
-                                                    <p>Subtotal: ${(item.unitPrice * item.quantity).toFixed(2)}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </Card>
                             </div>

@@ -4,8 +4,8 @@ import type { CreateDeliveryDto } from '@shared/types'
 import toast from 'react-hot-toast'
 
 // Always fetch all deliveries (without status filter) for counting widget stats
-export const useAllDeliveries = () => {
-  return useQuery(['deliveries-all'], () => deliveriesService.getAll(), {
+export const useAllDeliveries = (fromDate?: string) => {
+  return useQuery(['deliveries-all', fromDate], () => deliveriesService.getAll(undefined, fromDate, true), {
     staleTime: 2 * 60 * 1000, // 2 minutos
     retry: 3, // Retry 3 times on failure
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
@@ -14,8 +14,8 @@ export const useAllDeliveries = () => {
 }
 
 // Fetch deliveries with optional status filter for display list
-export const useDeliveries = (status?: string) => {
-  return useQuery(['deliveries', status], () => deliveriesService.getAll(status), {
+export const useDeliveries = (status?: string, fromDate?: string) => {
+  return useQuery(['deliveries', status, fromDate], () => deliveriesService.getAll(status, fromDate), {
     staleTime: 2 * 60 * 1000, // 2 minutos
     retry: 3, // Retry 3 times on failure
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff

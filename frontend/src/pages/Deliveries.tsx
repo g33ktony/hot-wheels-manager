@@ -86,8 +86,8 @@ export default function Deliveries() {
     const [customLocation, setCustomLocation] = useState('')
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
-    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter)
-    const { data: allDeliveries } = useAllDeliveries() // Always loaded for widget stats
+    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter, selectedDate)
+    const { data: allDeliveries } = useAllDeliveries(selectedDate) // Always loaded for widget stats
     const { data: customers } = useCustomers()
     // Only load inventory when creating/editing a delivery
     const { data: inventoryData } = useInventory({
@@ -148,10 +148,7 @@ export default function Deliveries() {
             customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
             location.toLowerCase().includes(searchTerm.toLowerCase())
 
-        const deliveryDate = delivery.scheduledDate.toString().split('T')[0]
-        const matchesDate = !selectedDate || deliveryDate >= selectedDate
-
-        return matchesSearch && matchesDate
+        return matchesSearch
     }) || []
 
     const handleCreateDelivery = async () => {

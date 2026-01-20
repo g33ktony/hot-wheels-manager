@@ -9,7 +9,7 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
     // Get status filter from query params
-    const { status } = req.query;
+    const { status, fromDate, includeCompleted } = req.query;
 
     // Build filter
     const filter: any = {};
@@ -23,8 +23,24 @@ export const getDeliveries = async (req: Request, res: Response) => {
       filter.status = 'completed';
     } else if (status) {
       filter.status = status;
+    } else if (includeCompleted !== 'true') {
+      // Default: show only active deliveries (scheduled and prepared), not completed
+      // unless includeCompleted is explicitly set to true
+      filter.status = { $in: ['scheduled', 'prepared'] };
     }
     // else: no filter, show all deliveries (including completed)
+    
+    // Handle date filtering - only apply if fromDate is provided
+    if (fromDate) {
+      try {
+        const dateFrom = new Date(fromDate as string);
+        // Set to beginning of day
+        dateFrom.setHours(0, 0, 0, 0);
+        filter.scheduledDate = { $gte: dateFrom };
+      } catch (e) {
+        console.warn('Invalid date format:', fromDate);
+      }
+    }
     
     // Simplified query - remove nested populate for better performance
     const deliveries = await DeliveryModel.find(filter)
