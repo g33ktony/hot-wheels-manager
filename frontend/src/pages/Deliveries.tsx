@@ -37,11 +37,11 @@ export default function Deliveries() {
         notes: ''
     })
 
-    // Usar el inicio del mes actual por defecto
+    // Usar hace 30 días por defecto
     const [selectedDate, setSelectedDate] = useState(() => {
         const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        return startOfMonth.toISOString().split('T')[0]
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        return thirtyDaysAgo.toISOString().split('T')[0]
     })
     const [newDelivery, setNewDelivery] = useState({
         customerId: '',
