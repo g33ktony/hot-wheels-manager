@@ -1,8 +1,8 @@
 /**
  * Script: Recreate Completed Deliveries from Sales
  * 
- * Identifies all sales that were created from deliveries (have deliveryId)
- * and creates corresponding completed delivery records for historical tracking
+ * Identifies all sales and creates corresponding completed delivery records
+ * for historical tracking. Works with both sales that have deliveryId and those that don't.
  */
 
 import mongoose from 'mongoose';
@@ -22,31 +22,30 @@ const connectDB = async () => {
 
 const recreateDeliveries = async () => {
   try {
-    // Find all sales created from deliveries
-    const salesFromDeliveries = await SaleModel.find({ 
-      deliveryId: { $exists: true, $ne: null } 
-    }).populate('customerId');
+    // Find all sales (both with and without deliveryId)
+    const allSales = await SaleModel.find().populate('customerId');
 
-    console.log(`\n🔍 Found ${salesFromDeliveries.length} sales created from deliveries\n`);
+    console.log(`\n🔍 Found ${allSales.length} total sales\n`);
 
     let created = 0;
     let skipped = 0;
     let errors = 0;
 
-    for (const sale of salesFromDeliveries) {
+    for (const sale of allSales) {
       try {
-        // Check if delivery already exists
-        const existingDelivery = await DeliveryModel.findById(sale.deliveryId);
-        
-        if (existingDelivery) {
-          console.log(`⏭️  Delivery ${sale.deliveryId} already exists, skipping...`);
-          skipped++;
-          continue;
+        // If sale has deliveryId, check if delivery already exists
+        if (sale.deliveryId) {
+          const existingDelivery = await DeliveryModel.findById(sale.deliveryId);
+          
+          if (existingDelivery) {
+            console.log(`⏭️  Delivery ${sale.deliveryId} already exists, skipping...`);
+            skipped++;
+            continue;
+          }
         }
 
         // Create delivery from sale data
-        const deliveryData = {
-          _id: sale.deliveryId, // Use the same ID
+        const deliveryData: any = {
           customerId: sale.customerId?._id,
           items: sale.items?.map((item: any) => ({
             inventoryItemId: item.inventoryItemId,
@@ -79,14 +78,25 @@ const recreateDeliveries = async () => {
           ]
         };
 
+        // If sale has deliveryId, use it
+        if (sale.deliveryId) {
+          deliveryData._id = sale.deliveryId;
+        }
+
         const newDelivery = new DeliveryModel(deliveryData);
         await newDelivery.save();
 
         console.log(`✅ Created delivery from sale ${sale._id}`);
         created++;
       } catch (err: any) {
-        console.error(`❌ Error creating delivery from sale ${sale._id}:`, err.message);
-        errors++;
+        if (err.code === 11000) {
+          // Duplicate key error - delivery already exists
+          console.log(`⏭️  Delivery already exists for sale ${sale._id}, skipping...`);
+          skipped++;
+        } else {
+          console.error(`❌ Error creating delivery from sale ${sale._id}:`, err.message);
+          errors++;
+        }
       }
     }
 
