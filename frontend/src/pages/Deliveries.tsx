@@ -1889,7 +1889,7 @@ export default function Deliveries() {
                                                 {itemPhotos.length > 0 && (
                                                     <div className="bg-gray-100 p-3 border-b">
                                                         <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                                                            {itemPhotos.slice(0, 6).map((photo, photoIdx) => (
+                                                            {itemPhotos.slice(0, 6).map((photo: string, photoIdx: number) => (
                                                                 <div
                                                                     key={photoIdx}
                                                                     className="aspect-square rounded overflow-hidden bg-gray-200 border border-gray-300 hover:shadow-md transition-shadow"
