@@ -86,7 +86,7 @@ export default function Deliveries() {
     const [customLocation, setCustomLocation] = useState('')
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
-    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter)
+    const { data: deliveries, isLoading, error, isFetching } = useDeliveries(statusFilter)
     const { data: customers } = useCustomers()
     // Only load inventory when creating/editing a delivery
     const { data: inventoryData } = useInventory({
@@ -95,6 +95,9 @@ export default function Deliveries() {
     const inventoryItems = inventoryData?.items || []
     const { data: deliveryLocations } = useDeliveryLocations()
     const { data: preSaleItems } = usePreSaleItems()
+
+    // Use empty array as default to avoid initial zero values, but still show loading state
+    const deliveriesData = deliveries || []
     const createDeliveryMutation = useCreateDelivery()
     const updateDeliveryMutation = useUpdateDelivery()
     const createCustomerMutation = useCreateCustomer()
@@ -107,7 +110,8 @@ export default function Deliveries() {
     const createPaymentPlanMutation = useCreatePaymentPlan()
     const queryClient = useQueryClient()
 
-    if (isLoading) {
+    // Show loading only on initial load, not when filter changes or data is being refetched
+    if (isLoading && !deliveries) {
         return <Loading text="Cargando entregas..." />
     }
 
@@ -132,7 +136,7 @@ export default function Deliveries() {
         )
     }
 
-    const filteredDeliveries = deliveries?.filter(delivery => {
+    const filteredDeliveries = deliveriesData?.filter(delivery => {
         const customerName = delivery.customer?.name || ''
         const customerEmail = delivery.customer?.email || ''
         const location = delivery.location || ''

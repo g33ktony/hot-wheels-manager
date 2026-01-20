@@ -10,7 +10,7 @@ import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
     const navigate = useNavigate()
-    const { data: metrics, isLoading, error } = useQuery(
+    const { data: metrics, isLoading, error, isFetching } = useQuery(
         'dashboard-metrics',
         dashboardService.getMetrics,
         {
@@ -19,7 +19,8 @@ export default function Dashboard() {
     )
     const { data: pendingItemsStats } = usePendingItemsStats()
 
-    if (isLoading) {
+    // Show loading only on initial load, not when refetching with cached data
+    if (isLoading && !metrics) {
         return <Loading text="Cargando dashboard..." />
     }
 

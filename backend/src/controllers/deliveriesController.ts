@@ -8,7 +8,7 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 // Get all deliveries
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
-    // Get status filter from query params (default to non-completed)
+    // Get status filter from query params
     const { status } = req.query;
 
     // Build filter
@@ -18,12 +18,13 @@ export const getDeliveries = async (req: Request, res: Response) => {
     if (status === 'pending') {
       // 'pending' means both scheduled and prepared
       filter.status = { $in: ['scheduled', 'prepared'] };
+    } else if (status === 'completed') {
+      // Show only completed deliveries
+      filter.status = 'completed';
     } else if (status) {
       filter.status = status;
-    } else {
-      // Default: exclude completed deliveries
-      filter.status = { $ne: 'completed' };
     }
+    // else: no filter, show all deliveries (including completed)
     
     // Simplified query - remove nested populate for better performance
     const deliveries = await DeliveryModel.find(filter)
