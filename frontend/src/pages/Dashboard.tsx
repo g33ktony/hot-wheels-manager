@@ -10,7 +10,7 @@ import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
     const navigate = useNavigate()
-    const { data: metrics, isLoading, error, isFetching } = useQuery(
+    const { data: metrics, isLoading, error } = useQuery(
         'dashboard-metrics',
         dashboardService.getMetrics,
         {

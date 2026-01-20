@@ -86,7 +86,7 @@ export default function Deliveries() {
     const [customLocation, setCustomLocation] = useState('')
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
-    const { data: deliveries, isLoading, error, isFetching } = useDeliveries(statusFilter)
+    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter)
     const { data: customers } = useCustomers()
     // Only load inventory when creating/editing a delivery
     const { data: inventoryData } = useInventory({
