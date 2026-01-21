@@ -17,9 +17,31 @@ export const useSearchHotWheels = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const loadAll = useCallback(async (page = 1, limit = 100) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await api.get<any>('/hotwheels', {
+        params: {
+          page,
+          limit
+        }
+      })
+
+      setResults(response.data.data?.cars || [])
+    } catch (err: any) {
+      setError(err.message || 'Error al cargar Hot Wheels')
+      setResults([])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
   const searchByName = useCallback(async (query: string) => {
     if (!query.trim()) {
-      setResults([])
+      // Si no hay query, cargar todos
+      await loadAll()
       return
     }
 
@@ -30,7 +52,7 @@ export const useSearchHotWheels = () => {
       const response = await api.get<any>('/hotwheels', {
         params: {
           search: query,
-          limit: 50
+          limit: 100
         }
       })
 
@@ -41,12 +63,13 @@ export const useSearchHotWheels = () => {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [loadAll])
 
   return {
     results,
     isLoading,
     error,
-    searchByName
+    searchByName,
+    loadAll
   }
 }

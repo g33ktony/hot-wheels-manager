@@ -27,7 +27,14 @@ export default function Dashboard() {
     const { data: pendingItemsStats } = usePendingItemsStats()
     const updateCatalogMutation = useUpdateHotWheelsCatalog()
     const { data: updateStatus } = useGetUpdateStatus()
-    const { results: searchResults, isLoading: isSearching, searchByName } = useSearchHotWheels()
+    const { results: searchResults, isLoading: isSearching, searchByName, loadAll } = useSearchHotWheels()
+
+    // Cargar todos los items cuando se abre el modal de búsqueda
+    React.useEffect(() => {
+        if (showSearchModal && searchResults.length === 0 && !isSearching) {
+            loadAll()
+        }
+    }, [showSearchModal, searchResults.length, isSearching, loadAll])
 
     // Show loading only on initial load, not when refetching with cached data
     if (isLoading && !metrics) {
@@ -529,7 +536,7 @@ export default function Dashboard() {
                         />
                         <Button
                             onClick={() => searchByName(searchQuery)}
-                            disabled={isSearching || !searchQuery.trim()}
+                            disabled={isSearching}
                         >
                             {isSearching ? 'Buscando...' : 'Buscar'}
                         </Button>
@@ -538,6 +545,7 @@ export default function Dashboard() {
                                 variant="secondary"
                                 onClick={() => {
                                     setSearchQuery('')
+                                    searchByName('')
                                 }}
                                 className="px-2"
                             >
@@ -546,49 +554,65 @@ export default function Dashboard() {
                         )}
                     </div>
 
-                    {/* Results */}
+                    {/* Results Count */}
                     {searchResults.length > 0 && (
-                        <div className="space-y-3">
-                            <p className="text-sm font-semibold text-gray-700">
-                                Se encontraron {searchResults.length} resultados
-                            </p>
-                            <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
-                                        <tr>
-                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Modelo</th>
-                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Serie</th>
-                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Año</th>
-                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Toy #</th>
+                        <p className="text-sm font-semibold text-gray-700">
+                            {searchQuery ? `Se encontraron ${searchResults.length} resultados` : `Total: ${searchResults.length} modelos`}
+                        </p>
+                    )}
+
+                    {/* Results Table */}
+                    {searchResults.length > 0 && (
+                        <div className="max-h-[500px] overflow-y-auto border border-gray-200 rounded-lg">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                    <tr>
+                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Modelo</th>
+                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Serie</th>
+                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Año</th>
+                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Toy #</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {searchResults.map((item, idx) => (
+                                        <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
+                                            <td className="px-3 py-2 text-gray-900">{item.model}</td>
+                                            <td className="px-3 py-2 text-gray-600 text-xs">{item.series}</td>
+                                            <td className="px-3 py-2 text-gray-600">{item.year}</td>
+                                            <td className="px-3 py-2 text-gray-600 font-mono text-xs">{item.toy_num}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {searchResults.map((item, idx) => (
-                                            <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
-                                                <td className="px-3 py-2 text-gray-900">{item.model}</td>
-                                                <td className="px-3 py-2 text-gray-600">{item.series}</td>
-                                                <td className="px-3 py-2 text-gray-600">{item.year}</td>
-                                                <td className="px-3 py-2 text-gray-600 font-mono text-xs">{item.toy_num}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    {/* Loading State */}
+                    {isSearching && searchResults.length === 0 && (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="text-center space-y-2">
+                                <div className="animate-spin inline-block">
+                                    <RefreshCw size={24} className="text-blue-600" />
+                                </div>
+                                <p className="text-gray-700 font-medium">Cargando...</p>
                             </div>
                         </div>
                     )}
 
-                    {searchQuery && !isSearching && searchResults.length === 0 && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
-                            <p className="text-amber-800 text-sm">
-                                No se encontraron resultados para "{searchQuery}"
+                    {/* Empty State */}
+                    {!isSearching && searchResults.length === 0 && !searchQuery && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                            <p className="text-blue-800 text-sm">
+                                Cargando listado de modelos...
                             </p>
                         </div>
                     )}
 
-                    {!searchQuery && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                            <p className="text-blue-800 text-sm">
-                                Escribe un nombre de modelo para buscar en la base de datos de Hot Wheels
+                    {/* No Results State */}
+                    {!isSearching && searchResults.length === 0 && searchQuery && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+                            <p className="text-amber-800 text-sm">
+                                No se encontraron resultados para "{searchQuery}"
                             </p>
                         </div>
                     )}
