@@ -3,6 +3,7 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar'
 import { ApiResponse } from '@shared/types'
 import fs from 'fs'
 import path from 'path'
+import axios from 'axios'
 
 // Buscar en el archivo JSON directamente
 export const searchHotWheelsJSON = async (req: Request, res: Response) => {
@@ -324,7 +325,6 @@ export const proxyImage = async (req: Request, res: Response) => {
       })
     }
 
-    const axios = require('axios')
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       headers: {
