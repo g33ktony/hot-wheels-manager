@@ -10,8 +10,12 @@ import { updateHotWheelsCatalog, getUpdateStatus } from '../controllers/hotWheel
 
 const router = Router()
 
-// GET /api/hotwheels - Get all Hot Wheels cars with pagination and filters
-router.get('/', getHotWheelsCars)
+// Las rutas más específicas deben venir ANTES que las parametrizadas
+// POST /api/hotwheels/update-catalog - Update Hot Wheels catalog from Wiki
+router.post('/update-catalog', updateHotWheelsCatalog)
+
+// GET /api/hotwheels/update-status - Get last update status
+router.get('/update-status', getUpdateStatus)
 
 // GET /api/hotwheels/series - Get all available series
 router.get('/series', getSeries)
@@ -22,13 +26,10 @@ router.get('/years', getYears)
 // POST /api/hotwheels/load-database - Load database from JSON file
 router.post('/load-database', loadDatabase)
 
-// POST /api/hotwheels/update-catalog - Update Hot Wheels catalog from Wiki
-router.post('/update-catalog', updateHotWheelsCatalog)
+// GET /api/hotwheels - Get all Hot Wheels cars with pagination and filters
+router.get('/', getHotWheelsCars)
 
-// GET /api/hotwheels/update-status - Get last update status
-router.get('/update-status', getUpdateStatus)
-
-// GET /api/hotwheels/:toy_num - Get single Hot Wheels car by toy number
+// GET /api/hotwheels/:toy_num - Get single Hot Wheels car by toy number (debe ir al final)
 router.get('/:toy_num', getHotWheelsCar)
 
 export default router
