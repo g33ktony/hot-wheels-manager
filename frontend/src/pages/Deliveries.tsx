@@ -1851,7 +1851,7 @@ export default function Deliveries() {
                                 <h3 className="font-medium text-gray-900 mb-4">Piezas en la Entrega</h3>
                                 <div className="space-y-4">
                                     {selectedDelivery.items?.map((item: any, index: number) => {
-                                        // Find inventory item for cost information
+                                        // Get inventory item - either from populated data or search in list
                                         let inventoryItem;
                                         let isPresaleItem = false;
                                         let preSaleItemData = null;
@@ -1869,9 +1869,12 @@ export default function Deliveries() {
                                                 // Regular inventory item - find in list
                                                 inventoryItem = inventoryItems?.find((inv: InventoryItem) => inv._id === item.inventoryItemId);
                                             }
-                                        } else {
-                                            // Already populated (legacy format)
+                                        } else if (typeof item.inventoryItemId === 'object' && item.inventoryItemId) {
+                                            // Already populated from backend
                                             inventoryItem = item.inventoryItemId;
+                                        } else {
+                                            // Not found
+                                            inventoryItem = null;
                                         }
 
                                         const cost = isPresaleItem

@@ -2809,23 +2809,6 @@ export default function Inventory() {
                         ) : null}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                                <MapPin size={16} />
-                                Ubicación Física (Opcional)
-                            </label>
-                            <input
-                                type="text"
-                                className="input w-full"
-                                placeholder="ej: Caja 1, Estante A, Contenedor azul..."
-                                value={newItem.location}
-                                onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                                📦 Indica dónde guardas esta pieza para encontrarla fácilmente
-                            </p>
-                        </div>
-
-                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Notas (Opcional)
                             </label>

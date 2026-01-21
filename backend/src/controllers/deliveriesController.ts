@@ -45,6 +45,7 @@ export const getDeliveries = async (req: Request, res: Response) => {
     // Simplified query - remove nested populate for better performance
     const deliveries = await DeliveryModel.find(filter)
       .populate('customerId', 'name email phone') // Only populate customer
+      .populate('items.inventoryItemId', 'photos purchasePrice') // Populate photos for items
       .select('-__v') // Exclude version key
       .sort({ scheduledDate: -1 })
       .lean() // Convert to plain JS objects for better performance
