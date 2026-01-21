@@ -3,17 +3,20 @@ import { useQuery } from 'react-query'
 import { dashboardService } from '@/services/dashboard'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useUpdateHotWheelsCatalog, useGetUpdateStatus } from '@/hooks/useHotWheelsUpdate'
+import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
 import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
-import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, RefreshCw } from 'lucide-react'
+import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, RefreshCw, Search, X } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
     const navigate = useNavigate()
     const [showUpdateModal, setShowUpdateModal] = React.useState(false)
+    const [showSearchModal, setShowSearchModal] = React.useState(false)
+    const [searchQuery, setSearchQuery] = React.useState('')
     const { data: metrics, isLoading, error } = useQuery(
         'dashboard-metrics',
         dashboardService.getMetrics,
@@ -24,6 +27,7 @@ export default function Dashboard() {
     const { data: pendingItemsStats } = usePendingItemsStats()
     const updateCatalogMutation = useUpdateHotWheelsCatalog()
     const { data: updateStatus } = useGetUpdateStatus()
+    const { results: searchResults, isLoading: isSearching, searchByName } = useSearchHotWheels()
 
     // Show loading only on initial load, not when refetching with cached data
     if (isLoading && !metrics) {
@@ -155,21 +159,32 @@ export default function Dashboard() {
     return (
         <div className="space-y-4 lg:space-y-6">
             {/* Header with Update Button */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
                     <p className="text-sm lg:text-base text-gray-600">Resumen general de tu negocio de Hot Wheels</p>
                 </div>
-                <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setShowUpdateModal(true)}
-                    className="flex items-center gap-2 whitespace-nowrap"
-                    disabled={updateCatalogMutation.isLoading}
-                >
-                    <RefreshCw size={16} className={updateCatalogMutation.isLoading ? 'animate-spin' : ''} />
-                    {updateCatalogMutation.isLoading ? 'Actualizando...' : 'Actualizar Catálogo'}
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setShowSearchModal(true)}
+                        className="flex items-center gap-2 whitespace-nowrap"
+                    >
+                        <Search size={16} />
+                        Buscar
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setShowUpdateModal(true)}
+                        className="flex items-center gap-2 whitespace-nowrap"
+                        disabled={updateCatalogMutation.isLoading}
+                    >
+                        <RefreshCw size={16} className={updateCatalogMutation.isLoading ? 'animate-spin' : ''} />
+                        {updateCatalogMutation.isLoading ? 'Actualizando...' : 'Actualizar Catálogo'}
+                    </Button>
+                </div>
             </div>
 
             {/* Metrics Grid - 2 columns on mobile, 3 on desktop */}
@@ -469,6 +484,111 @@ export default function Dashboard() {
                                 <span className="font-semibold">❌ Error en la actualización</span>
                                 <br className="mt-2" />
                                 {updateCatalogMutation.error?.message || 'No se pudo actualizar el catálogo'}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </Modal>
+
+            {/* Search Modal */}
+            <Modal
+                isOpen={showSearchModal}
+                onClose={() => {
+                    setShowSearchModal(false)
+                    setSearchQuery('')
+                }}
+                title="Buscar en Hot Wheels"
+                footer={
+                    <div className="flex gap-2">
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                setShowSearchModal(false)
+                                setSearchQuery('')
+                            }}
+                        >
+                            Cerrar
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="space-y-4">
+                    {/* Search Input */}
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Buscar por nombre de modelo..."
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                    searchByName(searchQuery)
+                                }
+                            }}
+                        />
+                        <Button
+                            onClick={() => searchByName(searchQuery)}
+                            disabled={isSearching || !searchQuery.trim()}
+                        >
+                            {isSearching ? 'Buscando...' : 'Buscar'}
+                        </Button>
+                        {searchQuery && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    setSearchQuery('')
+                                }}
+                                className="px-2"
+                            >
+                                <X size={16} />
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* Results */}
+                    {searchResults.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-sm font-semibold text-gray-700">
+                                Se encontraron {searchResults.length} resultados
+                            </p>
+                            <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                                        <tr>
+                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Modelo</th>
+                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Serie</th>
+                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Año</th>
+                                            <th className="px-3 py-2 text-left font-semibold text-gray-700">Toy #</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {searchResults.map((item, idx) => (
+                                            <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
+                                                <td className="px-3 py-2 text-gray-900">{item.model}</td>
+                                                <td className="px-3 py-2 text-gray-600">{item.series}</td>
+                                                <td className="px-3 py-2 text-gray-600">{item.year}</td>
+                                                <td className="px-3 py-2 text-gray-600 font-mono text-xs">{item.toy_num}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {searchQuery && !isSearching && searchResults.length === 0 && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+                            <p className="text-amber-800 text-sm">
+                                No se encontraron resultados para "{searchQuery}"
+                            </p>
+                        </div>
+                    )}
+
+                    {!searchQuery && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                            <p className="text-blue-800 text-sm">
+                                Escribe un nombre de modelo para buscar en la base de datos de Hot Wheels
                             </p>
                         </div>
                     )}
