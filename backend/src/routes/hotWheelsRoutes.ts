@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import {
+  searchHotWheelsJSON,
   getHotWheelsCars,
   getHotWheelsCar,
   getSeries,
@@ -20,6 +21,9 @@ router.get('/update-status', getUpdateStatus)
 
 // GET /api/hotwheels/download - Download database as JSON
 router.get('/download', downloadDatabase)
+
+// GET /api/hotwheels/search - Search in JSON database
+router.get('/search', searchHotWheelsJSON)
 
 // GET /api/hotwheels/series - Get all available series
 router.get('/series', getSeries)

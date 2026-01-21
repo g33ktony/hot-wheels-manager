@@ -22,7 +22,7 @@ export const useSearchHotWheels = () => {
     setError(null)
 
     try {
-      const response = await api.get<any>('/hotwheels', {
+      const response = await api.get<any>('/hotwheels/search', {
         params: {
           page,
           limit
@@ -49,7 +49,7 @@ export const useSearchHotWheels = () => {
     setError(null)
 
     try {
-      const response = await api.get<any>('/hotwheels', {
+      const response = await api.get<any>('/hotwheels/search', {
         params: {
           search: query,
           limit: 100

@@ -4,6 +4,68 @@ import { ApiResponse } from '@shared/types'
 import fs from 'fs'
 import path from 'path'
 
+// Buscar en el archivo JSON directamente
+export const searchHotWheelsJSON = async (req: Request, res: Response) => {
+  try {
+    const { search = '', limit = 100, page = 1 } = req.query
+    const dbPath = path.join(__dirname, '../../data/hotwheels_database.json')
+
+    if (!fs.existsSync(dbPath)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Base de datos no encontrada'
+      })
+    }
+
+    const fileContent = fs.readFileSync(dbPath, 'utf-8')
+    const allCars = JSON.parse(fileContent)
+
+    let filtered = allCars
+
+    // Buscar solo por model si hay search term
+    if (search && search !== '') {
+      const searchLower = (search as string).toLowerCase()
+      filtered = allCars.filter((car: any) =>
+        car.model.toLowerCase().includes(searchLower)
+      )
+    }
+
+    // Aplicar paginación
+    const pageNum = parseInt(page as string) || 1
+    const limitNum = parseInt(limit as string) || 100
+    const skip = (pageNum - 1) * limitNum
+    const paginatedCars = filtered.slice(skip, skip + limitNum)
+
+    const response: ApiResponse<{
+      cars: any[]
+      pagination: {
+        page: number
+        limit: number
+        total: number
+        pages: number
+      }
+    }> = {
+      success: true,
+      data: {
+        cars: paginatedCars,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: filtered.length,
+          pages: Math.ceil(filtered.length / limitNum)
+        }
+      }
+    }
+
+    res.json(response)
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+}
+
 export const getHotWheelsCars = async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 50, search, series, year } = req.query

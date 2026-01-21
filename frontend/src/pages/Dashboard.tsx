@@ -587,35 +587,45 @@ export default function Dashboard() {
                         </p>
                     )}
 
-                    {/* Results Table */}
+                    {/* Results Grid */}
                     {searchResults.length > 0 && (
-                        <div className="max-h-[500px] overflow-y-auto border border-gray-200 rounded-lg">
-                            <table className="w-full text-sm">
-                                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
-                                    <tr>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Modelo</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Serie</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Año</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-700">Toy #</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {searchResults.map((item, idx) => (
-                                        <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer">
-                                            <td className="px-3 py-2 text-gray-900">{item.model}</td>
-                                            <td className="px-3 py-2 text-gray-600 text-xs">{item.series}</td>
-                                            <td className="px-3 py-2 text-gray-600">{item.year}</td>
-                                            <td className="px-3 py-2 text-gray-600 font-mono text-xs">{item.toy_num}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="max-h-[600px] overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {searchResults.map((item, idx) => (
+                                    <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200">
+                                        {/* Imagen */}
+                                        {item.photo_url && (
+                                            <div className="h-48 bg-gray-100 overflow-hidden">
+                                                <img
+                                                    src={item.photo_url}
+                                                    alt={item.model}
+                                                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150"%3E%3Crect fill="%23f0f0f0" width="200" height="150"/%3E%3Ctext x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3ENo imagen%3C/text%3E%3C/svg%3E'
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        {/* Datos */}
+                                        <div className="p-3 space-y-2">
+                                            <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{item.model}</h3>
+                                            <div className="space-y-1 text-xs text-gray-600">
+                                                <p><span className="font-medium">Serie:</span> {item.series}</p>
+                                                <p><span className="font-medium">Año:</span> {item.year}</p>
+                                                <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs">{item.toy_num}</span></p>
+                                                <p><span className="font-medium">Col #:</span> <span className="font-mono text-xs">{item.col_num}</span></p>
+                                                <p><span className="font-medium">Serie #:</span> {item.series_num}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
                     {/* Loading State */}
                     {isSearching && searchResults.length === 0 && (
-                        <div className="flex items-center justify-center py-8">
+                        <div className="flex items-center justify-center py-12">
                             <div className="text-center space-y-2">
                                 <div className="animate-spin inline-block">
                                     <RefreshCw size={24} className="text-blue-600" />
