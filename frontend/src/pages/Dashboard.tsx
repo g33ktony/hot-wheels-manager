@@ -597,10 +597,11 @@ export default function Dashboard() {
                                         {item.photo_url && (
                                             <div className="h-48 bg-gray-100 overflow-hidden flex items-center justify-center">
                                                 <img
-                                                    src={`/api/hotwheels/image?url=${encodeURIComponent(item.photo_url)}`}
+                                                    src={item.photo_url}
                                                     alt={item.model}
                                                     className="w-full h-full object-contain hover:scale-110 transition-transform duration-300 bg-white"
                                                     loading="lazy"
+                                                    crossOrigin="anonymous"
                                                     onError={(e) => {
                                                         console.error('Error loading image for', item.model)
                                                         const img = e.target as HTMLImageElement
