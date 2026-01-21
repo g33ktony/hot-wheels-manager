@@ -601,14 +601,16 @@ export default function Dashboard() {
                                                         src={item.photo_url}
                                                         alt={item.model}
                                                         className="w-full h-full object-contain bg-white"
-                                                        loading="lazy"
+                                                        crossOrigin="anonymous"
                                                         onLoad={() => {
-                                                            console.log('✅ Imagen cargada:', item.model)
+                                                            console.log('✅ Imagen cargada:', item.model, item.photo_url)
                                                         }}
                                                         onError={(e) => {
-                                                            console.warn('❌ Error cargando imagen:', item.model, item.photo_url)
-                                                            const img = e.target as HTMLImageElement
-                                                            img.style.display = 'none'
+                                                            console.warn('❌ Error cargando imagen:', {
+                                                                model: item.model,
+                                                                url: item.photo_url,
+                                                                error: (e.target as HTMLImageElement).currentSrc
+                                                            })
                                                         }}
                                                     />
                                                     {/* Fallback si falla */}
