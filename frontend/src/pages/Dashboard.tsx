@@ -593,37 +593,8 @@ export default function Dashboard() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {searchResults.map((item, idx) => (
                                     <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200">
-                                        {/* Imagen */}
-                                        {item.photo_url && (
-                                            <div className="h-48 bg-gray-100 overflow-hidden flex items-center justify-center">
-                                                <img
-                                                    src={item.photo_url}
-                                                    alt={item.model}
-                                                    className="w-full h-full object-contain hover:scale-110 transition-transform duration-300 bg-white"
-                                                    loading="lazy"
-                                                    crossOrigin="anonymous"
-                                                    onError={(e) => {
-                                                        console.error('Error loading image for', item.model)
-                                                        const img = e.target as HTMLImageElement
-                                                        img.style.display = 'none'
-                                                        const parent = img.parentElement
-                                                        if (parent) {
-                                                            const div = document.createElement('div')
-                                                            div.className = 'w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs text-center p-2'
-                                                            div.textContent = 'No se pudo cargar'
-                                                            parent.appendChild(div)
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
-                                        {!item.photo_url && (
-                                            <div className="h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                                                Sin imagen
-                                            </div>
-                                        )}
                                         {/* Datos */}
-                                        <div className="p-3 space-y-2">
+                                        <div className="p-4 space-y-2">
                                             <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{item.model}</h3>
                                             <div className="space-y-1 text-xs text-gray-600">
                                                 <p><span className="font-medium">Serie:</span> {item.series}</p>
@@ -631,6 +602,13 @@ export default function Dashboard() {
                                                 <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs">{item.toy_num}</span></p>
                                                 <p><span className="font-medium">Col #:</span> <span className="font-mono text-xs">{item.col_num}</span></p>
                                                 <p><span className="font-medium">Serie #:</span> {item.series_num}</p>
+                                                {item.photo_url && (
+                                                    <p className="text-xs text-blue-600 truncate">
+                                                        <a href={item.photo_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                                            Ver foto
+                                                        </a>
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
