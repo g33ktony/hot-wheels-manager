@@ -602,7 +602,7 @@ export default function Dashboard() {
                                                         alt={item.model}
                                                         className="w-full h-full object-contain bg-white"
                                                         loading="lazy"
-                                                        onLoad={(e) => {
+                                                        onLoad={() => {
                                                             console.log('✅ Imagen cargada:', item.model)
                                                         }}
                                                         onError={(e) => {
