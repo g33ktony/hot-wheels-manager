@@ -304,3 +304,43 @@ export const downloadDatabase = async (req: Request, res: Response) => {
     })
   }
 }
+
+export const proxyImage = async (req: Request, res: Response) => {
+  try {
+    const { url } = req.query
+    
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'URL parameter is required'
+      })
+    }
+
+    // Validar que sea una URL de Wikia
+    if (!url.includes('static.wikia.nocookie.net')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo URLs de Wikia permitidas'
+      })
+    }
+
+    const axios = require('axios')
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      timeout: 5000
+    })
+
+    res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg')
+    res.setHeader('Cache-Control', 'public, max-age=86400')
+    res.send(response.data)
+  } catch (error: any) {
+    console.error('Error proxying image:', error.message)
+    res.status(500).json({
+      success: false,
+      error: 'Error al cargar imagen'
+    })
+  }
+}

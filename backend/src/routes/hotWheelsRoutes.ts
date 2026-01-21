@@ -6,7 +6,8 @@ import {
   getSeries,
   getYears,
   loadDatabase,
-  downloadDatabase
+  downloadDatabase,
+  proxyImage
 } from '../controllers/hotWheelsController'
 import { updateHotWheelsCatalog, getUpdateStatus } from '../controllers/hotWheelsUpdateController'
 
@@ -21,6 +22,9 @@ router.get('/update-status', getUpdateStatus)
 
 // GET /api/hotwheels/download - Download database as JSON
 router.get('/download', downloadDatabase)
+
+// GET /api/hotwheels/image - Proxy image URLs to handle CORS
+router.get('/image', proxyImage)
 
 // GET /api/hotwheels/search - Search in JSON database
 router.get('/search', searchHotWheelsJSON)

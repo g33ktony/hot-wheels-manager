@@ -595,15 +595,30 @@ export default function Dashboard() {
                                     <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200">
                                         {/* Imagen */}
                                         {item.photo_url && (
-                                            <div className="h-48 bg-gray-100 overflow-hidden">
+                                            <div className="h-48 bg-gray-100 overflow-hidden flex items-center justify-center">
                                                 <img
-                                                    src={item.photo_url}
+                                                    src={`/api/hotwheels/image?url=${encodeURIComponent(item.photo_url)}`}
                                                     alt={item.model}
-                                                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                                                    className="w-full h-full object-contain hover:scale-110 transition-transform duration-300 bg-white"
+                                                    loading="lazy"
                                                     onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="150"%3E%3Crect fill="%23f0f0f0" width="200" height="150"/%3E%3Ctext x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3ENo imagen%3C/text%3E%3C/svg%3E'
+                                                        console.error('Error loading image for', item.model)
+                                                        const img = e.target as HTMLImageElement
+                                                        img.style.display = 'none'
+                                                        const parent = img.parentElement
+                                                        if (parent) {
+                                                            const div = document.createElement('div')
+                                                            div.className = 'w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-xs text-center p-2'
+                                                            div.textContent = 'No se pudo cargar'
+                                                            parent.appendChild(div)
+                                                        }
                                                     }}
                                                 />
+                                            </div>
+                                        )}
+                                        {!item.photo_url && (
+                                            <div className="h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                                                Sin imagen
                                             </div>
                                         )}
                                         {/* Datos */}
