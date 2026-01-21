@@ -4,7 +4,8 @@ import {
   getHotWheelsCar,
   getSeries,
   getYears,
-  loadDatabase
+  loadDatabase,
+  downloadDatabase
 } from '../controllers/hotWheelsController'
 import { updateHotWheelsCatalog, getUpdateStatus } from '../controllers/hotWheelsUpdateController'
 
@@ -16,6 +17,9 @@ router.post('/update-catalog', updateHotWheelsCatalog)
 
 // GET /api/hotwheels/update-status - Get last update status
 router.get('/update-status', getUpdateStatus)
+
+// GET /api/hotwheels/download - Download database as JSON
+router.get('/download', downloadDatabase)
 
 // GET /api/hotwheels/series - Get all available series
 router.get('/series', getSeries)

@@ -215,3 +215,30 @@ export const loadDatabase = async (req: Request, res: Response) => {
     res.status(500).json(errorResponse)
   }
 }
+
+export const downloadDatabase = async (req: Request, res: Response) => {
+  try {
+    const dbPath = path.join(__dirname, '../../data/hotwheels_database.json')
+    
+    // Verificar que el archivo existe
+    if (!fs.existsSync(dbPath)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Base de datos no encontrada'
+      })
+    }
+    
+    // Leer el archivo
+    const fileContent = fs.readFileSync(dbPath, 'utf-8')
+    
+    // Enviar como descarga
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader('Content-Disposition', `attachment; filename="hotwheels_database_${new Date().toISOString().split('T')[0]}.json"`)
+    res.send(fileContent)
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+}

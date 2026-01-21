@@ -4,19 +4,22 @@ import { dashboardService } from '@/services/dashboard'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useUpdateHotWheelsCatalog, useGetUpdateStatus } from '@/hooks/useHotWheelsUpdate'
 import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
+import { useDownloadHotWheelsDatabase } from '@/hooks/useDownloadHotWheels'
 import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
-import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, RefreshCw, Search, X } from 'lucide-react'
+import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, RefreshCw, Search, X, Download } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
+import toast from 'react-hot-toast'
 
 export default function Dashboard() {
     const navigate = useNavigate()
     const [showUpdateModal, setShowUpdateModal] = React.useState(false)
     const [showSearchModal, setShowSearchModal] = React.useState(false)
     const [searchQuery, setSearchQuery] = React.useState('')
+    const [isDownloading, setIsDownloading] = React.useState(false)
     const { data: metrics, isLoading, error } = useQuery(
         'dashboard-metrics',
         dashboardService.getMetrics,
@@ -28,6 +31,7 @@ export default function Dashboard() {
     const updateCatalogMutation = useUpdateHotWheelsCatalog()
     const { data: updateStatus } = useGetUpdateStatus()
     const { results: searchResults, isLoading: isSearching, searchByName, loadAll } = useSearchHotWheels()
+    const { download: downloadDatabase } = useDownloadHotWheelsDatabase()
 
     // Cargar todos los items cuando se abre el modal de búsqueda
     React.useEffect(() => {
@@ -35,6 +39,18 @@ export default function Dashboard() {
             loadAll()
         }
     }, [showSearchModal, searchResults.length, isSearching, loadAll])
+
+    const handleDownload = async () => {
+        setIsDownloading(true)
+        try {
+            await downloadDatabase()
+            toast.success('Base de datos descargada correctamente')
+        } catch (error: any) {
+            toast.error(error.message || 'Error al descargar')
+        } finally {
+            setIsDownloading(false)
+        }
+    }
 
     // Show loading only on initial load, not when refetching with cached data
     if (isLoading && !metrics) {
@@ -171,7 +187,17 @@ export default function Dashboard() {
                     <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
                     <p className="text-sm lg:text-base text-gray-600">Resumen general de tu negocio de Hot Wheels</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={handleDownload}
+                        className="flex items-center gap-2 whitespace-nowrap"
+                        disabled={isDownloading}
+                    >
+                        <Download size={16} />
+                        {isDownloading ? 'Descargando...' : 'Descargar JSON'}
+                    </Button>
                     <Button
                         size="sm"
                         variant="secondary"
