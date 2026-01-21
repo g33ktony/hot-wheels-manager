@@ -592,23 +592,44 @@ export default function Dashboard() {
                         <div className="max-h-[600px] overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {searchResults.map((item, idx) => (
-                                    <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200">
+                                    <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200 flex flex-col">
+                                        {/* Imagen */}
+                                        <div className="h-40 bg-gray-100 overflow-hidden flex items-center justify-center relative group">
+                                            {item.photo_url ? (
+                                                <>
+                                                    <img
+                                                        src={item.photo_url}
+                                                        alt={item.model}
+                                                        className="w-full h-full object-contain bg-white"
+                                                        loading="lazy"
+                                                        onLoad={(e) => {
+                                                            console.log('✅ Imagen cargada:', item.model)
+                                                        }}
+                                                        onError={(e) => {
+                                                            console.warn('❌ Error cargando imagen:', item.model, item.photo_url)
+                                                            const img = e.target as HTMLImageElement
+                                                            img.style.display = 'none'
+                                                        }}
+                                                    />
+                                                    {/* Fallback si falla */}
+                                                    <div className="absolute inset-0 bg-gray-200 flex items-center justify-center text-gray-500 text-xs hidden group-has-:hidden">
+                                                        Cargando...
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                                                    Sin URL
+                                                </div>
+                                            )}
+                                        </div>
                                         {/* Datos */}
-                                        <div className="p-4 space-y-2">
+                                        <div className="p-3 space-y-1 flex-grow">
                                             <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{item.model}</h3>
-                                            <div className="space-y-1 text-xs text-gray-600">
-                                                <p><span className="font-medium">Serie:</span> {item.series}</p>
-                                                <p><span className="font-medium">Año:</span> {item.year}</p>
-                                                <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs">{item.toy_num}</span></p>
-                                                <p><span className="font-medium">Col #:</span> <span className="font-mono text-xs">{item.col_num}</span></p>
-                                                <p><span className="font-medium">Serie #:</span> {item.series_num}</p>
-                                                {item.photo_url && (
-                                                    <p className="text-xs text-blue-600 truncate">
-                                                        <a href={item.photo_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                                                            Ver foto
-                                                        </a>
-                                                    </p>
-                                                )}
+                                            <div className="space-y-0.5 text-xs text-gray-600">
+                                                <p><span className="font-medium">Serie:</span> <span className="text-gray-700">{item.series}</span></p>
+                                                <p><span className="font-medium">Año:</span> <span className="text-gray-700">{item.year}</span></p>
+                                                <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs text-gray-700">{item.toy_num}</span></p>
+                                                <p><span className="font-medium">Serie #:</span> <span className="text-gray-700">{item.series_num}</span></p>
                                             </div>
                                         </div>
                                     </div>
