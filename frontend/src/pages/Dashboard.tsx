@@ -2,14 +2,18 @@ import React from 'react'
 import { useQuery } from 'react-query'
 import { dashboardService } from '@/services/dashboard'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
+import { useUpdateHotWheelsCatalog, useGetUpdateStatus } from '@/hooks/useHotWheelsUpdate'
 import { useNavigate } from 'react-router-dom'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
-import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent } from 'lucide-react'
+import Button from '@/components/common/Button'
+import Modal from '@/components/common/Modal'
+import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, RefreshCw } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 
 export default function Dashboard() {
     const navigate = useNavigate()
+    const [showUpdateModal, setShowUpdateModal] = React.useState(false)
     const { data: metrics, isLoading, error } = useQuery(
         'dashboard-metrics',
         dashboardService.getMetrics,
@@ -18,6 +22,8 @@ export default function Dashboard() {
         }
     )
     const { data: pendingItemsStats } = usePendingItemsStats()
+    const updateCatalogMutation = useUpdateHotWheelsCatalog()
+    const { data: updateStatus } = useGetUpdateStatus()
 
     // Show loading only on initial load, not when refetching with cached data
     if (isLoading && !metrics) {
@@ -148,10 +154,22 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-4 lg:space-y-6">
-            {/* Header */}
-            <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-sm lg:text-base text-gray-600">Resumen general de tu negocio de Hot Wheels</p>
+            {/* Header with Update Button */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
+                    <p className="text-sm lg:text-base text-gray-600">Resumen general de tu negocio de Hot Wheels</p>
+                </div>
+                <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setShowUpdateModal(true)}
+                    className="flex items-center gap-2 whitespace-nowrap"
+                    disabled={updateCatalogMutation.isLoading}
+                >
+                    <RefreshCw size={16} className={updateCatalogMutation.isLoading ? 'animate-spin' : ''} />
+                    {updateCatalogMutation.isLoading ? 'Actualizando...' : 'Actualizar Catálogo'}
+                </Button>
             </div>
 
             {/* Metrics Grid - 2 columns on mobile, 3 on desktop */}
@@ -347,6 +365,115 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Update Catalog Modal */}
+            <Modal
+                isOpen={showUpdateModal}
+                onClose={() => {
+                    setShowUpdateModal(false)
+                    if (updateCatalogMutation.isSuccess) {
+                        updateCatalogMutation.reset()
+                    }
+                }}
+                title="Actualizar Catálogo de Hot Wheels"
+                maxWidth="md"
+                footer={
+                    <div className="flex gap-3">
+                        <Button
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => {
+                                setShowUpdateModal(false)
+                                if (updateCatalogMutation.isSuccess) {
+                                    updateCatalogMutation.reset()
+                                }
+                            }}
+                            disabled={updateCatalogMutation.isLoading}
+                        >
+                            {updateCatalogMutation.isSuccess ? 'Cerrar' : 'Cancelar'}
+                        </Button>
+                        {!updateCatalogMutation.isSuccess && (
+                            <Button
+                                className="flex-1 flex items-center justify-center gap-2"
+                                onClick={() => updateCatalogMutation.mutate()}
+                                disabled={updateCatalogMutation.isLoading}
+                            >
+                                <RefreshCw size={16} className={updateCatalogMutation.isLoading ? 'animate-spin' : ''} />
+                                {updateCatalogMutation.isLoading ? 'Descargando...' : 'Actualizar Ahora'}
+                            </Button>
+                        )}
+                    </div>
+                }
+            >
+                <div className="space-y-4">
+                    {!updateCatalogMutation.isSuccess && !updateCatalogMutation.isError && (
+                        <>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <p className="text-sm text-blue-800">
+                                    <span className="font-semibold">📥 Descargar datos actualizados</span>
+                                    <br className="mt-2" />
+                                    Esto descargará el catálogo completo de Hot Wheels desde la Wiki de Fandom (1995 - {new Date().getFullYear()}) y actualizará la base de datos local.
+                                </p>
+                            </div>
+
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <p className="text-sm text-amber-800">
+                                    <span className="font-semibold">⏱️ Tiempo estimado:</span> 2-5 minutos
+                                    <br />
+                                    <span className="text-xs text-amber-700 mt-2 block">La aplicación puede estar lenta durante la actualización.</span>
+                                </p>
+                            </div>
+
+                            {updateStatus && (
+                                <div className="bg-gray-50 rounded-lg p-4 text-sm">
+                                    <p className="font-semibold text-gray-700 mb-2">Última actualización:</p>
+                                    <p className="text-gray-600">
+                                        {new Date(updateStatus.lastModified).toLocaleDateString('es-ES', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </p>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {updateCatalogMutation.isLoading && (
+                        <div className="flex items-center justify-center py-8">
+                            <div className="text-center space-y-3">
+                                <div className="animate-spin">
+                                    <RefreshCw size={32} className="text-blue-600" />
+                                </div>
+                                <p className="text-gray-700 font-medium">Descargando catálogo...</p>
+                                <p className="text-sm text-gray-500">No cierres esta ventana</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {updateCatalogMutation.isSuccess && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p className="text-green-800">
+                                <span className="font-semibold">✅ Actualización completada</span>
+                                <br className="mt-2" />
+                                El catálogo de Hot Wheels ha sido actualizado exitosamente.
+                            </p>
+                        </div>
+                    )}
+
+                    {updateCatalogMutation.isError && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p className="text-red-800">
+                                <span className="font-semibold">❌ Error en la actualización</span>
+                                <br className="mt-2" />
+                                {updateCatalogMutation.error?.message || 'No se pudo actualizar el catálogo'}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </Modal>
         </div>
     )
 }

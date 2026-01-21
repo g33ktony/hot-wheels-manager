@@ -6,6 +6,7 @@ import {
   getYears,
   loadDatabase
 } from '../controllers/hotWheelsController'
+import { updateHotWheelsCatalog, getUpdateStatus } from '../controllers/hotWheelsUpdateController'
 
 const router = Router()
 
@@ -20,6 +21,12 @@ router.get('/years', getYears)
 
 // POST /api/hotwheels/load-database - Load database from JSON file
 router.post('/load-database', loadDatabase)
+
+// POST /api/hotwheels/update-catalog - Update Hot Wheels catalog from Wiki
+router.post('/update-catalog', updateHotWheelsCatalog)
+
+// GET /api/hotwheels/update-status - Get last update status
+router.get('/update-status', getUpdateStatus)
 
 // GET /api/hotwheels/:toy_num - Get single Hot Wheels car by toy number
 router.get('/:toy_num', getHotWheelsCar)
