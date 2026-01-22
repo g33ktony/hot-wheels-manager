@@ -5,6 +5,7 @@ import authReducer from './slices/authSlice'
 import inventoryReducer from './slices/inventorySlice'
 import cartReducer from './slices/cartSlice'
 import selectionReducer from './slices/selectionSlice'
+import itemsCacheReducer from './slices/itemsCacheSlice'
 
 export const store = configureStore({
     reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
         inventory: inventoryReducer,
         cart: cartReducer,
         selection: selectionReducer,
+        itemsCache: itemsCacheReducer,
     },
 })
 

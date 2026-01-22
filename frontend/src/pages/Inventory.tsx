@@ -9,6 +9,7 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux'
 import { setInventoryItems } from '@/store/slices/inventorySlice'
 import { addMultipleToCart } from '@/store/slices/cartSlice'
 import { setSelectionMode, toggleItemSelection, selectAllItems, clearSelection } from '@/store/slices/selectionSlice'
+import { cacheItems, updateCachedItem } from '@/store/slices/itemsCacheSlice'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import { LazyImage } from '@/components/LazyImage'
@@ -120,6 +121,7 @@ export default function Inventory() {
     // Get Redux cache as fallback when React Query is loading
     const reduxInventory = useAppSelector(state => state.inventory)
     const reduxSelection = useAppSelector(state => state.selection)
+    const itemsCache = useAppSelector(state => state.itemsCache)
     const dispatch = useAppDispatch()
 
     // Preload inventory in background (same strategy as POS)
@@ -355,6 +357,13 @@ export default function Inventory() {
         }
         return undefined
     }, [inventoryData?.pagination, isLoading, reduxInventory, currentPage, itemsPerPage])
+
+    // Cache items from current page in Redux so they're available for bulk operations
+    useEffect(() => {
+        if (inventoryData?.items && inventoryData.items.length > 0) {
+            dispatch(cacheItems(inventoryData.items))
+        }
+    }, [inventoryData?.items, dispatch])
 
     const prefetchedPagesRef = useRef<Set<number>>(new Set())
     const [isPrefetchingNext, setIsPrefetchingNext] = useState(false)
@@ -989,34 +998,14 @@ export default function Inventory() {
     const getSelectedItems = useCallback((): InventoryItem[] => {
         if (selectedItems.size === 0) return []
 
-        // Combine items from both sources: current page (React Query) and all cached items (Redux)
-        const itemsMap = new Map<string, any>()
-
-        // First, add items from Redux cache (all items loaded in background)
-        if (reduxInventory.items) {
-            reduxInventory.items.forEach(item => {
-                if (item._id) {
-                    itemsMap.set(item._id, item)
-                }
-            })
-        }
-
-        // Then, add/override with items from current page (React Query - most up-to-date)
-        if (inventoryData?.items) {
-            inventoryData.items.forEach(item => {
-                if (item._id) {
-                    itemsMap.set(item._id, item)
-                }
-            })
-        }
-
-        // Filter to only selected IDs and cast to shared InventoryItem type
+        // Use itemsCache which contains ALL items from all pages visited
+        // This is the single source of truth for selected items
         const selectedItemsList = Array.from(selectedItems)
-            .map(id => itemsMap.get(id))
+            .map(id => itemsCache.itemsById[id])
             .filter(Boolean) as InventoryItem[]
 
         return selectedItemsList
-    }, [selectedItems, reduxInventory.items, inventoryData?.items])
+    }, [selectedItems, itemsCache.itemsById])
 
     const handleAddToCart = () => {
         if (selectedItems.size === 0) return
@@ -3605,11 +3594,18 @@ export default function Inventory() {
                 selectedItems={getSelectedItems()}
                 onSave={async (updates) => {
                     try {
+                        const selectedForEdit = getSelectedItems()
                         await Promise.all(
-                            getSelectedItems().map(item =>
+                            selectedForEdit.map(item =>
                                 updateItemMutation.mutateAsync({
                                     id: item._id!,
                                     data: updates as any
+                                }).then(() => {
+                                    // Cache the updated item locally
+                                    dispatch(updateCachedItem({
+                                        ...item,
+                                        ...updates
+                                    }))
                                 })
                             )
                         )
