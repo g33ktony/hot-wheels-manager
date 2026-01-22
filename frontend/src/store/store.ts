@@ -4,6 +4,7 @@ import filtersReducer from './slices/filtersSlice'
 import authReducer from './slices/authSlice'
 import inventoryReducer from './slices/inventorySlice'
 import cartReducer from './slices/cartSlice'
+import selectionReducer from './slices/selectionSlice'
 
 export const store = configureStore({
     reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
         auth: authReducer,
         inventory: inventoryReducer,
         cart: cartReducer,
+        selection: selectionReducer,
     },
 })
 

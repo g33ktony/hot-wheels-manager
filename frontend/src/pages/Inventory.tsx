@@ -8,6 +8,7 @@ import { inventoryService } from '@/services/inventory'
 import { useAppSelector, useAppDispatch } from '@/hooks/redux'
 import { setInventoryItems } from '@/store/slices/inventorySlice'
 import { addMultipleToCart } from '@/store/slices/cartSlice'
+import { setSelectionMode, toggleItemSelection, selectAllItems, clearSelection } from '@/store/slices/selectionSlice'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import { LazyImage } from '@/components/LazyImage'
@@ -19,6 +20,7 @@ import Modal from '@/components/common/Modal'
 import FacebookPublishModal from '@/components/FacebookPublishModal'
 import InventoryQuoteReport from '@/components/InventoryQuoteReport'
 import CollageGenerator from '@/components/CollageGenerator'
+import BulkEditModal from '@/components/BulkEditModal'
 import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image, ShoppingCart } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
@@ -117,6 +119,7 @@ export default function Inventory() {
 
     // Get Redux cache as fallback when React Query is loading
     const reduxInventory = useAppSelector(state => state.inventory)
+    const reduxSelection = useAppSelector(state => state.selection)
     const dispatch = useAppDispatch()
 
     // Preload inventory in background (same strategy as POS)
@@ -216,15 +219,14 @@ export default function Inventory() {
     const [selectedImage, setSelectedImage] = useState<string>('')
     const [selectedImageIndex, setSelectedImageIndex] = useState(0)
     const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
-    // Bulk delete state
-    const [isSelectionMode, setIsSelectionMode] = useState(false)
-    const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
     // Facebook publish modal
     const [showFacebookModal, setShowFacebookModal] = useState(false)
     // Quote report modal
     const [showQuoteModal, setShowQuoteModal] = useState(false)
     // Collage generator modal
     const [showCollageModal, setShowCollageModal] = useState(false)
+    // Bulk edit modal
+    const [showBulkEditModal, setShowBulkEditModal] = useState(false)
     // Search suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
@@ -961,29 +963,26 @@ export default function Inventory() {
         }
     }
 
-    // Bulk delete functions
-    const toggleSelectionMode = () => {
-        setIsSelectionMode(!isSelectionMode)
-        setSelectedItems(new Set()) // Clear selection when toggling mode
+    // Bulk selection functions - now using Redux
+    const isSelectionMode = reduxSelection.isSelectionMode
+    const selectedItemIds = reduxSelection.selectedItemIds
+    const selectedItems = new Set(selectedItemIds)
+
+    const handleToggleSelectionMode = () => {
+        dispatch(setSelectionMode(!isSelectionMode))
     }
 
-    const toggleItemSelection = (itemId: string) => {
-        const newSelection = new Set(selectedItems)
-        if (newSelection.has(itemId)) {
-            newSelection.delete(itemId)
-        } else {
-            newSelection.add(itemId)
-        }
-        setSelectedItems(newSelection)
+    const handleToggleItemSelection = (itemId: string) => {
+        dispatch(toggleItemSelection(itemId))
     }
 
-    const selectAllItems = () => {
-        const allIds = new Set(filteredItems.map((item: InventoryItem) => item._id).filter(Boolean) as string[])
-        setSelectedItems(allIds)
+    const handleSelectAllItems = () => {
+        const allIds = filteredItems.map((item: InventoryItem) => item._id).filter(Boolean) as string[]
+        dispatch(selectAllItems(allIds))
     }
 
-    const deselectAllItems = () => {
-        setSelectedItems(new Set())
+    const handleDeselectAllItems = () => {
+        dispatch(clearSelection())
     }
 
     // Get all selected items from Redux store (includes items from all pages)
@@ -1030,8 +1029,8 @@ export default function Inventory() {
         toast.success(`${itemsToAdd.length} ${itemsToAdd.length === 1 ? 'item agregado' : 'items agregados'} al carrito`)
 
         // Clear selection and exit selection mode
-        setSelectedItems(new Set())
-        setIsSelectionMode(false)
+        dispatch(clearSelection())
+        dispatch(setSelectionMode(false))
     }
 
     const handleBulkDelete = async () => {
@@ -1047,8 +1046,9 @@ export default function Inventory() {
                 )
 
                 // Clear selection and exit selection mode
-                setSelectedItems(new Set())
-                setIsSelectionMode(false)
+                dispatch(clearSelection())
+                dispatch(setSelectionMode(false))
+                toast.success('Piezas eliminadas correctamente')
             } catch (error) {
                 console.error('Error deleting items:', error)
                 alert('Error al eliminar algunas piezas. Por favor intenta de nuevo.')
@@ -1334,7 +1334,7 @@ export default function Inventory() {
                         <>
                             <Button
                                 variant="secondary"
-                                onClick={toggleSelectionMode}
+                                onClick={handleToggleSelectionMode}
                                 size="sm"
                             >
                                 Cancelar
@@ -1343,7 +1343,7 @@ export default function Inventory() {
                                 <>
                                     <Button
                                         variant="secondary"
-                                        onClick={deselectAllItems}
+                                        onClick={handleDeselectAllItems}
                                         size="sm"
                                     >
                                         Deseleccionar ({selectedItems.size})
@@ -1374,6 +1374,14 @@ export default function Inventory() {
                                     </Button>
                                     <Button
                                         variant="secondary"
+                                        icon={<Edit size={18} />}
+                                        onClick={() => setShowBulkEditModal(true)}
+                                        size="sm"
+                                    >
+                                        Editar ({selectedItems.size})
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
                                         icon={<Facebook size={18} />}
                                         onClick={() => setShowFacebookModal(true)}
                                         size="sm"
@@ -1393,7 +1401,7 @@ export default function Inventory() {
                             {selectedItems.size === 0 && filteredItems.length > 0 && (
                                 <Button
                                     variant="secondary"
-                                    onClick={selectAllItems}
+                                    onClick={handleSelectAllItems}
                                     size="sm"
                                 >
                                     Seleccionar Todo
@@ -1406,7 +1414,7 @@ export default function Inventory() {
                                 <Button
                                     variant="secondary"
                                     icon={<CheckSquare size={18} />}
-                                    onClick={toggleSelectionMode}
+                                    onClick={handleToggleSelectionMode}
                                     size="sm"
                                 >
                                     Seleccionar
@@ -1771,7 +1779,7 @@ export default function Inventory() {
                             >
                                 <div
                                     className={`${isSelectionMode ? 'cursor-pointer' : ''}`}
-                                    onClick={() => isSelectionMode && item._id && toggleItemSelection(item._id)}
+                                    onClick={() => isSelectionMode && item._id && handleToggleItemSelection(item._id)}
                                 >
                                     {/* Selection Checkbox */}
                                     {isSelectionMode && (
@@ -1779,7 +1787,7 @@ export default function Inventory() {
                                             <input
                                                 type="checkbox"
                                                 checked={selectedItems.has(item._id!)}
-                                                onChange={() => item._id && toggleItemSelection(item._id)}
+                                                onChange={() => item._id && handleToggleItemSelection(item._id)}
                                                 className="w-6 h-6 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
                                                 onClick={(e) => e.stopPropagation()}
                                             />
@@ -3570,8 +3578,8 @@ export default function Inventory() {
                 onClose={() => setShowFacebookModal(false)}
                 selectedItems={getSelectedItems()}
                 onSuccess={() => {
-                    setIsSelectionMode(false)
-                    setSelectedItems(new Set())
+                    dispatch(setSelectionMode(false))
+                    dispatch(clearSelection())
                 }}
             />
 
@@ -3588,6 +3596,29 @@ export default function Inventory() {
                 isOpen={showCollageModal}
                 onClose={() => setShowCollageModal(false)}
                 selectedItems={getSelectedItems()}
+            />
+
+            {/* Bulk Edit Modal */}
+            <BulkEditModal
+                isOpen={showBulkEditModal}
+                onClose={() => setShowBulkEditModal(false)}
+                selectedItems={getSelectedItems()}
+                onSave={async (updates) => {
+                    try {
+                        await Promise.all(
+                            getSelectedItems().map(item =>
+                                updateItemMutation.mutateAsync({
+                                    id: item._id!,
+                                    data: updates as any
+                                })
+                            )
+                        )
+                        setShowBulkEditModal(false)
+                    } catch (error) {
+                        console.error('Error updating items:', error)
+                        throw error
+                    }
+                }}
             />
         </div>
     )
