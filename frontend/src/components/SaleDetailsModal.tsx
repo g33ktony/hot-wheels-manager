@@ -42,8 +42,8 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                                 <p><span className="font-medium">Método de pago:</span> {sale.paymentMethod}</p>
                                 <p><span className="font-medium">Estado:</span>
                                     <span className={`ml-2 px-2 py-1 text-xs rounded-full ${sale.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                            sale.status === 'pending' ? 'bg-blue-100 text-blue-800' :
-                                                'bg-red-100 text-red-800'
+                                        sale.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                                            'bg-red-100 text-red-800'
                                         }`}>
                                         {sale.status === 'completed' && '✓ Completada'}
                                         {sale.status === 'pending' && 'Pendiente'}
@@ -59,8 +59,8 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                                 <p><span className="font-medium">Total:</span> ${(sale.totalAmount || 0).toFixed(2)}</p>
                                 <p><span className="font-medium">Estado de pago:</span>
                                     <span className={`ml-2 px-2 py-1 text-xs rounded-full ${sale.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                            sale.status === 'pending' ? 'bg-red-100 text-red-800' :
-                                                'bg-red-100 text-red-800'
+                                        sale.status === 'pending' ? 'bg-red-100 text-red-800' :
+                                            'bg-red-100 text-red-800'
                                         }`}>
                                         {sale.status === 'completed' && '✓ Pagado'}
                                         {sale.status === 'pending' && 'Sin pagar'}
