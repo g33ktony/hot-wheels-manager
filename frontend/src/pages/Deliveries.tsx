@@ -14,7 +14,7 @@ import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import DeliveryCard from '@/components/DeliveryCard'
 import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
-import { Plus, Search, Truck, X, Package, CheckCircle, Clock, UserPlus, TrendingUp } from 'lucide-react'
+import { Plus, Search, Truck, X, Package, CheckCircle, Clock, UserPlus, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
 import DeliveryReport from '@/components/DeliveryReport'
@@ -29,6 +29,9 @@ export default function Deliveries() {
     const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [showReportModal, setShowReportModal] = useState(false)
+    const [showImageModal, setShowImageModal] = useState(false)
+    const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
     const [editingDelivery, setEditingDelivery] = useState<any>(null)
     const [isEditMode, setIsEditMode] = useState(false)
@@ -348,6 +351,26 @@ export default function Deliveries() {
     const handleCloseDetails = () => {
         setShowDetailsModal(false)
         setSelectedDelivery(null)
+    }
+
+    const handleOpenImageModal = (images: string[]) => {
+        setAllImagesForModal(images)
+        setCurrentImageIndex(0)
+        setShowImageModal(true)
+    }
+
+    const handleCloseImageModal = () => {
+        setShowImageModal(false)
+        setAllImagesForModal([])
+        setCurrentImageIndex(0)
+    }
+
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prev) => (prev === 0 ? allImagesForModal.length - 1 : prev - 1))
+    }
+
+    const handleNextImage = () => {
+        setCurrentImageIndex((prev) => (prev === allImagesForModal.length - 1 ? 0 : prev + 1))
     }
 
     const handleOpenPaymentModal = () => {
@@ -1589,6 +1612,7 @@ export default function Deliveries() {
                 preSaleItems={preSaleItems}
                 markPreparedLoading={markPreparedMutation.isLoading}
                 markCompletedLoading={markCompletedMutation.isLoading}
+                onOpenImageModal={handleOpenImageModal}
             />
 
             {/* Payment Modal */}
@@ -1718,6 +1742,45 @@ export default function Deliveries() {
                             <DeliveryReport delivery={selectedDelivery} onClose={handleCloseReport} inline />
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Fullscreen Image Modal */}
+            {showImageModal && allImagesForModal.length > 0 && (
+                <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[70]">
+                    <button
+                        onClick={handleCloseImageModal}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300"
+                    >
+                        <X size={24} />
+                    </button>
+
+                    <button
+                        onClick={handlePrevImage}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
+                    >
+                        <ChevronLeft size={32} />
+                    </button>
+
+                    <div className="flex flex-col items-center justify-center max-w-4xl max-h-[90vh]">
+                        <img
+                            src={allImagesForModal[currentImageIndex]}
+                            alt={`Imagen ${currentImageIndex + 1}`}
+                            className="max-w-full max-h-[80vh] object-contain"
+                        />
+                        <div className="mt-4 text-white text-center">
+                            <p className="text-sm">
+                                Imagen {currentImageIndex + 1} de {allImagesForModal.length}
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleNextImage}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
+                    >
+                        <ChevronRight size={32} />
+                    </button>
                 </div>
             )}
         </div>
