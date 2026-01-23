@@ -6,6 +6,8 @@ import { salesService } from '@/services/sales'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
+import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
+import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import {
     ArrowLeft, Mail, Phone, MapPin, MessageCircle, DollarSign, Package, CheckCircle,
     AlertCircle, User, Calendar, ShoppingCart, Truck, X, ChevronLeft, ChevronRight
@@ -530,253 +532,21 @@ export default function CustomerProfile() {
             </Card>
 
             {/* Delivery Details Modal */}
-            {selectedDeliveryId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
-                            <h2 className="text-xl font-semibold text-gray-900">Detalles de Entrega</h2>
-                            <button
-                                onClick={() => setSelectedDeliveryId(null)}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        {deliveries.find(d => d._id === selectedDeliveryId) && (
-                            <div className="p-6">
-                                {/* Delivery Info */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <h3 className="font-medium text-gray-900 mb-4">Información General</h3>
-                                        <div className="space-y-2 text-sm">
-                                            <p><span className="font-medium">Cliente:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.customer?.name}</p>
-                                            <p><span className="font-medium">Email:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.customer?.email}</p>
-                                            <p><span className="font-medium">Teléfono:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.customer?.phone}</p>
-                                            <p><span className="font-medium">Fecha programada:</span> {new Date(deliveries.find(d => d._id === selectedDeliveryId)?.scheduledDate || '').toLocaleDateString('es-ES')}</p>
-                                            <p><span className="font-medium">Ubicación:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.location}</p>
-                                            <p><span className="font-medium">Estado:</span>
-                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                        deliveries.find(d => d._id === selectedDeliveryId)?.status === 'prepared' ? 'bg-orange-100 text-orange-800' :
-                                                            deliveries.find(d => d._id === selectedDeliveryId)?.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                                                                'bg-yellow-100 text-yellow-800'
-                                                    }`}>
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' && '✓ Completada'}
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'prepared' && 'Preparada'}
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'scheduled' && 'Programada'}
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status && !['completed', 'prepared', 'scheduled'].includes(deliveries.find(d => d._id === selectedDeliveryId)?.status || '') && 'Pendiente'}
-                                                    {!deliveries.find(d => d._id === selectedDeliveryId)?.status && 'Pendiente'}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-medium text-gray-900 mb-4">Resumen Financiero</h3>
-                                        <div className="space-y-2 text-sm">
-                                            <p><span className="font-medium">Total:</span> ${(deliveries.find(d => d._id === selectedDeliveryId)?.totalAmount || 0).toFixed(2)}</p>
-                                            <p><span className="font-medium">Estado de pago:</span>
-                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                        deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                                                            deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' && '✓ Pagado'}
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status !== 'completed' && deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'paid' && '✓ Pagado'}
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'partial' && `Parcial: $${(deliveries.find(d => d._id === selectedDeliveryId)?.paidAmount || 0).toFixed(2)}`}
-                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'pending' && 'Sin pagar'}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Items */}
-                                <div className="mb-6">
-                                    <h3 className="font-medium text-gray-900 mb-4">Items ({deliveries.find(d => d._id === selectedDeliveryId)?.items?.length || 0})</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {deliveries.find(d => d._id === selectedDeliveryId)?.items?.map((item: any, idx: number) => {
-                                            const inventoryItem = item.inventoryItemId ? (typeof item.inventoryItemId === 'object' ? item.inventoryItemId : null) : null
-                                            const photos = inventoryItem?.photos || []
-                                            return (
-                                                <div key={idx} className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                                                    {/* Image */}
-                                                    {photos.length > 0 ? (
-                                                        <div
-                                                            className="h-40 bg-gray-100 overflow-hidden cursor-pointer relative group"
-                                                            onClick={() => handleOpenImageModal(photos)}
-                                                        >
-                                                            <img
-                                                                src={photos[0]}
-                                                                alt={item.carName}
-                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                                            />
-                                                            {photos.length > 1 && (
-                                                                <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                                                                    {photos.length} fotos
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="h-40 bg-gray-100 flex items-center justify-center">
-                                                            <Package size={32} className="text-gray-400" />
-                                                        </div>
-                                                    )}
-
-                                                    {/* Item Info */}
-                                                    <div className="p-4">
-                                                        <p className="font-semibold text-gray-900 mb-2 truncate">{item.carName}</p>
-                                                        <div className="space-y-1 text-sm text-gray-600">
-                                                            <p>Cantidad: <span className="font-medium text-gray-900">{item.quantity}</span></p>
-                                                            <p>Precio unitario: <span className="font-medium text-gray-900">${item.price?.toFixed(2) || '0.00'}</span></p>
-                                                            <p>Subtotal: <span className="font-medium text-green-600">${(item.quantity * (item.price || 0)).toFixed(2)}</span></p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-
-                                {/* Notes */}
-                                {deliveries.find(d => d._id === selectedDeliveryId)?.notes && (
-                                    <div className="mb-6">
-                                        <h3 className="font-medium text-gray-900 mb-2">Notas</h3>
-                                        <p className="text-sm text-gray-700">{deliveries.find(d => d._id === selectedDeliveryId)?.notes}</p>
-                                    </div>
-                                )}
-
-                                <Button
-                                    onClick={() => {
-                                        setSelectedDeliveryId(null)
-                                        navigate('/deliveries')
-                                    }}
-                                    className="w-full"
-                                >
-                                    Ver en Entregas
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            <DeliveryDetailsModal
+                delivery={deliveries.find(d => d._id === selectedDeliveryId) || null}
+                isOpen={!!selectedDeliveryId}
+                onClose={() => setSelectedDeliveryId(null)}
+                onOpenImageModal={handleOpenImageModal}
+                isFromCustomerProfile={true}
+            />
 
             {/* Sale Details Modal */}
-            {selectedSaleId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
-                            <h2 className="text-xl font-semibold text-gray-900">Detalles de Venta</h2>
-                            <button
-                                onClick={() => setSelectedSaleId(null)}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        {sales.find(s => s._id === selectedSaleId) && (
-                            <div className="p-6">
-                                {/* Sale Info */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <h3 className="font-medium text-gray-900 mb-4">Información General</h3>
-                                        <div className="space-y-2 text-sm">
-                                            <p><span className="font-medium">Cliente:</span> {sales.find(s => s._id === selectedSaleId)?.customer?.name}</p>
-                                            <p><span className="font-medium">Email:</span> {sales.find(s => s._id === selectedSaleId)?.customer?.email}</p>
-                                            <p><span className="font-medium">Teléfono:</span> {sales.find(s => s._id === selectedSaleId)?.customer?.phone}</p>
-                                            <p><span className="font-medium">Fecha de venta:</span> {new Date(sales.find(s => s._id === selectedSaleId)?.saleDate || '').toLocaleDateString('es-ES')}</p>
-                                            <p><span className="font-medium">Método de pago:</span> {sales.find(s => s._id === selectedSaleId)?.paymentMethod}</p>
-                                            <p><span className="font-medium">Estado:</span>
-                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${sales.find(s => s._id === selectedSaleId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                        sales.find(s => s._id === selectedSaleId)?.status === 'pending' ? 'bg-blue-100 text-blue-800' :
-                                                            'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'completed' && '✓ Completada'}
-                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'pending' && 'Pendiente'}
-                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'cancelled' && 'Cancelada'}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="font-medium text-gray-900 mb-4">Resumen Financiero</h3>
-                                        <div className="space-y-2 text-sm">
-                                            <p><span className="font-medium">Total:</span> ${(sales.find(s => s._id === selectedSaleId)?.totalAmount || 0).toFixed(2)}</p>
-                                            <p><span className="font-medium">Estado de pago:</span>
-                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${sales.find(s => s._id === selectedSaleId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                        sales.find(s => s._id === selectedSaleId)?.status === 'pending' ? 'bg-red-100 text-red-800' :
-                                                            'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'completed' && '✓ Pagado'}
-                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'pending' && 'Sin pagar'}
-                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'cancelled' && 'Cancelada'}
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Items */}
-                                <div className="mb-6">
-                                    <h3 className="font-medium text-gray-900 mb-4">Items ({sales.find(s => s._id === selectedSaleId)?.items?.length || 0})</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {sales.find(s => s._id === selectedSaleId)?.items?.map((item: any, idx: number) => {
-                                            const inventoryItem = item.inventoryItemId ? (typeof item.inventoryItemId === 'object' ? item.inventoryItemId : null) : null
-                                            const photos = inventoryItem?.photos || []
-                                            return (
-                                                <div key={idx} className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                                                    {/* Image */}
-                                                    {photos.length > 0 ? (
-                                                        <div
-                                                            className="h-40 bg-gray-100 overflow-hidden cursor-pointer relative group"
-                                                            onClick={() => handleOpenImageModal(photos)}
-                                                        >
-                                                            <img
-                                                                src={photos[0]}
-                                                                alt={item.carName}
-                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                                            />
-                                                            {photos.length > 1 && (
-                                                                <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                                                                    {photos.length} fotos
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="h-40 bg-gray-100 flex items-center justify-center">
-                                                            <Package size={32} className="text-gray-400" />
-                                                        </div>
-                                                    )}
-
-                                                    {/* Item Info */}
-                                                    <div className="p-4">
-                                                        <p className="font-semibold text-gray-900 mb-2 truncate">{item.carName}</p>
-                                                        <div className="space-y-1 text-sm text-gray-600">
-                                                            <p>Cantidad: <span className="font-medium text-gray-900">{item.quantity}</span></p>
-                                                            <p>Precio unitario: <span className="font-medium text-gray-900">${item.unitPrice?.toFixed(2) || '0.00'}</span></p>
-                                                            <p>Subtotal: <span className="font-medium text-green-600">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</span></p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-
-                                {/* Notes */}
-                                {sales.find(s => s._id === selectedSaleId)?.notes && (
-                                    <div className="mb-6">
-                                        <h3 className="font-medium text-gray-900 mb-2">Notas</h3>
-                                        <p className="text-sm text-gray-700">{sales.find(s => s._id === selectedSaleId)?.notes}</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            <SaleDetailsModal
+                sale={sales.find(s => s._id === selectedSaleId) || null}
+                isOpen={!!selectedSaleId}
+                onClose={() => setSelectedSaleId(null)}
+                onOpenImageModal={handleOpenImageModal}
+            />
 
             {/* Image Viewer Modal */}
             {showImageModal && allImagesForModal.length > 0 && (
