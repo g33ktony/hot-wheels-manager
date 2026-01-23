@@ -30,8 +30,9 @@ export default function CustomerProfile() {
         async () => {
             const allDeliveries = await deliveriesService.getAll()
             return customerId ? allDeliveries.filter((d: any) => {
-                const dCustomerId = typeof d.customerId === 'object' ? d.customerId._id : d.customerId
-                return dCustomerId === customerId && d.status === 'completed'
+                const dCustomerId = typeof d.customerId === 'object' ? d.customerId._id?.toString() : d.customerId?.toString()
+                const cId = customerId?.toString()
+                return dCustomerId === cId && d.status === 'completed'
             }) : []
         },
         { enabled: !!customerId }
@@ -43,8 +44,9 @@ export default function CustomerProfile() {
         async () => {
             const allSales = await salesService.getAll()
             return customerId ? allSales.filter((s: any) => {
-                const sCustomerId = typeof s.customerId === 'object' ? s.customerId._id : s.customerId
-                return sCustomerId === customerId && s.status === 'completed'
+                const sCustomerId = typeof s.customerId === 'object' ? s.customerId._id?.toString() : s.customerId?.toString()
+                const cId = customerId?.toString()
+                return sCustomerId === cId && s.status === 'completed'
             }) : []
         },
         { enabled: !!customerId }
