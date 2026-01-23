@@ -35,25 +35,7 @@ export default function CustomerProfile() {
 
     const isLoading = isLoadingCustomer || isLoadingDeliveries
 
-    if (isLoading) {
-        return <Loading text="Cargando perfil del cliente..." />
-    }
-
-    if (customerError || !customer) {
-        return (
-            <div className="max-w-6xl mx-auto px-4 py-8">
-                <div className="text-center py-12">
-                    <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
-                    <p className="text-red-600 mb-6">Error al cargar el cliente</p>
-                    <Button onClick={() => navigate('/deliveries')} variant="secondary">
-                        Volver a Entregas
-                    </Button>
-                </div>
-            </div>
-        )
-    }
-
-    // Calculate payment statistics
+    // Calculate payment statistics - MUST be before any return statements
     const paymentStats = useMemo(() => {
         const stats = {
             totalDeliveries: deliveries.length,
@@ -84,6 +66,24 @@ export default function CustomerProfile() {
 
         return stats
     }, [deliveries])
+
+    if (isLoading) {
+        return <Loading text="Cargando perfil del cliente..." />
+    }
+
+    if (customerError || !customer) {
+        return (
+            <div className="max-w-6xl mx-auto px-4 py-8">
+                <div className="text-center py-12">
+                    <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
+                    <p className="text-red-600 mb-6">Error al cargar el cliente</p>
+                    <Button onClick={() => navigate('/deliveries')} variant="secondary">
+                        Volver a Entregas
+                    </Button>
+                </div>
+            </div>
+        )
+    }
 
     const getPaymentStatusColor = (status: string) => {
         switch (status) {
