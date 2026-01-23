@@ -335,7 +335,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                     ? (preSaleItemData?.basePricePerUnit || item.basePricePerUnit || 0)
                                     : (inventoryItem && typeof inventoryItem.purchasePrice === 'number' && inventoryItem.purchasePrice > 0 ? inventoryItem.purchasePrice : 0)
                                 const profit = item.unitPrice - cost
-                                const itemPhotos = inventoryItem?.photos || []
+                                const itemPhotos = inventoryItem?.photos || item.photos || []
 
                                 return (
                                     <div key={index} className="border rounded-lg overflow-hidden">

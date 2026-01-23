@@ -74,7 +74,7 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                     {/* Items */}
                     <div className="mb-6">
                         <h3 className="font-medium text-gray-900 mb-4">Piezas Vendidas ({sale.items?.length || 0})</h3>
-                        <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {sale.items?.map((item: any, idx: number) => {
                                 const inventoryItem = item.inventoryItemId ? (typeof item.inventoryItemId === 'object' ? item.inventoryItemId : null) : null
                                 const photos = inventoryItem?.photos || []
