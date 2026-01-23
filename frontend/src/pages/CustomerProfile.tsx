@@ -10,12 +10,14 @@ import {
     ArrowLeft, Mail, Phone, MapPin, MessageCircle, DollarSign, Package, CheckCircle,
     AlertCircle, User, Calendar, ShoppingCart, Truck
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { Delivery } from '../../../shared/types'
 
 export default function CustomerProfile() {
     const { customerId } = useParams<{ customerId: string }>()
     const navigate = useNavigate()
+    const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null)
+    const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null)
 
     // Fetch customer details
     const { data: customer, isLoading: isLoadingCustomer, error: customerError } = useQuery(
@@ -332,7 +334,8 @@ export default function CustomerProfile() {
                                     {deliveries.map((delivery: Delivery) => (
                                         <div
                                             key={`delivery-${delivery._id}`}
-                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-blue-50"
+                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-blue-50 cursor-pointer"
+                                            onClick={() => setSelectedDeliveryId(delivery._id)}
                                         >
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
                                                 {/* Date and Status */}
@@ -422,7 +425,8 @@ export default function CustomerProfile() {
                                     {sales.map((sale: any) => (
                                         <div
                                             key={`sale-${sale._id}`}
-                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-green-50"
+                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-green-50 cursor-pointer"
+                                            onClick={() => setSelectedSaleId(sale._id)}
                                         >
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
                                                 {/* Date */}
@@ -484,6 +488,69 @@ export default function CustomerProfile() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Delivery Details Modal */}
+            {selectedDeliveryId && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">Detalles de Entrega</h2>
+                            <button
+                                onClick={() => setSelectedDeliveryId(null)}
+                                className="text-gray-600 hover:text-gray-900"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        {deliveries.find(d => d._id === selectedDeliveryId) && (
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-sm text-gray-600">Información de la entrega</p>
+                                    <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto">
+                                        {JSON.stringify(deliveries.find(d => d._id === selectedDeliveryId), null, 2)}
+                                    </pre>
+                                </div>
+                                <Button
+                                    onClick={() => {
+                                        setSelectedDeliveryId(null)
+                                        navigate('/deliveries')
+                                    }}
+                                    className="w-full"
+                                >
+                                    Ver en Entregas
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Sale Details Modal */}
+            {selectedSaleId && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto p-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold">Detalles de Venta</h2>
+                            <button
+                                onClick={() => setSelectedSaleId(null)}
+                                className="text-gray-600 hover:text-gray-900"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        {sales.find(s => s._id === selectedSaleId) && (
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-sm text-gray-600">Información de la venta</p>
+                                    <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto">
+                                        {JSON.stringify(sales.find(s => s._id === selectedSaleId), null, 2)}
+                                    </pre>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
