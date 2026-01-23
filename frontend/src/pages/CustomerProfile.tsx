@@ -2,12 +2,13 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { customersService } from '@/services/customers'
 import { deliveriesService } from '@/services/deliveries'
+import { salesService } from '@/services/sales'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
 import {
     ArrowLeft, Mail, Phone, MapPin, MessageCircle, DollarSign, Package, CheckCircle,
-    AlertCircle, User, Calendar
+    AlertCircle, User, Calendar, ShoppingCart, Truck
 } from 'lucide-react'
 import { useMemo } from 'react'
 import type { Delivery } from '../../../shared/types'
@@ -33,13 +34,23 @@ export default function CustomerProfile() {
         { enabled: !!customerId }
     )
 
-    const isLoading = isLoadingCustomer || isLoadingDeliveries
+    // Fetch all completed sales for this customer
+    const { data: sales = [], isLoading: isLoadingSales } = useQuery(
+        ['sales'],
+        async () => {
+            const allSales = await salesService.getAll()
+            return customerId ? allSales.filter((s: any) => (s.customerId === customerId || (typeof s.customerId === 'object' && s.customerId._id === customerId)) && s.status === 'completed') : []
+        },
+        { enabled: !!customerId }
+    )
 
+    const isLoading = isLoadingCustomer || isLoadingDeliveries || isLoadingSales
     // Calculate payment statistics - MUST be before any return statements
     const paymentStats = useMemo(() => {
         const stats = {
             totalDeliveries: deliveries.length,
             completedDeliveries: deliveries.filter(d => d.status === 'completed').length,
+            totalSales: sales.length,
             totalAmount: 0,
             paidAmount: 0,
             pendingAmount: 0,
@@ -64,8 +75,25 @@ export default function CustomerProfile() {
             }
         })
 
+        // Add sales amounts
+        sales.forEach((s: any) => {
+            stats.totalAmount += s.totalAmount || 0
+            if (s.paymentStatus === 'paid') {
+                stats.paidAmount += s.totalAmount || 0
+                stats.paidCount += 1
+            } else if (s.paymentStatus === 'partial') {
+                const paidAmount = (s.paidAmount || 0)
+                stats.paidAmount += paidAmount
+                stats.pendingAmount += (s.totalAmount || 0) - paidAmount
+                stats.partialPaymentCount += 1
+            } else {
+                stats.pendingAmount += s.totalAmount || 0
+                stats.pendingCount += 1
+            }
+        })
+
         return stats
-    }, [deliveries])
+    }, [deliveries, sales])
 
     if (isLoading) {
         return <Loading text="Cargando perfil del cliente..." />
@@ -294,97 +322,176 @@ export default function CustomerProfile() {
                 </CardContent>
             </Card>
 
-            {/* Deliveries List */}
+            {/* Deliveries and Sales History */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Historial de Entregas</CardTitle>
+                    <CardTitle>Historial de Entregas y Ventas</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {deliveries.length > 0 ? (
+                    {deliveries.length > 0 || sales.length > 0 ? (
                         <div className="space-y-3">
-                            {deliveries.map((delivery: Delivery) => (
-                                <div
-                                    key={delivery._id}
-                                    className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                                >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-                                        {/* Date and Status */}
-                                        <div>
-                                            <p className="text-xs text-gray-500 mb-1">FECHA</p>
-                                            <div className="flex items-center gap-2">
-                                                <Calendar size={16} className="text-gray-400" />
-                                                <p className="font-semibold text-gray-900">
-                                                    {new Date(delivery.scheduledDate).toLocaleDateString('es-ES')}
-                                                </p>
-                                            </div>
-                                            {delivery.scheduledTime && (
-                                                <p className="text-sm text-gray-600 mt-1">a las {delivery.scheduledTime}</p>
-                                            )}
-                                        </div>
-
-                                        {/* Items and Location */}
-                                        <div>
-                                            <p className="text-xs text-gray-500 mb-1">UBICACIÓN</p>
-                                            <div className="flex items-start gap-2">
-                                                <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                                <p className="font-semibold text-gray-900">{delivery.location}</p>
-                                            </div>
-                                            <p className="text-sm text-gray-600 mt-1">{delivery.items.length} items</p>
-                                        </div>
-
-                                        {/* Amount and Payment Status */}
-                                        <div>
-                                            <p className="text-xs text-gray-500 mb-1">MONTO</p>
-                                            <p className="text-lg font-bold text-gray-900">${delivery.totalAmount.toFixed(2)}</p>
-                                            <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(delivery.paymentStatus || 'pending')}`}>
-                                                {delivery.paymentStatus === 'paid' && '✓ Pagado'}
-                                                {delivery.paymentStatus === 'partial' && `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}`}
-                                                {delivery.paymentStatus === 'pending' && 'Sin pagar'}
-                                            </span>
-                                        </div>
-
-                                        {/* Delivery Status */}
-                                        <div>
-                                            <p className="text-xs text-gray-500 mb-1">ESTADO</p>
-                                            <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getDeliveryStatusColor(delivery.status)}`}>
-                                                {delivery.status === 'completed' && '✓ Completada'}
-                                                {delivery.status === 'prepared' && 'Preparada'}
-                                                {delivery.status === 'scheduled' && 'Programada'}
-                                                {delivery.status === 'cancelled' && 'Cancelada'}
-                                            </span>
-                                            {delivery.completedDate && (
-                                                <p className="text-xs text-gray-600 mt-1">
-                                                    {new Date(delivery.completedDate).toLocaleDateString('es-ES')}
-                                                </p>
-                                            )}
-                                        </div>
+                            {/* Deliveries */}
+                            {deliveries.length > 0 && (
+                                <>
+                                    <div className="mb-4 pb-4 border-b">
+                                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                            <Truck size={16} className="text-blue-600" />
+                                            Entregas ({deliveries.length})
+                                        </h3>
                                     </div>
+                                    {deliveries.map((delivery: Delivery) => (
+                                        <div
+                                            key={`delivery-${delivery._id}`}
+                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-blue-50"
+                                        >
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                                                {/* Date and Status */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">FECHA</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar size={16} className="text-gray-400" />
+                                                        <p className="font-semibold text-gray-900">
+                                                            {new Date(delivery.scheduledDate).toLocaleDateString('es-ES')}
+                                                        </p>
+                                                    </div>
+                                                    {delivery.scheduledTime && (
+                                                        <p className="text-sm text-gray-600 mt-1">a las {delivery.scheduledTime}</p>
+                                                    )}
+                                                </div>
 
-                                    {/* Third-party delivery info */}
-                                    {delivery.isThirdPartyDelivery && delivery.thirdPartyRecipient && (
-                                        <div className="mt-3 p-2 bg-purple-50 rounded border border-purple-200">
-                                            <p className="text-xs text-purple-700 font-medium">
-                                                👤 Entregado a: {delivery.thirdPartyRecipient}
-                                                {delivery.thirdPartyPhone && ` • 📱 ${delivery.thirdPartyPhone}`}
-                                            </p>
-                                        </div>
-                                    )}
+                                                {/* Items and Location */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">UBICACIÓN</p>
+                                                    <div className="flex items-start gap-2">
+                                                        <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                                                        <p className="font-semibold text-gray-900">{delivery.location}</p>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mt-1">{delivery.items.length} items</p>
+                                                </div>
 
-                                    {/* Notes */}
-                                    {delivery.notes && (
-                                        <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
-                                            <p className="text-xs text-blue-700">
-                                                📝 {delivery.notes}
-                                            </p>
+                                                {/* Amount and Payment Status */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">MONTO</p>
+                                                    <p className="text-lg font-bold text-gray-900">${delivery.totalAmount.toFixed(2)}</p>
+                                                    <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(delivery.paymentStatus || 'pending')}`}>
+                                                        {delivery.paymentStatus === 'paid' && '✓ Pagado'}
+                                                        {delivery.paymentStatus === 'partial' && `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}`}
+                                                        {delivery.paymentStatus === 'pending' && 'Sin pagar'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Delivery Status */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">ESTADO</p>
+                                                    <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${getDeliveryStatusColor(delivery.status)}`}>
+                                                        {delivery.status === 'completed' && '✓ Completada'}
+                                                        {delivery.status === 'prepared' && 'Preparada'}
+                                                        {delivery.status === 'scheduled' && 'Programada'}
+                                                        {delivery.status === 'cancelled' && 'Cancelada'}
+                                                    </span>
+                                                    {delivery.completedDate && (
+                                                        <p className="text-xs text-gray-600 mt-1">
+                                                            {new Date(delivery.completedDate).toLocaleDateString('es-ES')}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Third-party delivery info */}
+                                            {delivery.isThirdPartyDelivery && delivery.thirdPartyRecipient && (
+                                                <div className="mt-3 p-2 bg-purple-50 rounded border border-purple-200">
+                                                    <p className="text-xs text-purple-700 font-medium">
+                                                        👤 Entregado a: {delivery.thirdPartyRecipient}
+                                                        {delivery.thirdPartyPhone && ` • 📱 ${delivery.thirdPartyPhone}`}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Notes */}
+                                            {delivery.notes && (
+                                                <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+                                                    <p className="text-xs text-blue-700">
+                                                        📝 {delivery.notes}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                            ))}
+                                    ))}
+                                </>
+                            )}
+
+                            {/* Sales */}
+                            {sales.length > 0 && (
+                                <>
+                                    <div className="mb-4 pb-4 border-b">
+                                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                            <ShoppingCart size={16} className="text-green-600" />
+                                            Ventas Completadas ({sales.length})
+                                        </h3>
+                                    </div>
+                                    {sales.map((sale: any) => (
+                                        <div
+                                            key={`sale-${sale._id}`}
+                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-green-50"
+                                        >
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                                                {/* Date */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">FECHA DE VENTA</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar size={16} className="text-gray-400" />
+                                                        <p className="font-semibold text-gray-900">
+                                                            {new Date(sale.date || sale.createdAt).toLocaleDateString('es-ES')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Items */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">ITEMS</p>
+                                                    <div className="flex items-start gap-2">
+                                                        <Package size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                                                        <p className="font-semibold text-gray-900">{sale.items?.length || 0} items</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Amount and Payment Status */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">MONTO</p>
+                                                    <p className="text-lg font-bold text-gray-900">${sale.totalAmount.toFixed(2)}</p>
+                                                    <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(sale.paymentStatus || 'pending')}`}>
+                                                        {sale.paymentStatus === 'paid' && '✓ Pagado'}
+                                                        {sale.paymentStatus === 'partial' && `Parcial: $${(sale.paidAmount || 0).toFixed(2)}`}
+                                                        {sale.paymentStatus === 'pending' && 'Sin pagar'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Status */}
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-1">ESTADO</p>
+                                                    <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                                        ✓ Completada
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Notes */}
+                                            {sale.notes && (
+                                                <div className="mt-3 p-2 bg-green-50 rounded border border-green-200">
+                                                    <p className="text-xs text-green-700">
+                                                        📝 {sale.notes}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </>
+                            )}
                         </div>
                     ) : (
                         <div className="text-center py-12">
                             <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                            <p className="text-gray-600">No hay entregas para este cliente</p>
+                            <p className="text-gray-600">No hay entregas ni ventas para este cliente</p>
                         </div>
                     )}
                 </CardContent>
