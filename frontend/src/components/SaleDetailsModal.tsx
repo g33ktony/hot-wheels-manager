@@ -77,7 +77,7 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {sale.items?.map((item: any, idx: number) => {
                                 const inventoryItem = item.inventoryItemId ? (typeof item.inventoryItemId === 'object' ? item.inventoryItemId : null) : null
-                                const photos = inventoryItem?.photos || []
+                                const photos = item.photos || inventoryItem?.photos || []
                                 return (
                                     <div key={idx} className="border rounded-lg overflow-hidden">
                                         {/* Item Photos */}

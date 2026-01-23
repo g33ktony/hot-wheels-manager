@@ -32,10 +32,11 @@ export default function DeliveryCard({
     isLoadingCompleted,
     isLoadingDelete
 }: DeliveryCardProps) {
-    // Get photos from all items in the delivery
+    // Get photos from all items in the delivery (from inventory)
     const getItemPhotos = () => {
         const photos: string[] = []
         delivery.items.forEach(item => {
+            // Get photos from inventoryItems
             const inventoryItem = inventoryItems.find(inv => inv._id === item.inventoryItemId)
             if (inventoryItem?.photos && inventoryItem.photos.length > 0) {
                 photos.push(...inventoryItem.photos.slice(0, 2)) // Get up to 2 photos per item
