@@ -8,7 +8,7 @@ import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
 import {
     ArrowLeft, Mail, Phone, MapPin, MessageCircle, DollarSign, Package, CheckCircle,
-    AlertCircle, User, Calendar, ShoppingCart, Truck
+    AlertCircle, User, Calendar, ShoppingCart, Truck, X, ChevronLeft, ChevronRight
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Delivery } from '../../../shared/types'
@@ -18,6 +18,9 @@ export default function CustomerProfile() {
     const navigate = useNavigate()
     const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null)
     const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null)
+    const [showImageModal, setShowImageModal] = useState(false)
+    const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
     // Fetch customer details
     const { data: customer, isLoading: isLoadingCustomer, error: customerError } = useQuery(
@@ -146,6 +149,24 @@ export default function CustomerProfile() {
             default:
                 return <User size={16} />
         }
+    }
+
+    const handleOpenImageModal = (images: string[]) => {
+        setAllImagesForModal(images)
+        setCurrentImageIndex(0)
+        setShowImageModal(true)
+    }
+
+    const handleCloseImageModal = () => {
+        setShowImageModal(false)
+    }
+
+    const handleNextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % allImagesForModal.length)
+    }
+
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + allImagesForModal.length) % allImagesForModal.length)
     }
 
     return (
@@ -531,12 +552,47 @@ export default function CustomerProfile() {
                                 {/* Items */}
                                 <div className="mb-6">
                                     <h3 className="font-medium text-gray-900 mb-4">Items ({deliveries.find(d => d._id === selectedDeliveryId)?.items?.length || 0})</h3>
-                                    <div className="space-y-2">
-                                        {deliveries.find(d => d._id === selectedDeliveryId)?.items?.map((item: any, idx: number) => (
-                                            <div key={idx} className="p-3 bg-gray-50 rounded border text-sm">
-                                                <p><span className="font-medium">{item.carName}</span> - Qty: {item.quantity} x ${item.price?.toFixed(2) || '0.00'}</p>
-                                            </div>
-                                        ))}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {deliveries.find(d => d._id === selectedDeliveryId)?.items?.map((item: any, idx: number) => {
+                                            const inventoryItem = item.inventoryItemId ? (typeof item.inventoryItemId === 'object' ? item.inventoryItemId : null) : null
+                                            const photos = inventoryItem?.photos || []
+                                            return (
+                                                <div key={idx} className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                                                    {/* Image */}
+                                                    {photos.length > 0 ? (
+                                                        <div
+                                                            className="h-40 bg-gray-100 overflow-hidden cursor-pointer relative group"
+                                                            onClick={() => handleOpenImageModal(photos)}
+                                                        >
+                                                            <img
+                                                                src={photos[0]}
+                                                                alt={item.carName}
+                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                                            />
+                                                            {photos.length > 1 && (
+                                                                <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                                                    {photos.length} fotos
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-40 bg-gray-100 flex items-center justify-center">
+                                                            <Package size={32} className="text-gray-400" />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Item Info */}
+                                                    <div className="p-4">
+                                                        <p className="font-semibold text-gray-900 mb-2 truncate">{item.carName}</p>
+                                                        <div className="space-y-1 text-sm text-gray-600">
+                                                            <p>Cantidad: <span className="font-medium text-gray-900">{item.quantity}</span></p>
+                                                            <p>Precio unitario: <span className="font-medium text-gray-900">${item.price?.toFixed(2) || '0.00'}</span></p>
+                                                            <p>Subtotal: <span className="font-medium text-green-600">${(item.quantity * (item.price || 0)).toFixed(2)}</span></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
                                 </div>
 
@@ -605,12 +661,47 @@ export default function CustomerProfile() {
                                 {/* Items */}
                                 <div className="mb-6">
                                     <h3 className="font-medium text-gray-900 mb-4">Items ({sales.find(s => s._id === selectedSaleId)?.items?.length || 0})</h3>
-                                    <div className="space-y-2">
-                                        {sales.find(s => s._id === selectedSaleId)?.items?.map((item: any, idx: number) => (
-                                            <div key={idx} className="p-3 bg-gray-50 rounded border text-sm">
-                                                <p><span className="font-medium">{item.carName}</span> - Qty: {item.quantity} x ${item.unitPrice?.toFixed(2) || '0.00'}</p>
-                                            </div>
-                                        ))}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {sales.find(s => s._id === selectedSaleId)?.items?.map((item: any, idx: number) => {
+                                            const inventoryItem = item.inventoryItemId ? (typeof item.inventoryItemId === 'object' ? item.inventoryItemId : null) : null
+                                            const photos = inventoryItem?.photos || []
+                                            return (
+                                                <div key={idx} className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                                                    {/* Image */}
+                                                    {photos.length > 0 ? (
+                                                        <div
+                                                            className="h-40 bg-gray-100 overflow-hidden cursor-pointer relative group"
+                                                            onClick={() => handleOpenImageModal(photos)}
+                                                        >
+                                                            <img
+                                                                src={photos[0]}
+                                                                alt={item.carName}
+                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                                            />
+                                                            {photos.length > 1 && (
+                                                                <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                                                    {photos.length} fotos
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-40 bg-gray-100 flex items-center justify-center">
+                                                            <Package size={32} className="text-gray-400" />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Item Info */}
+                                                    <div className="p-4">
+                                                        <p className="font-semibold text-gray-900 mb-2 truncate">{item.carName}</p>
+                                                        <div className="space-y-1 text-sm text-gray-600">
+                                                            <p>Cantidad: <span className="font-medium text-gray-900">{item.quantity}</span></p>
+                                                            <p>Precio unitario: <span className="font-medium text-gray-900">${item.unitPrice?.toFixed(2) || '0.00'}</span></p>
+                                                            <p>Subtotal: <span className="font-medium text-green-600">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</span></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
                                     </div>
                                 </div>
 
@@ -621,6 +712,67 @@ export default function CustomerProfile() {
                                         <p className="text-sm text-gray-700">{sales.find(s => s._id === selectedSaleId)?.notes}</p>
                                     </div>
                                 )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Image Viewer Modal */}
+            {showImageModal && allImagesForModal.length > 0 && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[60] p-4"
+                    onClick={handleCloseImageModal}
+                >
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        {/* Close Button */}
+                        <button
+                            onClick={handleCloseImageModal}
+                            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+                        >
+                            <X size={40} />
+                        </button>
+
+                        {/* Previous Button */}
+                        {allImagesForModal.length > 1 && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handlePrevImage()
+                                }}
+                                className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3 hover:bg-opacity-70"
+                            >
+                                <ChevronLeft size={40} />
+                            </button>
+                        )}
+
+                        {/* Image */}
+                        <img
+                            src={allImagesForModal[currentImageIndex]}
+                            alt={`Imagen ${currentImageIndex + 1}`}
+                            className="max-w-4xl max-h-[85vh] object-contain"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+
+                        {/* Next Button */}
+                        {allImagesForModal.length > 1 && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleNextImage()
+                                }}
+                                className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3 hover:bg-opacity-70"
+                            >
+                                <ChevronRight size={40} />
+                            </button>
+                        )}
+
+                        {/* Image Counter */}
+                        {allImagesForModal.length > 1 && (
+                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-center">
+                                <p className="text-sm bg-black bg-opacity-70 px-4 py-2 rounded">
+                                    {currentImageIndex + 1} de {allImagesForModal.length}
+                                </p>
                             </div>
                         )}
                     </div>
