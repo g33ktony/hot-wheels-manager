@@ -26,20 +26,26 @@ export default function CustomerProfile() {
 
     // Fetch all deliveries for this customer
     const { data: deliveries = [], isLoading: isLoadingDeliveries } = useQuery(
-        ['deliveries'],
+        ['deliveries', customerId],
         async () => {
             const allDeliveries = await deliveriesService.getAll()
-            return customerId ? allDeliveries.filter((d: any) => d.customerId === customerId || (typeof d.customerId === 'object' && d.customerId._id === customerId)) : []
+            return customerId ? allDeliveries.filter((d: any) => {
+                const dCustomerId = typeof d.customerId === 'object' ? d.customerId._id : d.customerId
+                return dCustomerId === customerId && d.status === 'completed'
+            }) : []
         },
         { enabled: !!customerId }
     )
 
     // Fetch all completed sales for this customer
     const { data: sales = [], isLoading: isLoadingSales } = useQuery(
-        ['sales'],
+        ['sales', customerId],
         async () => {
             const allSales = await salesService.getAll()
-            return customerId ? allSales.filter((s: any) => (s.customerId === customerId || (typeof s.customerId === 'object' && s.customerId._id === customerId)) && s.status === 'completed') : []
+            return customerId ? allSales.filter((s: any) => {
+                const sCustomerId = typeof s.customerId === 'object' ? s.customerId._id : s.customerId
+                return sCustomerId === customerId && s.status === 'completed'
+            }) : []
         },
         { enabled: !!customerId }
     )
@@ -59,37 +65,19 @@ export default function CustomerProfile() {
             pendingCount: 0
         }
 
+        // Entregas completadas = pagadas (porque estamos filtrando solo completed)
         deliveries.forEach((d: Delivery) => {
             stats.totalAmount += d.totalAmount || 0
-            if (d.paymentStatus === 'paid') {
-                stats.paidAmount += d.totalAmount || 0
-                stats.paidCount += 1
-            } else if (d.paymentStatus === 'partial') {
-                const paidAmount = (d.paidAmount || 0)
-                stats.paidAmount += paidAmount
-                stats.pendingAmount += (d.totalAmount || 0) - paidAmount
-                stats.partialPaymentCount += 1
-            } else {
-                stats.pendingAmount += d.totalAmount || 0
-                stats.pendingCount += 1
-            }
+            // Si está en status 'completed', ya está pagada
+            stats.paidAmount += d.totalAmount || 0
+            stats.paidCount += 1
         })
 
-        // Add sales amounts
+        // Ventas completadas = pagadas (todas las ventas completadas están pagadas)
         sales.forEach((s: any) => {
             stats.totalAmount += s.totalAmount || 0
-            if (s.paymentStatus === 'paid') {
-                stats.paidAmount += s.totalAmount || 0
-                stats.paidCount += 1
-            } else if (s.paymentStatus === 'partial') {
-                const paidAmount = (s.paidAmount || 0)
-                stats.paidAmount += paidAmount
-                stats.pendingAmount += (s.totalAmount || 0) - paidAmount
-                stats.partialPaymentCount += 1
-            } else {
-                stats.pendingAmount += s.totalAmount || 0
-                stats.pendingCount += 1
-            }
+            stats.paidAmount += s.totalAmount || 0
+            stats.paidCount += 1
         })
 
         return stats
@@ -441,7 +429,7 @@ export default function CustomerProfile() {
                                                     <div className="flex items-center gap-2">
                                                         <Calendar size={16} className="text-gray-400" />
                                                         <p className="font-semibold text-gray-900">
-                                                            {new Date(sale.date || sale.createdAt).toLocaleDateString('es-ES')}
+                                                            {new Date(sale.saleDate).toLocaleDateString('es-ES')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -455,14 +443,12 @@ export default function CustomerProfile() {
                                                     </div>
                                                 </div>
 
-                                                {/* Amount and Payment Status */}
+                                                {/* Amount - Sales are treated as fully paid once completed */}
                                                 <div>
                                                     <p className="text-xs text-gray-500 mb-1">MONTO</p>
                                                     <p className="text-lg font-bold text-gray-900">${sale.totalAmount.toFixed(2)}</p>
-                                                    <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(sale.paymentStatus || 'pending')}`}>
-                                                        {sale.paymentStatus === 'paid' && '✓ Pagado'}
-                                                        {sale.paymentStatus === 'partial' && `Parcial: $${(sale.paidAmount || 0).toFixed(2)}`}
-                                                        {sale.paymentStatus === 'pending' && 'Sin pagar'}
+                                                    <span className="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                                        ✓ Pagado
                                                     </span>
                                                 </div>
 
