@@ -37,7 +37,7 @@ export default function CustomerProfile() {
             return customerId ? allDeliveries.filter((d: any) => {
                 const dCustomerId = typeof d.customerId === 'object' ? d.customerId._id?.toString() : d.customerId?.toString()
                 const cId = customerId?.toString()
-                return dCustomerId === cId && d.status === 'completed'
+                return dCustomerId === cId
             }) : []
         },
         { enabled: !!customerId }
@@ -51,7 +51,7 @@ export default function CustomerProfile() {
             return customerId ? allSales.filter((s: any) => {
                 const sCustomerId = typeof s.customerId === 'object' ? s.customerId._id?.toString() : s.customerId?.toString()
                 const cId = customerId?.toString()
-                return sCustomerId === cId && s.status === 'completed'
+                return sCustomerId === cId
             }) : []
         },
         { enabled: !!customerId }
@@ -72,19 +72,38 @@ export default function CustomerProfile() {
             pendingCount: 0
         }
 
-        // Entregas completadas = pagadas (porque estamos filtrando solo completed)
+        // Process deliveries - account for different statuses
         deliveries.forEach((d: Delivery) => {
             stats.totalAmount += d.totalAmount || 0
-            // Si está en status 'completed', ya está pagada
-            stats.paidAmount += d.totalAmount || 0
-            stats.paidCount += 1
+            if (d.status === 'completed') {
+                // Completed deliveries are paid
+                stats.paidAmount += d.totalAmount || 0
+                stats.paidCount += 1
+            } else if (d.paymentStatus === 'paid') {
+                stats.paidAmount += d.totalAmount || 0
+                stats.paidCount += 1
+            } else if (d.paymentStatus === 'partial') {
+                const paidAmount = (d.paidAmount || 0)
+                stats.paidAmount += paidAmount
+                stats.pendingAmount += (d.totalAmount || 0) - paidAmount
+                stats.partialPaymentCount += 1
+            } else {
+                stats.pendingAmount += d.totalAmount || 0
+                stats.pendingCount += 1
+            }
         })
 
-        // Ventas completadas = pagadas (todas las ventas completadas están pagadas)
+        // Process sales - all completed sales are paid
         sales.forEach((s: any) => {
             stats.totalAmount += s.totalAmount || 0
-            stats.paidAmount += s.totalAmount || 0
-            stats.paidCount += 1
+            if (s.status === 'completed') {
+                stats.paidAmount += s.totalAmount || 0
+                stats.paidCount += 1
+            } else {
+                // Pending/cancelled sales count as pending
+                stats.pendingAmount += s.totalAmount || 0
+                stats.pendingCount += 1
+            }
         })
 
         return stats
