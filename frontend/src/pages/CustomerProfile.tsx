@@ -537,7 +537,6 @@ export default function CustomerProfile() {
                 isOpen={!!selectedDeliveryId}
                 onClose={() => setSelectedDeliveryId(null)}
                 onOpenImageModal={handleOpenImageModal}
-                isFromCustomerProfile={true}
             />
 
             {/* Sale Details Modal */}

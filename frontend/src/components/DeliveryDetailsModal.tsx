@@ -18,7 +18,6 @@ interface DeliveryDetailsModalProps {
     preSaleItems?: any[]
     markPreparedLoading?: boolean
     markCompletedLoading?: boolean
-    isFromCustomerProfile?: boolean
 }
 
 export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
@@ -37,7 +36,6 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
     preSaleItems = [],
     markPreparedLoading = false,
     markCompletedLoading = false,
-    isFromCustomerProfile = false,
 }) => {
     if (!isOpen || !delivery) return null
 
@@ -54,87 +52,85 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                     </button>
                 </div>
 
-                {/* Action Buttons - Only show if not from customer profile */}
-                {!isFromCustomerProfile && (
-                    <div className="px-6 py-4 bg-gray-50 border-b">
-                        <div className="flex flex-wrap gap-2">
-                            {delivery.status === 'scheduled' && onMarkAsPrepared && (
-                                <Button
-                                    size="sm"
-                                    onClick={() => {
-                                        onMarkAsPrepared(delivery._id!)
+                {/* Action Buttons */}
+                <div className="px-6 py-4 bg-gray-50 border-b">
+                    <div className="flex flex-wrap gap-2">
+                        {delivery.status === 'scheduled' && onMarkAsPrepared && (
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    onMarkAsPrepared(delivery._id!)
+                                    onClose()
+                                }}
+                                disabled={markPreparedLoading}
+                                className="flex items-center gap-2"
+                            >
+                                <Package size={16} />
+                                <span>Marcar como Preparada</span>
+                            </Button>
+                        )}
+                        {delivery.status === 'prepared' && onMarkAsCompleted && (
+                            <Button
+                                size="sm"
+                                onClick={() => {
+                                    if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
+                                        onMarkAsCompleted(delivery._id!)
                                         onClose()
-                                    }}
-                                    disabled={markPreparedLoading}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Package size={16} />
-                                    <span>Marcar como Preparada</span>
-                                </Button>
-                            )}
-                            {delivery.status === 'prepared' && onMarkAsCompleted && (
-                                <Button
-                                    size="sm"
-                                    onClick={() => {
-                                        if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
-                                            onMarkAsCompleted(delivery._id!)
-                                            onClose()
-                                        }
-                                    }}
-                                    disabled={markCompletedLoading}
-                                    variant="success"
-                                    className="flex items-center gap-2"
-                                >
-                                    <CheckCircle size={16} />
-                                    <span>Marcar como Completada</span>
-                                </Button>
-                            )}
-                            {delivery.status !== 'completed' && onEdit && (
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() => {
-                                        onEdit(delivery)
-                                        onClose()
-                                    }}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Edit size={16} />
-                                    <span>Editar</span>
-                                </Button>
-                            )}
-                            {onViewCustomer && (
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={() => {
-                                        const customerId = typeof delivery.customerId === 'string'
-                                            ? delivery.customerId
-                                            : delivery.customerId?._id
-                                        if (customerId) {
-                                            onViewCustomer(customerId)
-                                        }
-                                    }}
-                                    className="flex items-center gap-2"
-                                >
-                                    <User size={16} />
-                                    <span>Ver Perfil del Cliente</span>
-                                </Button>
-                            )}
-                            {onShareReport && (
-                                <Button
-                                    size="sm"
-                                    variant="secondary"
-                                    onClick={onShareReport}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Share2 size={16} />
-                                    <span>Compartir Reporte</span>
-                                </Button>
-                            )}
-                        </div>
+                                    }
+                                }}
+                                disabled={markCompletedLoading}
+                                variant="success"
+                                className="flex items-center gap-2"
+                            >
+                                <CheckCircle size={16} />
+                                <span>Marcar como Completada</span>
+                            </Button>
+                        )}
+                        {delivery.status !== 'completed' && onEdit && (
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => {
+                                    onEdit(delivery)
+                                    onClose()
+                                }}
+                                className="flex items-center gap-2"
+                            >
+                                <Edit size={16} />
+                                <span>Editar</span>
+                            </Button>
+                        )}
+                        {onViewCustomer && (
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => {
+                                    const customerId = typeof delivery.customerId === 'string'
+                                        ? delivery.customerId
+                                        : delivery.customerId?._id
+                                    if (customerId) {
+                                        onViewCustomer(customerId)
+                                    }
+                                }}
+                                className="flex items-center gap-2"
+                            >
+                                <User size={16} />
+                                <span>Ver Perfil del Cliente</span>
+                            </Button>
+                        )}
+                        {onShareReport && (
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={onShareReport}
+                                className="flex items-center gap-2"
+                            >
+                                <Share2 size={16} />
+                                <span>Compartir Reporte</span>
+                            </Button>
+                        )}
                     </div>
-                )}
+                </div>
 
                 <div className="p-6">
                     {/* Delivery Info */}
@@ -292,7 +288,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                                 <p className="text-xs text-gray-500 mt-1">{payment.notes}</p>
                                             )}
                                         </div>
-                                        {onDeletePayment && !isFromCustomerProfile && (
+                                        {onDeletePayment && (
                                             <Button
                                                 type="button"
                                                 size="sm"

@@ -4,14 +4,18 @@ import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import SaleCard from '@/components/SaleCard'
+import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import { Loading } from '@/components/common/Loading'
-import { Plus, Search, ShoppingCart, X } from 'lucide-react'
+import { Plus, Search, ShoppingCart, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function Sales() {
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
     const [selectedSale, setSelectedSale] = useState<any>(null)
+    const [showImageModal, setShowImageModal] = useState(false)
+    const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
     const { data: sales, isLoading, error } = useSales()
     const deleteSaleMutation = useDeleteSale()
@@ -54,6 +58,26 @@ export default function Sales() {
                 console.error('Error deleting sale:', error)
             }
         }
+    }
+
+    const handleOpenImageModal = (images: string[]) => {
+        setAllImagesForModal(images)
+        setCurrentImageIndex(0)
+        setShowImageModal(true)
+    }
+
+    const handleCloseImageModal = () => {
+        setShowImageModal(false)
+        setAllImagesForModal([])
+        setCurrentImageIndex(0)
+    }
+
+    const handlePrevImage = () => {
+        setCurrentImageIndex((prev) => (prev === 0 ? allImagesForModal.length - 1 : prev - 1))
+    }
+
+    const handleNextImage = () => {
+        setCurrentImageIndex((prev) => (prev === allImagesForModal.length - 1 ? 0 : prev + 1))
     }
 
     return (
@@ -146,134 +170,52 @@ export default function Sales() {
             )}
 
             {/* Sale Details Modal */}
-            {showDetailsModal && selectedSale && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xl font-medium text-gray-900">
-                                Detalles de Venta #{selectedSale._id?.slice(-8)}
-                            </h3>
-                            <button
-                                onClick={() => {
-                                    setShowDetailsModal(false)
-                                    setSelectedSale(null)
-                                }}
-                                className="text-gray-400 hover:text-gray-600"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
+            <SaleDetailsModal
+                sale={showDetailsModal ? selectedSale : null}
+                isOpen={showDetailsModal}
+                onClose={() => {
+                    setShowDetailsModal(false)
+                    setSelectedSale(null)
+                }}
+                onOpenImageModal={handleOpenImageModal}
+            />
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Sale Info */}
-                            <div className="space-y-4">
-                                <Card>
-                                    <h4 className="font-medium text-gray-900 mb-3">Información General</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <p><span className="font-medium">Fecha:</span> {new Date(selectedSale.saleDate).toLocaleDateString('es-ES')}</p>
-                                        <p><span className="font-medium">Total:</span> <span className="text-green-600 font-semibold">${selectedSale.totalAmount}</span></p>
-                                        <p><span className="font-medium">Método de Pago:</span> {selectedSale.paymentMethod}</p>
-                                        <p><span className="font-medium">Estado:</span>
-                                            <span className={`ml-1 px-2 py-1 text-xs rounded-full ${selectedSale.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                selectedSale.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-red-100 text-red-800'
-                                                }`}>
-                                                {selectedSale.status === 'completed' ? 'Completada' :
-                                                    selectedSale.status === 'pending' ? 'Pendiente' : 'Cancelada'}
-                                            </span>
-                                        </p>
-                                        {selectedSale.notes && (
-                                            <p><span className="font-medium">Notas:</span> {selectedSale.notes}</p>
-                                        )}
-                                    </div>
-                                </Card>
+            {/* Fullscreen Image Modal */}
+            {showImageModal && allImagesForModal.length > 0 && (
+                <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[60]">
+                    <button
+                        onClick={handleCloseImageModal}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300"
+                    >
+                        <X size={24} />
+                    </button>
 
-                                {/* Customer Info */}
-                                {selectedSale.customer && (
-                                    <Card>
-                                        <h4 className="font-medium text-gray-900 mb-3">Cliente</h4>
-                                        <div className="space-y-2 text-sm">
-                                            <p><span className="font-medium">Nombre:</span> {selectedSale.customer.name}</p>
-                                            {selectedSale.customer.email && <p><span className="font-medium">Email:</span> {selectedSale.customer.email}</p>}
-                                            {selectedSale.customer.phone && <p><span className="font-medium">Teléfono:</span> {selectedSale.customer.phone}</p>}
-                                            {selectedSale.customer.address && <p><span className="font-medium">Dirección:</span> {selectedSale.customer.address}</p>}
-                                        </div>
-                                    </Card>
-                                )}
+                    <button
+                        onClick={handlePrevImage}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
+                    >
+                        <ChevronLeft size={32} />
+                    </button>
 
-                                {/* Delivery Info */}
-                                {selectedSale.delivery && (
-                                    <Card>
-                                        <h4 className="font-medium text-gray-900 mb-3">Entrega Asociada</h4>
-                                        <div className="space-y-2 text-sm">
-                                            <p><span className="font-medium">Ubicación:</span> {selectedSale.delivery.location}</p>
-                                            <p><span className="font-medium">Fecha Programada:</span> {new Date(selectedSale.delivery.scheduledDate).toLocaleDateString('es-ES')}</p>
-                                            <p><span className="font-medium">Estado:</span> {selectedSale.delivery.status}</p>
-                                        </div>
-                                    </Card>
-                                )}
-                            </div>
-
-                            {/* Items */}
-                            <div>
-                                <Card>
-                                    <h4 className="font-medium text-gray-900 mb-3">Piezas Vendidas</h4>
-                                    <div className="space-y-3">
-                                        {selectedSale.items?.map((item: any, index: number) => {
-                                            // Get photos from populated inventory item
-                                            const itemPhotos = (typeof item.inventoryItemId === 'object' && item.inventoryItemId?.photos)
-                                                ? item.inventoryItemId.photos
-                                                : [];
-
-                                            return (
-                                                <div key={index} className="border rounded-lg overflow-hidden">
-                                                    {/* Item Photos */}
-                                                    {itemPhotos.length > 0 && (
-                                                        <div className="bg-gray-100 p-3 border-b">
-                                                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                                                                {itemPhotos.slice(0, 6).map((photo: string, photoIdx: number) => (
-                                                                    <div
-                                                                        key={photoIdx}
-                                                                        className="aspect-square rounded overflow-hidden bg-gray-200 border border-gray-300 hover:shadow-md transition-shadow"
-                                                                    >
-                                                                        <img
-                                                                            src={photo}
-                                                                            alt={`${item.carName} - Foto ${photoIdx + 1}`}
-                                                                            className="w-full h-full object-cover hover:scale-110 transition-transform"
-                                                                            onError={(e) => {
-                                                                                (e.target as HTMLImageElement).style.display = 'none'
-                                                                            }}
-                                                                        />
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Item Info */}
-                                                    <div className="p-3 bg-gray-50">
-                                                        <div className="flex justify-between items-start mb-2">
-                                                            <div>
-                                                                <h5 className="font-medium text-gray-900">{item.carName}</h5>
-                                                                <p className="text-sm text-gray-600">ID: {item.carId}</p>
-                                                            </div>
-                                                            <div className="text-right">
-                                                                <p className="font-semibold text-green-600">${item.unitPrice}</p>
-                                                                <p className="text-sm text-gray-500">Cant: {item.quantity}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-sm text-gray-600">
-                                                            <p>Subtotal: ${(item.unitPrice * item.quantity).toFixed(2)}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </Card>
-                            </div>
+                    <div className="flex flex-col items-center justify-center max-w-4xl max-h-[90vh]">
+                        <img
+                            src={allImagesForModal[currentImageIndex]}
+                            alt={`Imagen ${currentImageIndex + 1}`}
+                            className="max-w-full max-h-[80vh] object-contain"
+                        />
+                        <div className="mt-4 text-white text-center">
+                            <p className="text-sm">
+                                Imagen {currentImageIndex + 1} de {allImagesForModal.length}
+                            </p>
                         </div>
                     </div>
+
+                    <button
+                        onClick={handleNextImage}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
+                    >
+                        <ChevronRight size={32} />
+                    </button>
                 </div>
             )}
         </div>
