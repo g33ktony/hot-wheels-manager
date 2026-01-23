@@ -491,25 +491,63 @@ export default function CustomerProfile() {
 
             {/* Delivery Details Modal */}
             {selectedDeliveryId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold">Detalles de Entrega</h2>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
+                            <h2 className="text-xl font-semibold text-gray-900">Detalles de Entrega</h2>
                             <button
                                 onClick={() => setSelectedDeliveryId(null)}
-                                className="text-gray-600 hover:text-gray-900"
+                                className="text-gray-400 hover:text-gray-600"
                             >
                                 ✕
                             </button>
                         </div>
+
                         {deliveries.find(d => d._id === selectedDeliveryId) && (
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-sm text-gray-600">Información de la entrega</p>
-                                    <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto">
-                                        {JSON.stringify(deliveries.find(d => d._id === selectedDeliveryId), null, 2)}
-                                    </pre>
+                            <div className="p-6">
+                                {/* Delivery Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <h3 className="font-medium text-gray-900 mb-4">Información General</h3>
+                                        <div className="space-y-2 text-sm">
+                                            <p><span className="font-medium">Cliente:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.customer?.name}</p>
+                                            <p><span className="font-medium">Email:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.customer?.email}</p>
+                                            <p><span className="font-medium">Teléfono:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.customer?.phone}</p>
+                                            <p><span className="font-medium">Fecha programada:</span> {new Date(deliveries.find(d => d._id === selectedDeliveryId)?.scheduledDate || '').toLocaleDateString('es-ES')}</p>
+                                            <p><span className="font-medium">Ubicación:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.location}</p>
+                                            <p><span className="font-medium">Estado:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completada</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="font-medium text-gray-900 mb-4">Resumen Financiero</h3>
+                                        <div className="space-y-2 text-sm">
+                                            <p><span className="font-medium">Total:</span> ${(deliveries.find(d => d._id === selectedDeliveryId)?.totalAmount || 0).toFixed(2)}</p>
+                                            <p><span className="font-medium">Estado de pago:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Pagado</span></p>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Items */}
+                                <div className="mb-6">
+                                    <h3 className="font-medium text-gray-900 mb-4">Items ({deliveries.find(d => d._id === selectedDeliveryId)?.items?.length || 0})</h3>
+                                    <div className="space-y-2">
+                                        {deliveries.find(d => d._id === selectedDeliveryId)?.items?.map((item: any, idx: number) => (
+                                            <div key={idx} className="p-3 bg-gray-50 rounded border text-sm">
+                                                <p><span className="font-medium">{item.carName}</span> - Qty: {item.quantity} x ${item.price?.toFixed(2) || '0.00'}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Notes */}
+                                {deliveries.find(d => d._id === selectedDeliveryId)?.notes && (
+                                    <div className="mb-6">
+                                        <h3 className="font-medium text-gray-900 mb-2">Notas</h3>
+                                        <p className="text-sm text-gray-700">{deliveries.find(d => d._id === selectedDeliveryId)?.notes}</p>
+                                    </div>
+                                )}
+
                                 <Button
                                     onClick={() => {
                                         setSelectedDeliveryId(null)
@@ -527,25 +565,62 @@ export default function CustomerProfile() {
 
             {/* Sale Details Modal */}
             {selectedSaleId && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto p-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold">Detalles de Venta</h2>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white z-10">
+                            <h2 className="text-xl font-semibold text-gray-900">Detalles de Venta</h2>
                             <button
                                 onClick={() => setSelectedSaleId(null)}
-                                className="text-gray-600 hover:text-gray-900"
+                                className="text-gray-400 hover:text-gray-600"
                             >
                                 ✕
                             </button>
                         </div>
+
                         {sales.find(s => s._id === selectedSaleId) && (
-                            <div className="space-y-4">
-                                <div>
-                                    <p className="text-sm text-gray-600">Información de la venta</p>
-                                    <pre className="bg-gray-100 p-4 rounded text-xs overflow-auto">
-                                        {JSON.stringify(sales.find(s => s._id === selectedSaleId), null, 2)}
-                                    </pre>
+                            <div className="p-6">
+                                {/* Sale Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div>
+                                        <h3 className="font-medium text-gray-900 mb-4">Información General</h3>
+                                        <div className="space-y-2 text-sm">
+                                            <p><span className="font-medium">Cliente:</span> {sales.find(s => s._id === selectedSaleId)?.customer?.name}</p>
+                                            <p><span className="font-medium">Email:</span> {sales.find(s => s._id === selectedSaleId)?.customer?.email}</p>
+                                            <p><span className="font-medium">Teléfono:</span> {sales.find(s => s._id === selectedSaleId)?.customer?.phone}</p>
+                                            <p><span className="font-medium">Fecha de venta:</span> {new Date(sales.find(s => s._id === selectedSaleId)?.saleDate || '').toLocaleDateString('es-ES')}</p>
+                                            <p><span className="font-medium">Método de pago:</span> {sales.find(s => s._id === selectedSaleId)?.paymentMethod}</p>
+                                            <p><span className="font-medium">Estado:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completada</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="font-medium text-gray-900 mb-4">Resumen Financiero</h3>
+                                        <div className="space-y-2 text-sm">
+                                            <p><span className="font-medium">Total:</span> ${(sales.find(s => s._id === selectedSaleId)?.totalAmount || 0).toFixed(2)}</p>
+                                            <p><span className="font-medium">Estado de pago:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Pagado</span></p>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Items */}
+                                <div className="mb-6">
+                                    <h3 className="font-medium text-gray-900 mb-4">Items ({sales.find(s => s._id === selectedSaleId)?.items?.length || 0})</h3>
+                                    <div className="space-y-2">
+                                        {sales.find(s => s._id === selectedSaleId)?.items?.map((item: any, idx: number) => (
+                                            <div key={idx} className="p-3 bg-gray-50 rounded border text-sm">
+                                                <p><span className="font-medium">{item.carName}</span> - Qty: {item.quantity} x ${item.unitPrice?.toFixed(2) || '0.00'}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Notes */}
+                                {sales.find(s => s._id === selectedSaleId)?.notes && (
+                                    <div className="mb-6">
+                                        <h3 className="font-medium text-gray-900 mb-2">Notas</h3>
+                                        <p className="text-sm text-gray-700">{sales.find(s => s._id === selectedSaleId)?.notes}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
