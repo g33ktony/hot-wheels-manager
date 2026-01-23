@@ -555,7 +555,19 @@ export default function CustomerProfile() {
                                             <p><span className="font-medium">Teléfono:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.customer?.phone}</p>
                                             <p><span className="font-medium">Fecha programada:</span> {new Date(deliveries.find(d => d._id === selectedDeliveryId)?.scheduledDate || '').toLocaleDateString('es-ES')}</p>
                                             <p><span className="font-medium">Ubicación:</span> {deliveries.find(d => d._id === selectedDeliveryId)?.location}</p>
-                                            <p><span className="font-medium">Estado:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completada</span></p>
+                                            <p><span className="font-medium">Estado:</span>
+                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                        deliveries.find(d => d._id === selectedDeliveryId)?.status === 'prepared' ? 'bg-orange-100 text-orange-800' :
+                                                            deliveries.find(d => d._id === selectedDeliveryId)?.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                                                                'bg-yellow-100 text-yellow-800'
+                                                    }`}>
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' && '✓ Completada'}
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'prepared' && 'Preparada'}
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'scheduled' && 'Programada'}
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status && !['completed', 'prepared', 'scheduled'].includes(deliveries.find(d => d._id === selectedDeliveryId)?.status || '') && 'Pendiente'}
+                                                    {!deliveries.find(d => d._id === selectedDeliveryId)?.status && 'Pendiente'}
+                                                </span>
+                                            </p>
                                         </div>
                                     </div>
 
@@ -563,7 +575,18 @@ export default function CustomerProfile() {
                                         <h3 className="font-medium text-gray-900 mb-4">Resumen Financiero</h3>
                                         <div className="space-y-2 text-sm">
                                             <p><span className="font-medium">Total:</span> ${(deliveries.find(d => d._id === selectedDeliveryId)?.totalAmount || 0).toFixed(2)}</p>
-                                            <p><span className="font-medium">Estado de pago:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Pagado</span></p>
+                                            <p><span className="font-medium">Estado de pago:</span>
+                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                        deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                                                            deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-red-100 text-red-800'
+                                                    }`}>
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status === 'completed' && '✓ Pagado'}
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.status !== 'completed' && deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'paid' && '✓ Pagado'}
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'partial' && `Parcial: $${(deliveries.find(d => d._id === selectedDeliveryId)?.paidAmount || 0).toFixed(2)}`}
+                                                    {deliveries.find(d => d._id === selectedDeliveryId)?.paymentStatus === 'pending' && 'Sin pagar'}
+                                                </span>
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -664,7 +687,16 @@ export default function CustomerProfile() {
                                             <p><span className="font-medium">Teléfono:</span> {sales.find(s => s._id === selectedSaleId)?.customer?.phone}</p>
                                             <p><span className="font-medium">Fecha de venta:</span> {new Date(sales.find(s => s._id === selectedSaleId)?.saleDate || '').toLocaleDateString('es-ES')}</p>
                                             <p><span className="font-medium">Método de pago:</span> {sales.find(s => s._id === selectedSaleId)?.paymentMethod}</p>
-                                            <p><span className="font-medium">Estado:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completada</span></p>
+                                            <p><span className="font-medium">Estado:</span>
+                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${sales.find(s => s._id === selectedSaleId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                        sales.find(s => s._id === selectedSaleId)?.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-red-100 text-red-800'
+                                                    }`}>
+                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'completed' && '✓ Completada'}
+                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'pending' && 'Pendiente'}
+                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'cancelled' && 'Cancelada'}
+                                                </span>
+                                            </p>
                                         </div>
                                     </div>
 
@@ -672,7 +704,16 @@ export default function CustomerProfile() {
                                         <h3 className="font-medium text-gray-900 mb-4">Resumen Financiero</h3>
                                         <div className="space-y-2 text-sm">
                                             <p><span className="font-medium">Total:</span> ${(sales.find(s => s._id === selectedSaleId)?.totalAmount || 0).toFixed(2)}</p>
-                                            <p><span className="font-medium">Estado de pago:</span> <span className="ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Pagado</span></p>
+                                            <p><span className="font-medium">Estado de pago:</span>
+                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${sales.find(s => s._id === selectedSaleId)?.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                        sales.find(s => s._id === selectedSaleId)?.status === 'pending' ? 'bg-red-100 text-red-800' :
+                                                            'bg-red-100 text-red-800'
+                                                    }`}>
+                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'completed' && '✓ Pagado'}
+                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'pending' && 'Sin pagar'}
+                                                    {sales.find(s => s._id === selectedSaleId)?.status === 'cancelled' && 'Cancelada'}
+                                                </span>
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
