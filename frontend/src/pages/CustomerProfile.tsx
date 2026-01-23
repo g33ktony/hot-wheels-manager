@@ -335,7 +335,7 @@ export default function CustomerProfile() {
                                         <div
                                             key={`delivery-${delivery._id}`}
                                             className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-blue-50 cursor-pointer"
-                                            onClick={() => setSelectedDeliveryId(delivery._id)}
+                                            onClick={() => delivery._id && setSelectedDeliveryId(delivery._id)}
                                         >
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
                                                 {/* Date and Status */}
@@ -426,7 +426,7 @@ export default function CustomerProfile() {
                                         <div
                                             key={`sale-${sale._id}`}
                                             className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-green-50 cursor-pointer"
-                                            onClick={() => setSelectedSaleId(sale._id)}
+                                            onClick={() => sale._id && setSelectedSaleId(sale._id)}
                                         >
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
                                                 {/* Date */}
