@@ -239,7 +239,7 @@ export default function Dashboard() {
 
             {/* Statistics Widgets */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div 
+                <div
                     className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105 rounded-lg"
                     onClick={() => navigate('/sales-statistics')}
                 >
@@ -253,7 +253,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <div 
+                <div
                     className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 border-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105 rounded-lg"
                     onClick={() => navigate('/sales-statistics')}
                 >
