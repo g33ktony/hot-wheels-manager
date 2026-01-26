@@ -15,6 +15,15 @@ router.post('/pos', salesController.createPOSSale)
 // GET /api/sales/stats - Get sales statistics
 router.get('/stats', salesController.getSalesStats)
 
+// GET /api/sales/statistics/detailed - Get detailed statistics with filters
+router.get('/statistics/detailed', salesController.getDetailedStatistics)
+
+// GET /api/sales/inventory/out-of-stock - Get items with 0 quantity
+router.get('/inventory/out-of-stock', salesController.getOutOfStockItems)
+
+// POST /api/sales/inventory/reactivate - Reactivate item by adding quantity
+router.post('/inventory/reactivate', salesController.reactivateItem)
+
 // PUT /api/sales/:id - Update a sale
 router.put('/:id', salesController.updateSale)
 

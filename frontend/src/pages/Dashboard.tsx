@@ -237,6 +237,37 @@ export default function Dashboard() {
                 ))}
             </div>
 
+            {/* Statistics Widgets */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div 
+                    className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105 rounded-lg"
+                    onClick={() => navigate('/sales-statistics')}
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-emerald-100 text-sm font-medium">Ver Análisis</p>
+                            <h3 className="text-white text-2xl font-bold mt-1">📊 Estadísticas de Ventas</h3>
+                            <p className="text-emerald-100 text-sm mt-3">Análisis detallado de ventas, ganancias y tendencias</p>
+                        </div>
+                        {React.createElement(TrendingUp, { size: 32, className: 'text-white/30' })}
+                    </div>
+                </div>
+
+                <div 
+                    className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 border-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105 rounded-lg"
+                    onClick={() => navigate('/sales-statistics')}
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-blue-100 text-sm font-medium">Ver Inventario</p>
+                            <h3 className="text-white text-2xl font-bold mt-1">📦 Piezas Sin Stock</h3>
+                            <p className="text-blue-100 text-sm mt-3">Gestiona y reactiva items agotados</p>
+                        </div>
+                        {React.createElement(Package, { size: 32, className: 'text-white/30' })}
+                    </div>
+                </div>
+            </div>
+
             {/* Pre-Sale Alerts */}
             <PreSaleAlertSection />
 

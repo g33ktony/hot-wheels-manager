@@ -4,6 +4,7 @@ import { SaleModel } from '../models/Sale';
 import { InventoryItemModel } from '../models/InventoryItem';
 import { CustomerModel } from '../models/Customer';
 import { HotWheelsCarModel } from '../models/HotWheelsCar';
+import { getDayRangeUTC } from '../utils/dateUtils';
 
 // Get all deliveries
 export const getDeliveries = async (req: Request, res: Response) => {
@@ -33,10 +34,8 @@ export const getDeliveries = async (req: Request, res: Response) => {
     // Handle date filtering - only apply if fromDate is provided
     if (fromDate) {
       try {
-        const dateFrom = new Date(fromDate as string);
-        // Set to beginning of day
-        dateFrom.setHours(0, 0, 0, 0);
-        filter.scheduledDate = { $gte: dateFrom };
+        const { startDate, endDate } = getDayRangeUTC(fromDate as string);
+        filter.scheduledDate = { $gte: startDate, $lte: endDate };
       } catch (e) {
         console.warn('Invalid date format:', fromDate);
       }
@@ -249,18 +248,35 @@ export const createDelivery = async (req: Request, res: Response) => {
     const resolvedTotalAmount = totalAmount ?? 0;
     const hasPresaleItems = !!forPreSale || (items && items.some((item: any) => item.inventoryItemId?.startsWith('presale_')));
 
+    // Handle scheduledDate - parse correctly if it's a string
+    let parsedScheduledDate: Date;
+    if (scheduledDate && typeof scheduledDate === 'string') {
+      // If it's a date string like "2026-01-24", parse it as local date
+      const { startDate } = getDayRangeUTC(scheduledDate);
+      parsedScheduledDate = startDate;
+    } else if (scheduledDate) {
+      // If it's already a Date object, use it as is
+      parsedScheduledDate = new Date(scheduledDate);
+    } else {
+      // Default to today at midnight UTC
+      const today = new Date();
+      const { startDate } = getDayRangeUTC(today.toISOString().split('T')[0]);
+      parsedScheduledDate = startDate;
+    }
+
     console.log('📦 DELIVERY CREATION DETAILS:', {
       calculatedTotalAmount: totalAmount,
       resolvedTotalAmount,
       hasPresaleItems,
-      location: resolvedLocation
+      location: resolvedLocation,
+      scheduledDate: parsedScheduledDate.toISOString()
     });
 
     const delivery = new DeliveryModel({
       customerId,
       customer,
       items,
-      scheduledDate: scheduledDate || new Date(),
+      scheduledDate: parsedScheduledDate,
       scheduledTime,
       location: resolvedLocation,
       totalAmount: resolvedTotalAmount,

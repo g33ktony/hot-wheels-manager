@@ -7,6 +7,7 @@ import { DeliveryModel } from '../models/Delivery';
 import Purchase from '../models/Purchase';
 import { RecentActivity } from '../shared/types';
 import { dashboardCache, CACHE_KEYS } from '../services/cacheService';
+import { getStartOfDayUTC, getEndOfDayUTC, getTodayString, getDayRangeUTC } from '../utils/dateUtils';
 
 // Helper function to get recent activity data
 async function getRecentActivityData(totalCatalogCars: number, totalSales: number): Promise<RecentActivity[]> {
@@ -174,9 +175,9 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Get sales metrics
     console.log('📈 Getting sales metrics...');
-    const currentMonth = new Date();
-    currentMonth.setDate(1);
-    currentMonth.setHours(0, 0, 0, 0);
+    const firstDayOfMonth = new Date();
+    firstDayOfMonth.setDate(1);
+    const currentMonth = getStartOfDayUTC(firstDayOfMonth);
 
     const totalSales = await SaleModel.countDocuments();
     const monthlySales = await SaleModel.countDocuments({
@@ -194,10 +195,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Calculate daily revenue from all sources
     console.log('💸 Calculating daily revenue...');
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const endOfToday = new Date();
-    endOfToday.setHours(23, 59, 59, 999);
+    const { startDate: startOfToday, endDate: endOfToday } = getDayRangeUTC(getTodayString());
 
     // Daily sales from completed sales (POS)
     const dailySalesData = await SaleModel.find({
@@ -295,9 +293,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       { $group: { _id: null, total: { $sum: '$items.quantity' } } }
     ]);
     // Get today's deliveries
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    const { startDate: startOfDay, endDate: endOfDay } = getDayRangeUTC(getTodayString());
 
     const todaysDeliveries = await DeliveryModel.find({
       scheduledDate: { $gte: startOfDay, $lte: endOfDay },

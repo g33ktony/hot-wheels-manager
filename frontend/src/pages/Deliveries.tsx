@@ -18,6 +18,7 @@ import { Plus, Search, Truck, X, Package, CheckCircle, Clock, UserPlus, Trending
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
 import DeliveryReport from '@/components/DeliveryReport'
+import { dateToString, getDefaultStartDate } from '@/utils/dateUtils'
 import type { InventoryItem } from '../../../shared/types'
 
 export default function Deliveries() {
@@ -43,9 +44,7 @@ export default function Deliveries() {
 
     // Usar hace 30 días por defecto
     const [selectedDate, setSelectedDate] = useState(() => {
-        const now = new Date()
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        return thirtyDaysAgo.toISOString().split('T')[0]
+        return getDefaultStartDate(30)
     })
     const [newDelivery, setNewDelivery] = useState({
         customerId: '',
@@ -64,7 +63,7 @@ export default function Deliveries() {
             seriesPrice?: number;
             isSoldAsSeries?: boolean;
         }[],
-        scheduledDate: new Date().toISOString().split('T')[0],
+        scheduledDate: dateToString(new Date()),
         scheduledTime: '09:00',
         location: '',
         totalAmount: 0,
@@ -84,7 +83,7 @@ export default function Deliveries() {
         enabled: false,
         numberOfPayments: 4,
         paymentFrequency: 'weekly' as 'weekly' | 'biweekly' | 'monthly',
-        startDate: new Date().toISOString().split('T')[0],
+        startDate: dateToString(new Date()),
         earlyPaymentBonus: 0
     })
     const [customLocation, setCustomLocation] = useState('')
@@ -516,8 +515,8 @@ export default function Deliveries() {
                 }
             }) || [],
             scheduledDate: delivery.scheduledDate ?
-                delivery.scheduledDate.toString().split('T')[0]
-                : new Date().toISOString().split('T')[0],
+                new Date(delivery.scheduledDate).toISOString().split('T')[0]
+                : dateToString(new Date()),
             scheduledTime: delivery.scheduledTime || '09:00',
             location: delivery.location || '',
             totalAmount: delivery.totalAmount || 0,
@@ -543,7 +542,7 @@ export default function Deliveries() {
         setNewDelivery({
             customerId: '',
             items: [],
-            scheduledDate: new Date().toISOString().split('T')[0],
+            scheduledDate: dateToString(new Date()),
             scheduledTime: '09:00',
             location: '',
             totalAmount: 0,
@@ -557,7 +556,7 @@ export default function Deliveries() {
             enabled: false,
             numberOfPayments: 4,
             paymentFrequency: 'weekly',
-            startDate: new Date().toISOString().split('T')[0],
+            startDate: dateToString(new Date()),
             earlyPaymentBonus: 0
         })
     }

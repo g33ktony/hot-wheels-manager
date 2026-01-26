@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import Inventory from './pages/Inventory'
 import ItemDetail from './pages/ItemDetail'
 import Sales from './pages/Sales'
+import SalesStatistics from './pages/SalesStatistics'
 import Purchases from './pages/Purchases'
 import Deliveries from './pages/Deliveries'
 import CloudinaryDebug from './pages/CloudinaryDebug'
@@ -49,6 +50,7 @@ function App() {
                                             <Route path="/pos" element={<POS />} />
                                             <Route path="/gemini-test" element={<GeminiTest />} />
                                             <Route path="/sales" element={<Sales />} />
+                                            <Route path="/sales-statistics" element={<SalesStatistics />} />
                                             <Route path="/purchases" element={<Purchases />} />
                                             <Route path="/presale/:id/edit" element={<PreSaleEditPage />} />
                                             <Route path="/presale" element={<PreSaleHub />} />

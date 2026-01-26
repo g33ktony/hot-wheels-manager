@@ -16,7 +16,9 @@
     "reset-db": "tsx src/scripts/reset-database.ts",
     "create-admin": "tsx src/scripts/create-admin-interactive.ts",
     "check-users": "tsx src/scripts/check-users.ts",
-    "migrate:recreate-deliveries": "tsx src/scripts/recreateCompletedDeliveries.ts"
+    "migrate:recreate-deliveries": "tsx src/scripts/recreateCompletedDeliveries.ts",
+    "fix:dates:preview": "tsx src/scripts/fixDateMigration.ts --preview",
+    "fix:dates": "tsx src/scripts/fixDateMigration.ts --fix"
   },
   "keywords": [
     "hot-wheels",

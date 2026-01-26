@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { SaleModel } from '../models/Sale';
 import { InventoryItemModel } from '../models/InventoryItem';
+import { getStartOfDayUTC, getTodayString, getDayRangeUTC } from '../utils/dateUtils';
+import { DeliveryModel } from '../models/Delivery';
 
 // Get all sales
 export const getSales = async (req: Request, res: Response) => {
@@ -122,9 +124,7 @@ export const getSalesStats = async (req: Request, res: Response) => {
       }
     ]);
 
-    const thisMonth = new Date();
-    thisMonth.setDate(1);
-    thisMonth.setHours(0, 0, 0, 0);
+    const thisMonth = getStartOfDayUTC(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
     const monthlyStats = await SaleModel.aggregate([
       {
@@ -432,6 +432,326 @@ export const createPOSSale = async (req: Request, res: Response) => {
       // ALWAYS return error details for POS endpoint debugging
       error: errorMessage,
       details: errorDetails
+    });
+  }
+};
+
+/**
+ * Obtener estadísticas detalladas de ventas con filtros
+ * Query params:
+ * - startDate: YYYY-MM-DD (default: hoy)
+ * - endDate: YYYY-MM-DD (default: hoy)
+ * - period: 'day' | 'month' | 'custom' (default: 'day')
+ * - saleType: 'all' | 'delivery' | 'pos' (default: 'all')
+ * - brand: string (filtrar por marca del artículo)
+ * - pieceType: string (filtrar por tipo de pieza)
+ */
+export const getDetailedStatistics = async (req: Request, res: Response) => {
+  try {
+    const {
+      startDate = getTodayString(),
+      endDate = getTodayString(),
+      period = 'day',
+      saleType = 'all',
+      brand,
+      pieceType
+    } = req.query;
+
+    // Construir rango de fechas
+    let dateRange: any = {
+      $gte: getDayRangeUTC(startDate as string).startDate,
+      $lt: getDayRangeUTC(startDate as string).endDate
+    };
+    
+    if (period === 'month') {
+      // Usar primer y último día del mes
+      const [year, month] = (startDate as string).split('-').slice(0, 2);
+      const firstDay = `${year}-${month}-01`;
+      const lastDay = new Date(parseInt(year), parseInt(month), 0)
+        .toISOString()
+        .split('T')[0];
+      const lastDayRange = getDayRangeUTC(lastDay);
+      dateRange = {
+        $gte: getDayRangeUTC(firstDay).startDate,
+        $lt: new Date(lastDayRange.endDate.getTime() + 1000) // Siguiente segundo después del último segundo del mes
+      };
+    } else if (period === 'custom' && endDate) {
+      // Rango personalizado
+      const startRange = getDayRangeUTC(startDate as string);
+      const endRange = getDayRangeUTC(endDate as string);
+      dateRange = {
+        $gte: startRange.startDate,
+        $lt: endRange.endDate
+      };
+    }
+
+    // Construir match query
+    const matchQuery: any = {
+      saleDate: dateRange,
+      status: 'completed' // Solo ventas completadas
+    };
+
+    if (saleType !== 'all') {
+      matchQuery.saleType = saleType;
+    }
+
+    // Si hay filtros de brand o pieceType, necesitamos buscar items específicos
+    let itemFilterIds: any[] = [];
+    if (brand || pieceType) {
+      const itemFilter: any = {};
+      if (brand) itemFilter.brand = brand;
+      if (pieceType) itemFilter.pieceType = pieceType;
+      
+      const filteredItems = await InventoryItemModel.find(itemFilter).select('_id');
+      itemFilterIds = filteredItems.map(item => item._id);
+    }
+
+    // Obtener todas las ventas
+    const sales = await SaleModel.find(matchQuery)
+      .populate({
+        path: 'items.inventoryItemId',
+        select: 'brand pieceType purchasePrice'
+      })
+      .populate('deliveryId')
+      .sort({ saleDate: -1 });
+
+    // Procesar datos
+    let totalSaleAmount = 0;
+    let totalProfit = 0;
+    let totalPieces = 0;
+    let salesCount = 0;
+    let deliverySalesCount = 0;
+    let posSalesCount = 0;
+    const salesByDay: { [key: string]: { amount: number; profit: number; pieces: number } } = {};
+    const salesByBrand: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
+    const salesByType: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
+    const transactionsList: any[] = [];
+
+    for (const sale of sales) {
+      let saleTotalProfit = 0;
+      let saleTotalPieces = 0;
+      let includeInStats = true;
+
+      for (const item of sale.items) {
+        // Filtrar si hay filtros de brand/type
+        if (itemFilterIds.length > 0 && item.inventoryItemId) {
+          if (!itemFilterIds.some(id => id.equals(item.inventoryItemId))) {
+            includeInStats = false;
+            continue;
+          }
+        }
+
+        const quantity = item.quantity || 1;
+        const salePrice = item.unitPrice || 0;
+        const cost = (item.inventoryItemId as any)?.purchasePrice || 0;
+        const itemProfit = (salePrice - cost) * quantity;
+
+        saleTotalProfit += itemProfit;
+        saleTotalPieces += quantity;
+      }
+
+      if (!includeInStats) continue;
+
+      const saleDate = sale.saleDate.toISOString().split('T')[0];
+      const dayKey = saleDate;
+
+      // Acumular totales
+      totalSaleAmount += sale.totalAmount;
+      totalProfit += saleTotalProfit;
+      totalPieces += saleTotalPieces;
+      salesCount++;
+
+      if (sale.saleType === 'delivery') {
+        deliverySalesCount++;
+      } else if (sale.saleType === 'pos') {
+        posSalesCount++;
+      }
+
+      // Ventas por día
+      if (!salesByDay[dayKey]) {
+        salesByDay[dayKey] = { amount: 0, profit: 0, pieces: 0 };
+      }
+      salesByDay[dayKey].amount += sale.totalAmount;
+      salesByDay[dayKey].profit += saleTotalProfit;
+      salesByDay[dayKey].pieces += saleTotalPieces;
+
+      // Ventas por marca y tipo
+      for (const item of sale.items) {
+        const inventory = item.inventoryItemId as any;
+        if (inventory) {
+          const brand = inventory.brand || 'Sin marca';
+          const type = inventory.pieceType || 'Sin tipo';
+          const quantity = item.quantity || 1;
+          const itemProfit = ((item.unitPrice || 0) - (inventory.purchasePrice || 0)) * quantity;
+
+          if (!salesByBrand[brand]) {
+            salesByBrand[brand] = { amount: 0, profit: 0, pieces: 0, count: 0 };
+          }
+          salesByBrand[brand].amount += item.unitPrice * quantity;
+          salesByBrand[brand].profit += itemProfit;
+          salesByBrand[brand].pieces += quantity;
+          salesByBrand[brand].count++;
+
+          if (!salesByType[type]) {
+            salesByType[type] = { amount: 0, profit: 0, pieces: 0, count: 0 };
+          }
+          salesByType[type].amount += item.unitPrice * quantity;
+          salesByType[type].profit += itemProfit;
+          salesByType[type].pieces += quantity;
+          salesByType[type].count++;
+        }
+      }
+
+      // Agregar a lista de transacciones
+      transactionsList.push({
+        _id: sale._id,
+        customerName: (sale as any).customer?.name || 'Venta POS',
+        saleDate: sale.saleDate,
+        totalAmount: sale.totalAmount,
+        profit: saleTotalProfit,
+        pieces: saleTotalPieces,
+        saleType: sale.saleType,
+        paymentMethod: sale.paymentMethod,
+        itemsCount: sale.items.length
+      });
+    }
+
+    // Ordenar por día
+    const salesByDayArray = Object.entries(salesByDay)
+      .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+      .map(([date, data]) => ({ date, ...data }));
+
+    // Top 5 marcas
+    const topBrands = Object.entries(salesByBrand)
+      .sort(([, a], [, b]) => b.amount - a.amount)
+      .slice(0, 5)
+      .map(([brand, data]) => ({ brand, ...data }));
+
+    res.json({
+      success: true,
+      data: {
+        summary: {
+          totalSalesAmount: Math.round(totalSaleAmount * 100) / 100,
+          totalProfit: Math.round(totalProfit * 100) / 100,
+          totalPieces,
+          totalTransactions: salesCount,
+          deliveryCount: deliverySalesCount,
+          posCount: posSalesCount
+        },
+        period: {
+          startDate,
+          endDate,
+          periodType: period
+        },
+        filters: {
+          saleType: saleType !== 'all' ? saleType : null,
+          brand: brand || null,
+          pieceType: pieceType || null
+        },
+        chartData: {
+          salesByDay: salesByDayArray,
+          topBrands,
+          saleTypeDistribution: [
+            { name: 'Entregas', value: deliverySalesCount },
+            { name: 'POS', value: posSalesCount }
+          ]
+        },
+        transactions: transactionsList.sort((a, b) => 
+          new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()
+        )
+      },
+      message: 'Estadísticas detalladas obtenidas exitosamente'
+    });
+  } catch (error) {
+    console.error('Error fetching detailed statistics:', error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al obtener estadísticas detalladas'
+    });
+  }
+};
+
+/**
+ * Obtener items sin stock
+ */
+export const getOutOfStockItems = async (req: Request, res: Response) => {
+  try {
+    const { search } = req.query;
+
+    const query: any = {
+      quantity: 0
+    };
+
+    if (search) {
+      query.$or = [
+        { carId: { $regex: search, $options: 'i' } },
+        { carName: { $regex: search, $options: 'i' } },
+        { brand: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const items = await InventoryItemModel.find(query)
+      .select('carId carName brand pieceType quantity suggestedPrice actualPrice condition')
+      .sort({ dateAdded: -1 });
+
+    res.json({
+      success: true,
+      data: items,
+      message: `${items.length} items sin stock encontrados`
+    });
+  } catch (error) {
+    console.error('Error fetching out-of-stock items:', error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al obtener items sin stock'
+    });
+  }
+};
+
+/**
+ * Reactivar item agregando stock
+ * POST /api/sales/reactivate-item
+ * Body: { itemId, quantity }
+ */
+export const reactivateItem = async (req: Request, res: Response) => {
+  try {
+    const { itemId, quantity } = req.body;
+
+    if (!itemId || !quantity || quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'itemId y quantity (mayor a 0) son requeridos'
+      });
+    }
+
+    const item = await InventoryItemModel.findByIdAndUpdate(
+      itemId,
+      { $inc: { quantity } },
+      { new: true }
+    );
+
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Item no encontrado'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: item,
+      message: `Item reactivado. Nueva cantidad: ${item.quantity}`
+    });
+  } catch (error) {
+    console.error('Error reactivating item:', error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al reactivar el item'
     });
   }
 };
