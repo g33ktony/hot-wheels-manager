@@ -15,7 +15,7 @@ import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
 import toast from 'react-hot-toast'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 interface StatisticsData {
     summary: {
@@ -151,8 +151,8 @@ export default function SalesStatistics() {
                 <button
                     onClick={() => setActiveTab('statistics')}
                     className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === 'statistics'
-                            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg'
-                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                         }`}
                 >
                     📈 Estadísticas
@@ -160,8 +160,8 @@ export default function SalesStatistics() {
                 <button
                     onClick={() => setActiveTab('inventory')}
                     className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === 'inventory'
-                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
-                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                         }`}
                 >
                     📦 Piezas Sin Stock
@@ -447,8 +447,8 @@ export default function SalesStatistics() {
                                                         </td>
                                                         <td className="py-3 px-4">
                                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${transaction.saleType === 'delivery'
-                                                                    ? 'bg-emerald-500/20 text-emerald-300'
-                                                                    : 'bg-blue-500/20 text-blue-300'
+                                                                ? 'bg-emerald-500/20 text-emerald-300'
+                                                                : 'bg-blue-500/20 text-blue-300'
                                                                 }`}>
                                                                 {transaction.saleType === 'delivery' ? '📦 Entrega' : '🛒 POS'}
                                                             </span>
