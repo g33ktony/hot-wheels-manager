@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useQuery } from 'react-query'
-import axios from 'axios'
+import { api } from '@/services/api'
 import {
     LineChart, Line,
     BarChart, Bar,
@@ -13,8 +13,6 @@ import { Calendar, TrendingUp, DollarSign, Package, ShoppingCart, Search, Plus }
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 interface StatisticsData {
     summary: {
@@ -70,7 +68,7 @@ export default function SalesStatistics() {
                 ...(brand && { brand }),
                 ...(pieceType && { pieceType })
             })
-            const response = await axios.get(`${API_URL}/sales/statistics/detailed?${params}`)
+            const response = await api.get(`/sales/statistics/detailed?${params}`)
             return response.data.data
         },
         {
@@ -83,7 +81,7 @@ export default function SalesStatistics() {
         ['out-of-stock', outOfStockSearch],
         async () => {
             const params = outOfStockSearch ? `?search=${outOfStockSearch}` : ''
-            const response = await axios.get(`${API_URL}/sales/inventory/out-of-stock${params}`)
+            const response = await api.get(`/sales/inventory/out-of-stock${params}`)
             return response.data.data
         },
         {
@@ -115,7 +113,7 @@ export default function SalesStatistics() {
 
         try {
             setReactivatingId(itemId)
-            await axios.post(`${API_URL}/sales/inventory/reactivate`, {
+            await api.post('/sales/inventory/reactivate', {
                 itemId,
                 quantity
             })
