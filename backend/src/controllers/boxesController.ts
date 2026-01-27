@@ -186,8 +186,8 @@ export const registerBoxPieces = async (req: Request, res: Response) => {
     // Check if box is complete
     if (box.registeredPieces >= (box.boxSize || 0)) {
       box.boxStatus = 'completed'
-      // Delete the box from inventory (it's now empty)
-      await InventoryItemModel.findByIdAndDelete(id)
+      // Mark the box as out of stock in inventory (soft delete)
+      await InventoryItemModel.findByIdAndUpdate(id, { quantity: 0, reservedQuantity: 0 })
       
       return res.json({
         success: true,
@@ -235,14 +235,14 @@ export const completeBox = async (req: Request, res: Response) => {
       })
     }
 
-    // Update box status and delete from inventory
+    // Update box status and mark as out of stock in inventory
     box.boxStatus = 'completed'
     if (reason) {
       box.notes = `${box.notes}\n[Completada incompleta]: ${reason}`
       await box.save()
     }
     
-    await InventoryItemModel.findByIdAndDelete(id)
+    await InventoryItemModel.findByIdAndUpdate(id, { quantity: 0, reservedQuantity: 0 })
 
     res.json({
       success: true,

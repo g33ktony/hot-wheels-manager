@@ -447,13 +447,17 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
   }
 };
 
-// Delete inventory item
+// Delete inventory item (soft delete - set quantity to 0)
 export const deleteInventoryItem = async (req: Request, res: Response): Promise<void> => {
   try {
     invalidateInventoryCache()
     const { id } = req.params;
 
-    const inventoryItem = await InventoryItemModel.findByIdAndDelete(id);
+    const inventoryItem = await InventoryItemModel.findByIdAndUpdate(
+      id,
+      { quantity: 0, reservedQuantity: 0 },
+      { new: true }
+    );
 
     if (!inventoryItem) {
       res.status(404).json({ 
@@ -465,7 +469,8 @@ export const deleteInventoryItem = async (req: Request, res: Response): Promise<
 
     res.json({ 
       success: true,
-      message: 'Inventory item deleted successfully' 
+      data: inventoryItem,
+      message: 'Inventory item marked as out of stock (quantity set to 0)' 
     });
   } catch (error) {
     console.error('Error deleting inventory item:', error);
