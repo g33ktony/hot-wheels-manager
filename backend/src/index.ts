@@ -124,6 +124,13 @@ app.get('/health', (req, res) => {
 // Auth routes (sin protección)
 app.use('/api/auth', authRoutes)
 
+// Rutas públicas (sin autenticación requerida)
+// Endpoint proxy de imágenes - debe ser público para que funcione desde el navegador
+app.get('/api/hotwheels/image', async (req, res) => {
+  const { proxyImage } = await import('./controllers/hotWheelsController')
+  return proxyImage(req, res)
+})
+
 // Rutas protegidas (requieren autenticación)
 app.use('/api/hotwheels', authMiddleware, hotWheelsRoutes)
 app.use('/api/inventory', authMiddleware, inventoryRoutes)
