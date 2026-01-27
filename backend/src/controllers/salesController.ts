@@ -438,13 +438,6 @@ export const createPOSSale = async (req: Request, res: Response) => {
 
 /**
  * Obtener estadísticas detalladas de ventas con filtros
- * Query params:
- * - startDate: YYYY-MM-DD (default: hoy)
- * - endDate: YYYY-MM-DD (default: hoy)
- * - period: 'day' | 'month' | 'custom' (default: 'day')
- * - saleType: 'all' | 'delivery' | 'pos' (default: 'all')
- * - brand: string (filtrar por marca del artículo)
- * - pieceType: string (filtrar por tipo de pieza)
  */
 export const getDetailedStatistics = async (req: Request, res: Response) => {
   try {
@@ -464,7 +457,6 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
     };
     
     if (period === 'month') {
-      // Usar primer y último día del mes
       const [year, month] = (startDate as string).split('-').slice(0, 2);
       const firstDay = `${year}-${month}-01`;
       const lastDay = new Date(parseInt(year), parseInt(month), 0)
@@ -473,10 +465,9 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       const lastDayRange = getDayRangeUTC(lastDay);
       dateRange = {
         $gte: getDayRangeUTC(firstDay).startDate,
-        $lt: new Date(lastDayRange.endDate.getTime() + 1000) // Siguiente segundo después del último segundo del mes
+        $lt: new Date(lastDayRange.endDate.getTime() + 1000)
       };
     } else if (period === 'custom' && endDate) {
-      // Rango personalizado
       const startRange = getDayRangeUTC(startDate as string);
       const endRange = getDayRangeUTC(endDate as string);
       dateRange = {
@@ -488,22 +479,11 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
     // Construir match query
     const matchQuery: any = {
       saleDate: dateRange,
-      status: 'completed' // Solo ventas completadas
+      status: 'completed'
     };
 
     if (saleType !== 'all') {
       matchQuery.saleType = saleType;
-    }
-
-    // Si hay filtros de brand o pieceType, necesitamos buscar items específicos
-    let itemFilterIds: any[] = [];
-    if (brand || pieceType) {
-      const itemFilter: any = {};
-      if (brand) itemFilter.brand = brand;
-      if (pieceType) itemFilter.pieceType = pieceType;
-      
-      const filteredItems = await InventoryItemModel.find(itemFilter).select('_id');
-      itemFilterIds = filteredItems.map(item => item._id);
     }
 
     // Obtener todas las ventas
@@ -512,7 +492,6 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
         path: 'items.inventoryItemId',
         select: 'brand pieceType purchasePrice'
       })
-      .populate('deliveryId')
       .sort({ saleDate: -1 });
 
     // Procesar datos
@@ -524,37 +503,30 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
     let posSalesCount = 0;
     const salesByDay: { [key: string]: { amount: number; profit: number; pieces: number } } = {};
     const salesByBrand: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
-    const salesByType: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
     const transactionsList: any[] = [];
 
     for (const sale of sales) {
       let saleTotalProfit = 0;
       let saleTotalPieces = 0;
-      let includeInStats = true;
 
+      // Calcular ganancia y piezas por item
       for (const item of sale.items) {
-        // Filtrar si hay filtros de brand/type
-        if (itemFilterIds.length > 0 && item.inventoryItemId) {
-          if (!itemFilterIds.some(id => id.equals(item.inventoryItemId))) {
-            includeInStats = false;
-            continue;
-          }
-        }
-
         const quantity = item.quantity || 1;
         const salePrice = item.unitPrice || 0;
-        const cost = (item.inventoryItemId as any)?.purchasePrice || 0;
+        const inventory = item.inventoryItemId as any;
+        const cost = inventory?.purchasePrice || 0;
         const itemProfit = (salePrice - cost) * quantity;
 
         saleTotalProfit += itemProfit;
         saleTotalPieces += quantity;
+
+        // Filtrar por brand/type si aplica
+        if (brand && inventory?.brand !== brand) continue;
+        if (pieceType && inventory?.pieceType !== pieceType) continue;
       }
 
-      if (!includeInStats) continue;
-
       const saleDate = sale.saleDate.toISOString().split('T')[0];
-      const dayKey = saleDate;
-
+      
       // Acumular totales
       totalSaleAmount += sale.totalAmount;
       totalProfit += saleTotalProfit;
@@ -568,41 +540,32 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       }
 
       // Ventas por día
-      if (!salesByDay[dayKey]) {
-        salesByDay[dayKey] = { amount: 0, profit: 0, pieces: 0 };
+      if (!salesByDay[saleDate]) {
+        salesByDay[saleDate] = { amount: 0, profit: 0, pieces: 0 };
       }
-      salesByDay[dayKey].amount += sale.totalAmount;
-      salesByDay[dayKey].profit += saleTotalProfit;
-      salesByDay[dayKey].pieces += saleTotalPieces;
+      salesByDay[saleDate].amount += sale.totalAmount;
+      salesByDay[saleDate].profit += saleTotalProfit;
+      salesByDay[saleDate].pieces += saleTotalPieces;
 
-      // Ventas por marca y tipo
+      // Ventas por marca
       for (const item of sale.items) {
         const inventory = item.inventoryItemId as any;
         if (inventory) {
-          const brand = inventory.brand || 'Sin marca';
-          const type = inventory.pieceType || 'Sin tipo';
+          const itemBrand = inventory.brand || 'Sin marca';
           const quantity = item.quantity || 1;
           const itemProfit = ((item.unitPrice || 0) - (inventory.purchasePrice || 0)) * quantity;
 
-          if (!salesByBrand[brand]) {
-            salesByBrand[brand] = { amount: 0, profit: 0, pieces: 0, count: 0 };
+          if (!salesByBrand[itemBrand]) {
+            salesByBrand[itemBrand] = { amount: 0, profit: 0, pieces: 0, count: 0 };
           }
-          salesByBrand[brand].amount += item.unitPrice * quantity;
-          salesByBrand[brand].profit += itemProfit;
-          salesByBrand[brand].pieces += quantity;
-          salesByBrand[brand].count++;
-
-          if (!salesByType[type]) {
-            salesByType[type] = { amount: 0, profit: 0, pieces: 0, count: 0 };
-          }
-          salesByType[type].amount += item.unitPrice * quantity;
-          salesByType[type].profit += itemProfit;
-          salesByType[type].pieces += quantity;
-          salesByType[type].count++;
+          salesByBrand[itemBrand].amount += item.unitPrice * quantity;
+          salesByBrand[itemBrand].profit += itemProfit;
+          salesByBrand[itemBrand].pieces += quantity;
+          salesByBrand[itemBrand].count++;
         }
       }
 
-      // Agregar a lista de transacciones
+      // Agregar a transacciones
       transactionsList.push({
         _id: sale._id,
         customerName: (sale as any).customer?.name || 'Venta POS',
@@ -625,7 +588,7 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
     const topBrands = Object.entries(salesByBrand)
       .sort(([, a], [, b]) => b.amount - a.amount)
       .slice(0, 5)
-      .map(([brand, data]) => ({ brand, ...data }));
+      .map(([brandName, data]) => ({ brand: brandName, ...data }));
 
     res.json({
       success: true,

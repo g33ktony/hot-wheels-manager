@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useQuery } from 'react-query'
 import axios from 'axios'
 import {
@@ -12,7 +12,6 @@ import { es } from 'date-fns/locale'
 import { Calendar, TrendingUp, DollarSign, Package, ShoppingCart, Search, Plus } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
-import { Loading } from '@/components/common/Loading'
 import toast from 'react-hot-toast'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -93,7 +92,7 @@ export default function SalesStatistics() {
         }
     )
 
-    const handlePeriodChange = (newPeriod: 'day' | 'month' | 'custom') => {
+    const handlePeriodChange = useCallback((newPeriod: 'day' | 'month' | 'custom') => {
         setPeriod(newPeriod)
         if (newPeriod === 'day') {
             const today = new Date().toISOString().split('T')[0]
@@ -105,9 +104,9 @@ export default function SalesStatistics() {
             setStartDate(firstDay.toISOString().split('T')[0])
             setEndDate(new Date().toISOString().split('T')[0])
         }
-    }
+    }, [])
 
-    const handleReactivate = async (itemId: string) => {
+    const handleReactivate = useCallback(async (itemId: string) => {
         const quantity = reactivateQuantity[itemId] || 0
         if (quantity <= 0) {
             toast.error('Ingresa una cantidad mayor a 0')
@@ -128,18 +127,24 @@ export default function SalesStatistics() {
         } finally {
             setReactivatingId(null)
         }
-    }
-
-    if (statsLoading && activeTab === 'statistics') {
-        return <Loading text="Cargando estadísticas..." />
-    }
-
-    if (outOfStockLoading && activeTab === 'inventory') {
-        return <Loading text="Cargando inventario..." />
-    }
+    }, [reactivateQuantity, refetchOutOfStock])
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
+            {/* Loading Overlay */}
+            {statsLoading && activeTab === 'statistics' && (
+                <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 shadow-lg">
+                    <div className="animate-spin h-5 w-5 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
+                    <span className="text-sm font-medium text-slate-300">Cargando estadísticas...</span>
+                </div>
+            )}
+
+            {outOfStockLoading && activeTab === 'inventory' && (
+                <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 shadow-lg">
+                    <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    <span className="text-sm font-medium text-slate-300">Cargando inventario...</span>
+                </div>
+            )}
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-4xl font-bold text-white mb-2">📊 Estadísticas de Ventas</h1>
