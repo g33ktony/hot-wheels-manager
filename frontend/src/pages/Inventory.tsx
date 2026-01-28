@@ -91,6 +91,108 @@ const PREDEFINED_BRANDS = [
 ]
 
 /**
+ * Detect Hot Wheels piece type from catalog data
+ * Based on series name and other fields
+ */
+function detectPieceType(catalogItem: any): 'basic' | 'premium' | 'rlc' | '' {
+    if (!catalogItem.series) return ''
+
+    const seriesLower = catalogItem.series.toLowerCase()
+
+    // RLC (RLC Exclusives) - usually has "RLC" in the name
+    if (seriesLower.includes('rlc') || seriesLower.includes('r.l.c')) {
+        return 'rlc'
+    }
+
+    // Premium lines
+    if (seriesLower.includes('premium') ||
+        seriesLower.includes('boulevard') ||
+        seriesLower.includes('car culture') ||
+        seriesLower.includes('garage') ||
+        seriesLower.includes('masters')) {
+        return 'premium'
+    }
+
+    // Silver Series
+    if (seriesLower.includes('silver')) {
+        return ''
+    }
+
+    // Elite 64
+    if (seriesLower.includes('elite 64')) {
+        return ''
+    }
+
+    // Default to basic
+    return 'basic'
+}
+
+/**
+ * Detect if item is part of a numbered series and extract series info
+ * Looks for patterns like "Series Name 1/5", "Series - 3 of 10", etc.
+ */
+function detectSeriesInfo(catalogItem: any): { isPartOfSeries: boolean; seriesName: string; seriesSize: number; position: number } {
+    const series = catalogItem.series || ''
+    const seriesNum = catalogItem.series_num || ''
+
+    // Try to find series info in series field
+    // Patterns: "2020 Treasure Hunt 1/10", "Main Line 3 of 5", etc.
+    const patterns = [
+        /^(.+?)\s+(\d+)\/(\d+)$/i, // "Series 1/5" format
+        /^(.+?)\s+(\d+)\s+of\s+(\d+)$/i, // "Series 3 of 5" format
+        /^(.+?)\s+#(\d+)\s*-\s*(\d+)$/i, // "Series #3 - 5" format
+    ]
+
+    for (const pattern of patterns) {
+        const match = series.match(pattern)
+        if (match) {
+            const [, seriesName, position, total] = match
+            return {
+                isPartOfSeries: true,
+                seriesName: seriesName.trim(),
+                seriesSize: parseInt(total, 10),
+                position: parseInt(position, 10)
+            }
+        }
+    }
+
+    // Try to detect from series_num if it looks like "1/5", "3/10", etc.
+    if (seriesNum && seriesNum.includes('/')) {
+        const [posStr, totalStr] = seriesNum.split('/')
+        const pos = parseInt(posStr, 10)
+        const total = parseInt(totalStr, 10)
+
+        if (!isNaN(pos) && !isNaN(total)) {
+            return {
+                isPartOfSeries: true,
+                seriesName: series || 'Series',
+                seriesSize: total,
+                position: pos
+            }
+        }
+    }
+
+    // Check if the series name itself looks like it has a number pattern
+    const numberMatch = series.match(/\b(\d+)(?:st|nd|rd|th)?\b.*?(?:\d+)?/)
+    if (numberMatch && series.length > 10) {
+        // Looks like it could be a series, but we're not sure about position
+        return {
+            isPartOfSeries: true,
+            seriesName: series,
+            seriesSize: 5, // Default guess
+            position: 1
+        }
+    }
+
+    return {
+        isPartOfSeries: false,
+        seriesName: '',
+        seriesSize: 5,
+        position: 1
+    }
+}
+
+/**
  * Convert base64 string to File object
  * Useful for converting OCR/camera captures to uploadable files
  */
@@ -1157,16 +1259,30 @@ export default function Inventory() {
             photos.push(catalogItem.photo_url)
         }
 
+        // Detect piece type from catalog
+        const detectedType = detectPieceType(catalogItem)
+
+        // Detect if it's part of a series
+        const seriesInfo = detectSeriesInfo(catalogItem)
+
         setNewItem({
             ...newItem,
-            carId: catalogItem.toy_num || catalogItem.model,
+            carId: catalogItem.model, // Model name (casting)
             photos: photos,
-            // Try to fill in other details from catalog
-            notes: newItem.notes || `${catalogItem.model} - ${catalogItem.series}`,
+            pieceType: detectedType as 'basic' | 'premium' | 'rlc' | '', // Fill in piece type
+            // Series detection
+            isMultipleCars: seriesInfo.isPartOfSeries,
+            seriesName: seriesInfo.seriesName,
+            seriesSize: seriesInfo.seriesSize,
+            seriesPosition: seriesInfo.position,
+            // Put toy_num and series info in notes
+            notes: (newItem.notes || '') ? `${newItem.notes} | Toy#: ${catalogItem.toy_num} - ${catalogItem.series}` : `Toy#: ${catalogItem.toy_num} - ${catalogItem.series}`,
         })
 
         setShowCatalogResults(false)
-        toast.success(`✅ Info del catálogo agregada: ${catalogItem.model}`)
+        const typeLabel = detectedType ? `(${formatPieceType(detectedType)})` : ''
+        const seriesLabel = seriesInfo.isPartOfSeries ? ` - Serie: ${seriesInfo.seriesName} ${seriesInfo.position}/${seriesInfo.seriesSize}` : ''
+        toast.success(`✅ ${catalogItem.model} ${typeLabel}${seriesLabel} agregado`)
     }
 
     const handleCancelUpdate = () => {
@@ -2387,7 +2503,7 @@ export default function Inventory() {
                             <div className="relative">
                                 <div className="flex items-center justify-between mb-1">
                                     <label className="block text-sm font-medium text-gray-700">
-                                        Código de Hot Wheels
+                                        Casting / Nombre
                                     </label>
                                     <OCRScanner
                                         onTextExtracted={(text: string) => handleCarIdChange(text)}
@@ -2485,40 +2601,65 @@ export default function Inventory() {
                                         <div className="sticky top-0 p-2 bg-emerald-800/50 border-b border-emerald-600 text-xs text-emerald-200 font-semibold">
                                             📚 Catálogo Hot Wheels ({catalogSearchResults.length} resultado{catalogSearchResults.length !== 1 ? 's' : ''})
                                         </div>
-                                        {catalogSearchResults.map((item: any, idx: number) => (
-                                            <button
-                                                key={`${item.toy_num}-${idx}`}
-                                                type="button"
-                                                className="w-full text-left px-3 py-2 hover:bg-emerald-700/30 border-b last:border-b-0 transition-colors"
-                                                onClick={() => handleSelectCatalogItem(item)}
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    {/* Imagen pequeña del catálogo */}
-                                                    {item.photo_url && (
-                                                        <div className="flex-shrink-0 w-12 h-12 bg-emerald-800 rounded overflow-hidden flex items-center justify-center">
-                                                            <img
-                                                                src={item.photo_url}
-                                                                alt={item.model}
-                                                                className="w-full h-full object-contain"
-                                                                onError={(e) => {
-                                                                    e.currentTarget.style.display = 'none'
-                                                                }}
-                                                            />
+                                        {catalogSearchResults.map((item: any, idx: number) => {
+                                            // Check if item is part of a series for visual indicator
+                                            const seriesInfo = detectSeriesInfo(item)
+
+                                            return (
+                                                <button
+                                                    key={`${item.toy_num}-${idx}`}
+                                                    type="button"
+                                                    className="w-full text-left px-3 py-2 hover:bg-emerald-700/30 border-b last:border-b-0 transition-colors"
+                                                    onClick={() => handleSelectCatalogItem(item)}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        {/* Imagen pequeña del catálogo */}
+                                                        <div className="flex-shrink-0 w-12 h-12 bg-emerald-800 rounded overflow-hidden flex items-center justify-center relative">
+                                                            {item.photo_url ? (
+                                                                <>
+                                                                    <img
+                                                                        src={item.photo_url}
+                                                                        alt={item.model}
+                                                                        className="w-full h-full object-contain"
+                                                                        crossOrigin="anonymous"
+                                                                        onError={(e) => {
+                                                                            // Keep the container visible even if image fails
+                                                                            e.currentTarget.style.display = 'none'
+                                                                        }}
+                                                                        onLoad={() => {
+                                                                            console.log('✅ Catalog image loaded:', item.model)
+                                                                        }}
+                                                                    />
+                                                                    {/* Fallback if image fails */}
+                                                                    <div className="absolute inset-0 flex items-center justify-center text-emerald-300 text-sm font-bold group-has-[img:hidden]:flex hidden" id={`fallback-${idx}`}>
+                                                                        🚗
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <div className="text-emerald-300 text-sm">🚗</div>
+                                                            )}
                                                         </div>
-                                                    )}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="font-medium text-sm text-emerald-100">{item.model}</div>
-                                                        <div className="text-xs text-emerald-300 space-y-0.5">
-                                                            <p>Serie: <span className="font-semibold">{item.series}</span> • Año: <span className="font-semibold">{item.year}</span></p>
-                                                            <p>Toy #: <span className="font-mono">{item.toy_num}</span> • Col #: <span className="font-mono">{item.col_num}</span></p>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-medium text-sm text-emerald-100">{item.model}</span>
+                                                                {seriesInfo.isPartOfSeries && (
+                                                                    <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 border border-amber-500/50">
+                                                                        📦 {seriesInfo.position}/{seriesInfo.seriesSize}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="text-xs text-emerald-300 space-y-0.5">
+                                                                <p>Serie: <span className="font-semibold">{item.series}</span> • Año: <span className="font-semibold">{item.year}</span></p>
+                                                                <p>Toy #: <span className="font-mono">{item.toy_num}</span> • Col #: <span className="font-mono">{item.col_num}</span></p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-shrink-0">
+                                                            <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-700/50 text-emerald-100">Agregar</span>
                                                         </div>
                                                     </div>
-                                                    <div className="flex-shrink-0">
-                                                        <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-700/50 text-emerald-100">Agregar</span>
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        ))}
+                                                </button>
+                                            )
+                                        })}
                                     </div>
                                 )}
 
