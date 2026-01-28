@@ -15,11 +15,11 @@ const router = express.Router()
 // All routes require authentication
 router.use(authMiddleware)
 
+// GET /api/pending-items/stats - Get statistics (must be before :id routes)
+router.get('/stats', getPendingItemsStats)
+
 // GET /api/pending-items - Get all pending items with filters
 router.get('/', getPendingItems)
-
-// GET /api/pending-items/stats - Get statistics
-router.get('/stats', getPendingItemsStats)
 
 // POST /api/pending-items - Create new pending item
 router.post('/', createPendingItem)
