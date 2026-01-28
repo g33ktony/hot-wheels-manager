@@ -600,7 +600,7 @@ const POS: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">🛒 Punto de Venta (POS)</h1>
+        <h1 className="text-3xl font-bold text-white">🛒 Punto de Venta (POS)</h1>
         <p className="text-slate-400">Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
       </div>
 

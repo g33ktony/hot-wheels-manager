@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface CardProps {
     children: ReactNode
@@ -7,7 +8,8 @@ interface CardProps {
 }
 
 export default function Card({ children, className = '', hover = false }: CardProps) {
-    const baseClasses = 'rounded-lg border border-slate-700 bg-slate-800 p-3 lg:p-6 shadow-card w-full'
+    const { colors } = useTheme()
+    const baseClasses = `rounded-lg border ${colors.border.primary} ${colors.bg.card} p-3 lg:p-6 ${colors.ui.shadowCard} w-full`
     const hoverClasses = hover ? 'hover:shadow-card-hover transition-shadow cursor-pointer active:scale-[0.98]' : ''
 
     return (
@@ -36,8 +38,9 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = '' }: CardTitleProps) {
+    const { colors } = useTheme()
     return (
-        <h3 className={`text-base lg:text-lg font-semibold text-white ${className}`}>
+        <h3 className={`text-base lg:text-lg font-semibold ${colors.text.primary} ${className}`}>
             {children}
         </h3>
     )

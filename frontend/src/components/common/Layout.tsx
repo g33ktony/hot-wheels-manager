@@ -13,10 +13,13 @@ import {
     LogOut,
     PackageOpen,
     AlertCircle,
-    Search as SearchIcon
+    Search as SearchIcon,
+    Sun,
+    Moon
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useBoxes } from '@/hooks/useBoxes'
 import { useAppSelector } from '@/hooks/redux'
@@ -34,6 +37,7 @@ export default function Layout({ children }: LayoutProps) {
     const location = useLocation()
     const navigate = useNavigate()
     const { user, logout } = useAuth()
+    const { toggleTheme, mode } = useTheme()
     const { data: pendingItemsStats } = usePendingItemsStats()
     const { data: boxes } = useBoxes()
     const cartItems = useAppSelector(state => state.cart.items)
@@ -253,7 +257,25 @@ export default function Layout({ children }: LayoutProps) {
                         </div>
                     </form>
 
-                    <div className="flex-1 lg:flex lg:items-center lg:justify-end">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1 lg:flex-initial lg:justify-end">
+                        {/* Theme toggle button */}
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 hover:bg-slate-700 rounded-lg active:bg-slate-600 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+                            aria-label={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
+                            title={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
+                            style={{
+                                WebkitTapHighlightColor: 'transparent',
+                                WebkitTouchCallout: 'none',
+                            }}
+                        >
+                            {mode === 'dark' ? (
+                                <Sun size={20} className="text-slate-300" />
+                            ) : (
+                                <Moon size={20} className="text-slate-600" />
+                            )}
+                        </button>
+
                         <div className="text-sm text-slate-400 hidden sm:block select-none">
                             {user?.name || 'Usuario'}
                         </div>
