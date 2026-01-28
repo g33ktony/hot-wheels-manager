@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { QueryClient, QueryClientProvider } from 'react-query'
+// Theme system v1.0 - Dynamic color customization enabled
 import { Toaster } from 'react-hot-toast'
 import { store } from './store/store'
 import App from './App.tsx'
