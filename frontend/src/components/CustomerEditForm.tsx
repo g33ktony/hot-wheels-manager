@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from '@/components/common/Button';
+import { useTheme } from '@/contexts/ThemeContext';
 import { X, Save } from 'lucide-react';
 
 interface CustomerEditFormProps {
@@ -15,6 +16,7 @@ export default function CustomerEditForm({
   onSave,
   onChange
 }: CustomerEditFormProps) {
+  const { colors } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
@@ -38,53 +40,53 @@ export default function CustomerEditForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Nombre */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className={`block text-sm font-medium ${colors.text.secondary} mb-1`}>
             Nombre *
           </label>
           <input
             type="text"
             value={customer.name || ''}
             onChange={(e) => handleInputChange('name', e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border ${colors.border.input} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
             required
           />
         </div>
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className={`block text-sm font-medium ${colors.text.secondary} mb-1`}>
             Email
           </label>
           <input
             type="email"
             value={customer.email || ''}
             onChange={(e) => handleInputChange('email', e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border ${colors.border.input} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
           />
         </div>
 
         {/* Teléfono */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className={`block text-sm font-medium ${colors.text.secondary} mb-1`}>
             Teléfono
           </label>
           <input
             type="tel"
             value={customer.phone || ''}
             onChange={(e) => handleInputChange('phone', e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border ${colors.border.input} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
           />
         </div>
 
         {/* Método de contacto */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label className={`block text-sm font-medium ${colors.text.secondary} mb-1`}>
             Método de contacto preferido
           </label>
           <select
             value={customer.contactMethod || 'email'}
             onChange={(e) => handleInputChange('contactMethod', e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border ${colors.border.input} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
           >
             <option value="email">Email</option>
             <option value="phone">Teléfono</option>
@@ -96,26 +98,26 @@ export default function CustomerEditForm({
 
       {/* Dirección */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${colors.text.secondary} mb-1`}>
           Dirección
         </label>
         <input
           type="text"
           value={customer.address || ''}
           onChange={(e) => handleInputChange('address', e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className={`w-full px-3 py-2 border ${colors.border.input} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
         />
       </div>
 
       {/* Notas */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+        <label className={`block text-sm font-medium ${colors.text.secondary} mb-1`}>
           Notas
         </label>
         <textarea
           value={customer.notes || ''}
           onChange={(e) => handleInputChange('notes', e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className={`w-full px-3 py-2 border ${colors.border.input} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
           rows={3}
         />
       </div>

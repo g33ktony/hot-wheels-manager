@@ -1,5 +1,6 @@
 import React from 'react'
 import { X } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
 import { SaleDetailContent } from './SaleDetailContent'
 
 interface SaleDetailsModalProps {
@@ -17,23 +18,25 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
     onOpenImageModal,
     readonly = false,
 }) => {
+    const { colors } = useTheme()
+
     if (!isOpen || !sale) return null
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-slate-800 border border-slate-700 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between p-6 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
-                    <h2 className="text-xl font-semibold text-white">Detalles de Venta</h2>
+            <div className={`${colors.bg.modal} ${colors.border.primary} border rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto`}>
+                <div className={`flex items-center justify-between p-6 border-b ${colors.border.primary} sticky top-0 ${colors.bg.modal} z-10`}>
+                    <h2 className={`text-xl font-semibold ${colors.text.primary}`}>Detalles de Venta</h2>
                     <button
                         onClick={onClose}
-                        className="text-slate-400 hover:text-slate-200"
+                        className={`${colors.text.tertiary} hover:${colors.text.secondary}`}
                     >
                         <X size={20} />
                     </button>
                 </div>
 
                 <div className="p-6">
-                    <SaleDetailContent sale={sale} theme="dark" onOpenImageModal={!readonly ? onOpenImageModal : undefined} />
+                    <SaleDetailContent sale={sale} onOpenImageModal={!readonly ? onOpenImageModal : undefined} />
                 </div>
             </div>
         </div>

@@ -17,7 +17,7 @@ export interface ThemeColors {
     input: string
     modal: string
   }
-  // Text colors
+  // Text colors (RGB values for use in style props)
   text: {
     primary: string
     secondary: string
@@ -28,14 +28,14 @@ export interface ThemeColors {
     warning: string
     info: string
   }
-  // Borders
+  // Borders (RGB values for use in style props)
   border: {
     primary: string
     secondary: string
     input: string
     hover: string
   }
-  // Specific UI elements
+  // Specific UI elements (RGB values for use in style props)
   ui: {
     emeraldAccent: string
     blueAccent: string
@@ -44,6 +44,18 @@ export interface ThemeColors {
     orangeAccent: string
     purpleAccent: string
     shadowCard: string
+  }
+  // CSS variables for use in styles
+  cssVars: {
+    textPrimary: string
+    textSecondary: string
+    textTertiary: string
+    textMuted: string
+    textDanger: string
+    textSuccess: string
+    borderPrimary: string
+    borderSecondary: string
+    accentEmerald: string
   }
 }
 
@@ -78,30 +90,41 @@ export const darkTheme: ThemeColors = {
     modal: 'bg-slate-800',
   },
   text: {
-    primary: 'text-white',
-    secondary: 'text-slate-300',
-    tertiary: 'text-slate-400',
-    muted: 'text-slate-500',
-    danger: 'text-red-500',
-    success: 'text-emerald-400',
-    warning: 'text-yellow-400',
-    info: 'text-blue-400',
+    primary: 'rgb(255, 255, 255)',
+    secondary: 'rgb(203, 213, 225)',
+    tertiary: 'rgb(148, 163, 184)',
+    muted: 'rgb(100, 116, 139)',
+    danger: 'rgb(239, 68, 68)',
+    success: 'rgb(52, 211, 153)',
+    warning: 'rgb(250, 204, 21)',
+    info: 'rgb(96, 165, 250)',
   },
   border: {
-    primary: 'border-slate-700',
-    secondary: 'border-slate-600',
-    input: 'border-slate-600',
-    hover: 'hover:border-slate-500',
+    primary: 'rgb(51, 65, 85)',
+    secondary: 'rgb(71, 85, 105)',
+    input: 'rgb(71, 85, 105)',
+    hover: 'rgb(51, 65, 85)',
   },
   ui: {
-    emeraldAccent: 'text-emerald-400',
-    blueAccent: 'text-blue-500',
-    redAccent: 'text-red-500',
-    greenAccent: 'text-emerald-400',
-    orangeAccent: 'text-orange-400',
-    purpleAccent: 'text-purple-400',
+    emeraldAccent: 'rgb(52, 211, 153)',
+    blueAccent: 'rgb(59, 130, 246)',
+    redAccent: 'rgb(239, 68, 68)',
+    greenAccent: 'rgb(52, 211, 153)',
+    orangeAccent: 'rgb(251, 146, 60)',
+    purpleAccent: 'rgb(168, 85, 247)',
     shadowCard: 'shadow-lg',
   },
+  cssVars: {
+    textPrimary: 'white',
+    textSecondary: 'rgb(203, 213, 225)',
+    textTertiary: 'rgb(148, 163, 184)',
+    textMuted: 'rgb(100, 116, 139)',
+    textDanger: 'rgb(239, 68, 68)',
+    textSuccess: 'rgb(52, 211, 153)',
+    borderPrimary: 'rgb(51, 65, 85)',
+    borderSecondary: 'rgb(71, 85, 105)',
+    accentEmerald: 'rgb(52, 211, 153)',
+  }
 }
 
 export const lightTheme: ThemeColors = {
@@ -115,30 +138,41 @@ export const lightTheme: ThemeColors = {
     modal: 'bg-white',
   },
   text: {
-    primary: 'text-gray-900',
-    secondary: 'text-gray-700',
-    tertiary: 'text-gray-600',
-    muted: 'text-gray-500',
-    danger: 'text-red-600',
-    success: 'text-green-600',
-    warning: 'text-yellow-600',
-    info: 'text-blue-600',
+    primary: 'rgb(17, 24, 39)',
+    secondary: 'rgb(55, 65, 81)',
+    tertiary: 'rgb(75, 85, 99)',
+    muted: 'rgb(107, 114, 128)',
+    danger: 'rgb(220, 38, 38)',
+    success: 'rgb(34, 197, 94)',
+    warning: 'rgb(234, 179, 8)',
+    info: 'rgb(37, 99, 235)',
   },
   border: {
-    primary: 'border-gray-200',
-    secondary: 'border-gray-300',
-    input: 'border-gray-300',
-    hover: 'hover:border-gray-400',
+    primary: 'rgb(229, 231, 235)',
+    secondary: 'rgb(209, 213, 219)',
+    input: 'rgb(209, 213, 219)',
+    hover: 'rgb(189, 195, 204)',
   },
   ui: {
-    emeraldAccent: 'text-emerald-600',
-    blueAccent: 'text-blue-600',
-    redAccent: 'text-red-600',
-    greenAccent: 'text-green-600',
-    orangeAccent: 'text-orange-600',
-    purpleAccent: 'text-purple-600',
+    emeraldAccent: 'rgb(34, 197, 94)',
+    blueAccent: 'rgb(37, 99, 235)',
+    redAccent: 'rgb(220, 38, 38)',
+    greenAccent: 'rgb(34, 197, 94)',
+    orangeAccent: 'rgb(234, 88, 12)',
+    purpleAccent: 'rgb(147, 51, 234)',
     shadowCard: 'shadow-md',
   },
+  cssVars: {
+    textPrimary: 'rgb(17, 24, 39)',
+    textSecondary: 'rgb(55, 65, 81)',
+    textTertiary: 'rgb(75, 85, 99)',
+    textMuted: 'rgb(107, 114, 128)',
+    textDanger: 'rgb(220, 38, 38)',
+    textSuccess: 'rgb(34, 197, 94)',
+    borderPrimary: 'rgb(229, 231, 235)',
+    borderSecondary: 'rgb(209, 213, 219)',
+    accentEmerald: 'rgb(34, 197, 94)',
+  }
 }
 
 export const defaultCustomTheme: CustomThemeConfig = {
@@ -171,30 +205,41 @@ export const buildCustomTheme = (mode: ThemeMode, custom: CustomThemeConfig): Th
   return {
     ...baseTheme,
     text: {
-      primary: `text-[${custom.textPrimary}]`,
-      secondary: `text-[${custom.textSecondary}]`,
-      tertiary: `text-[${custom.textTertiary}]`,
-      muted: `text-[${custom.textMuted}]`,
-      danger: `text-[${custom.textDanger}]`,
-      success: `text-[${custom.textSuccess}]`,
-      warning: `text-[${custom.textWarning}]`,
-      info: `text-[${custom.textInfo}]`,
+      primary: custom.textPrimary,
+      secondary: custom.textSecondary,
+      tertiary: custom.textTertiary,
+      muted: custom.textMuted,
+      danger: custom.textDanger,
+      success: custom.textSuccess,
+      warning: custom.textWarning,
+      info: custom.textInfo,
     },
     border: {
-      primary: `border-[${custom.borderPrimary}]`,
-      secondary: `border-[${custom.borderSecondary}]`,
-      input: `border-[${custom.borderInput}]`,
-      hover: `hover:border-[${custom.borderPrimary}]`,
+      primary: custom.borderPrimary,
+      secondary: custom.borderSecondary,
+      input: custom.borderInput,
+      hover: custom.borderPrimary,
     },
     ui: {
-      emeraldAccent: `text-[${custom.accentEmerald}]`,
-      blueAccent: `text-[${custom.accentBlue}]`,
-      redAccent: `text-[${custom.accentRed}]`,
-      greenAccent: `text-[${custom.accentGreen}]`,
-      orangeAccent: `text-[${custom.accentOrange}]`,
-      purpleAccent: `text-[${custom.accentPurple}]`,
+      emeraldAccent: custom.accentEmerald,
+      blueAccent: custom.accentBlue,
+      redAccent: custom.accentRed,
+      greenAccent: custom.accentGreen,
+      orangeAccent: custom.accentOrange,
+      purpleAccent: custom.accentPurple,
       shadowCard: baseTheme.ui.shadowCard,
     },
+    cssVars: {
+      textPrimary: custom.textPrimary,
+      textSecondary: custom.textSecondary,
+      textTertiary: custom.textTertiary,
+      textMuted: custom.textMuted,
+      textDanger: custom.textDanger,
+      textSuccess: custom.textSuccess,
+      borderPrimary: custom.borderPrimary,
+      borderSecondary: custom.borderSecondary,
+      accentEmerald: custom.accentEmerald,
+    }
   }
 }
 
