@@ -5,6 +5,93 @@ import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
 
+/**
+ * Función para calcular similitud entre dos strings usando bigramas
+ * Útil para búsquedas fuzzy que permiten encontrar coincidencias parciales
+ * Ejemplo: "br32" vs "RB32" tendrá una similitud alta
+ */
+const calculateSimilarity = (str1: string, str2: string): number => {
+  const s1 = str1.toLowerCase()
+  const s2 = str2.toLowerCase()
+  
+  // Si una string contiene a la otra, alta similitud
+  if (s1.includes(s2) || s2.includes(s1)) {
+    return 0.85
+  }
+  
+  // Calcular caracteres en común
+  const chars1 = new Set(s1.split(''))
+  const chars2 = new Set(s2.split(''))
+  const intersection = new Set([...chars1].filter(x => chars2.has(x)))
+  
+  // Calcular similitud básica por caracteres comunes
+  const charSimilarity = (intersection.size * 2) / (chars1.size + chars2.size)
+  
+  // Calcular similitud por secuencias (n-gramas de 2 caracteres)
+  const bigrams1 = []
+  const bigrams2 = []
+  
+  for (let i = 0; i < s1.length - 1; i++) {
+    bigrams1.push(s1.substring(i, i + 2))
+  }
+  for (let i = 0; i < s2.length - 1; i++) {
+    bigrams2.push(s2.substring(i, i + 2))
+  }
+  
+  if (bigrams1.length === 0 || bigrams2.length === 0) {
+    return charSimilarity
+  }
+  
+  const bigramSet1 = new Set(bigrams1)
+  const bigramSet2 = new Set(bigrams2)
+  const bigramIntersection = new Set([...bigramSet1].filter(x => bigramSet2.has(x)))
+  const bigramSimilarity = (bigramIntersection.size * 2) / (bigramSet1.size + bigramSet2.size)
+  
+  // Combinar ambas métricas (dar más peso a la similitud de secuencias)
+  return (charSimilarity * 0.3 + bigramSimilarity * 0.7)
+}
+
+// Función para buscar con fuzzy matching en todos los campos
+const fuzzyMatch = (car: any, searchTerm: string, threshold = 0.45): { match: boolean; score: number } => {
+  const searchLower = searchTerm.toLowerCase().trim()
+  
+  // Campos a buscar
+  const fields = [
+    String(car.model || ''),
+    String(car.series || ''),
+    String(car.year || ''),
+    String(car.toy_num || ''),
+    String(car.col_num || ''),
+    String(car.series_num || '')
+  ]
+  
+  let maxScore = 0
+  
+  for (const field of fields) {
+    const fieldLower = field.toLowerCase()
+    
+    // Coincidencia exacta = máxima puntuación
+    if (fieldLower === searchLower) {
+      return { match: true, score: 1.0 }
+    }
+    
+    // Contiene el término = alta puntuación
+    if (fieldLower.includes(searchLower)) {
+      maxScore = Math.max(maxScore, 0.9)
+      continue
+    }
+    
+    // Calcular similitud
+    const similarity = calculateSimilarity(fieldLower, searchLower)
+    maxScore = Math.max(maxScore, similarity)
+  }
+  
+  return {
+    match: maxScore >= threshold,
+    score: maxScore
+  }
+}
+
 // Buscar en el archivo JSON directamente
 export const searchHotWheelsJSON = async (req: Request, res: Response) => {
   try {
@@ -23,12 +110,21 @@ export const searchHotWheelsJSON = async (req: Request, res: Response) => {
 
     let filtered = allCars
 
-    // Buscar solo por model si hay search term
+    // Buscar en todos los campos con fuzzy matching
+    // Busca en: model, series, year, toy_num, col_num, series_num
+    // Threshold: 0.45 (45% de similitud mínima para considerar una coincidencia)
+    // Los resultados se ordenan por score de mayor a menor
     if (search && search !== '') {
-      const searchLower = (search as string).toLowerCase()
-      filtered = allCars.filter((car: any) =>
-        car.model.toLowerCase().includes(searchLower)
-      )
+      const searchResults = allCars
+        .map((car: any) => {
+          const { match, score } = fuzzyMatch(car, search as string)
+          return { car, match, score }
+        })
+        .filter((result: any) => result.match)
+        .sort((a: any, b: any) => b.score - a.score) // Ordenar por mejor coincidencia
+        .map((result: any) => result.car)
+      
+      filtered = searchResults
     }
 
     // Aplicar paginación

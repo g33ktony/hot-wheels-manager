@@ -577,13 +577,21 @@ export default function Dashboard() {
                 }
             >
                 <div className="space-y-4">
+                    {/* Info sobre búsqueda mejorada */}
+                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
+                        <p className="text-xs text-emerald-300">
+                            💡 <span className="font-semibold">Búsqueda inteligente:</span> Busca en todos los campos (modelo, serie, año, códigos).
+                            Encuentra resultados similares aunque no coincidan exactamente.
+                        </p>
+                    </div>
+
                     {/* Search Input */}
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Buscar por nombre de modelo..."
+                            placeholder="Buscar por modelo, serie, año, Toy #, etc..."
                             className="flex-1 px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
@@ -662,6 +670,7 @@ export default function Dashboard() {
                                                 <p><span className="font-medium">Serie:</span> <span className="text-slate-300">{item.series}</span></p>
                                                 <p><span className="font-medium">Año:</span> <span className="text-slate-300">{item.year}</span></p>
                                                 <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs text-slate-300">{item.toy_num}</span></p>
+                                                <p><span className="font-medium">Col #:</span> <span className="font-mono text-xs text-slate-300">{item.col_num}</span></p>
                                                 <p><span className="font-medium">Serie #:</span> <span className="text-slate-300">{item.series_num}</span></p>
                                             </div>
                                         </div>

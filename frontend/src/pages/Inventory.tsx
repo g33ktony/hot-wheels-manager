@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSearch } from '@/contexts/SearchContext'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
+import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
 import { inventoryService } from '@/services/inventory'
 import { useAppSelector, useAppDispatch } from '@/hooks/redux'
 import { setInventoryItems } from '@/store/slices/inventorySlice'
@@ -238,6 +239,10 @@ export default function Inventory() {
     const [isAddingItem, setIsAddingItem] = useState(false)
     // Photo upload state
     const [uploadingPhotos, setUploadingPhotos] = useState(0)
+    // Hot Wheels catalog search state
+    const [catalogSearchResults, setCatalogSearchResults] = useState<any[]>([])
+    const [showCatalogResults, setShowCatalogResults] = useState(false)
+    const { results: hotWheelsResults, isLoading: isSearchingCatalog, searchByName } = useSearchHotWheels()
 
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
@@ -411,6 +416,15 @@ export default function Inventory() {
     useEffect(() => {
         prefetchedPagesRef.current.clear()
     }, [debouncedSearchTerm, filterCondition, filterBrand, filterPieceType, filterTreasureHunt, filterChase, filterFantasy, filterMoto, filterCamioneta])
+
+    // Monitor Hot Wheels catalog search results
+    useEffect(() => {
+        if (hotWheelsResults && hotWheelsResults.length > 0) {
+            setCatalogSearchResults(hotWheelsResults)
+        } else {
+            setCatalogSearchResults([])
+        }
+    }, [hotWheelsResults])
 
     // Combine predefined and custom brands
     const allBrands = [
@@ -1052,9 +1066,15 @@ export default function Inventory() {
         // Show suggestions if there are matching items
         if (value.length > 0) {
             setShowSuggestions(true)
+            // También buscar en catálogo de Hot Wheels
+            if (value.length >= 2) {
+                searchByName(value)
+                setShowCatalogResults(true)
+            }
         } else {
             setShowSuggestions(false)
-            setExistingItemToUpdate(null)
+            setShowCatalogResults(false)
+            setCatalogSearchResults([])
         }
     }
 
@@ -1127,6 +1147,26 @@ export default function Inventory() {
             seriesDefaultPrice: item.seriesDefaultPrice || 0
         })
         setShowSuggestions(false)
+    }
+
+    // Select Hot Wheels catalog item and fill in details
+    const handleSelectCatalogItem = (catalogItem: any) => {
+        // Add catalog image to photos (as second photo since first is from OCR)
+        const photos = [...newItem.photos]
+        if (catalogItem.photo_url) {
+            photos.push(catalogItem.photo_url)
+        }
+
+        setNewItem({
+            ...newItem,
+            carId: catalogItem.toy_num || catalogItem.model,
+            photos: photos,
+            // Try to fill in other details from catalog
+            notes: newItem.notes || `${catalogItem.model} - ${catalogItem.series}`,
+        })
+
+        setShowCatalogResults(false)
+        toast.success(`✅ Info del catálogo agregada: ${catalogItem.model}`)
     }
 
     const handleCancelUpdate = () => {
@@ -2438,6 +2478,61 @@ export default function Inventory() {
                                         })}
                                     </div>
                                 )}
+
+                                {/* Dropdown with Hot Wheels catalog results */}
+                                {showCatalogResults && catalogSearchResults.length > 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-emerald-900 border border-emerald-600 rounded-lg shadow-lg max-h-64 overflow-y-auto top-full">
+                                        <div className="sticky top-0 p-2 bg-emerald-800/50 border-b border-emerald-600 text-xs text-emerald-200 font-semibold">
+                                            📚 Catálogo Hot Wheels ({catalogSearchResults.length} resultado{catalogSearchResults.length !== 1 ? 's' : ''})
+                                        </div>
+                                        {catalogSearchResults.map((item: any, idx: number) => (
+                                            <button
+                                                key={`${item.toy_num}-${idx}`}
+                                                type="button"
+                                                className="w-full text-left px-3 py-2 hover:bg-emerald-700/30 border-b last:border-b-0 transition-colors"
+                                                onClick={() => handleSelectCatalogItem(item)}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    {/* Imagen pequeña del catálogo */}
+                                                    {item.photo_url && (
+                                                        <div className="flex-shrink-0 w-12 h-12 bg-emerald-800 rounded overflow-hidden flex items-center justify-center">
+                                                            <img
+                                                                src={item.photo_url}
+                                                                alt={item.model}
+                                                                className="w-full h-full object-contain"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.style.display = 'none'
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-medium text-sm text-emerald-100">{item.model}</div>
+                                                        <div className="text-xs text-emerald-300 space-y-0.5">
+                                                            <p>Serie: <span className="font-semibold">{item.series}</span> • Año: <span className="font-semibold">{item.year}</span></p>
+                                                            <p>Toy #: <span className="font-mono">{item.toy_num}</span> • Col #: <span className="font-mono">{item.col_num}</span></p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-shrink-0">
+                                                        <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-700/50 text-emerald-100">Agregar</span>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Loading catalog results */}
+                                {showCatalogResults && isSearchingCatalog && catalogSearchResults.length === 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-emerald-900 border border-emerald-600 rounded-lg shadow-lg p-3">
+                                        <div className="text-xs text-emerald-200 flex items-center gap-2">
+                                            <div className="animate-spin inline-block">
+                                                <div className="w-3 h-3 border-2 border-emerald-400 border-t-emerald-100 rounded-full"></div>
+                                            </div>
+                                            Buscando en catálogo...
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -2522,7 +2617,7 @@ export default function Inventory() {
                                         ? 'Precio de Venta por Pieza'
                                         : 'Precio Sugerido'}
                                 {!newItem.isMultipleCars && (
-                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-slate-700 text-emerald-400 rounded-full">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-slate-700 text-emerald-400 rounded-full">
                                         <TrendingUp size={12} />
                                         {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ?
                                             `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%`
