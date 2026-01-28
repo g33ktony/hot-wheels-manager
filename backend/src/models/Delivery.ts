@@ -42,6 +42,9 @@ export interface DeliveryItem {
   carName: string;
   quantity: number;
   unitPrice: number;
+  // Enriched fields (from inventory)
+  photos?: string[]; // Photos from inventory
+  costPrice?: number; // Purchase price from inventory
   // Pre-sale fields
   isPresaleItem?: boolean; // true if this item comes from a pre-sale
   preSaleItemId?: string; // Reference to PreSaleItem

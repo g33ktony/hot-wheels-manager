@@ -117,8 +117,11 @@ export const getDeliveryById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const delivery = await DeliveryModel.findById(id)
-      .populate('customerId')
-      .populate('items.inventoryItemId');
+      .populate('customerId', 'name email phone')
+      .populate({
+        path: 'items.inventoryItemId',
+        select: 'carName brand photos purchasePrice actualPrice'
+      });
 
     if (!delivery) {
       return res.status(404).json({
@@ -128,9 +131,46 @@ export const getDeliveryById = async (req: Request, res: Response) => {
       });
     }
 
+    // Enrich items with photos and cost data from inventory
+    const enrichedDelivery = delivery.toObject();
+    
+    console.log('🔍 DELIVERY BEFORE ENRICHMENT - First item:', {
+      carName: enrichedDelivery.items[0]?.carName,
+      hasPhotos: !!enrichedDelivery.items[0]?.photos,
+      hasCostPrice: !!enrichedDelivery.items[0]?.costPrice,
+      inventoryId: enrichedDelivery.items[0]?.inventoryItemId
+    });
+
+    enrichedDelivery.items = enrichedDelivery.items.map((item: any) => {
+      const inventory = item.inventoryItemId as any;
+      
+      // Always set photos from inventory if available
+      if (inventory?.photos && Array.isArray(inventory.photos) && inventory.photos.length > 0) {
+        item.photos = inventory.photos;
+      } else if (!item.photos) {
+        item.photos = [];
+      }
+      
+      // Always set costPrice from inventory purchase price
+      if (inventory?.purchasePrice && inventory.purchasePrice > 0) {
+        item.costPrice = inventory.purchasePrice;
+      } else if (!item.costPrice) {
+        item.costPrice = 0;
+      }
+      
+      return item;
+    });
+
+    console.log('✅ DELIVERY AFTER ENRICHMENT - First item:', {
+      carName: enrichedDelivery.items[0]?.carName,
+      hasPhotos: !!enrichedDelivery.items[0]?.photos,
+      photosCount: enrichedDelivery.items[0]?.photos?.length || 0,
+      costPrice: enrichedDelivery.items[0]?.costPrice
+    });
+
     res.json({
       success: true,
-      data: delivery,
+      data: enrichedDelivery,
       message: 'Delivery retrieved successfully'
     });
   } catch (error) {
