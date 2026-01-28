@@ -54,6 +54,7 @@ export interface DeliveryItem {
 const DeliveryItemSchema = new Schema<DeliveryItem>({
   inventoryItemId: {
     type: Schema.Types.Mixed, // Can be ObjectId or string (for presale items)
+    ref: 'InventoryItem', // Reference for populate to work with ObjectIds
     required: false // Optional for catalog items
   },
   hotWheelsCarId: {
