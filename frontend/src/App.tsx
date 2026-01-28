@@ -13,6 +13,7 @@ import SalesStatistics from './pages/SalesStatistics'
 import Purchases from './pages/Purchases'
 import Deliveries from './pages/Deliveries'
 import CloudinaryDebug from './pages/CloudinaryDebug'
+import Search from './pages/Search'
 
 // POS y Gemini Vision integrados
 import Customers from './pages/Customers'
@@ -45,6 +46,7 @@ function App() {
                                         <Routes>
                                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                             <Route path="/dashboard" element={<Dashboard />} />
+                                            <Route path="/search" element={<Search />} />
                                             <Route path="/inventory" element={<Inventory />} />
                                             <Route path="/inventory/:id" element={<ItemDetail />} />
                                             <Route path="/pos" element={<POS />} />

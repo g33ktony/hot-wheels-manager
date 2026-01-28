@@ -12,7 +12,8 @@ import {
     Building2,
     LogOut,
     PackageOpen,
-    AlertCircle
+    AlertCircle,
+    Search as SearchIcon
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -28,6 +29,7 @@ export default function Layout({ children }: LayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [touchStart, setTouchStart] = useState<number | null>(null)
     const [touchEnd, setTouchEnd] = useState<number | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
     const sidebarRef = useRef<HTMLDivElement>(null)
     const location = useLocation()
     const navigate = useNavigate()
@@ -42,6 +44,14 @@ export default function Layout({ children }: LayoutProps) {
 
     // Filter active boxes (exclude completed ones)
     const activeBoxes = boxes?.filter((box: any) => box.boxStatus !== 'completed') || []
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
+            setSearchQuery('')
+        }
+    }
 
     const navigationItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -216,7 +226,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className="h-16 bg-white border-b border-gray-200 px-3 sm:px-4 lg:px-6 flex items-center justify-between fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm">
+                <div className="h-16 bg-white border-b border-gray-200 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm">
                     <button
                         className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                         onClick={() => setSidebarOpen(true)}
@@ -228,6 +238,20 @@ export default function Layout({ children }: LayoutProps) {
                     >
                         <Menu size={24} />
                     </button>
+
+                    {/* Búsqueda global */}
+                    <form onSubmit={handleSearch} className="flex-1 max-w-sm">
+                        <div className="relative">
+                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Busca piezas, clientes, ventas..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-3 py-2 rounded-lg bg-gray-100 border border-gray-300 text-sm focus:bg-white focus:border-blue-400 focus:outline-none transition-colors"
+                            />
+                        </div>
+                    </form>
 
                     <div className="flex-1 lg:flex lg:items-center lg:justify-end">
                         <div className="text-sm text-gray-500 hidden sm:block select-none">

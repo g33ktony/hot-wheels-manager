@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
+import { useAppDispatch } from '@/hooks/redux'
+import { addToCart } from '@/store/slices/cartSlice'
 
 interface SearchResultItem {
     _id: string
@@ -29,6 +31,7 @@ interface ModalState {
 export default function Search() {
     const [searchParams] = useSearchParams()
     const initialQuery = searchParams.get('q') || ''
+    const dispatch = useAppDispatch()
 
     const [query, setQuery] = useState(initialQuery)
     const [modal, setModal] = useState<ModalState>({ isOpen: false, type: null, id: null })
@@ -65,18 +68,52 @@ export default function Search() {
         return groups
     }, [results])
 
-    const handleAddToCart = useCallback((itemId: string, quantity: number = 1) => {
+    const handleAddToCart = useCallback(async (itemId: string, quantity: number = 1) => {
         if (quantity <= 0) {
             toast.error('Cantidad debe ser mayor a 0')
             return
         }
-        // Aquí integrarías con tu carrito
-        toast.success(`Agregado al carrito: ${quantity} unidades`)
-        setAddToCartQuantity(prev => ({ ...prev, [itemId]: 1 }))
-    }, [])
+        try {
+            // Obtener detalles del item
+            const response = await api.get(`/inventory/${itemId}`)
+            const item = response.data.data
 
-    const handleAddToInventory = useCallback((itemId: string) => {
-        setModal({ isOpen: true, type: 'inventory', id: itemId })
+            // Agregar al carrito usando Redux
+            dispatch(addToCart({ item, quantity }))
+            toast.success(`✅ ${quantity} ${quantity === 1 ? 'unidad' : 'unidades'} de ${item.carName} agregadas al carrito`)
+            setAddToCartQuantity(prev => ({ ...prev, [itemId]: 1 }))
+        } catch (error) {
+            toast.error('Error al agregar al carrito')
+            console.error(error)
+        }
+    }, [dispatch])
+
+    const handleAddToInventory = useCallback(async (itemId: string) => {
+        try {
+            // Para artículos sin stock, abrimos modal para agregar cantidad
+            const response = await api.get(`/inventory/${itemId}`)
+            const item = response.data.data
+
+            if (item.stock === 0 || item.stock === undefined) {
+                // Reutilizar endpoint de reactivación
+                const newStock = prompt('¿Cuántas unidades agregar al stock?')
+                if (!newStock || isNaN(parseInt(newStock))) {
+                    toast.error('Cantidad inválida')
+                    return
+                }
+
+                await api.put(`/inventory/${itemId}`, {
+                    stock: parseInt(newStock)
+                })
+
+                toast.success(`Stock actualizado: +${newStock} unidades`)
+            } else {
+                toast.success(`Este artículo ya tiene ${item.stock} unidades en stock`)
+            }
+        } catch (error) {
+            toast.error('Error al agregar stock')
+            console.error(error)
+        }
     }, [])
 
     const handleResultClick = (result: SearchResultItem) => {
@@ -385,6 +422,46 @@ function DetailModal({
     id: string | null
     onClose: () => void
 }) {
+    const { data: saleData } = useQuery(
+        ['sale-detail', id],
+        async () => {
+            if (type !== 'sale' || !id) return null
+            const response = await api.get(`/sales/${id}`)
+            return response.data.data
+        },
+        { enabled: type === 'sale' && !!id }
+    )
+
+    const { data: deliveryData } = useQuery(
+        ['delivery-detail', id],
+        async () => {
+            if (type !== 'delivery' || !id) return null
+            const response = await api.get(`/deliveries/${id}`)
+            return response.data.data
+        },
+        { enabled: type === 'delivery' && !!id }
+    )
+
+    const { data: inventoryData } = useQuery(
+        ['inventory-detail', id],
+        async () => {
+            if (type !== 'inventory' || !id) return null
+            const response = await api.get(`/inventory/${id}`)
+            return response.data.data
+        },
+        { enabled: type === 'inventory' && !!id }
+    )
+
+    const { data: customerData } = useQuery(
+        ['customer-detail', id],
+        async () => {
+            if (type !== 'customer' || !id) return null
+            const response = await api.get(`/customers/${id}`)
+            return response.data.data
+        },
+        { enabled: type === 'customer' && !!id }
+    )
+
     return (
         <div
             className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center"
@@ -395,7 +472,7 @@ function DetailModal({
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold text-white">
                             {type === 'sale' && '💳 Detalle de Venta'}
                             {type === 'delivery' && '📦 Detalle de Entrega'}
@@ -411,11 +488,180 @@ function DetailModal({
                         </button>
                     </div>
 
-                    {/* Contenido del modal */}
-                    <div className="text-slate-300">
-                        <p>ID: {id}</p>
-                        <p className="mt-4">El modal completo se cargará aquí con los detalles completos...</p>
-                    </div>
+                    {/* SALE DETAIL */}
+                    {type === 'sale' && saleData && (
+                        <div className="space-y-4 text-slate-300">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Cliente</p>
+                                    <p className="font-semibold text-white">{saleData.customerName || 'Cliente POS'}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Tipo</p>
+                                    <p className="font-semibold text-white">{saleData.saleType === 'delivery' ? '📦 Entrega' : '🛒 POS'}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Total</p>
+                                    <p className="font-semibold text-emerald-400">${saleData.totalAmount.toFixed(2)}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Ganancia</p>
+                                    <p className="font-semibold text-blue-400">${(saleData.items.reduce((sum: number, item: any) => sum + (item.profit || 0), 0)).toFixed(2)}</p>
+                                </div>
+                            </div>
+                            <div className="bg-slate-700/50 rounded-lg p-4">
+                                <h3 className="font-semibold text-white mb-3">Items ({saleData.items.length})</h3>
+                                <div className="space-y-2">
+                                    {saleData.items.map((item: any, idx: number) => (
+                                        <div key={idx} className="flex justify-between items-center text-sm border-b border-slate-600 pb-2">
+                                            <div>
+                                                <p className="text-white">{item.carName || item.carId}</p>
+                                                <p className="text-xs text-slate-400">{item.quantity}x @ ${item.unitPrice}</p>
+                                            </div>
+                                            <p className="font-semibold text-slate-200">${(item.unitPrice * item.quantity).toFixed(2)}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* DELIVERY DETAIL */}
+                    {type === 'delivery' && deliveryData && (
+                        <div className="space-y-4 text-slate-300">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Cliente</p>
+                                    <p className="font-semibold text-white">{deliveryData.customer?.name || 'Cliente'}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Estado</p>
+                                    <p className="font-semibold text-white capitalize">{deliveryData.status}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Piezas</p>
+                                    <p className="font-semibold text-white">{deliveryData.items.length}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Total</p>
+                                    <p className="font-semibold text-emerald-400">${deliveryData.totalAmount.toFixed(2)}</p>
+                                </div>
+                            </div>
+                            <div className="bg-slate-700/50 rounded-lg p-4">
+                                <div className="flex items-start gap-2 mb-4">
+                                    <MapPin className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-xs text-slate-400">Ubicación</p>
+                                        <p className="text-white">{deliveryData.location}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <Phone className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-xs text-slate-400">Contacto</p>
+                                        <p className="text-white">{deliveryData.customer?.phone || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* INVENTORY DETAIL */}
+                    {type === 'inventory' && inventoryData && (
+                        <div className="space-y-4 text-slate-300">
+                            <div className="bg-slate-700/50 rounded-lg p-4">
+                                <h3 className="font-semibold text-white mb-2">{inventoryData.carName || inventoryData.carId}</h3>
+                                <div className="space-y-2 text-sm">
+                                    <p><span className="text-slate-400">Marca:</span> <span className="text-white">{inventoryData.brand}</span></p>
+                                    <p><span className="text-slate-400">Tipo:</span> <span className="text-white">{inventoryData.pieceType}</span></p>
+                                    <p><span className="text-slate-400">Stock:</span> <span className={inventoryData.quantity > 0 ? 'text-emerald-400' : 'text-red-400'}>{inventoryData.quantity}</span></p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Precio Sugerido</p>
+                                    <p className="font-semibold text-emerald-400">${inventoryData.suggestedPrice}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Precio Actual</p>
+                                    <p className="font-semibold text-blue-400">${inventoryData.actualPrice || inventoryData.suggestedPrice}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Costo</p>
+                                    <p className="font-semibold text-slate-300">${inventoryData.purchasePrice || 'N/A'}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Ganancia Est.</p>
+                                    <p className="font-semibold text-yellow-400">${((inventoryData.actualPrice || inventoryData.suggestedPrice) - (inventoryData.purchasePrice || 0)).toFixed(2)}</p>
+                                </div>
+                            </div>
+                            {inventoryData.photos && inventoryData.photos.length > 0 && (
+                                <div className="bg-slate-700/50 rounded-lg p-4">
+                                    <p className="text-xs text-slate-400 mb-2">Fotos ({inventoryData.photos.length})</p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {inventoryData.photos.slice(0, 3).map((photo: any, idx: number) => (
+                                            <img key={idx} src={photo} alt={`Foto ${idx}`} className="w-full h-20 object-cover rounded-lg" />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* CUSTOMER DETAIL */}
+                    {type === 'customer' && customerData && (
+                        <div className="space-y-4 text-slate-300">
+                            <div className="bg-slate-700/50 rounded-lg p-4">
+                                <h3 className="font-semibold text-white text-lg mb-3">{customerData.name}</h3>
+                                <div className="space-y-2 text-sm">
+                                    {customerData.email && (
+                                        <div className="flex items-center gap-2">
+                                            <Mail className="w-4 h-4 text-slate-400" />
+                                            <p><span className="text-slate-400">Email:</span> <span className="text-white">{customerData.email}</span></p>
+                                        </div>
+                                    )}
+                                    {customerData.phone && (
+                                        <div className="flex items-center gap-2">
+                                            <Phone className="w-4 h-4 text-slate-400" />
+                                            <p><span className="text-slate-400">Teléfono:</span> <span className="text-white">{customerData.phone}</span></p>
+                                        </div>
+                                    )}
+                                    {customerData.address && (
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 text-slate-400" />
+                                            <p><span className="text-slate-400">Dirección:</span> <span className="text-white">{customerData.address}</span></p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Total Gastado</p>
+                                    <p className="font-semibold text-emerald-400">${(customerData.totalSpent || 0).toFixed(2)}</p>
+                                </div>
+                                <div className="bg-slate-700/50 rounded-lg p-3">
+                                    <p className="text-xs text-slate-400">Total Órdenes</p>
+                                    <p className="font-semibold text-blue-400">{customerData.totalOrders || 0}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Loading state */}
+                    {((type === 'sale' && !saleData) || (type === 'delivery' && !deliveryData) || (type === 'inventory' && !inventoryData) || (type === 'customer' && !customerData)) && (
+                        <div className="text-center py-8">
+                            <div className="inline-flex items-center gap-2">
+                                <div className="animate-spin h-5 w-5 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
+                                <span className="text-slate-300">Cargando...</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {type === 'preventa' && (
+                        <div className="text-slate-300">
+                            <p>Detalle de preventa...</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
