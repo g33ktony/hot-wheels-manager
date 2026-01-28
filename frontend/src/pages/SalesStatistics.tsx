@@ -254,13 +254,18 @@ export default function SalesStatistics() {
                                 {/* Brand */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-300 mb-2">Marca</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Ej: Hot Wheels"
+                                    <select
                                         value={brand}
                                         onChange={(e) => setBrand(e.target.value)}
-                                        className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
-                                    />
+                                        className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:border-emerald-500 focus:outline-none"
+                                    >
+                                        <option value="">Todas</option>
+                                        {stats?.chartData?.topBrands?.map((item) => (
+                                            <option key={item.brand} value={item.brand}>
+                                                {item.brand}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 {/* Piece Type */}
