@@ -10,6 +10,7 @@ import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/redux'
 import { addToCart } from '@/store/slices/cartSlice'
+import { SaleDetailContent } from '@/components/SaleDetailContent'
 
 interface SearchResultItem {
     _id: string
@@ -606,40 +607,7 @@ function DetailModal({
 
                     {/* SALE DETAIL */}
                     {type === 'sale' && saleData && (
-                        <div className="space-y-4 text-slate-300">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Cliente</p>
-                                    <p className="font-semibold text-white">{saleData.customerName || 'Cliente POS'}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Tipo</p>
-                                    <p className="font-semibold text-white">{saleData.saleType === 'delivery' ? '📦 Entrega' : '🛒 POS'}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Total</p>
-                                    <p className="font-semibold text-emerald-400">${saleData.totalAmount.toFixed(2)}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Ganancia</p>
-                                    <p className="font-semibold text-blue-400">${(saleData.items.reduce((sum: number, item: any) => sum + (item.profit || 0), 0)).toFixed(2)}</p>
-                                </div>
-                            </div>
-                            <div className="bg-slate-700/50 rounded-lg p-4">
-                                <h3 className="font-semibold text-white mb-3">Items ({saleData.items.length})</h3>
-                                <div className="space-y-2">
-                                    {saleData.items.map((item: any, idx: number) => (
-                                        <div key={idx} className="flex justify-between items-center text-sm border-b border-slate-600 pb-2">
-                                            <div>
-                                                <p className="text-white">{item.carName || item.carId}</p>
-                                                <p className="text-xs text-slate-400">{item.quantity}x @ ${item.unitPrice}</p>
-                                            </div>
-                                            <p className="font-semibold text-slate-200">${(item.unitPrice * item.quantity).toFixed(2)}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        <SaleDetailContent sale={saleData} theme="dark" />
                     )}
 
                     {/* DELIVERY DETAIL */}
