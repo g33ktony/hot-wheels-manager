@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { api } from '@/services/api'
 import {
@@ -45,6 +46,8 @@ interface OutOfStockItem {
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
 
 export default function SalesStatistics() {
+    const navigate = useNavigate()
+
     // Initialize with current month
     const today = new Date()
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -447,7 +450,11 @@ export default function SalesStatistics() {
                                             </thead>
                                             <tbody>
                                                 {stats.transactions.map((transaction, idx) => (
-                                                    <tr key={idx} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                                                    <tr
+                                                        key={idx}
+                                                        className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors cursor-pointer"
+                                                        onClick={() => navigate(`/sales/${transaction._id}`)}
+                                                    >
                                                         <td className="py-3 px-4 text-slate-200">{transaction.customerName}</td>
                                                         <td className="py-3 px-4 text-slate-400">
                                                             {format(parseISO(transaction.saleDate), 'dd MMM HH:mm', { locale: es })}
