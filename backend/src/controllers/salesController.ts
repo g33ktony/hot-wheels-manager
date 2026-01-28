@@ -34,6 +34,16 @@ export const getSales = async (req: Request, res: Response) => {
       }
     ]);
 
+    console.log(`[getSales] Total sales from aggregation: ${sales.length}`);
+    if (sales.length > 0) {
+      console.log(`[getSales] First sale:`, {
+        _id: sales[0]._id,
+        customerId: sales[0].customerId,
+        customer: sales[0].customer?.name || 'no customer',
+        totalAmount: sales[0].totalAmount
+      });
+    }
+
     // Ensure all items have costPrice and profit (for backward compatibility with old sales)
     const enrichedSales = sales.map((sale: any) => {
       sale.items = sale.items.map((item: any) => {

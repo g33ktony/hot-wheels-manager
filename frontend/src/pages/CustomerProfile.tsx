@@ -8,9 +8,11 @@ import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
 import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 import { SaleDetailsModal } from '@/components/SaleDetailsModal'
+import ImageModal from '@/components/ImageModal'
+import CustomerEditForm from '@/components/CustomerEditForm'
 import {
     ArrowLeft, Mail, Phone, MapPin, MessageCircle, DollarSign, Package, CheckCircle,
-    AlertCircle, User, Calendar, ShoppingCart, Truck, X, ChevronLeft, ChevronRight
+    AlertCircle, User, Calendar, ShoppingCart, Truck, Edit
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Delivery } from '../../../shared/types'
@@ -23,6 +25,8 @@ export default function CustomerProfile() {
     const [showImageModal, setShowImageModal] = useState(false)
     const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [isEditingCustomer, setIsEditingCustomer] = useState(false)
+    const [editingCustomer, setEditingCustomer] = useState<any>(null)
 
     // Fetch customer details
     const { data: customer, isLoading: isLoadingCustomer, error: customerError } = useQuery(
@@ -180,18 +184,6 @@ export default function CustomerProfile() {
         setShowImageModal(true)
     }
 
-    const handleCloseImageModal = () => {
-        setShowImageModal(false)
-    }
-
-    const handleNextImage = () => {
-        setCurrentImageIndex((prev) => (prev + 1) % allImagesForModal.length)
-    }
-
-    const handlePrevImage = () => {
-        setCurrentImageIndex((prev) => (prev - 1 + allImagesForModal.length) % allImagesForModal.length)
-    }
-
     return (
         <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
             {/* Header with back button */}
@@ -209,78 +201,118 @@ export default function CustomerProfile() {
 
             {/* Customer Info Card */}
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+                <CardHeader className="flex justify-between items-center">
+                    <CardTitle>Información del Cliente</CardTitle>
+                    {!isEditingCustomer && (
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            icon={<Edit size={16} />}
+                            onClick={() => {
+                                setEditingCustomer(customer)
+                                setIsEditingCustomer(true)
+                            }}
+                        >
+                            Editar
+                        </Button>
+                    )}
+                </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                        {/* Left: Basic Info */}
-                        <div className="space-y-4">
-                            <div className="flex items-start gap-3">
-                                <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
-                                    <User size={24} className="text-blue-700" />
+                    {isEditingCustomer ? (
+                        <CustomerEditForm
+                            customer={editingCustomer}
+                            onCancel={() => {
+                                setIsEditingCustomer(false)
+                                setEditingCustomer(null)
+                            }}
+                            onSave={async (updated) => {
+                                try {
+                                    if (!customer._id) {
+                                        throw new Error('Customer ID not found')
+                                    }
+                                    await customersService.update(customer._id, updated)
+                                    setIsEditingCustomer(false)
+                                    // Refetch customer data
+                                    window.location.reload()
+                                } catch (error) {
+                                    alert('Error al actualizar cliente')
+                                }
+                            }}
+                            onChange={setEditingCustomer}
+                        />
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                            {/* Left: Basic Info */}
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
+                                        <User size={24} className="text-blue-700" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-slate-400">Nombre</p>
+                                        <p className="text-lg font-bold text-white">{customer.name}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-slate-400">Nombre</p>
-                                    <p className="text-lg font-bold text-white">{customer.name}</p>
-                                </div>
+
+                                {customer.email && (
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
+                                            <Mail size={24} className="text-blue-700" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-400">Email</p>
+                                            <p className="text-lg font-bold text-white break-all">{customer.email}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {customer.phone && (
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
+                                            <Phone size={24} className="text-blue-700" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-400">Teléfono</p>
+                                            <p className="text-lg font-bold text-white">{customer.phone}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
-                            {customer.email && (
-                                <div className="flex items-start gap-3">
-                                    <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
-                                        <Mail size={24} className="text-blue-700" />
+                            {/* Right: Contact & Address */}
+                            <div className="space-y-4">
+                                {customer.address && (
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
+                                            <MapPin size={24} className="text-blue-700" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-400">Dirección</p>
+                                            <p className="text-lg font-bold text-white">{customer.address}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-slate-400">Email</p>
-                                        <p className="text-lg font-bold text-white break-all">{customer.email}</p>
-                                    </div>
-                                </div>
-                            )}
+                                )}
 
-                            {customer.phone && (
-                                <div className="flex items-start gap-3">
-                                    <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
-                                        <Phone size={24} className="text-blue-700" />
+                                {customer.contactMethod && (
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
+                                            {getContactIcon(customer.contactMethod)}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-400">Método de contacto preferido</p>
+                                            <p className="text-lg font-bold text-white capitalize">{customer.contactMethod}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm text-slate-400">Teléfono</p>
-                                        <p className="text-lg font-bold text-white">{customer.phone}</p>
+                                )}
+
+                                {customer.notes && (
+                                    <div className="p-3 bg-blue-200 rounded-lg">
+                                        <p className="text-sm text-blue-700 font-medium">📝 Notas: {customer.notes}</p>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-
-                        {/* Right: Contact & Address */}
-                        <div className="space-y-4">
-                            {customer.address && (
-                                <div className="flex items-start gap-3">
-                                    <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
-                                        <MapPin size={24} className="text-blue-700" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-slate-400">Dirección</p>
-                                        <p className="text-lg font-bold text-white">{customer.address}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {customer.contactMethod && (
-                                <div className="flex items-start gap-3">
-                                    <div className="p-3 bg-blue-200 rounded-lg flex-shrink-0">
-                                        {getContactIcon(customer.contactMethod)}
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-slate-400">Método de contacto preferido</p>
-                                        <p className="text-lg font-bold text-white capitalize">{customer.contactMethod}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {customer.notes && (
-                                <div className="p-3 bg-blue-200 rounded-lg">
-                                    <p className="text-sm text-blue-700 font-medium">📝 Notas: {customer.notes}</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -550,65 +582,13 @@ export default function CustomerProfile() {
             />
 
             {/* Image Viewer Modal */}
-            {showImageModal && allImagesForModal.length > 0 && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[60] p-4"
-                    onClick={handleCloseImageModal}
-                >
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        {/* Close Button */}
-                        <button
-                            onClick={handleCloseImageModal}
-                            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
-                        >
-                            <X size={40} />
-                        </button>
-
-                        {/* Previous Button */}
-                        {allImagesForModal.length > 1 && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handlePrevImage()
-                                }}
-                                className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3 hover:bg-opacity-70"
-                            >
-                                <ChevronLeft size={40} />
-                            </button>
-                        )}
-
-                        {/* Image */}
-                        <img
-                            src={allImagesForModal[currentImageIndex]}
-                            alt={`Imagen ${currentImageIndex + 1}`}
-                            className="max-w-4xl max-h-[85vh] object-contain"
-                            onClick={(e) => e.stopPropagation()}
-                        />
-
-                        {/* Next Button */}
-                        {allImagesForModal.length > 1 && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleNextImage()
-                                }}
-                                className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10 bg-black bg-opacity-50 rounded-full p-3 hover:bg-opacity-70"
-                            >
-                                <ChevronRight size={40} />
-                            </button>
-                        )}
-
-                        {/* Image Counter */}
-                        {allImagesForModal.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-center">
-                                <p className="text-sm bg-black bg-opacity-70 px-4 py-2 rounded">
-                                    {currentImageIndex + 1} de {allImagesForModal.length}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            <ImageModal
+                isOpen={showImageModal}
+                images={allImagesForModal}
+                initialIndex={currentImageIndex}
+                onClose={() => setShowImageModal(false)}
+                title="Galería de Imágenes"
+            />
         </div>
     )
 }
