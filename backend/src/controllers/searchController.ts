@@ -185,6 +185,29 @@ export const globalSearch = async (req: Request, res: Response) => {
       .limit(10);
 
     for (const customer of customers) {
+      // Calculate totalSpent and totalOrders for this customer
+      const customerDeliveries = await DeliveryModel.find({
+        customerId: customer._id
+      });
+
+      const customerSales = await SaleModel.find({
+        customerId: customer._id,
+        status: 'completed'
+      });
+
+      let totalSpent = 0;
+      let totalOrders = customerDeliveries.length + customerSales.length;
+
+      // Sum delivery amounts
+      customerDeliveries.forEach((d: any) => {
+        totalSpent += d.totalAmount || 0;
+      });
+
+      // Sum sale amounts
+      customerSales.forEach((s: any) => {
+        totalSpent += s.totalAmount || 0;
+      });
+
       results.push({
         _id: (customer._id as any).toString(),
         type: 'customer',
@@ -195,8 +218,8 @@ export const globalSearch = async (req: Request, res: Response) => {
           email: customer.email,
           phone: customer.phone,
           address: customer.address,
-          totalSpent: (customer as any).totalSpent || 0,
-          totalOrders: (customer as any).totalOrders || 0
+          totalSpent: totalSpent,
+          totalOrders: totalOrders
         }
       });
     }
