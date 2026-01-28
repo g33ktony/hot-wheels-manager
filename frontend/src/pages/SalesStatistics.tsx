@@ -45,8 +45,12 @@ interface OutOfStockItem {
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
 
 export default function SalesStatistics() {
-    const [period, setPeriod] = useState<'day' | 'month' | 'custom'>('day')
-    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
+    // Initialize with current month
+    const today = new Date()
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    
+    const [period, setPeriod] = useState<'day' | 'month' | 'custom'>('month')
+    const [startDate, setStartDate] = useState(firstDayOfMonth.toISOString().split('T')[0])
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
     const [saleType, setSaleType] = useState<'all' | 'delivery' | 'pos'>('all')
     const [brand, setBrand] = useState('')
