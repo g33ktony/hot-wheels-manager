@@ -37,7 +37,15 @@ export default function Search() {
     const [modal, setModal] = useState<ModalState>({ isOpen: false, type: null, id: null })
     const [addToCartQuantity, setAddToCartQuantity] = useState<{ [key: string]: number }>({})
 
-    // Búsqueda global
+    // Filtros de tipos de resultado
+    const [filters, setFilters] = useState({
+        sales: true,
+        inventory: true,
+        deliveries: true,
+        customers: true,
+        preventas: true,
+        inventoryStock: 'all' // 'all', 'inStock', 'outOfStock'
+    })
     const { data: results = [], isLoading } = useQuery(
         ['global-search', query],
         async () => {
@@ -51,7 +59,7 @@ export default function Search() {
         }
     )
 
-    // Agrupar resultados por tipo
+    // Agrupar y filtrar resultados por tipo
     const groupedResults = useMemo(() => {
         const groups: { [key: string]: SearchResultItem[] } = {
             inventory: [],
@@ -60,13 +68,27 @@ export default function Search() {
             customer: [],
             preventa: []
         }
+
         results.forEach((result: SearchResultItem) => {
+            // Aplicar filtro de tipo
+            if (result.type === 'sale' && !filters.sales) return
+            if (result.type === 'inventory' && !filters.inventory) return
+            if (result.type === 'delivery' && !filters.deliveries) return
+            if (result.type === 'customer' && !filters.customers) return
+            if (result.type === 'preventa' && !filters.preventas) return
+
+            // Filtro especial para inventory stock
+            if (result.type === 'inventory' && filters.inventoryStock !== 'all') {
+                if (filters.inventoryStock === 'inStock' && !result.inStock) return
+                if (filters.inventoryStock === 'outOfStock' && result.inStock) return
+            }
+
             if (groups[result.type]) {
                 groups[result.type].push(result)
             }
         })
         return groups
-    }, [results])
+    }, [results, filters])
 
     const handleAddToCart = useCallback(async (itemId: string, quantity: number = 1) => {
         if (quantity <= 0) {
@@ -153,6 +175,100 @@ export default function Search() {
                             >
                                 <X className="w-5 h-5" />
                             </button>
+                        )}
+                    </div>
+
+                    {/* Filtros */}
+                    <div className="mt-4 pt-4 border-t border-slate-700">
+                        <p className="text-xs font-semibold text-slate-400 mb-3 uppercase">Filtrar por tipo:</p>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
+                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.sales}
+                                    onChange={(e) => setFilters({ ...filters, sales: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm text-slate-300">💳 Ventas</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.inventory}
+                                    onChange={(e) => setFilters({ ...filters, inventory: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm text-slate-300">📦 Items</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.deliveries}
+                                    onChange={(e) => setFilters({ ...filters, deliveries: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm text-slate-300">🚚 Entregas</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.customers}
+                                    onChange={(e) => setFilters({ ...filters, customers: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm text-slate-300">👤 Clientes</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.preventas}
+                                    onChange={(e) => setFilters({ ...filters, preventas: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm text-slate-300">⏳ Preventas</span>
+                            </label>
+                        </div>
+
+                        {/* Filtro de stock para items */}
+                        {filters.inventory && (
+                            <div>
+                                <p className="text-xs font-semibold text-slate-400 mb-2 uppercase">Stock de items:</p>
+                                <div className="flex gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                        <input
+                                            type="radio"
+                                            name="stock-filter"
+                                            value="all"
+                                            checked={filters.inventoryStock === 'all'}
+                                            onChange={(e) => setFilters({ ...filters, inventoryStock: e.target.value as any })}
+                                            className="rounded"
+                                        />
+                                        <span className="text-sm text-slate-300">Todo</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                        <input
+                                            type="radio"
+                                            name="stock-filter"
+                                            value="inStock"
+                                            checked={filters.inventoryStock === 'inStock'}
+                                            onChange={(e) => setFilters({ ...filters, inventoryStock: e.target.value as any })}
+                                            className="rounded"
+                                        />
+                                        <span className="text-sm text-slate-300">✅ Con stock</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                        <input
+                                            type="radio"
+                                            name="stock-filter"
+                                            value="outOfStock"
+                                            checked={filters.inventoryStock === 'outOfStock'}
+                                            onChange={(e) => setFilters({ ...filters, inventoryStock: e.target.value as any })}
+                                            className="rounded"
+                                        />
+                                        <span className="text-sm text-slate-300">❌ Sin stock</span>
+                                    </label>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
