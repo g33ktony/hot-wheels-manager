@@ -48,7 +48,7 @@ export default function SalesStatistics() {
     // Initialize with current month
     const today = new Date()
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    
+
     const [period, setPeriod] = useState<'day' | 'month' | 'custom'>('month')
     const [startDate, setStartDate] = useState(firstDayOfMonth.toISOString().split('T')[0])
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0])
