@@ -11,6 +11,7 @@ import toast from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/redux'
 import { addToCart } from '@/store/slices/cartSlice'
 import { SaleDetailContent } from '@/components/SaleDetailContent'
+import { DeliveryDetailContent } from '@/components/DeliveryDetailContent'
 
 interface SearchResultItem {
     _id: string
@@ -612,42 +613,7 @@ function DetailModal({
 
                     {/* DELIVERY DETAIL */}
                     {type === 'delivery' && deliveryData && (
-                        <div className="space-y-4 text-slate-300">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Cliente</p>
-                                    <p className="font-semibold text-white">{deliveryData.customer?.name || 'Cliente'}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Estado</p>
-                                    <p className="font-semibold text-white capitalize">{deliveryData.status}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Piezas</p>
-                                    <p className="font-semibold text-white">{deliveryData.items.length}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Total</p>
-                                    <p className="font-semibold text-emerald-400">${deliveryData.totalAmount.toFixed(2)}</p>
-                                </div>
-                            </div>
-                            <div className="bg-slate-700/50 rounded-lg p-4">
-                                <div className="flex items-start gap-2 mb-4">
-                                    <MapPin className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
-                                    <div>
-                                        <p className="text-xs text-slate-400">Ubicación</p>
-                                        <p className="text-white">{deliveryData.location}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                    <Phone className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
-                                    <div>
-                                        <p className="text-xs text-slate-400">Contacto</p>
-                                        <p className="text-white">{deliveryData.customer?.phone || 'N/A'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <DeliveryDetailContent delivery={deliveryData} theme="dark" />
                     )}
 
                     {/* INVENTORY DETAIL */}
