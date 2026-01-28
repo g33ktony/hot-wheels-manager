@@ -914,12 +914,12 @@ const POS: React.FC = () => {
 
         {/* Carrito */}
         <div className="lg:col-span-1">
-          <div className="bg-slate-800 rounded-lg shadow p-4 sticky top-4">
-            <h2 className="text-xl font-bold mb-4">Carrito ({cart.length})</h2>
+          <div className="bg-slate-800 rounded-lg shadow p-4 sticky top-4 border border-slate-700">
+            <h2 className="text-xl font-bold mb-4 text-white">Carrito ({cart.length})</h2>
 
             <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
               {cart.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">Carrito vacío</p>
+                <p className="text-center text-slate-400 py-8">Carrito vacío</p>
               ) : (
                 cart.map(item => {
                   if (!item._id) return null;
@@ -931,7 +931,7 @@ const POS: React.FC = () => {
                   const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
 
                   return (
-                    <div key={item._id} className="border rounded-lg overflow-hidden bg-slate-800 hover:shadow-md transition-shadow">
+                    <div key={item._id} className="border border-slate-600 rounded-lg overflow-hidden bg-slate-700/50 hover:shadow-md transition-shadow">
                       <div className="flex gap-2 p-2">
                         {/* Cart Item Image */}
                         <div className="flex-shrink-0">
@@ -939,12 +939,12 @@ const POS: React.FC = () => {
                             <img
                               src={item.photos[0]}
                               alt={displayName}
-                              className="w-16 h-16 object-cover rounded border"
+                              className="w-16 h-16 object-cover rounded border border-slate-600"
                               crossOrigin="anonymous"
                             />
                           ) : (
-                            <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded border flex items-center justify-center">
-                              <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <div className="w-16 h-16 bg-slate-600 rounded border border-slate-500 flex items-center justify-center">
+                              <svg className="w-8 h-8 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                 <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                               </svg>
@@ -956,12 +956,12 @@ const POS: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-1">
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm truncate">{displayName}</p>
-                              <p className="text-xs text-gray-500 truncate">{carIdStr}</p>
+                              <p className="font-semibold text-sm truncate text-white">{displayName}</p>
+                              <p className="text-xs text-slate-400 truncate">{carIdStr}</p>
                             </div>
                             <button
                               onClick={() => removeFromCart(item._id)}
-                              className="text-red-600 hover:text-red-800 ml-2 flex-shrink-0"
+                              className="text-red-500 hover:text-red-400 ml-2 flex-shrink-0"
                             >
                               ✕
                             </button>
@@ -1025,15 +1025,15 @@ const POS: React.FC = () => {
               )}
             </div>
 
-            <div className="border-t pt-4">
+            <div className="border-t border-slate-600 pt-4">
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-2 text-white">
                   Método de Pago
                 </label>
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500"
                 >
                   <option value="cash">Efectivo</option>
                   <option value="transfer">Transferencia</option>
@@ -1044,8 +1044,8 @@ const POS: React.FC = () => {
               </div>
 
               <div className="flex justify-between items-center mb-4">
-                <span className="text-2xl font-bold">Total:</span>
-                <span className="text-3xl font-bold text-green-600">
+                <span className="text-2xl font-bold text-white">Total:</span>
+                <span className="text-3xl font-bold text-emerald-400">
                   ${calculateTotal().toFixed(2)}
                 </span>
               </div>
@@ -1054,8 +1054,8 @@ const POS: React.FC = () => {
                 onClick={processSale}
                 disabled={cart.length === 0 || processing}
                 className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
-                  ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700 text-white'
+                  ? 'bg-slate-600 cursor-not-allowed text-slate-400'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                   }`}
               >
                 {processing ? 'Procesando...' : 'Completar Venta'}
@@ -1064,7 +1064,7 @@ const POS: React.FC = () => {
               <button
                 onClick={() => dispatch(clearCart())}
                 disabled={cart.length === 0}
-                className="w-full mt-2 py-2 border border-slate-600 rounded-lg hover:bg-slate-700/30"
+                className="w-full mt-2 py-2 border border-slate-600 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Limpiar Carrito
               </button>
