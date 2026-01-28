@@ -41,15 +41,15 @@ export default function PreSaleHub() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-900">🎯 Pre-Ventas</h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <h1 className="text-2xl font-bold text-white">🎯 Pre-Ventas</h1>
+                <p className="text-sm text-slate-400 mt-1">
                     Gestión completa del ciclo de pre-ventas
                 </p>
             </div>
 
             {/* Tabs Navigation */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border-b border-gray-200">
+            <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 overflow-hidden">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border-b border-slate-700">
                     {tabs.map((tab) => {
                         const Icon = tab.icon
                         const isActive = activeTab === tab.id
@@ -63,7 +63,7 @@ export default function PreSaleHub() {
                                     transition-all duration-200 group
                                     ${isActive
                                         ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                                        : 'bg-white text-gray-600 hover:bg-gray-50 border-b-2 border-transparent'
+                                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700/30 border-b-2 border-transparent'
                                     }
                                 `}
                             >

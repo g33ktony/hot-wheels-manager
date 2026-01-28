@@ -99,8 +99,8 @@ export default function Sales() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
-                    <p className="text-gray-600">Todas las ventas se realizan a través del POS</p>
+                    <h1 className="text-2xl font-bold text-white">Ventas</h1>
+                    <p className="text-slate-400">Todas las ventas se realizan a través del POS</p>
                 </div>
             </div>
 
@@ -118,7 +118,7 @@ export default function Sales() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-slate-400">
                             {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} encontrada{filteredSales.length !== 1 ? 's' : ''}
                         </span>
                     </div>
@@ -130,7 +130,7 @@ export default function Sales() {
                 <Card>
                     <div className="text-center py-12">
                         <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay ventas registradas</h3>
+                        <h3 className="text-lg font-medium text-white mb-2">No hay ventas registradas</h3>
                         <p className="text-gray-500 mb-4">
                             {searchTerm
                                 ? 'No se encontraron ventas con los filtros aplicados'
@@ -164,19 +164,19 @@ export default function Sales() {
             {/* Create Sale Modal - Temporarily disabled for new structure */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">Nueva Venta</h3>
+                            <h3 className="text-lg font-medium text-white">Nueva Venta</h3>
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-gray-400 hover:text-slate-400"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         <div className="text-center py-8">
-                            <p className="text-gray-600">La funcionalidad de crear ventas manuales está temporalmente deshabilitada.</p>
+                            <p className="text-slate-400">La funcionalidad de crear ventas manuales está temporalmente deshabilitada.</p>
                             <p className="text-sm text-gray-500 mt-2">Las ventas se crean automáticamente cuando se completan las entregas.</p>
                         </div>
                     </div>

@@ -682,8 +682,8 @@ export default function Purchases() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Compras</h1>
-                    <p className="text-sm text-gray-600">Gestiona tus compras de Hot Wheels</p>
+                    <h1 className="text-2xl font-bold text-white">Compras</h1>
+                    <p className="text-sm text-slate-400">Gestiona tus compras de Hot Wheels</p>
                 </div>
                 <Button
                     icon={<Plus size={20} />}
@@ -703,8 +703,8 @@ export default function Purchases() {
                                 <ShoppingBag size={20} className="text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Compras</p>
-                                <p className="text-xl lg:text-2xl font-bold text-gray-900">{totalItems}</p>
+                                <p className="text-xs sm:text-sm font-medium text-slate-400">Total Compras</p>
+                                <p className="text-xl lg:text-2xl font-bold text-white">{totalItems}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -717,8 +717,8 @@ export default function Purchases() {
                                 <DollarSign size={20} className="text-green-600" />
                             </div>
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Valor Total</p>
-                                <p className="text-xl lg:text-2xl font-bold text-gray-900">${totalValue.toFixed(2)}</p>
+                                <p className="text-xs sm:text-sm font-medium text-slate-400">Valor Total</p>
+                                <p className="text-xl lg:text-2xl font-bold text-white">${totalValue.toFixed(2)}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -731,8 +731,8 @@ export default function Purchases() {
                                 <Calendar size={20} className="text-orange-600" />
                             </div>
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-gray-600">Pendientes</p>
-                                <p className="text-xl lg:text-2xl font-bold text-gray-900">{pendingPurchases}</p>
+                                <p className="text-xs sm:text-sm font-medium text-slate-400">Pendientes</p>
+                                <p className="text-xl lg:text-2xl font-bold text-white">{pendingPurchases}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -752,7 +752,7 @@ export default function Purchases() {
                                     {/* Header row */}
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-medium text-gray-900 text-sm lg:text-base">
+                                            <h3 className="font-medium text-white text-sm lg:text-base">
                                                 {typeof purchase.supplierId === 'object' ? purchase.supplierId.name : suppliers?.find(s => s._id === purchase.supplierId)?.name || 'Proveedor desconocido'}
                                             </h3>
                                             {purchase.hasPendingItems && purchase.pendingItemsCount && purchase.pendingItemsCount > 0 && (
@@ -778,7 +778,7 @@ export default function Purchases() {
                                     </div>
 
                                     {/* Info section */}
-                                    <div className="text-xs lg:text-sm text-gray-600 space-y-1">
+                                    <div className="text-xs lg:text-sm text-slate-400 space-y-1">
                                         <p>Fecha: {(() => {
                                             const dateStr = purchase.purchaseDate.toString().split('T')[0];
                                             const [year, month, day] = dateStr.split('-');
@@ -874,8 +874,8 @@ export default function Purchases() {
                     ) : (
                         <div className="text-center py-12">
                             <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay compras registradas</h3>
-                            <p className="text-gray-600">Registra tu primera compra para comenzar</p>
+                            <h3 className="text-lg font-medium text-white mb-2">No hay compras registradas</h3>
+                            <p className="text-slate-400">Registra tu primera compra para comenzar</p>
                         </div>
                     )}
                 </CardContent>
@@ -933,7 +933,7 @@ export default function Purchases() {
                                 <select
                                     value={newPurchase.supplierId}
                                     onChange={(e) => setNewPurchase({ ...newPurchase, supplierId: e.target.value })}
-                                    className="flex-1 px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] touch-manipulation"
+                                    className="flex-1 px-4 py-3 border border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] touch-manipulation"
                                     style={{
                                         fontSize: '16px',
                                         WebkitAppearance: 'none',
@@ -1010,7 +1010,7 @@ export default function Purchases() {
                             Notas
                         </label>
                         <textarea
-                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[88px] touch-manipulation resize-y"
+                            className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[88px] touch-manipulation resize-y"
                             rows={3}
                             value={newPurchase.notes}
                             onChange={(e) => setNewPurchase({ ...newPurchase, notes: e.target.value })}
@@ -1026,21 +1026,21 @@ export default function Purchases() {
                     {/* Items Section */}
                     <div>
                         <div className="mb-4">
-                            <h4 className="text-md font-medium text-gray-900">Items de la Compra</h4>
+                            <h4 className="text-md font-medium text-white">Items de la Compra</h4>
                         </div>
 
                         {newPurchase.items.length === 0 ? (
-                            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                            <div className="text-center py-8 border-2 border-dashed border-slate-600 rounded-lg">
                                 <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
-                                <p className="text-gray-600">No hay items agregados</p>
+                                <p className="text-slate-400">No hay items agregados</p>
                                 <p className="text-sm text-gray-500">Haz clic en "Agregar Item" y selecciona el tipo dentro del formulario</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {newPurchase.items.map((item, index) => (
-                                    <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                                    <div key={index} className="border rounded-lg p-4 bg-slate-700/30">
                                         <div className="flex items-center justify-between mb-4">
-                                            <h5 className="font-medium text-gray-900">Item {index + 1}</h5>
+                                            <h5 className="font-medium text-white">Item {index + 1}</h5>
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveItem(index)}
@@ -1074,7 +1074,7 @@ export default function Purchases() {
                                                     }}
                                                     className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${(item.itemType === 'individual' || !item.itemType) && !item.isBox
                                                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                        : 'border-gray-300 hover:border-gray-400'
+                                                        : 'border-slate-600 hover:border-gray-400'
                                                         }`}
                                                     style={{
                                                         WebkitTapHighlightColor: 'transparent',
@@ -1099,7 +1099,7 @@ export default function Purchases() {
                                                     }}
                                                     className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'box' || item.isBox
                                                         ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                                        : 'border-gray-300 hover:border-gray-400'
+                                                        : 'border-slate-600 hover:border-gray-400'
                                                         }`}
                                                     style={{
                                                         WebkitTapHighlightColor: 'transparent',
@@ -1124,7 +1124,7 @@ export default function Purchases() {
                                                     }}
                                                     className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'series'
                                                         ? 'border-green-500 bg-green-50 text-green-700'
-                                                        : 'border-gray-300 hover:border-gray-400'
+                                                        : 'border-slate-600 hover:border-gray-400'
                                                         }`}
                                                     style={{
                                                         WebkitTapHighlightColor: 'transparent',
@@ -1220,19 +1220,19 @@ export default function Purchases() {
                                                                 </div>
                                                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                                                     <div>
-                                                                        <div className="text-gray-600">Costo por Pieza:</div>
+                                                                        <div className="text-slate-400">Costo por Pieza:</div>
                                                                         <div className="font-semibold text-purple-700">
                                                                             ${item.boxSize && item.boxPrice ? (item.boxPrice / item.boxSize).toFixed(2) : '0.00'}
                                                                         </div>
                                                                     </div>
                                                                     <div>
-                                                                        <div className="text-gray-600">Total Piezas:</div>
+                                                                        <div className="text-slate-400">Total Piezas:</div>
                                                                         <div className="font-semibold text-purple-700">
                                                                             {(item.boxSize || 0) * (item.quantity || 1)} piezas
                                                                         </div>
                                                                     </div>
                                                                     <div className="col-span-2 pt-2 border-t border-purple-300">
-                                                                        <div className="text-gray-600">Subtotal:</div>
+                                                                        <div className="text-slate-400">Subtotal:</div>
                                                                         <div className="font-bold text-lg text-purple-900">
                                                                             ${((item.boxPrice || 0) * (item.quantity || 1)).toFixed(2)}
                                                                         </div>
@@ -1271,7 +1271,7 @@ export default function Purchases() {
                                                         onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
                                                         placeholder="Observaciones sobre la caja sellada..."
                                                         rows={2}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     />
                                                 </div>
                                             </div>
@@ -1353,7 +1353,7 @@ export default function Purchases() {
                                                             <select
                                                                 value={item.brand || ''}
                                                                 onChange={(e) => handleItemChange(index, 'brand', e.target.value)}
-                                                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
+                                                                className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
                                                                 style={{
                                                                     fontSize: '16px',
                                                                     WebkitAppearance: 'none',
@@ -1375,7 +1375,7 @@ export default function Purchases() {
                                                             <select
                                                                 value={item.pieceType || ''}
                                                                 onChange={(e) => handleItemChange(index, 'pieceType', e.target.value)}
-                                                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
+                                                                className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
                                                                 style={{
                                                                     fontSize: '16px',
                                                                     WebkitAppearance: 'none',
@@ -1399,7 +1399,7 @@ export default function Purchases() {
                                                             <select
                                                                 value={item.condition}
                                                                 onChange={(e) => handleItemChange(index, 'condition', e.target.value as any)}
-                                                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
+                                                                className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation"
                                                                 style={{
                                                                     fontSize: '16px',
                                                                     WebkitAppearance: 'none',
@@ -1439,26 +1439,26 @@ export default function Purchases() {
                                                                         </div>
                                                                         <div className="grid grid-cols-3 gap-3 text-sm">
                                                                             <div>
-                                                                                <div className="text-gray-600">Total:</div>
+                                                                                <div className="text-slate-400">Total:</div>
                                                                                 <div className="font-semibold text-gray-800">
                                                                                     {item.seriesSize || 0} piezas
                                                                                 </div>
                                                                             </div>
                                                                             <div>
-                                                                                <div className="text-gray-600">Registradas:</div>
+                                                                                <div className="text-slate-400">Registradas:</div>
                                                                                 <div className="font-semibold text-blue-700">
                                                                                     {registeredCount} piezas
                                                                                 </div>
                                                                             </div>
                                                                             <div>
-                                                                                <div className="text-gray-600">Faltan:</div>
+                                                                                <div className="text-slate-400">Faltan:</div>
                                                                                 <div className={`font-bold ${remaining === 0 ? 'text-green-700' : 'text-orange-600'}`}>
                                                                                     {remaining} piezas
                                                                                 </div>
                                                                             </div>
                                                                             <div className="col-span-3 pt-2 border-t">
-                                                                                <div className="text-gray-600">Subtotal:</div>
-                                                                                <div className="font-bold text-lg text-gray-900">
+                                                                                <div className="text-slate-400">Subtotal:</div>
+                                                                                <div className="font-bold text-lg text-white">
                                                                                     ${((item.unitPrice || 0) * (item.seriesSize || 0)).toFixed(2)}
                                                                                 </div>
                                                                             </div>
@@ -1474,7 +1474,7 @@ export default function Purchases() {
                                                 {item.seriesSize && item.seriesSize > 0 && (
                                                     <div className="space-y-3">
                                                         <div className="flex items-center justify-between">
-                                                            <h4 className="font-medium text-gray-900">Registro de Piezas</h4>
+                                                            <h4 className="font-medium text-white">Registro de Piezas</h4>
                                                             <Button
                                                                 type="button"
                                                                 size="sm"
@@ -1520,7 +1520,7 @@ export default function Purchases() {
                                                                 const remaining = (item.seriesSize || 0) - registeredCount + (piece.quantity || 0) // Incluir la cantidad actual
 
                                                                 return (
-                                                                    <div key={pieceIndex} className="border rounded-lg p-3 bg-white relative">
+                                                                    <div key={pieceIndex} className="border rounded-lg p-3 bg-slate-800 relative">
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => {
@@ -1538,7 +1538,7 @@ export default function Purchases() {
                                                                         </button>
 
                                                                         <div className="flex items-center justify-between mb-2 pr-6">
-                                                                            <h5 className="font-medium text-gray-900 text-sm">
+                                                                            <h5 className="font-medium text-white text-sm">
                                                                                 Pieza #{piece.position}
                                                                             </h5>
                                                                             {piece.carId && piece.quantity > 0 && (
@@ -1670,7 +1670,7 @@ export default function Purchases() {
                                                                                     }}
                                                                                     placeholder="Observaciones específicas..."
                                                                                     rows={1}
-                                                                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation resize-y"
+                                                                                    className="w-full px-3 py-2 text-sm border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[44px] touch-manipulation resize-y"
                                                                                     style={{
                                                                                         fontSize: '16px',
                                                                                         WebkitAppearance: 'none',
@@ -1685,7 +1685,7 @@ export default function Purchases() {
                                                         </div>
 
                                                         {(item.seriesPieces || []).length === 0 && (
-                                                            <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                                            <div className="text-center py-8 text-gray-500 bg-slate-700/30 rounded-lg border border-dashed border-slate-600">
                                                                 <Package size={32} className="mx-auto mb-2 opacity-50" />
                                                                 <p className="text-sm">No hay piezas registradas</p>
                                                                 <p className="text-xs">Haz clic en "+ Agregar Pieza" para empezar</p>
@@ -1704,7 +1704,7 @@ export default function Purchases() {
                                                         onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
                                                         placeholder="Observaciones generales sobre esta serie..."
                                                         rows={2}
-                                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[88px] touch-manipulation resize-y"
+                                                        className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[88px] touch-manipulation resize-y"
                                                         style={{
                                                             fontSize: '16px',
                                                             WebkitAppearance: 'none',
@@ -1728,7 +1728,7 @@ export default function Purchases() {
                                                 )}
 
                                                 {/* Información Básica */}
-                                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-700">
                                                     <h6 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                                         <Car size={16} />
                                                         Información Básica
@@ -1799,7 +1799,7 @@ export default function Purchases() {
                                                             <select
                                                                 value={item.condition}
                                                                 onChange={(e) => handleItemChange(index, 'condition', e.target.value)}
-                                                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                                                                 style={{
                                                                     fontSize: '16px',
                                                                     WebkitAppearance: 'none',
@@ -1816,7 +1816,7 @@ export default function Purchases() {
                                                 </div>
 
                                                 {/* Marca y Tipo de Pieza */}
-                                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-700">
                                                     <h6 className="text-sm font-semibold text-gray-700 mb-3">
                                                         Clasificación
                                                     </h6>
@@ -1828,7 +1828,7 @@ export default function Purchases() {
                                                             <select
                                                                 value={item.brand || ''}
                                                                 onChange={(e) => handleBrandChange(index, e.target.value)}
-                                                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                                                                 style={{
                                                                     fontSize: '16px',
                                                                     WebkitAppearance: 'none',
@@ -1880,7 +1880,7 @@ export default function Purchases() {
                                                             <select
                                                                 value={item.pieceType || ''}
                                                                 onChange={(e) => handleItemChange(index, 'pieceType', e.target.value)}
-                                                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
+                                                                className="w-full px-4 py-3 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                                                                 style={{
                                                                     fontSize: '16px',
                                                                     WebkitAppearance: 'none',
@@ -1917,7 +1917,7 @@ export default function Purchases() {
                                                                         }
                                                                     }}
                                                                     disabled={item.isSuperTreasureHunt}
-                                                                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:opacity-50"
+                                                                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-slate-600 rounded disabled:opacity-50"
                                                                 />
                                                                 <label htmlFor={`th-${index}`} className="text-sm font-medium text-gray-700">
                                                                     Treasure Hunt (TH)
@@ -1935,7 +1935,7 @@ export default function Purchases() {
                                                                         }
                                                                     }}
                                                                     disabled={item.isTreasureHunt}
-                                                                    className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded disabled:opacity-50"
+                                                                    className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-slate-600 rounded disabled:opacity-50"
                                                                 />
                                                                 <label htmlFor={`sth-${index}`} className="text-sm font-medium text-gray-700">
                                                                     Super Treasure Hunt ($TH)
@@ -1955,7 +1955,7 @@ export default function Purchases() {
                                                                     id={`chase-${index}`}
                                                                     checked={item.isChase || false}
                                                                     onChange={(e) => handleItemChange(index, 'isChase', e.target.checked)}
-                                                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-slate-600 rounded"
                                                                 />
                                                                 <label htmlFor={`chase-${index}`} className="text-sm font-medium text-gray-700">
                                                                     🔥 Chase (Pieza especial de edición limitada)
@@ -1965,7 +1965,7 @@ export default function Purchases() {
                                                     )}
 
                                                 {/* Series Section */}
-                                                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                                <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-700">
                                                     <h6 className="text-sm font-semibold text-gray-700 mb-3">
                                                         Información de Serie (Opcional)
                                                     </h6>
@@ -2076,7 +2076,7 @@ export default function Purchases() {
                                                         onChange={(e) => handleItemChange(index, 'notes', e.target.value)}
                                                         placeholder="Observaciones, defectos, detalles especiales..."
                                                         rows={2}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     />
                                                 </div>
                                             </div>
@@ -2089,7 +2089,7 @@ export default function Purchases() {
                         {/* Resumen Total Mejorado */}
                         {newPurchase.items.length > 0 && (
                             <div className="mt-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-5 border-2 border-blue-300 shadow-md">
-                                <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <h5 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                                     <span className="text-2xl">💰</span>
                                     Resumen de Compra
                                 </h5>
@@ -2098,13 +2098,13 @@ export default function Purchases() {
                                 <div className="space-y-2 mb-4">
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-gray-700">Número de items:</span>
-                                        <span className="font-semibold text-gray-900">
+                                        <span className="font-semibold text-white">
                                             {newPurchase.items.length} {newPurchase.items.length === 1 ? 'item' : 'items'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-gray-700">Cantidad total de piezas:</span>
-                                        <span className="font-semibold text-gray-900">
+                                        <span className="font-semibold text-white">
                                             {newPurchase.items.reduce((sum, item) => {
                                                 // Para series, sumar las cantidades de seriesPieces
                                                 if (item.itemType === 'series' && item.seriesPieces && item.seriesPieces.length > 0) {
@@ -2120,8 +2120,8 @@ export default function Purchases() {
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center pt-2 border-t border-blue-200">
-                                        <span className="font-medium text-gray-900">Subtotal de items:</span>
-                                        <span className="font-bold text-lg text-gray-900">
+                                        <span className="font-medium text-white">Subtotal de items:</span>
+                                        <span className="font-bold text-lg text-white">
                                             ${newPurchase.items.reduce((sum, item) => {
                                                 // Para series, calcular: seriesSize × unitPrice
                                                 if (item.itemType === 'series') {
@@ -2138,15 +2138,15 @@ export default function Purchases() {
                                 {newPurchase.shippingCost > 0 && (
                                     <div className="flex justify-between items-center mb-3 py-2 border-t border-blue-200">
                                         <span className="text-sm text-gray-700">Costo de Envío:</span>
-                                        <span className="text-sm font-medium text-gray-900">
+                                        <span className="text-sm font-medium text-white">
                                             +${newPurchase.shippingCost.toFixed(2)}
                                         </span>
                                     </div>
                                 )}
 
                                 {/* Grand total */}
-                                <div className="flex justify-between items-center mt-3 pt-3 border-t-2 border-blue-300 bg-white rounded-lg p-3 shadow-sm">
-                                    <span className="font-bold text-gray-900 text-lg">Total General:</span>
+                                <div className="flex justify-between items-center mt-3 pt-3 border-t-2 border-blue-300 bg-slate-800 rounded-lg p-3 shadow-sm">
+                                    <span className="font-bold text-white text-lg">Total General:</span>
                                     <span className="font-bold text-2xl text-blue-600">
                                         ${(newPurchase.items.reduce((sum, item) => {
                                             // Para series, calcular: seriesSize × unitPrice
@@ -2161,7 +2161,7 @@ export default function Purchases() {
 
                                 {/* Average price per piece */}
                                 {newPurchase.items.length > 0 && (
-                                    <div className="mt-3 text-center text-xs text-gray-600 italic">
+                                    <div className="mt-3 text-center text-xs text-slate-400 italic">
                                         Precio promedio por pieza: $
                                         {(() => {
                                             const totalCost = newPurchase.items.reduce((sum, item) => {
@@ -2273,10 +2273,10 @@ export default function Purchases() {
             {/* Purchase Details Modal */}
             {showDetailsModal && selectedPurchase && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-slate-800 rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900">Detalles de Compra</h2>
+                                <h2 className="text-2xl font-bold text-white">Detalles de Compra</h2>
                                 <Button
                                     variant="secondary"
                                     size="sm"
@@ -2333,7 +2333,7 @@ export default function Purchases() {
                                 <h3 className="text-lg font-semibold mb-3">Artículos Comprados</h3>
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
+                                        <thead className="bg-slate-700/30">
                                             <tr>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Car ID</th>
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
@@ -2342,10 +2342,10 @@ export default function Purchases() {
                                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        <tbody className="bg-slate-800 divide-y divide-gray-200">
                                             {selectedPurchase.items.map((item: any, index: number) => (
                                                 <tr key={index}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.carId}</td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{item.carId}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.quantity}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.unitPrice.toFixed(2)}</td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{item.condition}</td>
@@ -2364,10 +2364,10 @@ export default function Purchases() {
             {/* Complete Series Modal */}
             {showSeriesModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-                    <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="bg-slate-800 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-2xl font-bold text-gray-900">Agregar Serie Completa</h3>
+                                <h3 className="text-2xl font-bold text-white">Agregar Serie Completa</h3>
                                 <button
                                     type="button"
                                     onClick={() => setShowSeriesModal(false)}
@@ -2379,7 +2379,7 @@ export default function Purchases() {
 
                             {/* Series Information */}
                             <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                                <h4 className="font-medium text-gray-900 mb-4">Información de la Serie</h4>
+                                <h4 className="font-medium text-white mb-4">Información de la Serie</h4>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="md:col-span-2">
@@ -2401,7 +2401,7 @@ export default function Purchases() {
                                         <select
                                             value={seriesData.seriesSize}
                                             onChange={(e) => handleSeriesDataChange('seriesSize', parseInt(e.target.value))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value={5}>5 piezas</option>
                                             <option value={8}>8 piezas</option>
@@ -2418,7 +2418,7 @@ export default function Purchases() {
                                         <select
                                             value={seriesData.brand}
                                             onChange={(e) => handleSeriesDataChange('brand', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Seleccionar marca...</option>
                                             {allBrands.map((brand) => (
@@ -2433,7 +2433,7 @@ export default function Purchases() {
                                         <select
                                             value={seriesData.pieceType}
                                             onChange={(e) => handleSeriesDataChange('pieceType', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="">Seleccionar...</option>
                                             <option value="basic">Básico</option>
@@ -2450,7 +2450,7 @@ export default function Purchases() {
                                         <select
                                             value={seriesData.condition}
                                             onChange={(e) => handleSeriesDataChange('condition', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="mint">Mint</option>
                                             <option value="mint_loose">Mint loose</option>
@@ -2489,8 +2489,8 @@ export default function Purchases() {
                                     </div>
                                 </div>
 
-                                <div className="mt-4 p-3 bg-white rounded border border-blue-200">
-                                    <div className="text-sm text-gray-600">
+                                <div className="mt-4 p-3 bg-slate-800 rounded border border-blue-200">
+                                    <div className="text-sm text-slate-400">
                                         <strong>Total de la serie:</strong> ${(seriesData.unitPrice * seriesData.seriesSize).toFixed(2)}
                                         <span className="ml-2">({seriesData.seriesSize} piezas × ${seriesData.unitPrice.toFixed(2)})</span>
                                     </div>
@@ -2499,11 +2499,11 @@ export default function Purchases() {
 
                             {/* Individual Pieces */}
                             <div>
-                                <h4 className="font-medium text-gray-900 mb-4">Piezas de la Serie</h4>
+                                <h4 className="font-medium text-white mb-4">Piezas de la Serie</h4>
                                 <div className="space-y-4">
                                     {seriesData.pieces.map((piece, index) => (
-                                        <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                                            <h5 className="font-medium text-gray-900 mb-3">
+                                        <div key={index} className="border rounded-lg p-4 bg-slate-700/30">
+                                            <h5 className="font-medium text-white mb-3">
                                                 Pieza {piece.position} de {seriesData.seriesSize}
                                             </h5>
 
@@ -2536,7 +2536,7 @@ export default function Purchases() {
                                                                     }
                                                                 }}
                                                                 disabled={piece.isSuperTreasureHunt}
-                                                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                                                className="h-4 w-4 text-green-600 focus:ring-green-500 border-slate-600 rounded"
                                                             />
                                                             <label htmlFor={`th-series-${index}`} className="text-sm font-medium text-gray-700">
                                                                 Treasure Hunt (TH)
@@ -2554,7 +2554,7 @@ export default function Purchases() {
                                                                     }
                                                                 }}
                                                                 disabled={piece.isTreasureHunt}
-                                                                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                                                                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-slate-600 rounded"
                                                             />
                                                             <label htmlFor={`sth-series-${index}`} className="text-sm font-medium text-gray-700">
                                                                 Super Treasure Hunt ($TH)
@@ -2573,7 +2573,7 @@ export default function Purchases() {
                                                                     id={`chase-series-${index}`}
                                                                     checked={piece.isChase || false}
                                                                     onChange={(e) => handleSeriesPieceChange(index, 'isChase', e.target.checked)}
-                                                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                                                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-slate-600 rounded"
                                                                 />
                                                                 <label htmlFor={`chase-series-${index}`} className="text-sm font-medium text-gray-700">
                                                                     Chase
@@ -2635,7 +2635,7 @@ export default function Purchases() {
                                                         onChange={(e) => handleSeriesPieceChange(index, 'notes', e.target.value)}
                                                         placeholder="Observaciones específicas de esta pieza..."
                                                         rows={2}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        className="w-full px-3 py-2 border border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     />
                                                 </div>
                                             </div>

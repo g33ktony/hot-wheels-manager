@@ -127,7 +127,7 @@ export default function Deliveries() {
                 <div className="mb-4">
                     <Truck size={64} className="mx-auto text-gray-400 mb-4" />
                     <p className="text-danger-600 text-lg font-semibold mb-2">Error al cargar las entregas</p>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <p className="text-slate-400 text-sm mb-4">
                         {(error as any)?.message || 'No se pudo conectar con el servidor'}
                     </p>
                 </div>
@@ -789,8 +789,8 @@ export default function Deliveries() {
         <div className="space-y-4 lg:space-y-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <div>
-                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Entregas</h1>
-                    <p className="text-sm lg:text-base text-gray-600">Calendario y gestión de entregas</p>
+                    <h1 className="text-xl lg:text-2xl font-bold text-white">Entregas</h1>
+                    <p className="text-sm lg:text-base text-slate-400">Calendario y gestión de entregas</p>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">
                     <Button
@@ -821,8 +821,8 @@ export default function Deliveries() {
                             <Truck size={20} className="text-blue-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-gray-600">Total Activas</p>
-                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{totalDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-400">Total Activas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-white">{totalDeliveries}</p>
                         </div>
                     </div>
                 </Card>
@@ -836,8 +836,8 @@ export default function Deliveries() {
                             <Clock size={20} className="text-yellow-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-gray-600">Pendientes</p>
-                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{pendingDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-400">Pendientes</p>
+                            <p className="text-lg lg:text-2xl font-bold text-white">{pendingDeliveries}</p>
                         </div>
                     </div>
                 </Card>
@@ -851,8 +851,8 @@ export default function Deliveries() {
                             <Package size={20} className="text-orange-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-gray-600">Preparadas</p>
-                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{preparedDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-400">Preparadas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-white">{preparedDeliveries}</p>
                         </div>
                     </div>
                 </Card>
@@ -866,8 +866,8 @@ export default function Deliveries() {
                             <CheckCircle size={20} className="text-green-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-gray-600">Completadas</p>
-                            <p className="text-lg lg:text-2xl font-bold text-gray-900">{completedDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-400">Completadas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-white">{completedDeliveries}</p>
                         </div>
                     </div>
                 </Card>
@@ -928,7 +928,7 @@ export default function Deliveries() {
             {/* Deliveries Grid */}
             <Card className="p-4 lg:p-6">
                 <div className="flex items-center justify-between mb-4 lg:mb-6">
-                    <h2 className="text-base lg:text-lg font-semibold text-gray-900">Lista de Entregas</h2>
+                    <h2 className="text-base lg:text-lg font-semibold text-white">Lista de Entregas</h2>
                 </div>
 
                 {filteredDeliveries && filteredDeliveries.length > 0 ? (
@@ -953,8 +953,8 @@ export default function Deliveries() {
                 ) : (
                     <div className="text-center py-12">
                         <Truck size={48} className="mx-auto text-gray-400 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">No hay entregas</h3>
-                        <p className="text-gray-600">No se encontraron entregas para los filtros seleccionados</p>
+                        <h3 className="text-lg font-medium text-white mb-2">No hay entregas</h3>
+                        <p className="text-slate-400">No se encontraron entregas para los filtros seleccionados</p>
                     </div>
                 )}
             </Card>
@@ -1060,7 +1060,7 @@ export default function Deliveries() {
                             </label>
                             {!showCustomLocationInput ? (
                                 <select
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                     value={newDelivery.location}
                                     onChange={(e) => handleLocationChange(e.target.value)}
                                     required
@@ -1103,12 +1103,12 @@ export default function Deliveries() {
                     {/* Delivery Items */}
                     <div>
                         <div className="mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">Items de la Entrega</h3>
+                            <h3 className="text-lg font-medium text-white">Items de la Entrega</h3>
                         </div>
 
                         {/* Pre-Sale Item Selector */}
                         <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
-                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
                                 <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
                                     PRE-SALE
                                 </span>
@@ -1146,7 +1146,7 @@ export default function Deliveries() {
                         <div className="space-y-4">
                             {newDelivery.items.map((item, index) => (
                                 <div key={index} className="space-y-2">
-                                    <div className={`flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg ${item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : 'border-gray-300'
+                                    <div className={`flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg ${item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : 'border-slate-600'
                                         }`}>
                                         {/* Pre-Sale Badge */}
                                         {item.isSoldAsSeries && (
@@ -1159,9 +1159,9 @@ export default function Deliveries() {
 
                                         <div className="flex-1">
                                             {item.isSoldAsSeries ? (
-                                                <div className="p-2 bg-white rounded border border-purple-200">
-                                                    <p className="font-semibold text-gray-900">{item.carName}</p>
-                                                    <p className="text-sm text-gray-600">{item.carId}</p>
+                                                <div className="p-2 bg-slate-800 rounded border border-purple-200">
+                                                    <p className="font-semibold text-white">{item.carName}</p>
+                                                    <p className="text-sm text-slate-400">{item.carId}</p>
                                                 </div>
                                             ) : (
                                                 <InventoryItemSelector
@@ -1297,7 +1297,7 @@ export default function Deliveries() {
                         </div>
 
                         {newDelivery.items.length > 0 && (
-                            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                            <div className="mt-4 p-4 bg-slate-700/30 rounded-lg">
                                 <p className="text-lg font-semibold">Total: ${calculateTotal().toFixed(2)}</p>
                             </div>
                         )}
@@ -1366,7 +1366,7 @@ export default function Deliveries() {
                     {!isEditMode && newDelivery.items.some(item => item.inventoryItemId?.startsWith('presale_')) && (
                         <div className="border-t pt-4 mt-4">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-medium text-gray-900">Plan de Pagos (Preventa)</h3>
+                                <h3 className="font-medium text-white">Plan de Pagos (Preventa)</h3>
                                 <label className="flex items-center cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -1480,17 +1480,17 @@ export default function Deliveries() {
                                         <h4 className="font-medium text-sm mb-2">Resumen del Plan</h4>
                                         <div className="grid grid-cols-3 gap-4 text-sm">
                                             <div>
-                                                <span className="text-gray-600">Total:</span>
+                                                <span className="text-slate-400">Total:</span>
                                                 <div className="font-medium">${newDelivery.totalAmount.toFixed(2)}</div>
                                             </div>
                                             <div>
-                                                <span className="text-gray-600">Por Pago:</span>
+                                                <span className="text-slate-400">Por Pago:</span>
                                                 <div className="font-medium">
                                                     ${(newDelivery.totalAmount / paymentPlanConfig.numberOfPayments).toFixed(2)}
                                                 </div>
                                             </div>
                                             <div>
-                                                <span className="text-gray-600">Fecha Final:</span>
+                                                <span className="text-slate-400">Fecha Final:</span>
                                                 <div className="font-medium text-xs">
                                                     {(() => {
                                                         const start = new Date(paymentPlanConfig.startDate)
@@ -1644,17 +1644,17 @@ export default function Deliveries() {
                 {selectedDelivery && (
                     <div className="space-y-4">
                         {/* Amount Info */}
-                        <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                        <div className="bg-slate-700/30 p-4 rounded-lg space-y-2 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-gray-600">Total:</span>
+                                <span className="text-slate-400">Total:</span>
                                 <span className="font-medium">${selectedDelivery.totalAmount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-600">Pagado:</span>
+                                <span className="text-slate-400">Pagado:</span>
                                 <span className="text-green-600 font-medium">${(selectedDelivery.paidAmount || 0).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between border-t pt-2">
-                                <span className="text-gray-900 font-medium">Pendiente:</span>
+                                <span className="text-white font-medium">Pendiente:</span>
                                 <span className="text-orange-600 font-bold">${(selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)).toFixed(2)}</span>
                             </div>
                         </div>
@@ -1696,7 +1696,7 @@ export default function Deliveries() {
                                 Método de Pago *
                             </label>
                             <select
-                                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
+                                className="w-full px-4 py-3 text-base border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
                                 value={newPayment.paymentMethod}
                                 onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value as any })}
                             >
@@ -1713,7 +1713,7 @@ export default function Deliveries() {
                                 Notas (opcional)
                             </label>
                             <textarea
-                                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[80px] touch-manipulation"
+                                className="w-full px-4 py-3 text-base border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[80px] touch-manipulation"
                                 placeholder="Detalles adicionales del pago..."
                                 value={newPayment.notes}
                                 onChange={(e) => setNewPayment({ ...newPayment, notes: e.target.value })}
@@ -1726,12 +1726,12 @@ export default function Deliveries() {
             {/* Delivery Report Modal */}
             {showReportModal && selectedDelivery && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-                    <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto overflow-x-hidden">
+                    <div className="bg-slate-800 rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto overflow-x-hidden">
                         <div className="flex items-center justify-between p-6 border-b">
-                            <h2 className="text-xl font-semibold text-gray-900">Reporte de Entrega</h2>
+                            <h2 className="text-xl font-semibold text-white">Reporte de Entrega</h2>
                             <button
                                 onClick={handleCloseReport}
-                                className="text-gray-400 hover:text-gray-600"
+                                className="text-gray-400 hover:text-slate-400"
                             >
                                 <X size={24} />
                             </button>

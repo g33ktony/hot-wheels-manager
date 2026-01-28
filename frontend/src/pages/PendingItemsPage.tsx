@@ -104,10 +104,10 @@ export default function PendingItemsPage() {
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+                <h1 className="text-4xl font-bold text-white flex items-center gap-3">
                     🟠 Items Pendientes
                 </h1>
-                <p className="text-gray-600 mt-2">
+                <p className="text-slate-400 mt-2">
                     Gestiona los items que no llegaron completos en tus compras
                 </p>
             </div>
@@ -158,10 +158,10 @@ export default function PendingItemsPage() {
             )}
 
             {/* Filters */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 p-4 mb-6">
                 <div className="flex items-center gap-2 mb-3">
-                    <Filter size={20} className="text-gray-600" />
-                    <h2 className="font-semibold text-gray-900">Filtros</h2>
+                    <Filter size={20} className="text-slate-400" />
+                    <h2 className="font-semibold text-white">Filtros</h2>
                 </div>
 
                 <div className="flex flex-wrap gap-4">
@@ -172,7 +172,7 @@ export default function PendingItemsPage() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            className="px-4 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         >
                             <option value="all">Todos</option>
                             <option value="pending-reshipment">Pendiente de reenvío</option>
@@ -188,7 +188,7 @@ export default function PendingItemsPage() {
                                 type="checkbox"
                                 checked={overdueFilter}
                                 onChange={(e) => setOverdueFilter(e.target.checked)}
-                                className="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-300 rounded"
+                                className="w-4 h-4 text-orange-500 focus:ring-orange-500 border-slate-600 rounded"
                             />
                             <span className="text-sm font-medium text-gray-700">
                                 Solo vencidos (+15 días)
@@ -202,7 +202,7 @@ export default function PendingItemsPage() {
             {isLoading ? (
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-                    <p className="text-gray-600 mt-4">Cargando items pendientes...</p>
+                    <p className="text-slate-400 mt-4">Cargando items pendientes...</p>
                 </div>
             ) : error ? (
                 <div className="bg-red-50 border-2 border-red-300 rounded-lg p-8 text-center">
@@ -211,10 +211,10 @@ export default function PendingItemsPage() {
                     <p className="text-red-700">No se pudieron cargar los items pendientes. Por favor, intenta de nuevo.</p>
                 </div>
             ) : items && items.items.length === 0 ? (
-                <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
+                <div className="bg-slate-700/30 border-2 border-dashed border-slate-600 rounded-lg p-12 text-center">
                     <Package className="mx-auto text-gray-400 mb-4" size={64} />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay items pendientes</h3>
-                    <p className="text-gray-600">
+                    <h3 className="text-xl font-semibold text-white mb-2">No hay items pendientes</h3>
+                    <p className="text-slate-400">
                         {statusFilter !== 'all' || overdueFilter
                             ? 'No se encontraron items con los filtros seleccionados'
                             : '¡Todas tus compras han llegado completas!'}

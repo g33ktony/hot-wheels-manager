@@ -138,7 +138,7 @@ export default function CustomerProfile() {
             case 'pending':
                 return 'bg-red-100 text-red-800'
             default:
-                return 'bg-gray-100 text-gray-800'
+                return 'bg-slate-700 text-gray-800'
         }
     }
 
@@ -153,7 +153,7 @@ export default function CustomerProfile() {
             case 'cancelled':
                 return 'bg-red-100 text-red-800'
             default:
-                return 'bg-gray-100 text-gray-800'
+                return 'bg-slate-700 text-gray-800'
         }
     }
 
@@ -201,7 +201,7 @@ export default function CustomerProfile() {
                 >
                     Volver
                 </Button>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Perfil del Cliente</h1>
+                <h1 className="text-2xl lg:text-3xl font-bold text-white">Perfil del Cliente</h1>
                 <div className="w-[100px]"></div>
             </div>
 
@@ -216,8 +216,8 @@ export default function CustomerProfile() {
                                     <User size={24} className="text-blue-700" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Nombre</p>
-                                    <p className="text-lg font-bold text-gray-900">{customer.name}</p>
+                                    <p className="text-sm text-slate-400">Nombre</p>
+                                    <p className="text-lg font-bold text-white">{customer.name}</p>
                                 </div>
                             </div>
 
@@ -227,8 +227,8 @@ export default function CustomerProfile() {
                                         <Mail size={24} className="text-blue-700" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Email</p>
-                                        <p className="text-lg font-bold text-gray-900 break-all">{customer.email}</p>
+                                        <p className="text-sm text-slate-400">Email</p>
+                                        <p className="text-lg font-bold text-white break-all">{customer.email}</p>
                                     </div>
                                 </div>
                             )}
@@ -239,8 +239,8 @@ export default function CustomerProfile() {
                                         <Phone size={24} className="text-blue-700" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Teléfono</p>
-                                        <p className="text-lg font-bold text-gray-900">{customer.phone}</p>
+                                        <p className="text-sm text-slate-400">Teléfono</p>
+                                        <p className="text-lg font-bold text-white">{customer.phone}</p>
                                     </div>
                                 </div>
                             )}
@@ -254,8 +254,8 @@ export default function CustomerProfile() {
                                         <MapPin size={24} className="text-blue-700" />
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Dirección</p>
-                                        <p className="text-lg font-bold text-gray-900">{customer.address}</p>
+                                        <p className="text-sm text-slate-400">Dirección</p>
+                                        <p className="text-lg font-bold text-white">{customer.address}</p>
                                     </div>
                                 </div>
                             )}
@@ -266,8 +266,8 @@ export default function CustomerProfile() {
                                         {getContactIcon(customer.contactMethod)}
                                     </div>
                                     <div>
-                                        <p className="text-sm text-gray-600">Método de contacto preferido</p>
-                                        <p className="text-lg font-bold text-gray-900 capitalize">{customer.contactMethod}</p>
+                                        <p className="text-sm text-slate-400">Método de contacto preferido</p>
+                                        <p className="text-lg font-bold text-white capitalize">{customer.contactMethod}</p>
                                     </div>
                                 </div>
                             )}
@@ -288,8 +288,8 @@ export default function CustomerProfile() {
                     <CardContent>
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Total Compras</p>
-                                <p className="text-2xl font-bold text-gray-900">${paymentStats.totalAmount.toFixed(2)}</p>
+                                <p className="text-sm text-slate-400">Total Compras</p>
+                                <p className="text-2xl font-bold text-white">${paymentStats.totalAmount.toFixed(2)}</p>
                             </div>
                             <DollarSign size={32} className="text-green-600" />
                         </div>
@@ -300,7 +300,7 @@ export default function CustomerProfile() {
                     <CardContent>
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Pagado</p>
+                                <p className="text-sm text-slate-400">Pagado</p>
                                 <p className="text-2xl font-bold text-green-600">${paymentStats.paidAmount.toFixed(2)}</p>
                             </div>
                             <CheckCircle size={32} className="text-green-600" />
@@ -312,7 +312,7 @@ export default function CustomerProfile() {
                     <CardContent>
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Pendiente</p>
+                                <p className="text-sm text-slate-400">Pendiente</p>
                                 <p className="text-2xl font-bold text-red-600">${paymentStats.pendingAmount.toFixed(2)}</p>
                             </div>
                             <AlertCircle size={32} className="text-red-600" />
@@ -324,7 +324,7 @@ export default function CustomerProfile() {
                     <CardContent>
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-gray-600">Entregas</p>
+                                <p className="text-sm text-slate-400">Entregas</p>
                                 <p className="text-2xl font-bold text-blue-600">{paymentStats.completedDeliveries}/{paymentStats.totalDeliveries}</p>
                             </div>
                             <Package size={32} className="text-blue-600" />
@@ -341,15 +341,15 @@ export default function CustomerProfile() {
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                            <p className="text-sm text-gray-600">Pagadas Completamente</p>
+                            <p className="text-sm text-slate-400">Pagadas Completamente</p>
                             <p className="text-3xl font-bold text-green-600">{paymentStats.paidCount}</p>
                         </div>
                         <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                            <p className="text-sm text-gray-600">Pagadas Parcialmente</p>
+                            <p className="text-sm text-slate-400">Pagadas Parcialmente</p>
                             <p className="text-3xl font-bold text-orange-600">{paymentStats.partialPaymentCount}</p>
                         </div>
                         <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                            <p className="text-sm text-gray-600">Pendientes de Pago</p>
+                            <p className="text-sm text-slate-400">Pendientes de Pago</p>
                             <p className="text-3xl font-bold text-red-600">{paymentStats.pendingCount}</p>
                         </div>
                     </div>
@@ -368,7 +368,7 @@ export default function CustomerProfile() {
                             {deliveries.length > 0 && (
                                 <>
                                     <div className="mb-4 pb-4 border-b">
-                                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                                             <Truck size={16} className="text-blue-600" />
                                             Entregas ({deliveries.length})
                                         </h3>
@@ -376,7 +376,7 @@ export default function CustomerProfile() {
                                     {deliveries.map((delivery: Delivery) => (
                                         <div
                                             key={`delivery-${delivery._id}`}
-                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-blue-50 cursor-pointer"
+                                            className="p-4 border border-slate-700 rounded-lg hover:shadow-md transition-shadow bg-blue-50 cursor-pointer"
                                             onClick={() => delivery._id && setSelectedDeliveryId(delivery._id)}
                                         >
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
@@ -385,12 +385,12 @@ export default function CustomerProfile() {
                                                     <p className="text-xs text-gray-500 mb-1">FECHA</p>
                                                     <div className="flex items-center gap-2">
                                                         <Calendar size={16} className="text-gray-400" />
-                                                        <p className="font-semibold text-gray-900">
+                                                        <p className="font-semibold text-white">
                                                             {new Date(delivery.scheduledDate).toLocaleDateString('es-ES')}
                                                         </p>
                                                     </div>
                                                     {delivery.scheduledTime && (
-                                                        <p className="text-sm text-gray-600 mt-1">a las {delivery.scheduledTime}</p>
+                                                        <p className="text-sm text-slate-400 mt-1">a las {delivery.scheduledTime}</p>
                                                     )}
                                                 </div>
 
@@ -399,15 +399,15 @@ export default function CustomerProfile() {
                                                     <p className="text-xs text-gray-500 mb-1">UBICACIÓN</p>
                                                     <div className="flex items-start gap-2">
                                                         <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                                        <p className="font-semibold text-gray-900">{delivery.location}</p>
+                                                        <p className="font-semibold text-white">{delivery.location}</p>
                                                     </div>
-                                                    <p className="text-sm text-gray-600 mt-1">{delivery.items.length} items</p>
+                                                    <p className="text-sm text-slate-400 mt-1">{delivery.items.length} items</p>
                                                 </div>
 
                                                 {/* Amount and Payment Status */}
                                                 <div>
                                                     <p className="text-xs text-gray-500 mb-1">MONTO</p>
-                                                    <p className="text-lg font-bold text-gray-900">${delivery.totalAmount.toFixed(2)}</p>
+                                                    <p className="text-lg font-bold text-white">${delivery.totalAmount.toFixed(2)}</p>
                                                     <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(delivery.paymentStatus || 'pending')}`}>
                                                         {delivery.paymentStatus === 'paid' && '✓ Pagado'}
                                                         {delivery.paymentStatus === 'partial' && `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}`}
@@ -425,7 +425,7 @@ export default function CustomerProfile() {
                                                         {delivery.status === 'cancelled' && 'Cancelada'}
                                                     </span>
                                                     {delivery.completedDate && (
-                                                        <p className="text-xs text-gray-600 mt-1">
+                                                        <p className="text-xs text-slate-400 mt-1">
                                                             {new Date(delivery.completedDate).toLocaleDateString('es-ES')}
                                                         </p>
                                                     )}
@@ -459,7 +459,7 @@ export default function CustomerProfile() {
                             {sales.length > 0 && (
                                 <>
                                     <div className="mb-4 pb-4 border-b">
-                                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                                             <ShoppingCart size={16} className="text-green-600" />
                                             Ventas Completadas ({sales.length})
                                         </h3>
@@ -467,7 +467,7 @@ export default function CustomerProfile() {
                                     {sales.map((sale: any) => (
                                         <div
                                             key={`sale-${sale._id}`}
-                                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow bg-green-50 cursor-pointer"
+                                            className="p-4 border border-slate-700 rounded-lg hover:shadow-md transition-shadow bg-green-50 cursor-pointer"
                                             onClick={() => sale._id && setSelectedSaleId(sale._id)}
                                         >
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
@@ -476,7 +476,7 @@ export default function CustomerProfile() {
                                                     <p className="text-xs text-gray-500 mb-1">FECHA DE VENTA</p>
                                                     <div className="flex items-center gap-2">
                                                         <Calendar size={16} className="text-gray-400" />
-                                                        <p className="font-semibold text-gray-900">
+                                                        <p className="font-semibold text-white">
                                                             {new Date(sale.saleDate).toLocaleDateString('es-ES')}
                                                         </p>
                                                     </div>
@@ -487,14 +487,14 @@ export default function CustomerProfile() {
                                                     <p className="text-xs text-gray-500 mb-1">ITEMS</p>
                                                     <div className="flex items-start gap-2">
                                                         <Package size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                                        <p className="font-semibold text-gray-900">{sale.items?.length || 0} items</p>
+                                                        <p className="font-semibold text-white">{sale.items?.length || 0} items</p>
                                                     </div>
                                                 </div>
 
                                                 {/* Amount - Sales are treated as fully paid once completed */}
                                                 <div>
                                                     <p className="text-xs text-gray-500 mb-1">MONTO</p>
-                                                    <p className="text-lg font-bold text-gray-900">${sale.totalAmount.toFixed(2)}</p>
+                                                    <p className="text-lg font-bold text-white">${sale.totalAmount.toFixed(2)}</p>
                                                     <span className="inline-block mt-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                                                         ✓ Pagado
                                                     </span>
@@ -525,7 +525,7 @@ export default function CustomerProfile() {
                     ) : (
                         <div className="text-center py-12">
                             <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                            <p className="text-gray-600">No hay entregas ni ventas para este cliente</p>
+                            <p className="text-slate-400">No hay entregas ni ventas para este cliente</p>
                         </div>
                     )}
                 </CardContent>

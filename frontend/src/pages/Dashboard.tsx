@@ -184,8 +184,8 @@ export default function Dashboard() {
             {/* Header with Update Button */}
             <div className="flex items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900">Dashboard</h1>
-                    <p className="text-sm lg:text-base text-gray-600">Resumen general de tu negocio de Hot Wheels</p>
+                    <h1 className="text-xl lg:text-2xl font-bold text-white">Dashboard</h1>
+                    <p className="text-sm lg:text-base text-slate-400">Resumen general de tu negocio de Hot Wheels</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                     <Button
@@ -229,8 +229,8 @@ export default function Dashboard() {
                                 {React.createElement(metric.icon, { size: 20, className: metric.color })}
                             </div>
                             <div className="lg:ml-4">
-                                <p className="text-xs lg:text-sm font-medium text-gray-600">{metric.title}</p>
-                                <p className="text-lg lg:text-2xl font-bold text-gray-900 break-words">{metric.value}</p>
+                                <p className="text-xs lg:text-sm font-medium text-slate-400">{metric.title}</p>
+                                <p className="text-lg lg:text-2xl font-bold text-white break-words">{metric.value}</p>
                             </div>
                         </div>
                     </Card>
@@ -304,11 +304,11 @@ export default function Dashboard() {
                                         <div
                                             key={activity.id}
                                             onClick={() => isClickable && navigate(path)}
-                                            className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg ${isClickable ? 'cursor-pointer hover:bg-gray-100 hover:shadow-sm transition-all' : ''
+                                            className={`flex items-center justify-between p-3 bg-slate-700/30 rounded-lg ${isClickable ? 'cursor-pointer hover:bg-slate-700 hover:shadow-sm transition-all' : ''
                                                 }`}
                                         >
                                             <div className="flex-1">
-                                                <p className="text-sm font-medium text-gray-900">{activity.description}</p>
+                                                <p className="text-sm font-medium text-white">{activity.description}</p>
                                                 <p className="text-xs text-gray-500">
                                                     {new Date(activity.date).toLocaleDateString('es-ES', {
                                                         year: 'numeric',
@@ -355,11 +355,11 @@ export default function Dashboard() {
                                     </div>
                                     <div className="space-y-2 ml-6">
                                         {metrics.todaysDeliveries.map((delivery) => (
-                                            <div key={delivery.id} className="text-xs bg-white p-2 rounded border">
+                                            <div key={delivery.id} className="text-xs bg-slate-800 p-2 rounded border">
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <p className="font-medium text-gray-900">{delivery.customerName}</p>
-                                                        <div className="flex items-center gap-3 text-gray-600 mt-1">
+                                                        <p className="font-medium text-white">{delivery.customerName}</p>
+                                                        <div className="flex items-center gap-3 text-slate-400 mt-1">
                                                             <span className="flex items-center gap-1">
                                                                 <Clock size={12} />
                                                                 {delivery.scheduledTime}
@@ -504,9 +504,9 @@ export default function Dashboard() {
                             </div>
 
                             {updateStatus && (
-                                <div className="bg-gray-50 rounded-lg p-4 text-sm">
+                                <div className="bg-slate-700/30 rounded-lg p-4 text-sm">
                                     <p className="font-semibold text-gray-700 mb-2">Última actualización:</p>
-                                    <p className="text-gray-600">
+                                    <p className="text-slate-400">
                                         {new Date(updateStatus.lastModified).toLocaleDateString('es-ES', {
                                             year: 'numeric',
                                             month: 'long',
@@ -584,7 +584,7 @@ export default function Dashboard() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Buscar por nombre de modelo..."
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                     searchByName(searchQuery)
@@ -620,18 +620,18 @@ export default function Dashboard() {
 
                     {/* Results Grid */}
                     {searchResults.length > 0 && (
-                        <div className="max-h-[600px] overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="max-h-[600px] overflow-y-auto border border-slate-700 rounded-lg p-4 bg-slate-700/30">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {searchResults.map((item, idx) => (
-                                    <div key={idx} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-gray-200 flex flex-col">
+                                    <div key={idx} className="bg-slate-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-slate-700 flex flex-col">
                                         {/* Imagen */}
-                                        <div className="h-40 bg-gray-100 overflow-hidden flex items-center justify-center relative group">
+                                        <div className="h-40 bg-slate-700 overflow-hidden flex items-center justify-center relative group">
                                             {item.photo_url ? (
                                                 <>
                                                     <img
                                                         src={item.photo_url}
                                                         alt={item.model}
-                                                        className="w-full h-full object-contain bg-white"
+                                                        className="w-full h-full object-contain bg-slate-800"
                                                         crossOrigin="anonymous"
                                                         onLoad={() => {
                                                             console.log('✅ Imagen cargada:', item.model, item.photo_url)
@@ -657,8 +657,8 @@ export default function Dashboard() {
                                         </div>
                                         {/* Datos */}
                                         <div className="p-3 space-y-1 flex-grow">
-                                            <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">{item.model}</h3>
-                                            <div className="space-y-0.5 text-xs text-gray-600">
+                                            <h3 className="font-semibold text-white text-sm line-clamp-2">{item.model}</h3>
+                                            <div className="space-y-0.5 text-xs text-slate-400">
                                                 <p><span className="font-medium">Serie:</span> <span className="text-gray-700">{item.series}</span></p>
                                                 <p><span className="font-medium">Año:</span> <span className="text-gray-700">{item.year}</span></p>
                                                 <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs text-gray-700">{item.toy_num}</span></p>

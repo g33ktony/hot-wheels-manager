@@ -479,7 +479,7 @@ export default function Inventory() {
         if (!pagination || pagination.totalPages <= 1) return null
 
         return (
-            <div className="bg-white border rounded-lg p-3 w-full">
+            <div className="bg-slate-800 border rounded-lg p-3 w-full">
                 {/* Info text - hidden on mobile to save space */}
                 <div className="hidden sm:flex items-center justify-center text-sm text-gray-700 mb-3">
                     <span>
@@ -492,7 +492,7 @@ export default function Inventory() {
                 </div>
 
                 {/* Mobile compact info */}
-                <div className="sm:hidden text-xs text-gray-600 text-center mb-2">
+                <div className="sm:hidden text-xs text-slate-400 text-center mb-2">
                     {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, pagination.totalItems)} de {pagination.totalItems} items
                 </div>
 
@@ -524,7 +524,7 @@ export default function Inventory() {
                                         onClick={() => handlePageChange(pageNum)}
                                         className={`px-2 sm:px-3 py-1 rounded text-sm font-medium transition-colors min-w-[32px] ${currentPage === pageNum
                                             ? 'bg-primary-500 text-white'
-                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            : 'bg-slate-700 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         {pageNum}
@@ -1315,8 +1315,8 @@ export default function Inventory() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
-                    <p className="text-gray-600">Gestiona tus piezas de Hot Wheels</p>
+                    <h1 className="text-2xl font-bold text-white">Inventario</h1>
+                    <p className="text-slate-400">Gestiona tus piezas de Hot Wheels</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     {isSelectionMode ? (
@@ -1466,7 +1466,7 @@ export default function Inventory() {
                         </select>
 
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600 select-none">
+                            <span className="text-sm text-slate-400 select-none">
                                 {filteredItems.length} pieza{filteredItems.length !== 1 ? 's' : ''} encontrada{filteredItems.length !== 1 ? 's' : ''}
                             </span>
                         </div>
@@ -1726,9 +1726,9 @@ export default function Inventory() {
 
                 {/* Current page loading indicator */}
                 {isLoading && inventoryData && (
-                    <div className="absolute top-4 right-4 z-20 bg-white shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 border border-gray-200">
+                    <div className="absolute top-4 right-4 z-20 bg-slate-800 shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 border border-slate-700">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500"></div>
-                        <p className="text-xs text-gray-600 font-medium">Cargando...</p>
+                        <p className="text-xs text-slate-400 font-medium">Cargando...</p>
                     </div>
                 )}
 
@@ -1736,15 +1736,15 @@ export default function Inventory() {
                 {isLoading && inventoryItems.length === 0 ? (
                     // Show loading spinner only if we're actually loading AND have no data to show
                     <div className="flex flex-col items-center justify-center py-20">
-                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-primary-600"></div>
-                        <p className="mt-4 text-gray-600">Cargando inventario...</p>
+                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-primary-600"></div>
+                        <p className="mt-4 text-slate-400">Cargando inventario...</p>
                     </div>
                 ) : filteredItems.length === 0 ? (
                     // Show "no items" message when not loading and no filtered items
                     <Card>
                         <div className="text-center py-12">
                             <Package size={48} className="mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay piezas en el inventario</h3>
+                            <h3 className="text-lg font-medium text-white mb-2">No hay piezas en el inventario</h3>
                             <p className="text-gray-500 mb-4">
                                 {searchTerm || filterCondition || filterBrand || filterPieceType || filterTreasureHunt !== 'all' || filterChase
                                     ? 'No se encontraron piezas con los filtros aplicados'
@@ -1777,7 +1777,7 @@ export default function Inventory() {
                                                 type="checkbox"
                                                 checked={selectedItems.has(item._id!)}
                                                 onChange={() => item._id && handleToggleItemSelection(item._id)}
-                                                className="w-6 h-6 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                                                className="w-6 h-6 rounded border-slate-600 text-primary-600 focus:ring-primary-500 cursor-pointer"
                                                 onClick={(e) => e.stopPropagation()}
                                             />
                                         </div>
@@ -1826,7 +1826,7 @@ export default function Inventory() {
                                                     <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
                                                         item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
                                                             item.pieceType === 'rlc' ? 'bg-orange-500 bg-opacity-90 text-white' :
-                                                                item.pieceType === 'silver_series' ? 'bg-gray-500 bg-opacity-90 text-white' :
+                                                                item.pieceType === 'silver_series' ? 'bg-slate-700/300 bg-opacity-90 text-white' :
                                                                     item.pieceType === 'elite_64' ? 'bg-red-500 bg-opacity-90 text-white' :
                                                                         'bg-gray-400 bg-opacity-90 text-white'
                                                         }`}>
@@ -1855,7 +1855,7 @@ export default function Inventory() {
                                             </div>
                                         </div>                                {/* Car Info */}
                                         <div>
-                                            <h3 className="font-semibold text-gray-900 truncate">
+                                            <h3 className="font-semibold text-white truncate">
                                                 {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
                                             </h3>
                                             <p className="text-sm text-gray-500 truncate">
@@ -1883,7 +1883,7 @@ export default function Inventory() {
 
                                             {/* Source Box Badge - If this piece came from a box */}
                                             {item.sourceBox && !item.isBox && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-gray-700 text-xs font-medium rounded-full">
                                                     📦 De: {item.sourceBox}
                                                 </div>
                                             )}
@@ -1901,7 +1901,7 @@ export default function Inventory() {
                                                         item.condition === 'good' ? 'Bueno' :
                                                             item.condition === 'fair' ? 'Regular' : 'Malo'}
                                                 </span>
-                                                <span className="text-xs font-medium text-gray-900 text-right flex-shrink-0">
+                                                <span className="text-xs font-medium text-white text-right flex-shrink-0">
                                                     {item.quantity - (item.reservedQuantity || 0)}/{item.quantity}
                                                     {(item.reservedQuantity || 0) > 0 && (
                                                         <span className="text-orange-600 block text-xs">
@@ -1915,15 +1915,15 @@ export default function Inventory() {
                                         {/* Pricing */}
                                         <div className="space-y-1">
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-gray-600">Costo:</span>
+                                                <span className="text-slate-400">Costo:</span>
                                                 <span className="font-medium">${item.purchasePrice.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-gray-600">Sugerido:</span>
+                                                <span className="text-slate-400">Sugerido:</span>
                                                 <span className="font-medium text-green-600">${item.suggestedPrice.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between text-sm border-t pt-1">
-                                                <span className="text-gray-600">Ganancia:</span>
+                                                <span className="text-slate-400">Ganancia:</span>
                                                 <span className="font-semibold text-primary-600">
                                                     ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
                                                     <span className="text-xs ml-1">
@@ -2104,8 +2104,8 @@ export default function Inventory() {
                         {newItem.isMultipleCars && (
                             <div className="border-2 border-blue-200 rounded-lg p-4 space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <h4 className="font-medium text-gray-900">Modelos en la caja/serie</h4>
-                                    <span className="text-sm text-gray-600">
+                                    <h4 className="font-medium text-white">Modelos en la caja/serie</h4>
+                                    <span className="text-sm text-slate-400">
                                         {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas totales
                                     </span>
                                 </div>
@@ -2158,7 +2158,7 @@ export default function Inventory() {
                                             </label>
                                             <input
                                                 type="text"
-                                                className="input w-full bg-gray-100"
+                                                className="input w-full bg-slate-700"
                                                 value={newItem.seriesId}
                                                 readOnly
                                             />
@@ -2233,7 +2233,7 @@ export default function Inventory() {
                                         </div>
 
                                         {newItem.suggestedPrice > 0 && newItem.seriesSize > 0 && (
-                                            <div className="col-span-2 text-xs bg-white p-2 rounded border border-purple-200">
+                                            <div className="col-span-2 text-xs bg-slate-800 p-2 rounded border border-purple-200">
                                                 💡 Precio sugerido: <strong>${(newItem.suggestedPrice * newItem.seriesSize * 0.85).toFixed(2)}</strong>
                                                 {' '}(85% de ${(newItem.suggestedPrice * newItem.seriesSize).toFixed(2)})
                                                 {newItem.seriesPrice > 0 && (
@@ -2286,10 +2286,10 @@ export default function Inventory() {
                                 {newItem.cars.length > 0 && (
                                     <div className="space-y-2">
                                         {newItem.cars.map((car, index) => (
-                                            <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                                            <div key={index} className="flex justify-between items-center bg-slate-700/30 p-2 rounded">
                                                 <span className="text-sm">
                                                     <span className="font-medium">{car.carId}</span>
-                                                    <span className="text-gray-600 ml-2">× {car.quantity}</span>
+                                                    <span className="text-slate-400 ml-2">× {car.quantity}</span>
                                                 </span>
                                                 <button
                                                     type="button"
@@ -2399,8 +2399,8 @@ export default function Inventory() {
 
                                 {/* Dropdown with suggestions */}
                                 {showSuggestions && !existingItemToUpdate && getMatchingItems.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                        <div className="p-2 bg-gray-50 border-b text-xs text-gray-600">
+                                    <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                        <div className="p-2 bg-slate-700/30 border-b text-xs text-slate-400">
                                             {getMatchingItems.length} pieza{getMatchingItems.length !== 1 ? 's' : ''} encontrada{getMatchingItems.length !== 1 ? 's' : ''} (búsqueda inteligente)
                                         </div>
                                         {getMatchingItems.map((item: InventoryItem) => {
@@ -2417,7 +2417,7 @@ export default function Inventory() {
                                                     <div className="flex items-center justify-between">
                                                         <div>
                                                             <div className="font-medium text-sm">{item.carId}</div>
-                                                            <div className="text-xs text-gray-600">
+                                                            <div className="text-xs text-slate-400">
                                                                 {item.quantity} disponible{item.quantity !== 1 ? 's' : ''} • {item.condition} • ${item.suggestedPrice}
                                                             </div>
                                                         </div>
@@ -2448,7 +2448,7 @@ export default function Inventory() {
                                     {newItem.isBox ? 'Total de Piezas (automático)' : 'Cantidad'}
                                 </label>
                                 {newItem.isBox ? (
-                                    <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                    <div className="flex items-center gap-2 p-3 bg-slate-700/30 border border-slate-600 rounded-lg">
                                         <span className="text-sm font-medium text-gray-700">{newItem.quantity}</span>
                                         <span className="text-xs text-gray-500">piezas automáticas</span>
                                     </div>
@@ -2836,10 +2836,10 @@ export default function Inventory() {
                                 />
                                 <label
                                     htmlFor="photo-upload"
-                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
                                 >
                                     <Upload size={20} className="text-gray-400" />
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-slate-400">
                                         Subir fotos (múltiples archivos)
                                     </span>
                                 </label>
@@ -2872,8 +2872,8 @@ export default function Inventory() {
                         {/* Summary Section */}
                         {((newItem.carId || newItem.cars.length > 0) && (newItem.purchasePrice > 0 || newItem.suggestedPrice > 0)) && (
                             <div className="border-t pt-4">
-                                <h4 className="font-medium text-gray-900 mb-2">Resumen</h4>
-                                <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
+                                <h4 className="font-medium text-white mb-2">Resumen</h4>
+                                <div className="bg-slate-700/30 p-3 rounded-lg text-sm space-y-1">
                                     {/* Multiple Cars Summary */}
                                     {newItem.isMultipleCars && newItem.cars.length > 0 && (
                                         <>
@@ -3321,8 +3321,8 @@ export default function Inventory() {
                         </div>
 
                         {/* Series Information Section */}
-                        <div className="pt-4 border-t border-gray-200">
-                            <h3 className="text-sm font-semibold text-gray-900 mb-3">Información de Serie (Opcional)</h3>
+                        <div className="pt-4 border-t border-slate-700">
+                            <h3 className="text-sm font-semibold text-white mb-3">Información de Serie (Opcional)</h3>
 
                             <div className="space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
@@ -3424,7 +3424,7 @@ export default function Inventory() {
                                 </div>
 
                                 {editingItem.seriesId && (
-                                    <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                                    <div className="text-xs text-gray-500 bg-slate-700/30 p-2 rounded">
                                         💡 Los items con el mismo ID de serie se pueden vender como set completo
                                     </div>
                                 )}
@@ -3462,10 +3462,10 @@ export default function Inventory() {
                                 />
                                 <label
                                     htmlFor="photo-upload-edit"
-                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
                                 >
                                     <Upload size={20} className="text-gray-400" />
-                                    <span className="text-sm text-gray-600">
+                                    <span className="text-sm text-slate-400">
                                         Subir fotos (múltiples archivos)
                                     </span>
                                 </label>

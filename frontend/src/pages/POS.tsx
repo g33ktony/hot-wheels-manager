@@ -560,7 +560,7 @@ const POS: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="text-lg font-semibold mb-2">Cargando inventario...</div>
-          <p className="text-sm text-gray-600">Sincronizando datos desde el servidor</p>
+          <p className="text-sm text-slate-400">Sincronizando datos desde el servidor</p>
         </div>
       </div>
     );
@@ -572,7 +572,7 @@ const POS: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="text-lg font-semibold text-red-600 mb-2">Error al cargar inventario</div>
-          <p className="text-sm text-gray-600 mb-4">{reduxInventory.error}</p>
+          <p className="text-sm text-slate-400 mb-4">{reduxInventory.error}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -589,8 +589,8 @@ const POS: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-lg font-semibold text-gray-600 mb-2">No hay inventario disponible</div>
-          <p className="text-sm text-gray-600">Agrega items al inventario para comenzar a vender</p>
+          <div className="text-lg font-semibold text-slate-400 mb-2">No hay inventario disponible</div>
+          <p className="text-sm text-slate-400">Agrega items al inventario para comenzar a vender</p>
         </div>
       </div>
     );
@@ -600,13 +600,13 @@ const POS: React.FC = () => {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">🛒 Punto de Venta (POS)</h1>
-        <p className="text-gray-600">Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
+        <p className="text-slate-400">Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Lista de Inventario */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow p-4">
+          <div className="bg-slate-800 rounded-lg shadow p-4">
             {/* Barra de búsqueda */}
             <div className="mb-4">
               <input
@@ -689,7 +689,7 @@ const POS: React.FC = () => {
                   </select>
                 )}
 
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                   <input
                     type="checkbox"
                     checked={filterLowStock}
@@ -705,7 +705,7 @@ const POS: React.FC = () => {
               {/* Tercera fila de filtros */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {/* Filtro Chase */}
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30">
                   <input
                     type="checkbox"
                     checked={filterChase}
@@ -719,7 +719,7 @@ const POS: React.FC = () => {
 
                 {/* Filtro Fantasy solo para Hot Wheels */}
                 {filterBrand === 'Hot Wheels' && (
-                  <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 bg-purple-50">
+                  <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30 bg-purple-50">
                     <input
                       type="checkbox"
                       checked={filterFantasy}
@@ -733,7 +733,7 @@ const POS: React.FC = () => {
                 )}
 
                 {/* Filtro Moto */}
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 bg-orange-50">
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30 bg-orange-50">
                   <input
                     type="checkbox"
                     checked={filterMoto}
@@ -746,7 +746,7 @@ const POS: React.FC = () => {
                 </label>
 
                 {/* Filtro Camioneta */}
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 bg-blue-50">
+                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30 bg-blue-50">
                   <input
                     type="checkbox"
                     checked={filterCamioneta}
@@ -773,7 +773,7 @@ const POS: React.FC = () => {
                       updateFilter('filterMoto', false);
                       updateFilter('filterCamioneta', false);
                     }}
-                    className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
+                    className="px-3 py-2 bg-slate-700 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
                   >
                     Limpiar filtros
                   </button>
@@ -783,7 +783,7 @@ const POS: React.FC = () => {
 
             {/* Contador de resultados */}
             {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
-              <div className="mb-3 text-sm text-gray-600">
+              <div className="mb-3 text-sm text-slate-400">
                 {filteredInventory.length} resultado(s) encontrado(s)
               </div>
             )}
@@ -811,7 +811,7 @@ const POS: React.FC = () => {
                     return (
                       <div
                         key={item._id}
-                        className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white"
+                        className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-slate-800"
                       >
                         {/* Item Image */}
                         <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
@@ -851,12 +851,12 @@ const POS: React.FC = () => {
                               {item.brand} {item.year && `• ${item.year}`}
                             </p>
                             {item.color && (
-                              <p className="text-xs text-gray-600">🎨 {item.color}</p>
+                              <p className="text-xs text-slate-400">🎨 {item.color}</p>
                             )}
                             {item.series && (
-                              <p className="text-xs text-gray-600">📦 {item.series}</p>
+                              <p className="text-xs text-slate-400">📦 {item.series}</p>
                             )}
-                            <p className="text-xs text-gray-600">🏷️ {formatPieceType(item.pieceType)}</p>
+                            <p className="text-xs text-slate-400">🏷️ {formatPieceType(item.pieceType)}</p>
                             <p className="text-xs text-gray-500">📍 Disponible: {availableQty}</p>
                           </div>
 
@@ -913,7 +913,7 @@ const POS: React.FC = () => {
 
         {/* Carrito */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow p-4 sticky top-4">
+          <div className="bg-slate-800 rounded-lg shadow p-4 sticky top-4">
             <h2 className="text-xl font-bold mb-4">Carrito ({cart.length})</h2>
 
             <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
@@ -930,7 +930,7 @@ const POS: React.FC = () => {
                   const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
 
                   return (
-                    <div key={item._id} className="border rounded-lg overflow-hidden bg-white hover:shadow-md transition-shadow">
+                    <div key={item._id} className="border rounded-lg overflow-hidden bg-slate-800 hover:shadow-md transition-shadow">
                       <div className="flex gap-2 p-2">
                         {/* Cart Item Image */}
                         <div className="flex-shrink-0">
@@ -1063,7 +1063,7 @@ const POS: React.FC = () => {
               <button
                 onClick={() => dispatch(clearCart())}
                 disabled={cart.length === 0}
-                className="w-full mt-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="w-full mt-2 py-2 border border-slate-600 rounded-lg hover:bg-slate-700/30"
               >
                 Limpiar Carrito
               </button>

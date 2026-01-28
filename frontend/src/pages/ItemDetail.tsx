@@ -787,7 +787,7 @@ export default function ItemDetail() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Cargando detalle...</p>
+                    <p className="text-slate-400">Cargando detalle...</p>
                 </div>
             </div>
         )
@@ -797,7 +797,7 @@ export default function ItemDetail() {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
-                    <p className="text-gray-600 mb-4">Item no encontrado</p>
+                    <p className="text-slate-400 mb-4">Item no encontrado</p>
                     <Button onClick={() => navigate('/inventory')}>
                         Volver al Inventario
                     </Button>
@@ -810,9 +810,9 @@ export default function ItemDetail() {
     const finalPrice = getFinalPrice()
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="min-h-screen bg-slate-700/30 pb-24">
             {/* Header */}
-            <div className="bg-white border-b sticky top-0 z-10">
+            <div className="bg-slate-800 border-b sticky top-0 z-10">
                 <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
                     <Button
                         variant="secondary"
@@ -835,7 +835,7 @@ export default function ItemDetail() {
                                 src={item.photos[selectedPhotoIndex]}
                                 alt={carName}
                                 crossOrigin="anonymous"
-                                className="w-full h-64 object-contain bg-gray-100"
+                                className="w-full h-64 object-contain bg-slate-700"
                             />
                             {item.photos.length > 1 && (
                                 <div className="flex gap-2 p-3 overflow-x-auto">
@@ -845,7 +845,7 @@ export default function ItemDetail() {
                                             onClick={() => setSelectedPhotoIndex(index)}
                                             className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedPhotoIndex === index
                                                 ? 'border-primary-600'
-                                                : 'border-gray-200'
+                                                : 'border-slate-700'
                                                 }`}
                                         >
                                             <img
@@ -860,7 +860,7 @@ export default function ItemDetail() {
                             )}
                         </div>
                     ) : (
-                        <div className="h-64 flex items-center justify-center bg-gray-100">
+                        <div className="h-64 flex items-center justify-center bg-slate-700">
                             <Package className="w-16 h-16 text-gray-400" />
                         </div>
                     )}
@@ -1021,7 +1021,7 @@ export default function ItemDetail() {
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                             <p className="text-sm font-medium text-gray-700">Vista Previa Moderna</p>
                         </div>
-                        <div className="bg-white rounded-lg p-3 shadow-sm">
+                        <div className="bg-slate-800 rounded-lg p-3 shadow-sm">
                             <div className="flex items-center gap-3 mb-2">
                                 <span className="text-2xl">🏎️</span>
                                 <p className="font-semibold text-sm line-clamp-2">{carName}</p>
@@ -1030,18 +1030,18 @@ export default function ItemDetail() {
                                 <p className="text-xs font-semibold tracking-wide">PRECIO</p>
                                 <p className="text-2xl font-bold">${sharePrice.toFixed(2)}</p>
                             </div>
-                            <div className="mt-2 bg-gray-50 rounded-lg p-2 text-xs space-y-1">
+                            <div className="mt-2 bg-slate-700/30 rounded-lg p-2 text-xs space-y-1">
                                 <p className="font-semibold text-blue-900 text-center">📋 ESPECIFICACIONES</p>
-                                {item?.brand && <p className="text-gray-600">🏷️ <span className="font-medium">{item.brand}</span></p>}
-                                {item?.condition && <p className="text-gray-600">✨ <span className="font-medium">{item.condition}</span></p>}
+                                {item?.brand && <p className="text-slate-400">🏷️ <span className="font-medium">{item.brand}</span></p>}
+                                {item?.condition && <p className="text-slate-400">✨ <span className="font-medium">{item.condition}</span></p>}
                             </div>
                         </div>
-                        <p className="text-xs text-gray-600 mt-2 text-center">
+                        <p className="text-xs text-slate-400 mt-2 text-center">
                             ✨ Diseño profesional con gradientes y efectos modernos
                         </p>
                     </div>
 
-                    <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="bg-slate-700/30 p-4 rounded-lg">
                         <p className="font-semibold text-lg mb-3">{carName}</p>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Precio para compartir:</label>
@@ -1052,7 +1052,7 @@ export default function ItemDetail() {
                                     step="0.01"
                                     value={sharePrice}
                                     onChange={(e) => setSharePrice(parseFloat(e.target.value) || 0)}
-                                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent text-xl font-bold text-primary-600"
+                                    className="w-full pl-8 pr-4 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent text-xl font-bold text-primary-600"
                                 />
                             </div>
                         </div>
@@ -1065,14 +1065,14 @@ export default function ItemDetail() {
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={handleShareImage}
-                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-gray-200 hover:border-blue-500 hover:shadow-lg bg-white hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50"
+                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-slate-700 hover:border-blue-500 hover:shadow-lg bg-slate-800 hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50"
                         >
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">Popular</span>
                             </div>
                             <ImageIcon className="w-10 h-10 mx-auto mb-2 text-blue-600 group-hover:scale-110 transition-transform" />
-                            <p className="font-bold text-gray-900">Imagen</p>
-                            <p className="text-xs text-gray-600 mt-1">Recortar y compartir</p>
+                            <p className="font-bold text-white">Imagen</p>
+                            <p className="text-xs text-slate-400 mt-1">Recortar y compartir</p>
                             <div className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                 <span>Rápido</span>
@@ -1081,14 +1081,14 @@ export default function ItemDetail() {
 
                         <button
                             onClick={handleSharePDF}
-                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-gray-200 hover:border-red-500 hover:shadow-lg bg-white hover:bg-gradient-to-br hover:from-red-50 hover:to-orange-50"
+                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-slate-700 hover:border-red-500 hover:shadow-lg bg-slate-800 hover:bg-gradient-to-br hover:from-red-50 hover:to-orange-50"
                         >
                             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full">Pro</span>
                             </div>
                             <FileText className="w-10 h-10 mx-auto mb-2 text-red-600 group-hover:scale-110 transition-transform" />
-                            <p className="font-bold text-gray-900">PDF</p>
-                            <p className="text-xs text-gray-600 mt-1">Documento completo</p>
+                            <p className="font-bold text-white">PDF</p>
+                            <p className="text-xs text-slate-400 mt-1">Documento completo</p>
                             <div className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500">
                                 <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
                                 <span>Profesional</span>
@@ -1140,7 +1140,7 @@ export default function ItemDetail() {
                     </div>
 
                     {item.photos && item.photos[selectedPhotoIndex] && (
-                        <div className="w-full bg-gray-100 rounded-lg overflow-auto" style={{ maxHeight: '70vh', minHeight: '400px' }}>
+                        <div className="w-full bg-slate-700 rounded-lg overflow-auto" style={{ maxHeight: '70vh', minHeight: '400px' }}>
                             <ReactCrop
                                 crop={crop}
                                 onChange={(c) => setCrop(c)}

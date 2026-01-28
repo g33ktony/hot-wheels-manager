@@ -75,7 +75,7 @@ export default function PreSaleReports() {
             cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' },
         }
 
-        const config = statusConfig[status] || { label: status, color: 'bg-gray-100 text-gray-800' }
+        const config = statusConfig[status] || { label: status, color: 'bg-slate-700 text-gray-800' }
 
         return (
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${config.color}`}>
@@ -87,15 +87,15 @@ export default function PreSaleReports() {
     return (
         <div className="space-y-6">
             {/* Header with filters */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 lg:p-6">
+            <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 p-4 lg:p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <TrendingUp className="text-green-600" size={24} />
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">
+                            <h2 className="text-xl font-semibold text-white">
                                 Reportes de Rentabilidad
                             </h2>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-slate-400">
                                 Análisis de profit y márgenes por pre-venta
                             </p>
                         </div>
@@ -107,7 +107,7 @@ export default function PreSaleReports() {
                         <select
                             value={dateFilter}
                             onChange={(e) => setDateFilter(e.target.value as any)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             <option value="all">Todo el tiempo</option>
                             <option value="30days">Últimos 30 días</option>
@@ -124,7 +124,7 @@ export default function PreSaleReports() {
                 <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-sm p-6 text-white">
                     <div className="flex items-center justify-between mb-2">
                         <DollarSign size={24} />
-                        <span className="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">
+                        <span className="text-xs font-medium bg-slate-800 bg-opacity-20 px-2 py-1 rounded">
                             Profit Total
                         </span>
                     </div>
@@ -140,7 +140,7 @@ export default function PreSaleReports() {
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm p-6 text-white">
                     <div className="flex items-center justify-between mb-2">
                         <Percent size={24} />
-                        <span className="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">
+                        <span className="text-xs font-medium bg-slate-800 bg-opacity-20 px-2 py-1 rounded">
                             Margen Promedio
                         </span>
                     </div>
@@ -156,7 +156,7 @@ export default function PreSaleReports() {
                 <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm p-6 text-white">
                     <div className="flex items-center justify-between mb-2">
                         <Package size={24} />
-                        <span className="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">
+                        <span className="text-xs font-medium bg-slate-800 bg-opacity-20 px-2 py-1 rounded">
                             Unidades
                         </span>
                     </div>
@@ -172,7 +172,7 @@ export default function PreSaleReports() {
                 <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-sm p-6 text-white">
                     <div className="flex items-center justify-between mb-2">
                         <TrendingUp size={24} />
-                        <span className="text-xs font-medium bg-white bg-opacity-20 px-2 py-1 rounded">
+                        <span className="text-xs font-medium bg-slate-800 bg-opacity-20 px-2 py-1 rounded">
                             Items Activos
                         </span>
                     </div>
@@ -186,16 +186,16 @@ export default function PreSaleReports() {
             </div>
 
             {/* Items Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">
+            <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-700">
+                    <h3 className="text-lg font-semibold text-white">
                         Desglose por Item
                     </h3>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-slate-700/30">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Producto
@@ -220,7 +220,7 @@ export default function PreSaleReports() {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-slate-800 divide-y divide-gray-200">
                             {filteredItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
@@ -236,7 +236,7 @@ export default function PreSaleReports() {
                                         : '0.0'
 
                                     return (
-                                        <tr key={item._id} className="hover:bg-gray-50 transition-colors">
+                                        <tr key={item._id} className="hover:bg-slate-700/30 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center gap-3">
                                                     {item.photo ? (
@@ -251,7 +251,7 @@ export default function PreSaleReports() {
                                                         </div>
                                                     )}
                                                     <div className="text-sm">
-                                                        <div className="font-medium text-gray-900">
+                                                        <div className="font-medium text-white">
                                                             {car?.model || item.carId}
                                                         </div>
                                                         <div className="text-gray-500">
@@ -263,13 +263,13 @@ export default function PreSaleReports() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 {getStatusBadge(item.status)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-white">
                                                 {item.totalQuantity}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-white">
                                                 ${item.totalCostAmount?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-white">
                                                 ${item.totalSaleAmount?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">

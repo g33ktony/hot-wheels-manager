@@ -176,7 +176,7 @@ export default function PreSaleEditPage() {
             <div className="flex justify-center items-center py-12">
                 <div className="text-center">
                     <LoadingSpinner />
-                    <p className="text-gray-600 mt-4">Loading presale item...</p>
+                    <p className="text-slate-400 mt-4">Loading presale item...</p>
                 </div>
             </div>
         )
@@ -208,8 +208,8 @@ export default function PreSaleEditPage() {
                     <ArrowLeft className="w-5 h-5" />
                     Back to Dashboard
                 </button>
-                <h1 className="text-3xl font-bold text-gray-900">{formData.carModel || formData.carId}</h1>
-                <p className="text-gray-600 mt-1">{formData.carId}</p>
+                <h1 className="text-3xl font-bold text-white">{formData.carModel || formData.carId}</h1>
+                <p className="text-slate-400 mt-1">{formData.carId}</p>
             </div>
 
             <Card>
@@ -220,8 +220,8 @@ export default function PreSaleEditPage() {
                 <CardContent>
                     <form onSubmit={(e) => { e.preventDefault(); handleSave() }} className="space-y-6">
                         {/* Photo Section */}
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <h3 className="font-semibold text-gray-900 mb-4">Foto del Item</h3>
+                        <div className="bg-slate-700/30 p-4 rounded-lg">
+                            <h3 className="font-semibold text-white mb-4">Foto del Item</h3>
 
                             {photoPreview ? (
                                 <div className="space-y-3">
@@ -259,7 +259,7 @@ export default function PreSaleEditPage() {
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition flex flex-col items-center gap-2 text-gray-600 hover:text-blue-600"
+                                        className="w-full px-4 py-8 border-2 border-dashed border-slate-600 rounded-lg hover:border-blue-500 transition flex flex-col items-center gap-2 text-slate-400 hover:text-blue-600"
                                     >
                                         <Upload size={32} />
                                         <span className="font-medium">Subir Foto</span>
@@ -278,13 +278,13 @@ export default function PreSaleEditPage() {
                         </div>
 
                         {/* Base Information */}
-                        <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                            <h3 className="font-semibold text-gray-900">Información del Item</h3>
+                        <div className="bg-slate-700/30 p-4 rounded-lg space-y-4">
+                            <h3 className="font-semibold text-white">Información del Item</h3>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Car ID</label>
-                                    <p className="text-lg font-semibold text-gray-900">{formData.carId}</p>
+                                    <p className="text-lg font-semibold text-white">{formData.carId}</p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
@@ -296,7 +296,7 @@ export default function PreSaleEditPage() {
                                         value={formData.totalQuantity || 0}
                                         onChange={(e) => setFormData({ ...formData, totalQuantity: parseInt(e.target.value) || 0 })}
                                         min="1"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
@@ -307,7 +307,7 @@ export default function PreSaleEditPage() {
                                     <select
                                         value={formData.condition || 'mint'}
                                         onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="mint">🔶 Mint</option>
                                         <option value="good">🟡 Good</option>
@@ -323,7 +323,7 @@ export default function PreSaleEditPage() {
                                     value={formData.notes || ''}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                     rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="Agrega notas sobre este item de pre-venta..."
                                 />
                             </div>
@@ -331,7 +331,7 @@ export default function PreSaleEditPage() {
 
                         {/* Pricing Section */}
                         <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg space-y-4">
-                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                            <h3 className="font-semibold text-white flex items-center gap-2">
                                 <DollarSign className="w-5 h-5" />
                                 Información de Precios
                             </h3>
@@ -350,7 +350,7 @@ export default function PreSaleEditPage() {
                                             }}
                                             step="0.01"
                                             min="0"
-                                            className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full pl-8 pr-4 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </div>
                                 </div>
@@ -366,7 +366,7 @@ export default function PreSaleEditPage() {
                                         step="0.1"
                                         min="0"
                                         max="100"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
@@ -424,7 +424,7 @@ export default function PreSaleEditPage() {
                                     <Calendar className="inline-block w-4 h-4 mr-1" />
                                     Start Date
                                 </label>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-slate-400">
                                     {formData.startDate ? new Date(formData.startDate).toLocaleDateString('es-MX') : 'N/A'}
                                 </p>
                             </div>
@@ -437,13 +437,13 @@ export default function PreSaleEditPage() {
                                     type="date"
                                     value={formData.endDate || ''}
                                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
                         </div>
 
                         {/* Form Actions */}
-                        <div className="flex gap-4 pt-6 border-t border-gray-200">
+                        <div className="flex gap-4 pt-6 border-t border-slate-700">
                             <button
                                 type="submit"
                                 disabled={isSaving || updatePreSaleItem.isLoading}

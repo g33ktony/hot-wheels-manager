@@ -16,12 +16,12 @@ const GeminiTest: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">🤖 Prueba Gemini Vision AI</h1>
-          <p className="text-gray-600">
+          <p className="text-slate-400">
             Sube una foto de un Hot Wheels para identificarlo automáticamente
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-slate-800 rounded-lg shadow-lg p-6">
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-2">Cómo usar:</h2>
             <ol className="list-decimal list-inside space-y-2 text-gray-700">

@@ -152,7 +152,7 @@ export default function CloudinaryDebug() {
       {/* Configuration */}
       <div className="bg-blue-50 border border-blue-200 p-4 rounded mb-6">
         <h2 className="font-bold text-blue-900 mb-3">Configuration:</h2>
-        <div className="bg-white p-3 rounded text-sm font-mono">
+        <div className="bg-slate-800 p-3 rounded text-sm font-mono">
           <div>Cloud Name: <strong>{cloudName || '❌ NOT SET'}</strong></div>
           <div>Upload Preset: <strong>{uploadPreset || '❌ NOT SET'}</strong></div>
         </div>
@@ -174,7 +174,7 @@ export default function CloudinaryDebug() {
           className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
         />
         {selectedFile && (
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-2 text-sm text-slate-400">
             Selected: <strong>{selectedFile.name}</strong> ({(selectedFile.size / 1024).toFixed(2)} KB)
           </div>
         )}
@@ -202,7 +202,7 @@ export default function CloudinaryDebug() {
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-6">
           <h3 className="font-bold text-lg mb-2">❌ Error:</h3>
-          <pre className="bg-white p-3 rounded text-sm overflow-auto border border-red-100">{error}</pre>
+          <pre className="bg-slate-800 p-3 rounded text-sm overflow-auto border border-red-100">{error}</pre>
         </div>
       )}
 
@@ -232,7 +232,7 @@ export default function CloudinaryDebug() {
       {uploadResult && (
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
           <h3 className="font-bold text-lg mb-2">✅ Upload Successful!</h3>
-          <pre className="bg-white p-3 rounded text-sm overflow-auto border border-green-100">
+          <pre className="bg-slate-800 p-3 rounded text-sm overflow-auto border border-green-100">
             {JSON.stringify(uploadResult, null, 2)}
           </pre>
           {uploadResult?.secure_url && (

@@ -82,7 +82,7 @@ export default function PreSalePayments() {
         if (plan.status === 'paused') {
             return <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">⏸ Pausado</span>
         }
-        return <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">○ Pendiente</span>
+        return <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-gray-800">○ Pendiente</span>
     }
 
     // Filter active plans (not completed or cancelled)
@@ -99,7 +99,7 @@ export default function PreSalePayments() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Cargando pagos de preventa...</p>
+                    <p className="text-slate-400">Cargando pagos de preventa...</p>
                 </div>
             </div>
         )
@@ -110,8 +110,8 @@ export default function PreSalePayments() {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Pagos de Preventa</h1>
-                    <p className="text-gray-600 mt-1">Gestiona los planes de pago para entregas con items de preventa</p>
+                    <h1 className="text-2xl font-bold text-white">Pagos de Preventa</h1>
+                    <p className="text-slate-400 mt-1">Gestiona los planes de pago para entregas con items de preventa</p>
                 </div>
             </div>
 
@@ -123,7 +123,7 @@ export default function PreSalePayments() {
                             <DollarSign className="text-blue-600" size={24} />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Planes Activos</p>
+                            <p className="text-sm text-slate-400">Planes Activos</p>
                             <p className="text-2xl font-bold">{activePlans.length}</p>
                         </div>
                     </div>
@@ -135,7 +135,7 @@ export default function PreSalePayments() {
                             <TrendingUp className="text-orange-600" size={24} />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Total Por Cobrar</p>
+                            <p className="text-sm text-slate-400">Total Por Cobrar</p>
                             <p className="text-2xl font-bold">${totalOwed.toFixed(2)}</p>
                         </div>
                     </div>
@@ -147,7 +147,7 @@ export default function PreSalePayments() {
                             <AlertTriangle className="text-red-600" size={24} />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Pagos Atrasados</p>
+                            <p className="text-sm text-slate-400">Pagos Atrasados</p>
                             <p className="text-2xl font-bold">{plansOverdue}</p>
                         </div>
                     </div>
@@ -159,7 +159,7 @@ export default function PreSalePayments() {
                             <CheckCircle className="text-green-600" size={24} />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-600">Completados</p>
+                            <p className="text-sm text-slate-400">Completados</p>
                             <p className="text-2xl font-bold">{completedPlans.length}</p>
                         </div>
                     </div>
@@ -174,8 +174,8 @@ export default function PreSalePayments() {
                     {activePlans.length === 0 ? (
                         <div className="text-center py-12">
                             <DollarSign size={48} className="mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No hay planes de pago activos</h3>
-                            <p className="text-gray-600">Los planes de pago se crean automáticamente al crear entregas con items de preventa</p>
+                            <h3 className="text-lg font-medium text-white mb-2">No hay planes de pago activos</h3>
+                            <p className="text-slate-400">Los planes de pago se crean automáticamente al crear entregas con items de preventa</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -191,7 +191,7 @@ export default function PreSalePayments() {
                                                 <h3 className="font-bold text-lg">
                                                     {getCustomerName(plan.customerId)}
                                                 </h3>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                                                <div className="flex items-center gap-2 text-sm text-slate-400 mt-1">
                                                     <Calendar size={14} />
                                                     <span>Entrega: {delivery?.scheduledDate
                                                         ? new Date(delivery.scheduledDate).toLocaleDateString()
@@ -205,7 +205,7 @@ export default function PreSalePayments() {
                                         {/* Progress Bar */}
                                         <div className="mb-4">
                                             <div className="flex justify-between text-sm mb-1">
-                                                <span className="text-gray-600">Progreso</span>
+                                                <span className="text-slate-400">Progreso</span>
                                                 <span className="font-medium">{progressPercent.toFixed(0)}%</span>
                                             </div>
                                             <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -220,32 +220,32 @@ export default function PreSalePayments() {
                                         {/* Amounts */}
                                         <div className="grid grid-cols-3 gap-4 mb-4">
                                             <div>
-                                                <p className="text-xs text-gray-600">Total</p>
-                                                <p className="font-bold text-gray-900">${plan.totalAmount.toFixed(2)}</p>
+                                                <p className="text-xs text-slate-400">Total</p>
+                                                <p className="font-bold text-white">${plan.totalAmount.toFixed(2)}</p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-600">Pagado</p>
+                                                <p className="text-xs text-slate-400">Pagado</p>
                                                 <p className="font-bold text-green-600">${plan.totalPaid.toFixed(2)}</p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-600">Restante</p>
+                                                <p className="text-xs text-slate-400">Restante</p>
                                                 <p className="font-bold text-orange-600">${plan.remainingAmount.toFixed(2)}</p>
                                             </div>
                                         </div>
 
                                         {/* Payment Info */}
-                                        <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                                        <div className="bg-slate-700/30 rounded-lg p-3 mb-4">
                                             <div className="grid grid-cols-2 gap-2 text-sm">
                                                 <div>
-                                                    <span className="text-gray-600">Por pago:</span>
+                                                    <span className="text-slate-400">Por pago:</span>
                                                     <span className="ml-2 font-medium">${plan.amountPerPayment.toFixed(2)}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-gray-600">Frecuencia:</span>
+                                                    <span className="text-slate-400">Frecuencia:</span>
                                                     <span className="ml-2 font-medium">{getFrequencyLabel(plan.paymentFrequency)}</span>
                                                 </div>
                                                 <div className="col-span-2">
-                                                    <span className="text-gray-600">Progreso:</span>
+                                                    <span className="text-slate-400">Progreso:</span>
                                                     <span className="ml-2 font-medium">
                                                         {plan.paymentsCompleted} de {plan.numberOfPayments} pagos
                                                     </span>
@@ -306,7 +306,7 @@ export default function PreSalePayments() {
                                 <div key={plan._id} className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
                                     <div>
                                         <p className="font-medium">{getCustomerName(plan.customerId)}</p>
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-slate-400">
                                             ${plan.totalAmount.toFixed(2)} - Completado el {plan.actualCompletionDate
                                                 ? new Date(plan.actualCompletionDate).toLocaleDateString()
                                                 : 'N/A'}
@@ -362,13 +362,13 @@ export default function PreSalePayments() {
                             <p className="font-medium">{getCustomerName(selectedPlan.customerId)}</p>
                             <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                                 <div>
-                                    <span className="text-gray-600">Restante:</span>
+                                    <span className="text-slate-400">Restante:</span>
                                     <span className="ml-2 font-bold text-orange-600">
                                         ${selectedPlan.remainingAmount.toFixed(2)}
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="text-gray-600">Sugerido:</span>
+                                    <span className="text-slate-400">Sugerido:</span>
                                     <span className="ml-2 font-medium">
                                         ${selectedPlan.amountPerPayment.toFixed(2)}
                                     </span>
@@ -443,27 +443,27 @@ export default function PreSalePayments() {
                         {/* Plan Summary */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <p className="text-sm text-gray-600">Cliente</p>
+                                <p className="text-sm text-slate-400">Cliente</p>
                                 <p className="font-medium">{getCustomerName(selectedPlan.customerId)}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Estado</p>
+                                <p className="text-sm text-slate-400">Estado</p>
                                 {getStatusBadge(selectedPlan)}
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Monto Total</p>
+                                <p className="text-sm text-slate-400">Monto Total</p>
                                 <p className="font-medium">${selectedPlan.totalAmount.toFixed(2)}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Total Pagado</p>
+                                <p className="text-sm text-slate-400">Total Pagado</p>
                                 <p className="font-medium text-green-600">${selectedPlan.totalPaid.toFixed(2)}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Frecuencia</p>
+                                <p className="text-sm text-slate-400">Frecuencia</p>
                                 <p className="font-medium">{getFrequencyLabel(selectedPlan.paymentFrequency)}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-600">Número de Pagos</p>
+                                <p className="text-sm text-slate-400">Número de Pagos</p>
                                 <p className="font-medium">{selectedPlan.numberOfPayments}</p>
                             </div>
                         </div>
@@ -474,10 +474,10 @@ export default function PreSalePayments() {
                             {selectedPlan.payments && selectedPlan.payments.length > 0 ? (
                                 <div className="space-y-2">
                                     {selectedPlan.payments.map((payment: any, index: number) => (
-                                        <div key={payment.paymentId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <div key={payment.paymentId} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
                                             <div className="flex-1">
                                                 <p className="font-medium">Pago #{index + 1}</p>
-                                                <p className="text-sm text-gray-600">
+                                                <p className="text-sm text-slate-400">
                                                     {payment.actualDate
                                                         ? new Date(payment.actualDate).toLocaleDateString()
                                                         : `Programado: ${new Date(payment.scheduledDate).toLocaleDateString()}`}

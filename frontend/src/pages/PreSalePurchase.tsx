@@ -17,8 +17,8 @@ export default function PreSalePurchasePage() {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Pre-Sale Management</h1>
-                    <p className="text-gray-600 mt-1">Register and track pre-sale Hot Wheels purchases</p>
+                    <h1 className="text-3xl font-bold text-white">Pre-Sale Management</h1>
+                    <p className="text-slate-400 mt-1">Register and track pre-sale Hot Wheels purchases</p>
                 </div>
             </div>
 
@@ -31,7 +31,7 @@ export default function PreSalePurchasePage() {
                         <CardTitle>Ready to register a pre-sale?</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-slate-400 mb-4">
                             Start by registering a new pre-sale purchase. You can set up payment plans, track inventory
                             units, and manage delivery schedules.
                         </p>
@@ -61,26 +61,26 @@ export default function PreSalePurchasePage() {
                                 <LoadingSpinner />
                             </div>
                         ) : recentPreSales.length === 0 ? (
-                            <p className="text-gray-600 text-center py-8">No pre-sales registered yet</p>
+                            <p className="text-slate-400 text-center py-8">No pre-sales registered yet</p>
                         ) : (
                             <div className="space-y-4">
                                 {recentPreSales.map((item: any) => (
-                                    <div key={item._id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                                    <div key={item._id} className="border border-slate-700 rounded-lg p-4 hover:border-blue-400 transition-colors">
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                             <div>
-                                                <p className="text-sm text-gray-600">Car ID</p>
+                                                <p className="text-sm text-slate-400">Car ID</p>
                                                 <p className="font-semibold">{item.carId}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-600">Total Quantity</p>
+                                                <p className="text-sm text-slate-400">Total Quantity</p>
                                                 <p className="font-semibold">{item.totalQuantity} units</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-600">Base Price</p>
+                                                <p className="text-sm text-slate-400">Base Price</p>
                                                 <p className="font-semibold">${item.basePricePerUnit.toFixed(2)}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm text-gray-600">Status</p>
+                                                <p className="text-sm text-slate-400">Status</p>
                                                 <p className="font-semibold">
                                                     <span className="inline-block px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
                                                         {item.status}

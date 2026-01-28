@@ -112,8 +112,8 @@ export default function Suppliers() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
-                    <p className="text-gray-600">Gestión de proveedores para compras</p>
+                    <h1 className="text-2xl font-bold text-white">Proveedores</h1>
+                    <p className="text-slate-400">Gestión de proveedores para compras</p>
                 </div>
                 <Button onClick={() => setShowCreateModal(true)}>
                     Nuevo Proveedor
@@ -139,7 +139,7 @@ export default function Suppliers() {
                     <Card key={supplier._id} className="hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between mb-4">
                             <div>
-                                <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
+                                <h3 className="font-semibold text-white">{supplier.name}</h3>
                                 <p className="text-sm text-gray-500 capitalize">{supplier.contactMethod}</p>
                             </div>
                             <div className="flex gap-2">
@@ -160,22 +160,22 @@ export default function Suppliers() {
 
                         <div className="space-y-2">
                             {supplier.email && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-slate-400">
                                     Email: {supplier.email}
                                 </div>
                             )}
                             {supplier.phone && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-slate-400">
                                     Teléfono: {supplier.phone}
                                 </div>
                             )}
                             {supplier.website && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-slate-400">
                                     Sitio web: {supplier.website}
                                 </div>
                             )}
                             {supplier.address && (
-                                <div className="text-sm text-gray-600">
+                                <div className="text-sm text-slate-400">
                                     Dirección: {supplier.address}
                                 </div>
                             )}
@@ -187,7 +187,7 @@ export default function Suppliers() {
             {filteredSuppliers.length === 0 && (
                 <Card>
                     <div className="text-center py-12">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        <h3 className="text-lg font-medium text-white mb-2">
                             No hay proveedores registrados
                         </h3>
                         <p className="text-gray-500 mb-4">
@@ -267,7 +267,7 @@ export default function Suppliers() {
                             <select
                                 value={formData.contactMethod}
                                 onChange={(e) => setFormData({ ...formData, contactMethod: e.target.value as any })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                className="w-full px-3 py-2 border border-slate-600 rounded-md"
                             >
                                 <option value="email">Email</option>
                                 <option value="phone">Teléfono</option>

@@ -160,7 +160,7 @@ export const DeliveryAnalytics: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-screen">
-                <div className="text-lg text-gray-600">Cargando analíticas...</div>
+                <div className="text-lg text-slate-400">Cargando analíticas...</div>
             </div>
         );
     }
@@ -174,10 +174,10 @@ export const DeliveryAnalytics: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+        <div className="p-4 md:p-6 bg-slate-700/30 min-h-screen">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Analíticas de Entregas</h1>
-                <p className="text-gray-600">Vista general del rendimiento y estado de entregas</p>
+                <h1 className="text-3xl font-bold text-white mb-2">Analíticas de Entregas</h1>
+                <p className="text-slate-400">Vista general del rendimiento y estado de entregas</p>
             </div>
 
             {/* Key Metrics */}
@@ -185,8 +185,8 @@ export const DeliveryAnalytics: React.FC = () => {
                 <Card>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Total de Entregas</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-2">{completionMetrics.total}</p>
+                            <p className="text-sm font-medium text-slate-400">Total de Entregas</p>
+                            <p className="text-3xl font-bold text-white mt-2">{completionMetrics.total}</p>
                         </div>
                         <TrendingUp className="w-10 h-10 text-blue-500" />
                     </div>
@@ -195,7 +195,7 @@ export const DeliveryAnalytics: React.FC = () => {
                 <Card>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Tasa de Completación</p>
+                            <p className="text-sm font-medium text-slate-400">Tasa de Completación</p>
                             <p className="text-3xl font-bold text-green-600 mt-2">{completionMetrics.completionRate}%</p>
                             <p className="text-xs text-gray-500 mt-1">{completionMetrics.completed} completadas</p>
                         </div>
@@ -206,7 +206,7 @@ export const DeliveryAnalytics: React.FC = () => {
                 <Card>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Tasa de Pago</p>
+                            <p className="text-sm font-medium text-slate-400">Tasa de Pago</p>
                             <p className="text-3xl font-bold text-blue-600 mt-2">{paymentMetrics.paymentRate}%</p>
                             <p className="text-xs text-gray-500 mt-1">{paymentMetrics.paid} pagadas</p>
                         </div>
@@ -217,7 +217,7 @@ export const DeliveryAnalytics: React.FC = () => {
                 <Card>
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-600">Pendientes</p>
+                            <p className="text-sm font-medium text-slate-400">Pendientes</p>
                             <p className="text-3xl font-bold text-amber-600 mt-2">{completionMetrics.scheduled}</p>
                             <p className="text-xs text-gray-500 mt-1">por agendar/preparar</p>
                         </div>
@@ -230,7 +230,7 @@ export const DeliveryAnalytics: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Delivery Status Pie Chart */}
                 <Card>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Estado de Entregas</h2>
+                    <h2 className="text-lg font-semibold text-white mb-4">Estado de Entregas</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
@@ -266,7 +266,7 @@ export const DeliveryAnalytics: React.FC = () => {
                                     />
                                     <span className="text-sm text-gray-700">{item.status}</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-medium text-white">
                                     {String(item.count)} ({String(item.percentage)}%)
                                 </span>
                             </div>
@@ -276,7 +276,7 @@ export const DeliveryAnalytics: React.FC = () => {
 
                 {/* Payment Status Bar Chart */}
                 <Card>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Estado de Pago</h2>
+                    <h2 className="text-lg font-semibold text-white mb-4">Estado de Pago</h2>
                     <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={paymentStatusData}>
                             <CartesianGrid strokeDasharray="3 3" />
@@ -306,7 +306,7 @@ export const DeliveryAnalytics: React.FC = () => {
                                     />
                                     <span className="text-sm text-gray-700">{item.status}</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-medium text-white">
                                     {String(item.count)} ({String(item.percentage)}%)
                                 </span>
                             </div>
@@ -317,7 +317,7 @@ export const DeliveryAnalytics: React.FC = () => {
 
             {/* Completion Trend Chart */}
             <Card>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Tendencia Últimos 7 Días</h2>
+                <h2 className="text-lg font-semibold text-white mb-4">Tendencia Últimos 7 Días</h2>
                 <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={trendData}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -347,22 +347,22 @@ export const DeliveryAnalytics: React.FC = () => {
 
             {/* Summary Statistics */}
             <Card className="mt-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Resumen Detallado</h2>
+                <h2 className="text-lg font-semibold text-white mb-4">Resumen Detallado</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="border-l-4 border-blue-500 pl-4">
-                        <p className="text-sm text-gray-600">Agendadas</p>
+                        <p className="text-sm text-slate-400">Agendadas</p>
                         <p className="text-2xl font-bold text-blue-600">{completionMetrics.scheduled}</p>
                     </div>
                     <div className="border-l-4 border-sky-500 pl-4">
-                        <p className="text-sm text-gray-600">Preparadas</p>
+                        <p className="text-sm text-slate-400">Preparadas</p>
                         <p className="text-2xl font-bold text-sky-600">{completionMetrics.prepared}</p>
                     </div>
                     <div className="border-l-4 border-green-500 pl-4">
-                        <p className="text-sm text-gray-600">Completadas</p>
+                        <p className="text-sm text-slate-400">Completadas</p>
                         <p className="text-2xl font-bold text-green-600">{completionMetrics.completed}</p>
                     </div>
                     <div className="border-l-4 border-red-500 pl-4">
-                        <p className="text-sm text-gray-600">Canceladas</p>
+                        <p className="text-sm text-slate-400">Canceladas</p>
                         <p className="text-2xl font-bold text-red-600">{completionMetrics.cancelled}</p>
                     </div>
                 </div>
