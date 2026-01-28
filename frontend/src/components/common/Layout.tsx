@@ -15,7 +15,8 @@ import {
     AlertCircle,
     Search as SearchIcon,
     Sun,
-    Moon
+    Moon,
+    Settings
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -87,6 +88,7 @@ export default function Layout({ children }: LayoutProps) {
         { name: 'Entregas', href: '/deliveries', icon: Truck },
         { name: 'Clientes', href: '/customers', icon: Users },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
+        { name: 'Tema', href: '/theme-settings', icon: Settings },
     ]
 
     const handleLogout = () => {

@@ -15,6 +15,7 @@ import Purchases from './pages/Purchases'
 import Deliveries from './pages/Deliveries'
 import CloudinaryDebug from './pages/CloudinaryDebug'
 import Search from './pages/Search'
+import ThemeSettings from './pages/ThemeSettings'
 
 // POS y Gemini Vision integrados
 import Customers from './pages/Customers'
@@ -66,6 +67,7 @@ function App() {
                                                 <Route path="/suppliers" element={<Suppliers />} />
                                                 <Route path="/boxes" element={<Boxes />} />
                                                 <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
+                                                <Route path="/theme-settings" element={<ThemeSettings />} />
                                                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                             </Routes>
                                         </Layout>

@@ -1,30 +1,44 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { ThemeMode, ThemeColors, getTheme } from '@/config/theme.config'
+import { ThemeMode, ThemeColors, getTheme, CustomThemeConfig, buildCustomTheme, defaultCustomTheme } from '@/config/theme.config'
 
 interface ThemeContextType {
   mode: ThemeMode
   colors: ThemeColors
+  customTheme: CustomThemeConfig
   toggleTheme: () => void
   setTheme: (mode: ThemeMode) => void
+  updateCustomTheme: (custom: CustomThemeConfig) => void
+  resetToDefault: () => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mode, setMode] = useState<ThemeMode>(() => {
-    // Load theme from localStorage on mount
     const saved = localStorage.getItem('theme-mode') as ThemeMode | null
     return saved || 'dark'
   })
 
-  const colors = getTheme(mode)
+  const [customTheme, setCustomTheme] = useState<CustomThemeConfig>(() => {
+    const saved = localStorage.getItem('theme-custom')
+    return saved ? JSON.parse(saved) : defaultCustomTheme
+  })
+
+  // Build colors from custom theme if available
+  const colors = customTheme && Object.values(customTheme).some(v => v !== undefined)
+    ? buildCustomTheme(mode, customTheme)
+    : getTheme(mode)
 
   // Save theme preference when it changes
   useEffect(() => {
     localStorage.setItem('theme-mode', mode)
-    // Also set on document root for potential CSS-based theming
     document.documentElement.setAttribute('data-theme', mode)
   }, [mode])
+
+  // Save custom theme when it changes
+  useEffect(() => {
+    localStorage.setItem('theme-custom', JSON.stringify(customTheme))
+  }, [customTheme])
 
   const toggleTheme = () => {
     setMode((prev) => (prev === 'dark' ? 'light' : 'dark'))
@@ -34,17 +48,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setMode(newMode)
   }
 
+  const updateCustomTheme = (custom: CustomThemeConfig) => {
+    setCustomTheme(custom)
+  }
+
+  const resetToDefault = () => {
+    setCustomTheme(defaultCustomTheme)
+  }
+
   return (
-    <ThemeContext.Provider value={{ mode, colors, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ mode, colors, customTheme, toggleTheme, setTheme, updateCustomTheme, resetToDefault }}>
       {children}
     </ThemeContext.Provider>
   )
 }
 
-/**
- * Hook to use theme context
- * @throws Error if used outside of ThemeProvider
- */
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext)
   if (!context) {
