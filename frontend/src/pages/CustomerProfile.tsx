@@ -51,25 +51,12 @@ export default function CustomerProfile() {
         ['sales', customerId],
         async () => {
             const allSales = await salesService.getAll()
-            console.log('All sales from API:', allSales.length);
-            if (allSales.length > 0) {
-                console.log('First sale customerId:', allSales[0].customerId, 'Type:', typeof allSales[0].customerId);
-                console.log('Looking for customerId:', customerId);
-            }
-            
-            const filtered = customerId ? allSales.filter((s: any) => {
+            return customerId ? allSales.filter((s: any) => {
                 // customerId is now always a string from backend
                 const sCustomerId = s.customerId?.toString() || '';
                 const cId = customerId.toString();
-                const matches = sCustomerId === cId;
-                if (!matches && sCustomerId) {
-                    console.log('NO MATCH:', { sCustomerId, cId });
-                }
-                return matches;
-            }) : [];
-            
-            console.log('Filtered sales:', filtered.length);
-            return filtered;
+                return sCustomerId === cId;
+            }) : []
         },
         { enabled: !!customerId }
     )

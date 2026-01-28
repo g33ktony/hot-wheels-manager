@@ -32,10 +32,18 @@ export const getSales = async (req: Request, res: Response) => {
         return item;
       });
       
-      // Convert customerId to string if it's an object
-      if (sale.customerId && typeof sale.customerId === 'object') {
-        sale.customer = sale.customerId; // Keep the full object as customer
-        sale.customerId = sale.customerId._id?.toString(); // Make customerId just the ID string
+      // Convert customerId to string - handle both object and string cases
+      if (sale.customerId) {
+        const custId = sale.customerId as any;
+        if (typeof custId === 'object' && custId._id) {
+          // After populate, customerId is the customer object { _id, name, email, phone }
+          sale.customer = custId; // Keep the full object as customer
+          (sale.customerId as any) = custId._id.toString();
+        } else if (typeof custId === 'object') {
+          // It's an ObjectId object
+          (sale.customerId as any) = custId.toString();
+        }
+        // else: already a string, keep as is
       }
       
       return sale;
@@ -89,6 +97,20 @@ export const getSaleById = async (req: Request, res: Response) => {
       }
       return item;
     });
+
+    // Convert customerId to string - handle both object and string cases
+    if (saleObj.customerId) {
+      const custId = saleObj.customerId as any;
+      if (typeof custId === 'object' && custId._id) {
+        // After populate, customerId is the customer object { _id, name, email, phone }
+        saleObj.customer = custId; // Keep the full object as customer
+        (saleObj.customerId as any) = custId._id.toString();
+      } else if (typeof custId === 'object') {
+        // It's an ObjectId object
+        (saleObj.customerId as any) = custId.toString();
+      }
+      // else: already a string, keep as is
+    }
 
     res.json({
       success: true,
