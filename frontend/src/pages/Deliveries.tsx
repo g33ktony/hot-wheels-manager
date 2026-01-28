@@ -18,7 +18,7 @@ import { Plus, Search, Truck, X, Package, CheckCircle, Clock, UserPlus, Trending
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
 import DeliveryReport from '@/components/DeliveryReport'
-import { dateToString, getDefaultStartDate } from '@/utils/dateUtils'
+import { dateToString } from '@/utils/dateUtils'
 import type { InventoryItem } from '../../../shared/types'
 
 export default function Deliveries() {
@@ -42,9 +42,10 @@ export default function Deliveries() {
         notes: ''
     })
 
-    // Usar hace 30 días por defecto
+    // Usar desde el inicio del año por defecto, no hace 30 días
     const [selectedDate, setSelectedDate] = useState(() => {
-        return getDefaultStartDate(30)
+        // Mostrar sin filtro de fecha inicial (vacío = mostrar todas)
+        return ''
     })
     const [newDelivery, setNewDelivery] = useState({
         customerId: '',
