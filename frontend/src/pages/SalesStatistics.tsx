@@ -191,15 +191,26 @@ export default function SalesStatistics() {
                                 {/* Period Selection */}
                                 <div>
                                     <label className="block text-sm font-medium text-slate-300 mb-2">Período</label>
-                                    <select
-                                        value={period}
-                                        onChange={(e) => handlePeriodChange(e.target.value as any)}
-                                        className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:border-emerald-500 focus:outline-none"
-                                    >
-                                        <option value="day">Hoy</option>
-                                        <option value="month">Este Mes</option>
-                                        <option value="custom">Personalizado</option>
-                                    </select>
+                                    <div className="flex items-center gap-2 bg-slate-700 rounded-lg p-1 border border-slate-600">
+                                        <button
+                                            onClick={() => handlePeriodChange('day')}
+                                            className={`flex-1 px-3 py-2 rounded transition-colors text-sm font-medium ${period === 'day' ? 'bg-emerald-500 text-white' : 'text-slate-300 hover:bg-slate-600'}`}
+                                        >
+                                            Hoy
+                                        </button>
+                                        <button
+                                            onClick={() => handlePeriodChange('month')}
+                                            className={`flex-1 px-3 py-2 rounded transition-colors text-sm font-medium ${period === 'month' ? 'bg-emerald-500 text-white' : 'text-slate-300 hover:bg-slate-600'}`}
+                                        >
+                                            Mes
+                                        </button>
+                                        <button
+                                            onClick={() => handlePeriodChange('custom')}
+                                            className={`flex-1 px-3 py-2 rounded transition-colors text-sm font-medium ${period === 'custom' ? 'bg-emerald-500 text-white' : 'text-slate-300 hover:bg-slate-600'}`}
+                                        >
+                                            Personalizado
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Start Date */}
