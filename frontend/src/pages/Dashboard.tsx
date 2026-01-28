@@ -221,7 +221,7 @@ export default function Dashboard() {
             </div>
 
             {/* Metrics Grid - 2 columns on mobile, 3 on desktop */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
+            <div className="hidden grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
                 {metricCards.map((metric) => (
                     <Card key={metric.title} className="hover:shadow-md transition-shadow duration-200">
                         <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
@@ -269,10 +269,12 @@ export default function Dashboard() {
             </div>
 
             {/* Pre-Sale Alerts */}
-            <PreSaleAlertSection />
+            <div className="hidden">
+                <PreSaleAlertSection />
+            </div>
 
             {/* Recent Activity and Alerts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Recent Activity */}
                 <Card>
                     <CardHeader>
