@@ -75,28 +75,8 @@ export default function CustomerProfile() {
             pendingCount: 0
         }
 
-        // Process deliveries - account for different statuses
-        deliveries.forEach((d: Delivery) => {
-            stats.totalAmount += d.totalAmount || 0
-            if (d.status === 'completed') {
-                // Completed deliveries are paid
-                stats.paidAmount += d.totalAmount || 0
-                stats.paidCount += 1
-            } else if (d.paymentStatus === 'paid') {
-                stats.paidAmount += d.totalAmount || 0
-                stats.paidCount += 1
-            } else if (d.paymentStatus === 'partial') {
-                const paidAmount = (d.paidAmount || 0)
-                stats.paidAmount += paidAmount
-                stats.pendingAmount += (d.totalAmount || 0) - paidAmount
-                stats.partialPaymentCount += 1
-            } else {
-                stats.pendingAmount += d.totalAmount || 0
-                stats.pendingCount += 1
-            }
-        })
-
-        // Process sales - all completed sales are paid
+        // Only count completed sales for totalAmount (since completing a delivery creates a sale)
+        // This avoids double-counting
         sales.forEach((s: any) => {
             stats.totalAmount += s.totalAmount || 0
             if (s.status === 'completed') {
@@ -106,6 +86,26 @@ export default function CustomerProfile() {
                 // Pending/cancelled sales count as pending
                 stats.pendingAmount += s.totalAmount || 0
                 stats.pendingCount += 1
+            }
+        })
+
+        // Also count pending/prepared deliveries that haven't generated sales yet
+        deliveries.forEach((d: Delivery) => {
+            // Only count deliveries that are NOT completed (completed ones already counted in sales)
+            if (d.status !== 'completed') {
+                stats.totalAmount += d.totalAmount || 0
+                if (d.paymentStatus === 'paid') {
+                    stats.paidAmount += d.totalAmount || 0
+                    stats.paidCount += 1
+                } else if (d.paymentStatus === 'partial') {
+                    const paidAmount = (d.paidAmount || 0)
+                    stats.paidAmount += paidAmount
+                    stats.pendingAmount += (d.totalAmount || 0) - paidAmount
+                    stats.partialPaymentCount += 1
+                } else {
+                    stats.pendingAmount += d.totalAmount || 0
+                    stats.pendingCount += 1
+                }
             }
         })
 
