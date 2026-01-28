@@ -14,12 +14,12 @@ export const getSales = async (req: Request, res: Response) => {
         path: 'items.inventoryItemId',
         select: 'photos purchasePrice' // Get photos and purchasePrice from inventory items
       })
-      .sort({ saleDate: -1 });
+      .sort({ saleDate: -1 })
+      .lean(); // Use lean() to get plain objects, easier for the frontend
 
     // Ensure all items have costPrice and profit (for backward compatibility with old sales)
-    const enrichedSales = sales.map(sale => {
-      const saleObj = sale.toObject();
-      saleObj.items = saleObj.items.map((item: any) => {
+    const enrichedSales = sales.map((sale: any) => {
+      sale.items = sale.items.map((item: any) => {
         // If costPrice is not set, try to get it from the inventory item
         if (!item.costPrice) {
           const inventory = item.inventoryItemId as any;
@@ -31,7 +31,14 @@ export const getSales = async (req: Request, res: Response) => {
         }
         return item;
       });
-      return saleObj;
+      
+      // Convert customerId to string if it's an object
+      if (sale.customerId && typeof sale.customerId === 'object') {
+        sale.customer = sale.customerId; // Keep the full object as customer
+        sale.customerId = sale.customerId._id?.toString(); // Make customerId just the ID string
+      }
+      
+      return sale;
     });
 
     res.json({
