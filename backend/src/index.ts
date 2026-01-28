@@ -27,6 +27,7 @@ import deliveryLocationsRoutes from './routes/deliveryLocations'
 import presaleItemsRoutes from './routes/presaleItemsRoutes' // Fixed: Route ordering 2025-10-28
 import presalePaymentsRoutes from './routes/presalePaymentsRoutes'
 import paymentPlansRoutes from './routes/paymentPlans'
+import searchRoutes from './routes/searchRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -148,6 +149,7 @@ app.use('/api/facebook', authMiddleware, facebookRoutes)
 app.use('/api/delivery-locations', authMiddleware, deliveryLocationsRoutes)
 app.use('/api/presale/items', authMiddleware, presaleItemsRoutes)
 app.use('/api/presale/payments', authMiddleware, presalePaymentsRoutes)
+app.use('/api/search', authMiddleware, searchRoutes)
 app.use('/api/payment-plans', authMiddleware, paymentPlansRoutes)
 
 // Error handling middleware
