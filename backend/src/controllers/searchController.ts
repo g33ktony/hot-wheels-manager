@@ -63,6 +63,18 @@ export const globalSearch = async (req: Request, res: Response) => {
       const customerName = customerData?.name || 'Cliente POS';
 
       if (matchingItems.length > 0 || customerName.toLowerCase().includes(searchTerm.toLowerCase())) {
+        // Calcular profit: suma de (unitPrice - costPrice) * quantity para cada item
+        const totalProfit = sale.items.reduce((sum: number, item: any) => {
+          // Si el item ya tiene profit calculado, usarlo
+          if (item.profit && item.profit > 0) {
+            return sum + item.profit;
+          }
+          // Si no, calcular basado en costPrice
+          const costPrice = item.costPrice || 0;
+          const itemProfit = (item.unitPrice - costPrice) * item.quantity;
+          return sum + (itemProfit || 0);
+        }, 0);
+
         results.push({
           _id: (sale._id as any).toString(),
           type: 'sale',
@@ -71,7 +83,7 @@ export const globalSearch = async (req: Request, res: Response) => {
           description: matchingItems.map(i => (i as any).carName || i.carId).join(', '),
           metadata: {
             totalAmount: sale.totalAmount,
-            profit: sale.items.reduce((sum: number, item: any) => sum + (item.profit || 0), 0),
+            profit: totalProfit,
             itemsCount: sale.items.length,
             saleType: sale.saleType,
             paymentMethod: sale.paymentMethod

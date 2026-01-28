@@ -24,6 +24,9 @@ router.get('/inventory/out-of-stock', salesController.getOutOfStockItems)
 // POST /api/sales/inventory/reactivate - Reactivate item by adding quantity
 router.post('/inventory/reactivate', salesController.reactivateItem)
 
+// GET /api/sales/:id - Get a single sale
+router.get('/:id', salesController.getSaleById)
+
 // PUT /api/sales/:id - Update a sale
 router.put('/:id', salesController.updateSale)
 

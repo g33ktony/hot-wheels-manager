@@ -49,6 +49,55 @@ export const getSales = async (req: Request, res: Response) => {
   }
 };
 
+// Get a single sale by ID
+export const getSaleById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const sale = await SaleModel.findById(id)
+      .populate('customerId')
+      .populate('deliveryId')
+      .populate({
+        path: 'items.inventoryItemId',
+        select: 'photos purchasePrice brand carName'
+      });
+
+    if (!sale) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Venta no encontrada'
+      });
+    }
+
+    // Ensure all items have costPrice and profit
+    const saleObj = sale.toObject();
+    saleObj.items = saleObj.items.map((item: any) => {
+      if (!item.costPrice) {
+        const inventory = item.inventoryItemId as any;
+        item.costPrice = inventory?.purchasePrice || 0;
+      }
+      if (!item.profit) {
+        item.profit = (item.unitPrice - (item.costPrice || 0)) * item.quantity;
+      }
+      return item;
+    });
+
+    res.json({
+      success: true,
+      data: saleObj,
+      message: 'Venta obtenida exitosamente'
+    });
+  } catch (error) {
+    console.error('Error fetching sale:', error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al obtener la venta'
+    });
+  }
+};
+
 // Create a new sale
 export const createSale = async (req: Request, res: Response) => {
   try {
