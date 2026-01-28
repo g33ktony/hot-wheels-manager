@@ -555,40 +555,64 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
     const transactionsList: any[] = [];
 
     for (const sale of sales) {
+      // Primero, verificar si la venta contiene items que coinciden con los filtros
+      let saleHasMatchingItems = true;
+      if (brand || pieceType) {
+        saleHasMatchingItems = false;
+        for (const item of sale.items) {
+          const inventory = item.inventoryItemId as any;
+          if (!inventory) continue;
+          
+          const matchesBrand = !brand || inventory.brand === brand;
+          const matchesPieceType = !pieceType || inventory.pieceType === pieceType;
+          
+          if (matchesBrand && matchesPieceType) {
+            saleHasMatchingItems = true;
+            break;
+          }
+        }
+      }
+
+      // Si la venta no tiene items que coincidan, saltarla completamente
+      if (!saleHasMatchingItems) {
+        continue;
+      }
+
       let saleTotalProfit = 0;
       let saleTotalPieces = 0;
+      let saleFilteredAmount = 0;
 
-      // Calcular ganancia y piezas por item
+      // Calcular ganancia y piezas por item (solo items que coinciden con filtros)
       for (const item of sale.items) {
+        const inventory = item.inventoryItemId as any;
+        
+        // Aplicar filtros
+        const matchesBrand = !brand || inventory?.brand === brand;
+        const matchesPieceType = !pieceType || inventory?.pieceType === pieceType;
+        
+        if (!matchesBrand || !matchesPieceType) {
+          continue;
+        }
+
         const quantity = item.quantity || 1;
         const salePrice = item.unitPrice || 0;
         
         // Use profit field if available, otherwise calculate
         let itemProfit = item.profit || 0;
         if (!item.profit) {
-          const inventory = item.inventoryItemId as any;
           const cost = inventory?.purchasePrice || item.costPrice || 0;
           itemProfit = (salePrice - cost) * quantity;
         }
 
         saleTotalProfit += itemProfit;
         saleTotalPieces += quantity;
-
-        // Filtrar por brand/type si aplica
-        if (brand && item.inventoryItemId) {
-          const inventory = item.inventoryItemId as any;
-          if (inventory?.brand !== brand) continue;
-        }
-        if (pieceType && item.inventoryItemId) {
-          const inventory = item.inventoryItemId as any;
-          if (inventory?.pieceType !== pieceType) continue;
-        }
+        saleFilteredAmount += salePrice * quantity;
       }
 
       const saleDate = sale.saleDate.toISOString().split('T')[0];
       
-      // Acumular totales
-      totalSaleAmount += sale.totalAmount;
+      // Acumular totales (solo items que coinciden)
+      totalSaleAmount += saleFilteredAmount;
       totalProfit += saleTotalProfit;
       totalPieces += saleTotalPieces;
       salesCount++;
@@ -603,44 +627,53 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       if (!salesByDay[saleDate]) {
         salesByDay[saleDate] = { amount: 0, profit: 0, pieces: 0 };
       }
-      salesByDay[saleDate].amount += sale.totalAmount;
+      salesByDay[saleDate].amount += saleFilteredAmount;
       salesByDay[saleDate].profit += saleTotalProfit;
       salesByDay[saleDate].pieces += saleTotalPieces;
 
-      // Ventas por marca
+      // Ventas por marca (solo items que coinciden)
       for (const item of sale.items) {
         const inventory = item.inventoryItemId as any;
-        if (inventory) {
-          const itemBrand = inventory.brand || 'Sin marca';
-          const quantity = item.quantity || 1;
-          // Use profit field if available, otherwise calculate
-          let itemProfit = item.profit || 0;
-          if (!item.profit) {
-            itemProfit = ((item.unitPrice || 0) - (inventory.purchasePrice || item.costPrice || 0)) * quantity;
-          }
+        if (!inventory) continue;
 
-          if (!salesByBrand[itemBrand]) {
-            salesByBrand[itemBrand] = { amount: 0, profit: 0, pieces: 0, count: 0 };
-          }
-          salesByBrand[itemBrand].amount += item.unitPrice * quantity;
-          salesByBrand[itemBrand].profit += itemProfit;
-          salesByBrand[itemBrand].pieces += quantity;
-          salesByBrand[itemBrand].count++;
+        const matchesBrand = !brand || inventory.brand === brand;
+        const matchesPieceType = !pieceType || inventory.pieceType === pieceType;
+        
+        if (!matchesBrand || !matchesPieceType) {
+          continue;
         }
+
+        const itemBrand = inventory.brand || 'Sin marca';
+        const quantity = item.quantity || 1;
+        // Use profit field if available, otherwise calculate
+        let itemProfit = item.profit || 0;
+        if (!item.profit) {
+          itemProfit = ((item.unitPrice || 0) - (inventory.purchasePrice || item.costPrice || 0)) * quantity;
+        }
+
+        if (!salesByBrand[itemBrand]) {
+          salesByBrand[itemBrand] = { amount: 0, profit: 0, pieces: 0, count: 0 };
+        }
+        salesByBrand[itemBrand].amount += item.unitPrice * quantity;
+        salesByBrand[itemBrand].profit += itemProfit;
+        salesByBrand[itemBrand].pieces += quantity;
+        salesByBrand[itemBrand].count++;
       }
 
-      // Agregar a transacciones
-      transactionsList.push({
-        _id: sale._id,
-        customerName: (sale as any).customer?.name || 'Venta POS',
-        saleDate: sale.saleDate,
-        totalAmount: sale.totalAmount,
-        profit: saleTotalProfit,
-        pieces: saleTotalPieces,
-        saleType: sale.saleType,
-        paymentMethod: sale.paymentMethod,
-        itemsCount: sale.items.length
-      });
+      // Agregar a transacciones (solo si tiene items que coinciden)
+      if (saleTotalPieces > 0) {
+        transactionsList.push({
+          _id: sale._id,
+          customerName: (sale as any).customer?.name || 'Venta POS',
+          saleDate: sale.saleDate,
+          totalAmount: saleFilteredAmount,
+          profit: saleTotalProfit,
+          pieces: saleTotalPieces,
+          saleType: sale.saleType,
+          paymentMethod: sale.paymentMethod,
+          itemsCount: sale.items.length
+        });
+      }
     }
 
     // Ordenar por día
