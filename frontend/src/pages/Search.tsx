@@ -10,8 +10,8 @@ import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/redux'
 import { addToCart } from '@/store/slices/cartSlice'
-import { SaleDetailContent } from '@/components/SaleDetailContent'
-import { DeliveryDetailContent } from '@/components/DeliveryDetailContent'
+import { SaleDetailsModal } from '@/components/SaleDetailsModal'
+import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 
 interface SearchResultItem {
     _id: string
@@ -28,6 +28,8 @@ interface ModalState {
     isOpen: boolean
     type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa' | null
     id: string | null
+    sale?: any
+    delivery?: any
 }
 
 export default function Search() {
@@ -140,8 +142,31 @@ export default function Search() {
         }
     }, [])
 
-    const handleResultClick = (result: SearchResultItem) => {
-        setModal({ isOpen: true, type: result.type, id: result._id })
+    const handleResultClick = async (result: SearchResultItem) => {
+        const newModalState: ModalState = {
+            isOpen: true,
+            type: result.type,
+            id: result._id
+        }
+
+        // Precargar datos para modales reutilizables
+        if (result.type === 'sale') {
+            try {
+                const response = await api.get(`/sales/${result._id}`)
+                newModalState.sale = response.data.data
+            } catch (error) {
+                console.error('Error loading sale:', error)
+            }
+        } else if (result.type === 'delivery') {
+            try {
+                const response = await api.get(`/deliveries/${result._id}`)
+                newModalState.delivery = response.data.data
+            } catch (error) {
+                console.error('Error loading delivery:', error)
+            }
+        }
+
+        setModal(newModalState)
     }
 
     // Cierra el modal y limpia
@@ -518,10 +543,31 @@ export default function Search() {
                 </div>
             )}
 
-            {/* Modal de Detalle */}
-            {modal.isOpen && modal.type && (
-                <DetailModal
-                    type={modal.type}
+            {/* Modales de Detalle - Reutilizables */}
+            {modal.type === 'sale' && modal.id && (
+                <SaleDetailsModal
+                    sale={modal.sale}
+                    isOpen={modal.isOpen}
+                    onClose={closeModal}
+                    readonly={true}
+                />
+            )}
+
+            {modal.type === 'delivery' && modal.id && (
+                <DeliveryDetailsModal
+                    delivery={modal.delivery}
+                    isOpen={modal.isOpen}
+                    onClose={closeModal}
+                    readonly={true}
+                    inventoryItems={[]}
+                    preSaleItems={[]}
+                />
+            )}
+
+            {/* Modal Genérico para Inventory y Customer */}
+            {modal.isOpen && (modal.type === 'inventory' || modal.type === 'customer') && modal.id && (
+                <GenericDetailModal
+                    type={modal.type as 'inventory' | 'customer'}
                     id={modal.id}
                     onClose={closeModal}
                 />
@@ -530,54 +576,34 @@ export default function Search() {
     )
 }
 
-// Componente para el modal de detalles
-function DetailModal({
+// Componente para modales genéricos (Inventory, Customer, Preventa)
+function GenericDetailModal({
     type,
     id,
     onClose
 }: {
-    type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa'
-    id: string | null
+    type: 'inventory' | 'customer'
+    id: string
     onClose: () => void
 }) {
-    const { data: saleData } = useQuery(
-        ['sale-detail', id],
-        async () => {
-            if (type !== 'sale' || !id) return null
-            const response = await api.get(`/sales/${id}`)
-            return response.data.data
-        },
-        { enabled: type === 'sale' && !!id }
-    )
-
-    const { data: deliveryData } = useQuery(
-        ['delivery-detail', id],
-        async () => {
-            if (type !== 'delivery' || !id) return null
-            const response = await api.get(`/deliveries/${id}`)
-            return response.data.data
-        },
-        { enabled: type === 'delivery' && !!id }
-    )
-
     const { data: inventoryData } = useQuery(
         ['inventory-detail', id],
         async () => {
-            if (type !== 'inventory' || !id) return null
+            if (type !== 'inventory') return null
             const response = await api.get(`/inventory/${id}`)
             return response.data.data
         },
-        { enabled: type === 'inventory' && !!id }
+        { enabled: type === 'inventory' }
     )
 
     const { data: customerData } = useQuery(
         ['customer-detail', id],
         async () => {
-            if (type !== 'customer' || !id) return null
+            if (type !== 'customer') return null
             const response = await api.get(`/customers/${id}`)
             return response.data.data
         },
-        { enabled: type === 'customer' && !!id }
+        { enabled: type === 'customer' }
     )
 
     return (
@@ -592,11 +618,8 @@ function DetailModal({
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold text-white">
-                            {type === 'sale' && '💳 Detalle de Venta'}
-                            {type === 'delivery' && '📦 Detalle de Entrega'}
                             {type === 'inventory' && '📦 Detalle del Item'}
                             {type === 'customer' && '👤 Detalle del Cliente'}
-                            {type === 'preventa' && '⏳ Detalle de Preventa'}
                         </h2>
                         <button
                             onClick={onClose}
@@ -605,16 +628,6 @@ function DetailModal({
                             <X className="w-5 h-5 text-slate-400" />
                         </button>
                     </div>
-
-                    {/* SALE DETAIL */}
-                    {type === 'sale' && saleData && (
-                        <SaleDetailContent sale={saleData} theme="dark" />
-                    )}
-
-                    {/* DELIVERY DETAIL */}
-                    {type === 'delivery' && deliveryData && (
-                        <DeliveryDetailContent delivery={deliveryData} theme="dark" />
-                    )}
 
                     {/* INVENTORY DETAIL */}
                     {type === 'inventory' && inventoryData && (
@@ -698,18 +711,12 @@ function DetailModal({
                     )}
 
                     {/* Loading state */}
-                    {((type === 'sale' && !saleData) || (type === 'delivery' && !deliveryData) || (type === 'inventory' && !inventoryData) || (type === 'customer' && !customerData)) && (
+                    {((type === 'inventory' && !inventoryData) || (type === 'customer' && !customerData)) && (
                         <div className="text-center py-8">
                             <div className="inline-flex items-center gap-2">
                                 <div className="animate-spin h-5 w-5 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
                                 <span className="text-slate-300">Cargando...</span>
                             </div>
-                        </div>
-                    )}
-
-                    {type === 'preventa' && (
-                        <div className="text-slate-300">
-                            <p>Detalle de preventa...</p>
                         </div>
                     )}
                 </div>

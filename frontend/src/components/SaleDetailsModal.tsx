@@ -7,6 +7,7 @@ interface SaleDetailsModalProps {
     isOpen: boolean
     onClose: () => void
     onOpenImageModal?: (photos: string[]) => void
+    readonly?: boolean
 }
 
 export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
@@ -14,6 +15,7 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
     isOpen,
     onClose,
     onOpenImageModal,
+    readonly = false,
 }) => {
     if (!isOpen || !sale) return null
 
@@ -31,7 +33,7 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                 </div>
 
                 <div className="p-6">
-                    <SaleDetailContent sale={sale} theme="light" onOpenImageModal={onOpenImageModal} />
+                    <SaleDetailContent sale={sale} theme="light" onOpenImageModal={!readonly ? onOpenImageModal : undefined} />
                 </div>
             </div>
         </div>

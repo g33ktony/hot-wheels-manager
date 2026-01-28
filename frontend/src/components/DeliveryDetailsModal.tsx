@@ -20,6 +20,7 @@ interface DeliveryDetailsModalProps {
     preSaleItems?: any[]
     markPreparedLoading?: boolean
     markCompletedLoading?: boolean
+    readonly?: boolean
 }
 
 export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
@@ -38,6 +39,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
     preSaleItems = [],
     markPreparedLoading = false,
     markCompletedLoading = false,
+    readonly = false,
 }) => {
     const [isEditingDelivery, setIsEditingDelivery] = useState(false)
 
@@ -86,7 +88,8 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                     </div>
                 ) : (
                     <>
-                        {/* Action Buttons */}
+                        {/* Action Buttons - Hide when readonly */}
+                        {!readonly && (
                         <div className="px-6 py-4 bg-gray-50 border-b">
                             <div className="flex flex-wrap gap-2">
                                 {delivery.status === 'scheduled' && onMarkAsPrepared && (
@@ -162,6 +165,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                 )}
                             </div>
                         </div>
+                        )}
 
                         <div className="p-6">
                     {/* Delivery Info */}
