@@ -549,7 +549,7 @@ export default function SalesStatistics() {
                                                     <button
                                                         onClick={() => setReactivateQuantity(prev => ({
                                                             ...prev,
-                                                            [item._id]: Math.max(0, (prev[item._id] ?? 1) - 1)
+                                                            [item._id]: Math.max(1, (prev[item._id] ?? 1) - 1)
                                                         }))}
                                                         className="w-8 h-8 flex items-center justify-center rounded bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-colors"
                                                     >
@@ -557,12 +557,12 @@ export default function SalesStatistics() {
                                                     </button>
                                                     <input
                                                         type="number"
-                                                        min="0"
+                                                        min="1"
                                                         value={reactivateQuantity[item._id] ?? 1}
                                                         onChange={(e) =>
                                                             setReactivateQuantity(prev => ({
                                                                 ...prev,
-                                                                [item._id]: Math.max(0, parseInt(e.target.value) || 0)
+                                                                [item._id]: Math.max(1, parseInt(e.target.value) || 1)
                                                             }))
                                                         }
                                                         placeholder="1"
