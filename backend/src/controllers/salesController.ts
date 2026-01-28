@@ -12,13 +12,31 @@ export const getSales = async (req: Request, res: Response) => {
       .populate('deliveryId')
       .populate({
         path: 'items.inventoryItemId',
-        select: 'photos' // Only get photos from inventory items
+        select: 'photos purchasePrice' // Get photos and purchasePrice from inventory items
       })
       .sort({ saleDate: -1 });
 
+    // Ensure all items have costPrice and profit (for backward compatibility with old sales)
+    const enrichedSales = sales.map(sale => {
+      const saleObj = sale.toObject();
+      saleObj.items = saleObj.items.map((item: any) => {
+        // If costPrice is not set, try to get it from the inventory item
+        if (!item.costPrice) {
+          const inventory = item.inventoryItemId as any;
+          item.costPrice = inventory?.purchasePrice || 0;
+        }
+        // If profit is not set, calculate it
+        if (!item.profit) {
+          item.profit = (item.unitPrice - (item.costPrice || 0)) * item.quantity;
+        }
+        return item;
+      });
+      return saleObj;
+    });
+
     res.json({
       success: true,
-      data: sales,
+      data: enrichedSales,
       message: 'Sales retrieved successfully'
     });
   } catch (error) {

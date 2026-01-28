@@ -121,7 +121,7 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                                                 </div>
                                                 <div>
                                                     <p className="text-xs text-gray-600 font-medium mb-1">COSTO UNITARIO</p>
-                                                    <p className="font-semibold text-gray-900">${item.costPrice?.toFixed(2) || '-'}</p>
+                                                    <p className="font-semibold text-gray-900">${(item.costPrice !== undefined && item.costPrice !== null) ? item.costPrice.toFixed(2) : '0.00'}</p>
                                                 </div>
                                             </div>
                                             <div className="mt-3 pt-3 border-t grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -132,7 +132,7 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                                                     <p className="text-sm"><span className="font-medium">Costo Total:</span> <span className="font-semibold text-orange-600">${((item.costPrice || 0) * item.quantity).toFixed(2)}</span></p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm"><span className="font-medium">Ganancia:</span> <span className="font-semibold text-blue-600">${(item.profit || 0).toFixed(2)}</span></p>
+                                                    <p className="text-sm"><span className="font-medium">Ganancia:</span> <span className="font-semibold text-blue-600">${((item.profit !== undefined && item.profit !== null) ? item.profit : (item.quantity * (item.unitPrice || 0) - (item.costPrice || 0) * item.quantity)).toFixed(2)}</span></p>
                                                 </div>
                                             </div>
                                         </div>
