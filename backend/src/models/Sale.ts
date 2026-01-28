@@ -8,6 +8,8 @@ export interface SaleItem {
   quantity: number
   unitPrice: number // Precio final de venta (puede ser modificado en POS)
   originalPrice?: number // Precio original del inventario (para tracking)
+  costPrice?: number // Precio de costo (por unidad)
+  profit?: number // Ganancia total por este item (unitPrice - costPrice) * quantity
 }
 
 export interface ISale extends Document {
@@ -56,6 +58,16 @@ const SaleItemSchema = new Schema<SaleItem>({
     min: 0
   },
   originalPrice: {
+    type: Number,
+    required: false,
+    min: 0
+  },
+  costPrice: {
+    type: Number,
+    required: false,
+    min: 0
+  },
+  profit: {
     type: Number,
     required: false,
     min: 0

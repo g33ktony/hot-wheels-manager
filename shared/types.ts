@@ -239,6 +239,8 @@ export interface SaleItem {
   carName: string;
   quantity: number;
   unitPrice: number;
+  costPrice?: number; // Precio de costo (por unidad)
+  profit?: number; // Ganancia total por este item
 }
 
 export interface BuyerInfo {

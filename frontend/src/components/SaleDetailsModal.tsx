@@ -106,7 +106,7 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
 
                                         {/* Item Info */}
                                         <div className="p-4">
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                                 <div>
                                                     <p className="text-xs text-gray-600 font-medium mb-1">MODELO</p>
                                                     <p className="font-semibold text-gray-900">{item.carName}</p>
@@ -119,9 +119,21 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                                                     <p className="text-xs text-gray-600 font-medium mb-1">PRECIO UNITARIO</p>
                                                     <p className="font-semibold text-gray-900">${item.unitPrice?.toFixed(2) || '0.00'}</p>
                                                 </div>
+                                                <div>
+                                                    <p className="text-xs text-gray-600 font-medium mb-1">COSTO UNITARIO</p>
+                                                    <p className="font-semibold text-gray-900">${item.costPrice?.toFixed(2) || '-'}</p>
+                                                </div>
                                             </div>
-                                            <div className="mt-3 pt-3 border-t">
-                                                <p className="text-sm"><span className="font-medium">Subtotal:</span> <span className="font-semibold text-green-600">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</span></p>
+                                            <div className="mt-3 pt-3 border-t grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <p className="text-sm"><span className="font-medium">Subtotal:</span> <span className="font-semibold text-green-600">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</span></p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm"><span className="font-medium">Costo Total:</span> <span className="font-semibold text-orange-600">${((item.costPrice || 0) * item.quantity).toFixed(2)}</span></p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm"><span className="font-medium">Ganancia:</span> <span className="font-semibold text-blue-600">${(item.profit || 0).toFixed(2)}</span></p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

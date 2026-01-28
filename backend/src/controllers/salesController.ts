@@ -46,6 +46,7 @@ export const createSale = async (req: Request, res: Response) => {
     }
 
     // Validate and process each item
+    const processedItems = [];
     for (const item of items) {
       if (item.inventoryItemId) {
         // Check if inventory item exists and has sufficient quantity
@@ -64,13 +65,35 @@ export const createSale = async (req: Request, res: Response) => {
             message: `No hay stock suficiente para ${item.carName}. Disponible: ${inventoryItem.quantity}, requerido: ${item.quantity}`
           });
         }
+        
+        // Calculate costPrice and profit
+        const costPrice = inventoryItem.actualPrice || inventoryItem.suggestedPrice || 0;
+        const profitPerUnit = item.unitPrice - costPrice;
+        const totalProfit = profitPerUnit * item.quantity;
+        
+        processedItems.push({
+          ...item,
+          costPrice,
+          profit: totalProfit
+        });
+      } else {
+        // For catalog items, use provided costPrice or calculate from unitPrice
+        const costPrice = item.costPrice || 0;
+        const profitPerUnit = item.unitPrice - costPrice;
+        const totalProfit = profitPerUnit * item.quantity;
+        
+        processedItems.push({
+          ...item,
+          costPrice,
+          profit: totalProfit
+        });
       }
     }
 
     // Create the sale
     const newSale = new SaleModel({
       customerId,
-      items,
+      items: processedItems,
       totalAmount,
       saleDate: new Date(),
       deliveryId,
@@ -513,16 +536,27 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       for (const item of sale.items) {
         const quantity = item.quantity || 1;
         const salePrice = item.unitPrice || 0;
-        const inventory = item.inventoryItemId as any;
-        const cost = inventory?.purchasePrice || 0;
-        const itemProfit = (salePrice - cost) * quantity;
+        
+        // Use profit field if available, otherwise calculate
+        let itemProfit = item.profit || 0;
+        if (!item.profit) {
+          const inventory = item.inventoryItemId as any;
+          const cost = inventory?.purchasePrice || item.costPrice || 0;
+          itemProfit = (salePrice - cost) * quantity;
+        }
 
         saleTotalProfit += itemProfit;
         saleTotalPieces += quantity;
 
         // Filtrar por brand/type si aplica
-        if (brand && inventory?.brand !== brand) continue;
-        if (pieceType && inventory?.pieceType !== pieceType) continue;
+        if (brand && item.inventoryItemId) {
+          const inventory = item.inventoryItemId as any;
+          if (inventory?.brand !== brand) continue;
+        }
+        if (pieceType && item.inventoryItemId) {
+          const inventory = item.inventoryItemId as any;
+          if (inventory?.pieceType !== pieceType) continue;
+        }
       }
 
       const saleDate = sale.saleDate.toISOString().split('T')[0];
@@ -553,7 +587,11 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
         if (inventory) {
           const itemBrand = inventory.brand || 'Sin marca';
           const quantity = item.quantity || 1;
-          const itemProfit = ((item.unitPrice || 0) - (inventory.purchasePrice || 0)) * quantity;
+          // Use profit field if available, otherwise calculate
+          let itemProfit = item.profit || 0;
+          if (!item.profit) {
+            itemProfit = ((item.unitPrice || 0) - (inventory.purchasePrice || item.costPrice || 0)) * quantity;
+          }
 
           if (!salesByBrand[itemBrand]) {
             salesByBrand[itemBrand] = { amount: 0, profit: 0, pieces: 0, count: 0 };
