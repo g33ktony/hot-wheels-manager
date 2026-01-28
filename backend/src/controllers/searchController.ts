@@ -186,24 +186,17 @@ export const globalSearch = async (req: Request, res: Response) => {
 
     for (const customer of customers) {
       // Calculate totalSpent and totalOrders for this customer
-      const customerDeliveries = await DeliveryModel.find({
-        customerId: customer._id
-      });
-
+      // Only count completed sales (which represent actual money spent)
+      // Don't count deliveries because when a delivery is completed, it creates a sale
       const customerSales = await SaleModel.find({
         customerId: customer._id,
         status: 'completed'
       });
 
       let totalSpent = 0;
-      let totalOrders = customerDeliveries.length + customerSales.length;
+      let totalOrders = customerSales.length;
 
-      // Sum delivery amounts
-      customerDeliveries.forEach((d: any) => {
-        totalSpent += d.totalAmount || 0;
-      });
-
-      // Sum sale amounts
+      // Sum only completed sale amounts
       customerSales.forEach((s: any) => {
         totalSpent += s.totalAmount || 0;
       });

@@ -51,13 +51,29 @@ export default function CustomerProfile() {
         ['sales', customerId],
         async () => {
             const allSales = await salesService.getAll()
+            console.log('All sales fetched:', allSales.length, 'First sale:', allSales[0])
             return customerId ? allSales.filter((s: any) => {
-                // Handle both populated (object) and ID-only (string) customerId formats
-                const sCustomerId = typeof s.customerId === 'object' 
-                    ? s.customerId?._id?.toString() 
-                    : s.customerId?.toString()
-                const cId = customerId?.toString()
-                return sCustomerId === cId
+                // Handle multiple customerId formats
+                let sCustomerId: string;
+
+                if (s.customerId) {
+                    if (typeof s.customerId === 'string') {
+                        sCustomerId = s.customerId;
+                    } else if (s.customerId._id) {
+                        sCustomerId = s.customerId._id.toString();
+                    } else if (s.customerId.toString) {
+                        sCustomerId = s.customerId.toString();
+                    } else {
+                        sCustomerId = String(s.customerId);
+                    }
+                } else {
+                    return false;
+                }
+
+                const cId = customerId.toString();
+                const matches = sCustomerId === cId;
+                console.log('Filter check:', { sCustomerId, cId, matches });
+                return matches;
             }) : []
         },
         { enabled: !!customerId }
@@ -66,6 +82,13 @@ export default function CustomerProfile() {
     const isLoading = isLoadingCustomer || isLoadingDeliveries || isLoadingSales
     // Calculate payment statistics - MUST be before any return statements
     const paymentStats = useMemo(() => {
+        console.log('DEBUG CustomerProfile:', {
+            customerId,
+            deliveriesCount: deliveries.length,
+            salesCount: sales.length,
+            salesData: sales.slice(0, 3)
+        });
+
         const stats = {
             totalDeliveries: deliveries.length,
             completedDeliveries: deliveries.filter(d => d.status === 'completed').length,
