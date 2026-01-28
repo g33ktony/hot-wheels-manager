@@ -7,23 +7,39 @@ import { DeliveryModel } from '../models/Delivery';
 // Get all sales
 export const getSales = async (req: Request, res: Response) => {
   try {
-    const sales = await SaleModel.find()
-      .populate('customerId', 'name email phone')
-      .populate('deliveryId')
-      .populate({
-        path: 'items.inventoryItemId',
-        select: 'photos purchasePrice' // Get photos and purchasePrice from inventory items
-      })
-      .sort({ saleDate: -1 })
-      .lean(); // Use lean() to get plain objects, easier for the frontend
+    // Use aggregation pipeline to ensure customerId is a string
+    const sales = await SaleModel.aggregate([
+      {
+        $lookup: {
+          from: 'customers',
+          localField: 'customerId',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      {
+        $unwind: {
+          path: '$customer',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          // Convert customerId to string
+          customerId: { $toString: '$customerId' }
+        }
+      },
+      {
+        $sort: { saleDate: -1 }
+      }
+    ]);
 
     // Ensure all items have costPrice and profit (for backward compatibility with old sales)
     const enrichedSales = sales.map((sale: any) => {
       sale.items = sale.items.map((item: any) => {
         // If costPrice is not set, try to get it from the inventory item
         if (!item.costPrice) {
-          const inventory = item.inventoryItemId as any;
-          item.costPrice = inventory?.purchasePrice || 0;
+          item.costPrice = 0;
         }
         // If profit is not set, calculate it
         if (!item.profit) {
@@ -31,20 +47,6 @@ export const getSales = async (req: Request, res: Response) => {
         }
         return item;
       });
-      
-      // Convert customerId to string - handle both object and string cases
-      if (sale.customerId) {
-        const custId = sale.customerId as any;
-        if (typeof custId === 'object' && custId._id) {
-          // After populate, customerId is the customer object { _id, name, email, phone }
-          sale.customer = custId; // Keep the full object as customer
-          (sale.customerId as any) = custId._id.toString();
-        } else if (typeof custId === 'object') {
-          // It's an ObjectId object
-          (sale.customerId as any) = custId.toString();
-        }
-        // else: already a string, keep as is
-      }
       
       return sale;
     });
