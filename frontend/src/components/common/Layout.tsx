@@ -123,7 +123,7 @@ export default function Layout({ children }: LayoutProps) {
 
     return (
         <div
-            className="min-h-screen bg-gray-50 flex overflow-x-hidden w-full max-w-full"
+            className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex overflow-x-hidden w-full max-w-full"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -131,7 +131,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+                    className="fixed inset-0 z-40 bg-slate-900 bg-opacity-75 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                     style={{
                         WebkitTapHighlightColor: 'transparent',
@@ -143,15 +143,15 @@ export default function Layout({ children }: LayoutProps) {
             <div
                 ref={sidebarRef}
                 className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden
+        fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r border-slate-700
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0 bg-white z-10">
-                    <h1 className="text-lg lg:text-xl font-bold text-gray-900 select-none">🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
+                <div className="flex items-center justify-between h-16 px-4 border-b border-slate-700 flex-shrink-0 bg-slate-900 z-10">
+                    <h1 className="text-lg lg:text-xl font-bold text-white select-none">🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
                     <button
-                        className="lg:hidden p-2 -mr-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
+                        className="lg:hidden p-2 -mr-2 hover:bg-slate-700 rounded-lg active:bg-slate-600 transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
                         onClick={() => setSidebarOpen(false)}
                         aria-label="Cerrar menú"
                         style={{
@@ -159,7 +159,7 @@ export default function Layout({ children }: LayoutProps) {
                             WebkitTouchCallout: 'none',
                         }}
                     >
-                        <X size={24} />
+                        <X size={24} className="text-slate-300" />
                     </button>
                 </div>
 
@@ -177,11 +177,11 @@ export default function Layout({ children }: LayoutProps) {
                   min-h-[44px] touch-manipulation relative select-none
                   ${isActive
                                             ? item.highlight
-                                                ? 'bg-orange-100 text-orange-700 shadow-sm'
-                                                : 'bg-primary-100 text-primary-700 shadow-sm'
+                                                ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30'
+                                                : 'bg-blue-500/20 text-blue-300 shadow-sm border border-blue-500/30'
                                             : item.highlight
-                                                ? 'text-orange-600 hover:bg-orange-50 hover:text-orange-700 active:bg-orange-100 border-2 border-orange-300'
-                                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200'
+                                                ? 'text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 active:bg-orange-500/20 border border-orange-500/20'
+                                                : 'text-slate-300 hover:bg-slate-700 hover:text-white active:bg-slate-600'
                                         }
                 `}
                                     style={{
@@ -196,7 +196,7 @@ export default function Layout({ children }: LayoutProps) {
                                         <span className={`
                     px-2 py-0.5 text-xs font-semibold rounded-full
                     ${isActive
-                                                ? 'bg-orange-200 text-orange-900'
+                                                ? 'bg-emerald-500 text-white'
                                                 : 'bg-orange-500 text-white'
                                             }
                   `}>
@@ -210,7 +210,7 @@ export default function Layout({ children }: LayoutProps) {
                         {/* Logout button */}
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation text-red-600 hover:bg-red-50 active:bg-red-100 mt-4"
+                            className="w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20 mt-4"
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',
@@ -226,9 +226,9 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className="h-16 bg-white border-b border-gray-200 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm">
+                <div className="h-16 bg-slate-800/80 border-b border-slate-700 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm backdrop-blur">
                     <button
-                        className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className="lg:hidden p-2 -ml-2 hover:bg-slate-700 rounded-lg active:bg-slate-600 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Abrir menú"
                         style={{
@@ -236,25 +236,25 @@ export default function Layout({ children }: LayoutProps) {
                             WebkitTouchCallout: 'none',
                         }}
                     >
-                        <Menu size={24} />
+                        <Menu size={24} className="text-slate-300" />
                     </button>
 
                     {/* Búsqueda global */}
                     <form onSubmit={handleSearch} className="flex-1 max-w-sm">
                         <div className="relative">
-                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
                                 type="text"
                                 placeholder="Busca piezas, clientes, ventas..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 rounded-lg bg-gray-100 border border-gray-300 text-sm focus:bg-white focus:border-blue-400 focus:outline-none transition-colors"
+                                className="w-full pl-10 pr-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-sm text-white placeholder-slate-400 focus:bg-slate-700 focus:border-emerald-500 focus:outline-none transition-colors"
                             />
                         </div>
                     </form>
 
                     <div className="flex-1 lg:flex lg:items-center lg:justify-end">
-                        <div className="text-sm text-gray-500 hidden sm:block select-none">
+                        <div className="text-sm text-slate-400 hidden sm:block select-none">
                             {user?.name || 'Usuario'}
                         </div>
                     </div>
