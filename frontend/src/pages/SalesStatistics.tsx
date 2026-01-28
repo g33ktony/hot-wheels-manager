@@ -549,7 +549,7 @@ export default function SalesStatistics() {
                                                     <button
                                                         onClick={() => setReactivateQuantity(prev => ({
                                                             ...prev,
-                                                            [item._id]: Math.max(1, (prev[item._id] || 1) - 1)
+                                                            [item._id]: Math.max(0, (prev[item._id] ?? 1) - 1)
                                                         }))}
                                                         className="w-8 h-8 flex items-center justify-center rounded bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-colors"
                                                     >
@@ -557,21 +557,21 @@ export default function SalesStatistics() {
                                                     </button>
                                                     <input
                                                         type="number"
-                                                        min="1"
-                                                        value={reactivateQuantity[item._id] || ''}
+                                                        min="0"
+                                                        value={reactivateQuantity[item._id] ?? 1}
                                                         onChange={(e) =>
                                                             setReactivateQuantity(prev => ({
                                                                 ...prev,
-                                                                [item._id]: Math.max(1, parseInt(e.target.value) || 1)
+                                                                [item._id]: Math.max(0, parseInt(e.target.value) || 0)
                                                             }))
                                                         }
-                                                        placeholder="0"
+                                                        placeholder="1"
                                                         className="w-12 px-2 py-1 rounded bg-slate-600 border border-slate-500 text-white text-center focus:outline-none focus:border-emerald-500"
                                                     />
                                                     <button
                                                         onClick={() => setReactivateQuantity(prev => ({
                                                             ...prev,
-                                                            [item._id]: (prev[item._id] || 1) + 1
+                                                            [item._id]: (prev[item._id] ?? 1) + 1
                                                         }))}
                                                         className="w-8 h-8 flex items-center justify-center rounded bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-colors"
                                                     >
