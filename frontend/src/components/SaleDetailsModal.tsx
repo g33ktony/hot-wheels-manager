@@ -56,7 +56,13 @@ export const SaleDetailsModal: React.FC<SaleDetailsModalProps> = ({
                         <div>
                             <h3 className="font-medium text-gray-900 mb-4">Resumen Financiero</h3>
                             <div className="space-y-2 text-sm">
-                                <p><span className="font-medium">Total:</span> ${(sale.totalAmount || 0).toFixed(2)}</p>
+                                <p><span className="font-medium">Total de Venta:</span> <span className="font-semibold text-green-600">${(sale.totalAmount || 0).toFixed(2)}</span></p>
+                                <p><span className="font-medium">Ganancia Total:</span> <span className="font-semibold text-blue-600">${(sale.items?.reduce((total: number, item: any) => {
+                                    return total + ((item.profit !== undefined && item.profit !== null) ? item.profit : (item.quantity * (item.unitPrice || 0) - (item.costPrice || 0) * item.quantity));
+                                }, 0) || 0).toFixed(2)}</span></p>
+                                <p><span className="font-medium">Costo Total:</span> <span className="font-semibold text-orange-600">${(sale.items?.reduce((total: number, item: any) => {
+                                    return total + ((item.costPrice || 0) * item.quantity);
+                                }, 0) || 0).toFixed(2)}</span></p>
                                 <p><span className="font-medium">Estado de pago:</span>
                                     <span className={`ml-2 px-2 py-1 text-xs rounded-full ${sale.status === 'completed' ? 'bg-green-100 text-green-800' :
                                         sale.status === 'pending' ? 'bg-red-100 text-red-800' :
