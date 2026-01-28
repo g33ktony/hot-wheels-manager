@@ -4,7 +4,7 @@ import { useQuery } from 'react-query'
 import { api } from '@/services/api'
 import {
     Search as SearchIcon, ShoppingCart, Package, Truck, User, AlertCircle, ChevronRight,
-    Plus, TrendingUp, MapPin, Phone, Mail, X, Edit
+    Plus, TrendingUp, MapPin, Phone, Mail, X, Edit, Save
 } from 'lucide-react'
 import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
@@ -598,6 +598,8 @@ function GenericDetailModal({
 }) {
     const [isEditingCustomer, setIsEditingCustomer] = useState(false)
     const [editingCustomer, setEditingCustomer] = useState<any>(null)
+    const [isEditingInventory, setIsEditingInventory] = useState(false)
+    const [editingInventory, setEditingInventory] = useState<any>(null)
 
     const { data: inventoryData } = useQuery(
         ['inventory-detail', id],
@@ -634,6 +636,21 @@ function GenericDetailModal({
         }
     }
 
+    const handleSaveInventory = async (updated: any) => {
+        try {
+            if (!inventoryData?._id) {
+                throw new Error('Inventory ID not found')
+            }
+            await api.put(`/inventory/${inventoryData._id}`, updated)
+            setIsEditingInventory(false)
+            // TODO: Refetch inventory data to update view
+            toast.success('Item actualizado correctamente')
+        } catch (error) {
+            toast.error('Error al actualizar item')
+            console.error(error)
+        }
+    }
+
     return (
         <div
             className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center"
@@ -659,44 +676,152 @@ function GenericDetailModal({
 
                     {/* INVENTORY DETAIL */}
                     {type === 'inventory' && inventoryData && (
-                        <div className="space-y-4 text-slate-300">
-                            <div className="bg-slate-700/50 rounded-lg p-4">
-                                <h3 className="font-semibold text-white mb-2">{inventoryData.carName || inventoryData.carId}</h3>
-                                <div className="space-y-2 text-sm">
-                                    <p><span className="text-slate-400">Marca:</span> <span className="text-white">{inventoryData.brand}</span></p>
-                                    <p><span className="text-slate-400">Tipo:</span> <span className="text-white">{inventoryData.pieceType}</span></p>
-                                    <p><span className="text-slate-400">Stock:</span> <span className={inventoryData.quantity > 0 ? 'text-emerald-400' : 'text-red-400'}>{inventoryData.quantity}</span></p>
+                        <>
+                            {!isEditingInventory ? (
+                                <div className="space-y-4 text-slate-300">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="font-semibold text-white text-lg">{inventoryData.carName || inventoryData.carId}</h3>
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setEditingInventory({
+                                                    quantity: inventoryData.quantity,
+                                                    actualPrice: inventoryData.actualPrice,
+                                                    purchasePrice: inventoryData.purchasePrice,
+                                                    location: inventoryData.location,
+                                                    notes: inventoryData.notes
+                                                })
+                                                setIsEditingInventory(true)
+                                            }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Edit size={16} />
+                                            Editar
+                                        </Button>
+                                    </div>
+                                    <div className="bg-slate-700/50 rounded-lg p-4">
+                                        <div className="space-y-2 text-sm">
+                                            <p><span className="text-slate-400">Marca:</span> <span className="text-white">{inventoryData.brand}</span></p>
+                                            <p><span className="text-slate-400">Tipo:</span> <span className="text-white">{inventoryData.pieceType}</span></p>
+                                            <p><span className="text-slate-400">Stock:</span> <span className={inventoryData.quantity > 0 ? 'text-emerald-400' : 'text-red-400'}>{inventoryData.quantity}</span></p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-slate-700/50 rounded-lg p-3">
+                                            <p className="text-xs text-slate-400">Precio Sugerido</p>
+                                            <p className="font-semibold text-emerald-400">${inventoryData.suggestedPrice}</p>
+                                        </div>
+                                        <div className="bg-slate-700/50 rounded-lg p-3">
+                                            <p className="text-xs text-slate-400">Precio Actual</p>
+                                            <p className="font-semibold text-blue-400">${inventoryData.actualPrice || inventoryData.suggestedPrice}</p>
+                                        </div>
+                                        <div className="bg-slate-700/50 rounded-lg p-3">
+                                            <p className="text-xs text-slate-400">Costo</p>
+                                            <p className="font-semibold text-slate-300">${inventoryData.purchasePrice || 'N/A'}</p>
+                                        </div>
+                                        <div className="bg-slate-700/50 rounded-lg p-3">
+                                            <p className="text-xs text-slate-400">Ganancia Est.</p>
+                                            <p className="font-semibold text-yellow-400">${((inventoryData.actualPrice || inventoryData.suggestedPrice) - (inventoryData.purchasePrice || 0)).toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                    {inventoryData.photos && inventoryData.photos.length > 0 && (
+                                        <div className="bg-slate-700/50 rounded-lg p-4">
+                                            <p className="text-xs text-slate-400 mb-2">Fotos ({inventoryData.photos.length})</p>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {inventoryData.photos.slice(0, 3).map((photo: any, idx: number) => (
+                                                    <img key={idx} src={photo} alt={`Foto ${idx}`} className="w-full h-20 object-cover rounded-lg" />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Precio Sugerido</p>
-                                    <p className="font-semibold text-emerald-400">${inventoryData.suggestedPrice}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Precio Actual</p>
-                                    <p className="font-semibold text-blue-400">${inventoryData.actualPrice || inventoryData.suggestedPrice}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Costo</p>
-                                    <p className="font-semibold text-slate-300">${inventoryData.purchasePrice || 'N/A'}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Ganancia Est.</p>
-                                    <p className="font-semibold text-yellow-400">${((inventoryData.actualPrice || inventoryData.suggestedPrice) - (inventoryData.purchasePrice || 0)).toFixed(2)}</p>
-                                </div>
-                            </div>
-                            {inventoryData.photos && inventoryData.photos.length > 0 && (
-                                <div className="bg-slate-700/50 rounded-lg p-4">
-                                    <p className="text-xs text-slate-400 mb-2">Fotos ({inventoryData.photos.length})</p>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {inventoryData.photos.slice(0, 3).map((photo: any, idx: number) => (
-                                            <img key={idx} src={photo} alt={`Foto ${idx}`} className="w-full h-20 object-cover rounded-lg" />
-                                        ))}
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="font-semibold text-white text-lg">Editar Item</h3>
+                                        <button
+                                            onClick={() => {
+                                                setIsEditingInventory(false)
+                                                setEditingInventory(null)
+                                            }}
+                                            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                        >
+                                            <X className="w-5 h-5 text-slate-400" />
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-300 mb-1">Stock</label>
+                                            <input
+                                                type="number"
+                                                value={editingInventory?.quantity || 0}
+                                                onChange={(e) => setEditingInventory({ ...editingInventory, quantity: parseInt(e.target.value) || 0 })}
+                                                className="w-full px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-300 mb-1">Precio Actual</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={editingInventory?.actualPrice || 0}
+                                                onChange={(e) => setEditingInventory({ ...editingInventory, actualPrice: parseFloat(e.target.value) || 0 })}
+                                                className="w-full px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-300 mb-1">Costo</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                value={editingInventory?.purchasePrice || 0}
+                                                onChange={(e) => setEditingInventory({ ...editingInventory, purchasePrice: parseFloat(e.target.value) || 0 })}
+                                                className="w-full px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-300 mb-1">Ubicación (Caja)</label>
+                                            <input
+                                                type="text"
+                                                value={editingInventory?.location || ''}
+                                                onChange={(e) => setEditingInventory({ ...editingInventory, location: e.target.value })}
+                                                className="w-full px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Ej: Caja 1"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-300 mb-1">Notas</label>
+                                            <textarea
+                                                value={editingInventory?.notes || ''}
+                                                onChange={(e) => setEditingInventory({ ...editingInventory, notes: e.target.value })}
+                                                className="w-full px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 h-20 resize-none"
+                                                placeholder="Notas sobre el item"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 pt-4">
+                                        <Button
+                                            className="flex-1"
+                                            onClick={() => handleSaveInventory(editingInventory)}
+                                        >
+                                            <Save size={16} />
+                                            Guardar
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            className="flex-1"
+                                            onClick={() => {
+                                                setIsEditingInventory(false)
+                                                setEditingInventory(null)
+                                            }}
+                                        >
+                                            Cancelar
+                                        </Button>
                                     </div>
                                 </div>
                             )}
-                        </div>
+                        </>
                     )}
 
                     {/* CUSTOMER DETAIL */}

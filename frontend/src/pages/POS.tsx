@@ -559,7 +559,8 @@ const POS: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="text-lg font-semibold mb-2">Cargando inventario...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-600 border-t-emerald-500 mx-auto mb-4"></div>
+          <div className="text-lg font-semibold mb-2 text-white">Cargando inventario...</div>
           <p className="text-sm text-slate-400">Sincronizando datos desde el servidor</p>
         </div>
       </div>
@@ -614,7 +615,7 @@ const POS: React.FC = () => {
                 placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
                 value={searchTerm}
                 onChange={(e) => updateFilter('searchTerm', e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-slate-600 bg-slate-700 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500"
               />
             </div>
 
@@ -625,7 +626,7 @@ const POS: React.FC = () => {
                 <select
                   value={filterCondition}
                   onChange={(e) => updateFilter('filterCondition', e.target.value)}
-                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
                 >
                   <option value="">Todas las condiciones</option>
                   <option value="mint">Mint</option>
@@ -640,7 +641,7 @@ const POS: React.FC = () => {
                     updateFilter('filterBrand', e.target.value);
                     if (!e.target.value) updateFilter('filterPieceType', ''); // Reset tipo al cambiar marca
                   }}
-                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
                 >
                   <option value="">Todas las marcas</option>
                   {uniqueBrands.map(brand => (
@@ -651,7 +652,7 @@ const POS: React.FC = () => {
                 <select
                   value={filterPieceType}
                   onChange={(e) => updateFilter('filterPieceType', e.target.value)}
-                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 disabled:opacity-50"
                   disabled={!filterBrand}
                 >
                   <option value="">Todos los tipos</option>
@@ -668,7 +669,7 @@ const POS: React.FC = () => {
                 <select
                   value={filterLocation}
                   onChange={(e) => updateFilter('filterLocation', e.target.value)}
-                  className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
                 >
                   <option value="">Todas las ubicaciones</option>
                   {uniqueLocations.map(location => (
@@ -681,7 +682,7 @@ const POS: React.FC = () => {
                   <select
                     value={filterTreasureHunt}
                     onChange={(e) => updateFilter('filterTreasureHunt', e.target.value)}
-                    className="px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm bg-yellow-50"
+                    className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
                   >
                     <option value="">Todos (TH/STH/Normal)</option>
                     <option value="th">Solo Treasure Hunt (TH)</option>
@@ -689,14 +690,14 @@ const POS: React.FC = () => {
                   </select>
                 )}
 
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30">
+                <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
                   <input
                     type="checkbox"
                     checked={filterLowStock}
                     onChange={(e) => updateFilter('filterLowStock', e.target.checked)}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-slate-300">
                     Solo stock bajo (≤3)
                   </span>
                 </label>
@@ -705,55 +706,55 @@ const POS: React.FC = () => {
               {/* Tercera fila de filtros */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {/* Filtro Chase */}
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30">
+                <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
                   <input
                     type="checkbox"
                     checked={filterChase}
                     onChange={(e) => updateFilter('filterChase', e.target.checked)}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-slate-300">
                     Solo Chase
                   </span>
                 </label>
 
                 {/* Filtro Fantasy solo para Hot Wheels */}
                 {filterBrand === 'Hot Wheels' && (
-                  <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30 bg-purple-50">
+                  <label className="flex items-center gap-2 px-3 py-2 border border-purple-600 bg-purple-900/50 rounded-lg cursor-pointer hover:bg-purple-800/50">
                     <input
                       type="checkbox"
                       checked={filterFantasy}
                       onChange={(e) => updateFilter('filterFantasy', e.target.checked)}
                       className="rounded"
                     />
-                    <span className="text-sm font-medium text-purple-700">
+                    <span className="text-sm font-medium text-purple-300">
                       Solo Fantasías
                     </span>
                   </label>
                 )}
 
                 {/* Filtro Moto */}
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30 bg-orange-50">
+                <label className="flex items-center gap-2 px-3 py-2 border border-orange-600 bg-orange-900/50 rounded-lg cursor-pointer hover:bg-orange-800/50">
                   <input
                     type="checkbox"
                     checked={filterMoto}
                     onChange={(e) => updateFilter('filterMoto', e.target.checked)}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium text-orange-700">
+                  <span className="text-sm font-medium text-orange-300">
                     Solo Motos 🏍️
                   </span>
                 </label>
 
                 {/* Filtro Camioneta */}
-                <label className="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-slate-700/30 bg-blue-50">
+                <label className="flex items-center gap-2 px-3 py-2 border border-blue-600 bg-blue-900/50 rounded-lg cursor-pointer hover:bg-blue-800/50">
                   <input
                     type="checkbox"
                     checked={filterCamioneta}
                     onChange={(e) => updateFilter('filterCamioneta', e.target.checked)}
                     className="rounded"
                   />
-                  <span className="text-sm font-medium text-blue-700">
+                  <span className="text-sm font-medium text-blue-300">
                     Solo Camionetas 🚚
                   </span>
                 </label>
@@ -773,7 +774,7 @@ const POS: React.FC = () => {
                       updateFilter('filterMoto', false);
                       updateFilter('filterCamioneta', false);
                     }}
-                    className="px-3 py-2 bg-slate-700 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
+                    className="px-3 py-2 bg-slate-600 text-slate-200 rounded-lg hover:bg-slate-500 text-sm font-medium border border-slate-600"
                   >
                     Limpiar filtros
                   </button>
