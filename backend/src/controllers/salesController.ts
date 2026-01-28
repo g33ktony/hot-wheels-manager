@@ -373,13 +373,21 @@ export const createPOSSale = async (req: Request, res: Response) => {
       
       console.log(`📦 Item: carIdStr=${carIdStr}, carName=${carName}, price=${finalPrice}, quantity=${parsedQuantity}`);
       
+      // Calculate cost and profit
+      // The cost is the purchase price stored in the inventory item
+      const costPrice = inventoryItem.purchasePrice || 0;
+      const profitPerUnit = finalPrice - costPrice;
+      const totalProfit = profitPerUnit * parsedQuantity;
+      
       saleItems.push({
         inventoryItemId: inventoryItem._id,
         carId: carIdStr,
         carName: carName,
         quantity: parsedQuantity,
         unitPrice: finalPrice,
-        originalPrice: itemPrice // Guardar el precio original
+        originalPrice: itemPrice, // Guardar el precio original
+        costPrice: costPrice,
+        profit: totalProfit
       });
 
       totalAmount += finalPrice * parsedQuantity;

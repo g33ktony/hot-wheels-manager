@@ -619,7 +619,9 @@ const createSalesFromDelivery = async (delivery: any) => {
         carId: item.carId,
         carName: item.carName,
         quantity: item.quantity,
-        unitPrice: item.unitPrice
+        unitPrice: item.unitPrice,
+        costPrice: item.costPrice || 0,
+        profit: item.profit || 0
       });
     }
     
