@@ -8,7 +8,7 @@ import { DeliveryModel } from '../models/Delivery';
 export const getSales = async (req: Request, res: Response) => {
   try {
     const sales = await SaleModel.find()
-      .populate('customerId')
+      .populate('customerId', 'name email phone')
       .populate('deliveryId')
       .populate({
         path: 'items.inventoryItemId',

@@ -52,7 +52,10 @@ export default function CustomerProfile() {
         async () => {
             const allSales = await salesService.getAll()
             return customerId ? allSales.filter((s: any) => {
-                const sCustomerId = typeof s.customerId === 'object' ? s.customerId._id?.toString() : s.customerId?.toString()
+                // Handle both populated (object) and ID-only (string) customerId formats
+                const sCustomerId = typeof s.customerId === 'object' 
+                    ? s.customerId?._id?.toString() 
+                    : s.customerId?.toString()
                 const cId = customerId?.toString()
                 return sCustomerId === cId
             }) : []
