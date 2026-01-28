@@ -10,7 +10,7 @@ import {
 } from 'recharts'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Calendar, TrendingUp, DollarSign, Package, ShoppingCart, Search, Plus } from 'lucide-react'
+import { Calendar, TrendingUp, DollarSign, Package, ShoppingCart, Search } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
@@ -545,7 +545,16 @@ export default function SalesStatistics() {
                                             </div>
 
                                             <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1">
+                                                <div className="flex items-center gap-1 bg-slate-700/50 rounded-lg p-1">
+                                                    <button
+                                                        onClick={() => setReactivateQuantity(prev => ({
+                                                            ...prev,
+                                                            [item._id]: Math.max(1, (prev[item._id] || 1) - 1)
+                                                        }))}
+                                                        className="w-8 h-8 flex items-center justify-center rounded bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-colors"
+                                                    >
+                                                        −
+                                                    </button>
                                                     <input
                                                         type="number"
                                                         min="1"
@@ -553,21 +562,29 @@ export default function SalesStatistics() {
                                                         onChange={(e) =>
                                                             setReactivateQuantity(prev => ({
                                                                 ...prev,
-                                                                [item._id]: parseInt(e.target.value) || 0
+                                                                [item._id]: Math.max(1, parseInt(e.target.value) || 1)
                                                             }))
                                                         }
-                                                        placeholder="Cant"
-                                                        className="w-16 px-2 py-1 rounded bg-slate-600 border border-slate-500 text-white text-center focus:outline-none focus:border-emerald-500"
+                                                        placeholder="0"
+                                                        className="w-12 px-2 py-1 rounded bg-slate-600 border border-slate-500 text-white text-center focus:outline-none focus:border-emerald-500"
                                                     />
-                                                    <Button
-                                                        onClick={() => handleReactivate(item._id)}
-                                                        disabled={reactivatingId === item._id}
-                                                        className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-3 py-1 flex items-center gap-1"
+                                                    <button
+                                                        onClick={() => setReactivateQuantity(prev => ({
+                                                            ...prev,
+                                                            [item._id]: (prev[item._id] || 1) + 1
+                                                        }))}
+                                                        className="w-8 h-8 flex items-center justify-center rounded bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-colors"
                                                     >
-                                                        <Plus className="w-4 h-4" />
-                                                        {reactivatingId === item._id ? 'Guardando...' : 'Agregar'}
-                                                    </Button>
+                                                        +
+                                                    </button>
                                                 </div>
+                                                <Button
+                                                    onClick={() => handleReactivate(item._id)}
+                                                    disabled={reactivatingId === item._id}
+                                                    className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-3 py-1"
+                                                >
+                                                    {reactivatingId === item._id ? 'Guardando...' : 'Agregar'}
+                                                </Button>
                                             </div>
                                         </div>
                                     ))}
