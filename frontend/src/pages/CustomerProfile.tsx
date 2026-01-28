@@ -31,11 +31,12 @@ export default function CustomerProfile() {
         { enabled: !!customerId }
     )
 
-    // Fetch all deliveries for this customer
+    // Fetch all deliveries for this customer (including completed ones)
     const { data: deliveries = [], isLoading: isLoadingDeliveries } = useQuery(
         ['deliveries', customerId],
         async () => {
-            const allDeliveries = await deliveriesService.getAll()
+            // Pass includeCompleted=true to get all deliveries including completed ones
+            const allDeliveries = await deliveriesService.getAll(undefined, undefined, true)
             return customerId ? allDeliveries.filter((d: any) => {
                 const dCustomerId = typeof d.customerId === 'object' ? d.customerId._id?.toString() : d.customerId?.toString()
                 const cId = customerId?.toString()
