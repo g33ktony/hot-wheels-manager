@@ -1,4 +1,4 @@
-# Hot Wheels Manager
+w# Hot Wheels Manager
 
 Una aplicación web completa para gestionar tu negocio de Hot Wheels, incluyendo inventario, ventas, compras, entregas y precios.
 
