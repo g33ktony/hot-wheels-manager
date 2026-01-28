@@ -126,7 +126,7 @@ export default function Deliveries() {
         return (
             <div className="text-center py-12">
                 <div className="mb-4">
-                    <Truck size={64} className="mx-auto text-gray-400 mb-4" />
+                    <Truck size={64} className="mx-auto text-slate-400 mb-4" />
                     <p className="text-danger-600 text-lg font-semibold mb-2">Error al cargar las entregas</p>
                     <p className="text-slate-400 text-sm mb-4">
                         {(error as any)?.message || 'No se pudo conectar con el servidor'}
@@ -953,7 +953,7 @@ export default function Deliveries() {
                     </div>
                 ) : (
                     <div className="text-center py-12">
-                        <Truck size={48} className="mx-auto text-gray-400 mb-4" />
+                        <Truck size={48} className="mx-auto text-slate-400 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No hay entregas</h3>
                         <p className="text-slate-400">No se encontraron entregas para los filtros seleccionados</p>
                     </div>

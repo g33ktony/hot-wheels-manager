@@ -108,7 +108,7 @@ export default function Sales() {
             <Card>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
-                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                         <Input
                             placeholder="Buscar por comprador..."
                             value={searchTerm}
@@ -129,9 +129,9 @@ export default function Sales() {
             {filteredSales.length === 0 ? (
                 <Card>
                     <div className="text-center py-12">
-                        <ShoppingCart size={48} className="mx-auto text-gray-400 mb-4" />
+                        <ShoppingCart size={48} className="mx-auto text-slate-400 mb-4" />
                         <h3 className="text-lg font-medium text-white mb-2">No hay ventas registradas</h3>
-                        <p className="text-gray-500 mb-4">
+                        <p className="text-slate-400 mb-4">
                             {searchTerm
                                 ? 'No se encontraron ventas con los filtros aplicados'
                                 : 'Comienza registrando tu primera venta'
@@ -169,7 +169,7 @@ export default function Sales() {
                             <h3 className="text-lg font-medium text-white">Nueva Venta</h3>
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="text-gray-400 hover:text-slate-400"
+                                className="text-slate-400 hover:text-slate-300"
                             >
                                 <X size={20} />
                             </button>
@@ -177,7 +177,7 @@ export default function Sales() {
 
                         <div className="text-center py-8">
                             <p className="text-slate-400">La funcionalidad de crear ventas manuales está temporalmente deshabilitada.</p>
-                            <p className="text-sm text-gray-500 mt-2">Las ventas se crean automáticamente cuando se completan las entregas.</p>
+                            <p className="text-sm text-slate-400 mt-2">Las ventas se crean automáticamente cuando se completan las entregas.</p>
                         </div>
                     </div>
                 </div>
@@ -199,14 +199,14 @@ export default function Sales() {
                 <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[60]">
                     <button
                         onClick={handleCloseImageModal}
-                        className="absolute top-4 right-4 text-white hover:text-gray-300"
+                        className="absolute top-4 right-4 text-white hover:text-slate-300"
                     >
                         <X size={24} />
                     </button>
 
                     <button
                         onClick={handlePrevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white hover:text-slate-300"
                     >
                         <ChevronLeft size={32} />
                     </button>
@@ -226,7 +226,7 @@ export default function Sales() {
 
                     <button
                         onClick={handleNextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300"
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white hover:text-slate-300"
                     >
                         <ChevronRight size={32} />
                     </button>

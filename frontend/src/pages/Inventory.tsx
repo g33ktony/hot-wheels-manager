@@ -481,7 +481,7 @@ export default function Inventory() {
         return (
             <div className="bg-slate-800 border rounded-lg p-3 w-full">
                 {/* Info text - hidden on mobile to save space */}
-                <div className="hidden sm:flex items-center justify-center text-sm text-gray-700 mb-3">
+                <div className="hidden sm:flex items-center justify-center text-sm text-slate-300 mb-3">
                     <span>
                         Mostrando <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> -{' '}
                         <span className="font-medium">
@@ -524,7 +524,7 @@ export default function Inventory() {
                                         onClick={() => handlePageChange(pageNum)}
                                         className={`px-2 sm:px-3 py-1 rounded text-sm font-medium transition-colors min-w-[32px] ${currentPage === pageNum
                                             ? 'bg-primary-500 text-white'
-                                            : 'bg-slate-700 text-gray-700 hover:bg-gray-200'
+                                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                             }`}
                                     >
                                         {pageNum}
@@ -534,7 +534,7 @@ export default function Inventory() {
                                 pageNum === currentPage - 2 ||
                                 pageNum === currentPage + 2
                             ) {
-                                return <span key={pageNum} className="px-1 text-gray-400">...</span>
+                                return <span key={pageNum} className="px-1 text-slate-400">...</span>
                             }
                             return null
                         })}
@@ -1429,7 +1429,7 @@ export default function Inventory() {
                     {/* First row: Search and Condition */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3 w-full">
                         <div className="relative w-full">
-                            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
                             <Input
                                 placeholder="Buscar por nombre o código..."
                                 value={searchTerm}
@@ -1440,7 +1440,7 @@ export default function Inventory() {
                                 <button
                                     type="button"
                                     onClick={() => handleFilterChange('search', '')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition"
                                     aria-label="Limpiar búsqueda"
                                 >
                                     <X size={16} />
@@ -1786,7 +1786,7 @@ export default function Inventory() {
                                     <div className="space-y-4">
                                         {/* Car Image Placeholder */}
                                         <div
-                                            className="bg-gray-200 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
+                                            className="bg-slate-700 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
                                             onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
                                         >
                                             {item.photos && item.photos.length > 0 ? (
@@ -1809,12 +1809,12 @@ export default function Inventory() {
                                                     )}
                                                 </>
                                             ) : (
-                                                <Package size={48} className="text-gray-400" />
+                                                <Package size={48} className="text-slate-400" />
                                             )}
 
                                             {/* Brand Badge - Top Left */}
                                             {item.brand && (
-                                                <div className="absolute top-2 left-2 px-2 py-1 bg-gray-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
+                                                <div className="absolute top-2 left-2 px-2 py-1 bg-slate-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
                                                     {item.brand}
                                                 </div>
                                             )}
@@ -1828,7 +1828,7 @@ export default function Inventory() {
                                                             item.pieceType === 'rlc' ? 'bg-orange-500 bg-opacity-90 text-white' :
                                                                 item.pieceType === 'silver_series' ? 'bg-slate-700/300 bg-opacity-90 text-white' :
                                                                     item.pieceType === 'elite_64' ? 'bg-red-500 bg-opacity-90 text-white' :
-                                                                        'bg-gray-400 bg-opacity-90 text-white'
+                                                                        'bg-slate-600 bg-opacity-90 text-white'
                                                         }`}>
                                                         {formatPieceType(item.pieceType).toUpperCase()}
                                                     </span>
@@ -1858,10 +1858,10 @@ export default function Inventory() {
                                             <h3 className="font-semibold text-white truncate">
                                                 {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
                                             </h3>
-                                            <p className="text-sm text-gray-500 truncate">
+                                            <p className="text-sm text-slate-400 truncate">
                                                 {item.hotWheelsCar?.series} {item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}
                                             </p>
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-xs text-slate-400">
                                                 {item.hotWheelsCar?.toy_num || item.carId}
                                             </p>
 
@@ -1883,7 +1883,7 @@ export default function Inventory() {
 
                                             {/* Source Box Badge - If this piece came from a box */}
                                             {item.sourceBox && !item.isBox && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-gray-700 text-xs font-medium rounded-full">
+                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full">
                                                     📦 De: {item.sourceBox}
                                                 </div>
                                             )}
@@ -1891,7 +1891,7 @@ export default function Inventory() {
                                             <div className="flex items-center justify-between mt-2 gap-2">
                                                 <span className={`
                       px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap
-                      ${item.condition === 'mint' ? 'bg-green-100 text-green-800' :
+                      ${item.condition === 'mint' ? 'bg-slate-700 text-emerald-400' :
                                                         item.condition === 'good' ? 'bg-blue-100 text-blue-800' :
                                                             item.condition === 'fair' ? 'bg-yellow-100 text-yellow-800' :
                                                                 'bg-red-100 text-red-800'
@@ -1920,7 +1920,7 @@ export default function Inventory() {
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-slate-400">Sugerido:</span>
-                                                <span className="font-medium text-green-600">${item.suggestedPrice.toFixed(2)}</span>
+                                                <span className="font-medium text-emerald-400">${item.suggestedPrice.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between text-sm border-t pt-1">
                                                 <span className="text-slate-400">Ganancia:</span>
@@ -1932,7 +1932,7 @@ export default function Inventory() {
                                                 </span>
                                             </div>
                                             {item.location && (
-                                                <div className="flex items-center gap-1 text-xs text-gray-500 pt-1 border-t">
+                                                <div className="flex items-center gap-1 text-xs text-slate-400 pt-1 border-t">
                                                     <MapPin size={12} />
                                                     <span className="truncate">{item.location}</span>
                                                 </div>
@@ -2237,7 +2237,7 @@ export default function Inventory() {
                                                 💡 Precio sugerido: <strong>${(newItem.suggestedPrice * newItem.seriesSize * 0.85).toFixed(2)}</strong>
                                                 {' '}(85% de ${(newItem.suggestedPrice * newItem.seriesSize).toFixed(2)})
                                                 {newItem.seriesPrice > 0 && (
-                                                    <span className="ml-2 text-green-600 font-medium">
+                                                    <span className="ml-2 text-emerald-400 font-medium">
                                                         → ${(newItem.seriesPrice / newItem.seriesSize).toFixed(2)}/pieza
                                                     </span>
                                                 )}
@@ -2309,7 +2309,7 @@ export default function Inventory() {
                                 )}
 
                                 {newItem.cars.length === 0 && (
-                                    <p className="text-sm text-gray-500 text-center py-4">
+                                    <p className="text-sm text-slate-400 text-center py-4">
                                         Agrega los modelos que vienen en la caja/serie
                                     </p>
                                 )}
@@ -2522,7 +2522,7 @@ export default function Inventory() {
                                         ? 'Precio de Venta por Pieza'
                                         : 'Precio Sugerido'}
                                 {!newItem.isMultipleCars && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-slate-700 text-emerald-400 rounded-full">
                                         <TrendingUp size={12} />
                                         {newItem.purchasePrice > 0 && newItem.suggestedPrice > 0 ?
                                             `+${(((newItem.suggestedPrice - newItem.purchasePrice) / newItem.purchasePrice) * 100).toFixed(0)}%`

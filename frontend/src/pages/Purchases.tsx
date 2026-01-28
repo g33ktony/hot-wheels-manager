@@ -714,7 +714,7 @@ export default function Purchases() {
                     <CardContent className="p-4 lg:p-6">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                             <div className="p-2 rounded-lg bg-green-100 self-start">
-                                <DollarSign size={20} className="text-green-600" />
+                                <DollarSign size={20} className="text-emerald-400" />
                             </div>
                             <div>
                                 <p className="text-xs sm:text-sm font-medium text-slate-400">Valor Total</p>
@@ -764,7 +764,7 @@ export default function Purchases() {
                                                 </div>
                                             )}
                                         </div>
-                                        <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0 ${purchase.status === 'received' ? 'bg-green-100 text-green-800' :
+                                        <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0 ${purchase.status === 'received' ? 'bg-slate-700 text-emerald-400' :
                                             purchase.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
                                                 purchase.status === 'paid' ? 'bg-purple-100 text-purple-800' :
                                                     purchase.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -1033,7 +1033,7 @@ export default function Purchases() {
                             <div className="text-center py-8 border-2 border-dashed border-slate-600 rounded-lg">
                                 <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
                                 <p className="text-slate-400">No hay items agregados</p>
-                                <p className="text-sm text-gray-500">Haz clic en "Agregar Item" y selecciona el tipo dentro del formulario</p>
+                                <p className="text-sm text-slate-400">Haz clic en "Agregar Item" y selecciona el tipo dentro del formulario</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
@@ -1108,7 +1108,7 @@ export default function Purchases() {
                                                 >
                                                     <Box size={20} className="mx-auto mb-1" />
                                                     <div className="text-xs font-medium">Caja Sellada</div>
-                                                    <div className="text-[10px] text-gray-500">72 piezas</div>
+                                                    <div className="text-[10px] text-slate-400">72 piezas</div>
                                                 </button>
                                                 <button
                                                     type="button"
@@ -1123,7 +1123,7 @@ export default function Purchases() {
                                                         setNewPurchase({ ...newPurchase, items: updatedItems })
                                                     }}
                                                     className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'series'
-                                                        ? 'border-green-500 bg-green-50 text-green-700'
+                                                        ? 'border-emerald-400 bg-slate-700 text-emerald-400'
                                                         : 'border-slate-600 hover:border-gray-400'
                                                         }`}
                                                     style={{
@@ -1133,7 +1133,7 @@ export default function Purchases() {
                                                 >
                                                     <Package size={20} className="mx-auto mb-1" />
                                                     <div className="text-xs font-medium">Caja de Serie</div>
-                                                    <div className="text-[10px] text-gray-500">5 modelos × 2</div>
+                                                    <div className="text-[10px] text-slate-400">5 modelos × 2</div>
                                                 </button>
                                             </div>
                                         </div>
@@ -1242,7 +1242,7 @@ export default function Purchases() {
                                                         </div>
                                                     </div>
 
-                                                    <div className="text-xs text-gray-500 mt-3 flex items-center">
+                                                    <div className="text-xs text-slate-400 mt-3 flex items-center">
                                                         <AlertCircle size={12} className="mr-1" />
                                                         El Car ID será generado automáticamente (ej: BOX-P-2025)
                                                     </div>
@@ -1279,7 +1279,7 @@ export default function Purchases() {
                                             /* ========== FORMULARIO PARA CAJA DE SERIE (Registro con cantidades) ========== */
                                             <div className="space-y-4">
                                                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                                    <div className="text-sm font-medium text-green-800 mb-3 flex items-center">
+                                                    <div className="text-sm font-medium text-white mb-3 flex items-center">
                                                         <Package size={16} className="mr-2" />
                                                         Configuración de Caja de Serie
                                                     </div>
@@ -1325,7 +1325,7 @@ export default function Purchases() {
                                                             {!item.seriesSize && (
                                                                 <div className="text-xs text-red-500 mt-1">⚠️ Campo requerido</div>
                                                             )}
-                                                            <div className="text-xs text-gray-500 mt-1">Total de piezas en la caja</div>
+                                                            <div className="text-xs text-slate-400 mt-1">Total de piezas en la caja</div>
                                                         </div>
 
                                                         <div>
@@ -1440,7 +1440,7 @@ export default function Purchases() {
                                                                         <div className="grid grid-cols-3 gap-3 text-sm">
                                                                             <div>
                                                                                 <div className="text-slate-400">Total:</div>
-                                                                                <div className="font-semibold text-gray-800">
+                                                                                <div className="font-semibold text-white">
                                                                                     {item.seriesSize || 0} piezas
                                                                                 </div>
                                                                             </div>
@@ -1452,7 +1452,7 @@ export default function Purchases() {
                                                                             </div>
                                                                             <div>
                                                                                 <div className="text-slate-400">Faltan:</div>
-                                                                                <div className={`font-bold ${remaining === 0 ? 'text-green-700' : 'text-orange-600'}`}>
+                                                                                <div className={`font-bold ${remaining === 0 ? 'text-emerald-400' : 'text-red-500'}`}>
                                                                                     {remaining} piezas
                                                                                 </div>
                                                                             </div>
@@ -1542,7 +1542,7 @@ export default function Purchases() {
                                                                                 Pieza #{piece.position}
                                                                             </h5>
                                                                             {piece.carId && piece.quantity > 0 && (
-                                                                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                                                                <span className="text-xs bg-slate-700 text-emerald-400 px-2 py-1 rounded">
                                                                                     ✓ {piece.quantity} unidad{piece.quantity > 1 ? 'es' : ''}
                                                                                 </span>
                                                                             )}
@@ -1601,7 +1601,7 @@ export default function Purchases() {
                                                                                         }}
                                                                                         placeholder="1"
                                                                                     />
-                                                                                    <div className="text-xs text-gray-500 mt-1">
+                                                                                    <div className="text-xs text-slate-400 mt-1">
                                                                                         Máx: {remaining}
                                                                                     </div>
                                                                                 </div>
@@ -1685,7 +1685,7 @@ export default function Purchases() {
                                                         </div>
 
                                                         {(item.seriesPieces || []).length === 0 && (
-                                                            <div className="text-center py-8 text-gray-500 bg-slate-700/30 rounded-lg border border-dashed border-slate-600">
+                                                            <div className="text-center py-8 text-slate-400 bg-slate-700/30 rounded-lg border border-dashed border-slate-600">
                                                                 <Package size={32} className="mx-auto mb-2 opacity-50" />
                                                                 <p className="text-sm">No hay piezas registradas</p>
                                                                 <p className="text-xs">Haz clic en "+ Agregar Pieza" para empezar</p>
@@ -1729,7 +1729,7 @@ export default function Purchases() {
 
                                                 {/* Información Básica */}
                                                 <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-700">
-                                                    <h6 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                                    <h6 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
                                                         <Car size={16} />
                                                         Información Básica
                                                     </h6>

@@ -791,7 +791,7 @@ const POS: React.FC = () => {
 
             <div className="overflow-y-auto max-h-[600px]">
               {filteredInventory.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-slate-400 py-8">
                   {searchTerm ? 'No se encontraron artículos' : 'No hay artículos disponibles'}
                 </p>
               ) : (
@@ -824,8 +824,8 @@ const POS: React.FC = () => {
                               crossOrigin="anonymous"
                             />
                           ) : (
-                            <div className="w-full h-48 flex items-center justify-center">
-                              <svg className="w-20 h-20 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                            <div className="w-full h-48 flex items-center justify-center bg-slate-700">
+                              <svg className="w-20 h-20 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                                 <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
                               </svg>
@@ -845,10 +845,10 @@ const POS: React.FC = () => {
 
                         {/* Item Details */}
                         <div className="p-4">
-                          <h3 className="font-bold text-lg mb-1 line-clamp-2">{displayName}</h3>
-                          <p className="text-xs text-gray-500 mb-2">{carIdStr}</p>
+                          <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white">{displayName}</h3>
+                          <p className="text-xs text-slate-400 mb-2">{carIdStr}</p>
                           <div className="space-y-1 mb-3">
-                            <p className="text-sm text-gray-700 font-medium">
+                            <p className="text-sm text-slate-300 font-medium">
                               {item.brand} {item.year && `• ${item.year}`}
                             </p>
                             {item.color && (
@@ -858,11 +858,11 @@ const POS: React.FC = () => {
                               <p className="text-xs text-slate-400">📦 {item.series}</p>
                             )}
                             <p className="text-xs text-slate-400">🏷️ {formatPieceType(item.pieceType)}</p>
-                            <p className="text-xs text-gray-500">📍 Disponible: {availableQty}</p>
+                            <p className="text-xs text-slate-400">📍 Disponible: {availableQty}</p>
                           </div>
 
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t">
-                            <span className="text-2xl font-bold text-green-600">
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-600">
+                            <span className="text-2xl font-bold text-emerald-400">
                               ${price.toFixed(2)}
                             </span>
                             {availableQty <= 1 ? (
@@ -870,7 +870,7 @@ const POS: React.FC = () => {
                                 onClick={() => addToCart(item)}
                                 disabled={isInCart}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
-                                  ? 'bg-gray-300 cursor-not-allowed'
+                                  ? 'bg-slate-600 cursor-not-allowed text-slate-400'
                                   : 'bg-blue-600 hover:bg-blue-700 text-white'
                                   }`}
                               >
@@ -886,7 +886,7 @@ const POS: React.FC = () => {
                                     >
                                       −
                                     </button>
-                                    <span className="font-bold text-lg min-w-[2.5rem] text-center">{cartQty}</span>
+                                    <span className="font-bold text-lg min-w-[2.5rem] text-center text-white">{cartQty}</span>
                                   </>
                                 )}
                                 <button
@@ -969,7 +969,7 @@ const POS: React.FC = () => {
 
                           {/* Price Input */}
                           <div className="flex items-center gap-1 mb-2">
-                            <span className="text-xs text-gray-400 line-through">
+                            <span className="text-xs text-slate-500 line-through">
                               ${originalPrice.toFixed(2)}
                             </span>
                             <input
@@ -1012,7 +1012,7 @@ const POS: React.FC = () => {
                                   +
                                 </button>
                               </div>
-                              <span className="text-xs font-semibold text-gray-700">
+                              <span className="text-xs font-semibold text-emerald-400">
                                 ${(item.customPrice * item.cartQuantity).toFixed(2)}
                               </span>
                             </div>

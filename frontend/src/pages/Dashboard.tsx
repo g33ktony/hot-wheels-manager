@@ -79,68 +79,68 @@ export default function Dashboard() {
             title: 'Items en Inventario',
             value: metrics.totalInventoryItems.toString(),
             icon: Package,
-            color: 'text-green-600',
-            bgColor: 'bg-green-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         },
         // 2. Total de Compras Pendientes
         {
             title: 'Compras Pendientes',
             value: metrics.pendingPurchases.toString(),
             icon: ShoppingBag,
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         },
         // 3. Entregas del Día
         {
             title: 'Entregas del Día',
             value: (metrics.todaysDeliveries?.length || 0).toString(),
             icon: CalendarCheck,
-            color: 'text-purple-600',
-            bgColor: 'bg-purple-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         },
         // 4. Cantidad Total en Stock
         {
             title: 'Total en Stock',
             value: (metrics.totalQuantity || 0).toLocaleString(),
             icon: Archive,
-            color: 'text-green-600',
-            bgColor: 'bg-green-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         },
         // 5. Margen de Ganancia del Mes
         {
             title: 'Margen del Mes',
             value: `${profitMargin}%`,
             icon: Percent,
-            color: 'text-emerald-600',
-            bgColor: 'bg-emerald-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         },
         {
             title: 'Entregas Pendientes',
             value: metrics.pendingDeliveries.toString(),
             icon: Truck,
-            color: 'text-orange-600',
-            bgColor: 'bg-orange-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         },
         {
             title: 'Entregas sin Pagar',
             value: metrics.unpaidDeliveries.toString(),
             icon: AlertTriangle,
-            color: 'text-red-600',
-            bgColor: 'bg-red-100',
+            color: 'text-red-500',
+            bgColor: 'bg-slate-700',
         },
         {
             title: 'Items para Preparar',
             value: (metrics.itemsToPrepare || 0).toString(),
             icon: Package,
-            color: 'text-amber-600',
-            bgColor: 'bg-amber-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         },
         {
             title: 'Ganancia del Mes',
             value: `$${metrics.monthlyProfit.toLocaleString()}`,
             icon: TrendingUp,
-            color: 'text-green-600',
-            bgColor: 'bg-green-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         }
     ]
 
@@ -150,8 +150,8 @@ export default function Dashboard() {
             title: 'Ganancia Ventas Hoy',
             value: `$${metrics.dailySales.toLocaleString()}`,
             icon: DollarSign,
-            color: 'text-emerald-600',
-            bgColor: 'bg-emerald-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         })
     }
 
@@ -162,8 +162,8 @@ export default function Dashboard() {
             title: 'Vendido Hoy',
             value: `$${metrics.dailySalesRevenue.toLocaleString()}`,
             icon: DollarSign,
-            color: 'text-purple-600',
-            bgColor: 'bg-purple-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         })
     }
 
@@ -174,8 +174,8 @@ export default function Dashboard() {
             title: 'Ganancia Total Hoy',
             value: `$${metrics.dailyRevenue.toLocaleString()}`,
             icon: DollarSign,
-            color: 'text-blue-600',
-            bgColor: 'bg-blue-100',
+            color: 'text-emerald-400',
+            bgColor: 'bg-slate-700',
         })
     }
 
@@ -328,7 +328,7 @@ export default function Dashboard() {
                                     )
                                 })
                             ) : (
-                                <p className="text-gray-500 text-center py-4">No hay actividad reciente</p>
+                                <p className="text-slate-400 text-center py-4">No hay actividad reciente</p>
                             )}
                         </div>
                     </CardContent>
@@ -338,7 +338,7 @@ export default function Dashboard() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center">
-                            <AlertTriangle size={20} className="text-warning-600 mr-2" />
+                            <AlertTriangle size={20} className="text-red-500 mr-2" />
                             Alertas y Notificaciones
                         </CardTitle>
                     </CardHeader>
@@ -346,10 +346,10 @@ export default function Dashboard() {
                         <div className="space-y-3">
                             {/* Today's Deliveries */}
                             {metrics.todaysDeliveries && metrics.todaysDeliveries.length > 0 && (
-                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
                                     <div className="flex items-center mb-2">
-                                        <Calendar size={16} className="text-blue-600 mr-2" />
-                                        <p className="text-sm font-medium text-blue-800">
+                                        <Calendar size={16} className="text-emerald-400 mr-2" />
+                                        <p className="text-sm font-medium text-white">
                                             Entregas programadas para hoy ({metrics.todaysDeliveries.length})
                                         </p>
                                     </div>
@@ -382,9 +382,9 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingPurchases > 0 && (
-                                <div className="flex items-center p-3 bg-warning-50 border border-warning-200 rounded-lg">
+                                <div className="flex items-center p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
                                     <div className="flex-1">
-                                        <p className="text-sm font-medium text-warning-800">
+                                        <p className="text-sm font-medium text-white">
                                             Tienes {metrics.pendingPurchases} compras pendientes de recibir
                                         </p>
                                     </div>
@@ -392,9 +392,9 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingSales > 0 && (
-                                <div className="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-center p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
                                     <div className="flex-1">
-                                        <p className="text-sm font-medium text-blue-800">
+                                        <p className="text-sm font-medium text-white">
                                             Tienes {metrics.pendingSales} ventas pendientes
                                         </p>
                                     </div>
@@ -402,9 +402,9 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingDeliveries > 0 && !metrics.todaysDeliveries?.length && (
-                                <div className="flex items-center p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                                <div className="flex items-center p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
                                     <div className="flex-1">
-                                        <p className="text-sm font-medium text-purple-800">
+                                        <p className="text-sm font-medium text-white">
                                             Tienes {metrics.pendingDeliveries} entregas programadas
                                         </p>
                                     </div>
@@ -414,23 +414,23 @@ export default function Dashboard() {
                             {/* Pending Items Widget */}
                             {pendingItemsStats && pendingItemsStats.totalCount > 0 && (
                                 <div
-                                    className="flex items-start p-4 bg-orange-50 border-2 border-orange-300 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
+                                    className="flex items-start p-4 bg-slate-700/50 border-2 border-slate-600 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors"
                                     onClick={() => navigate('/pending-items')}
                                 >
-                                    <AlertCircle className="text-orange-600 mt-0.5 mr-3 flex-shrink-0" size={20} />
+                                    <AlertCircle className="text-red-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold text-orange-900 mb-1">
+                                        <p className="text-sm font-semibold text-white mb-1">
                                             🟠 {pendingItemsStats.totalCount} Item{pendingItemsStats.totalCount > 1 ? 's' : ''} Pendiente{pendingItemsStats.totalCount > 1 ? 's' : ''}
                                         </p>
-                                        <p className="text-xs text-orange-800">
+                                        <p className="text-xs text-slate-300">
                                             Valor total: ${pendingItemsStats.totalValue.toFixed(2)}
                                         </p>
                                         {pendingItemsStats.overdueCount > 0 && (
-                                            <p className="text-xs text-red-600 font-medium mt-1">
+                                            <p className="text-xs text-red-500 font-medium mt-1">
                                                 ⚠️ {pendingItemsStats.overdueCount} vencido{pendingItemsStats.overdueCount > 1 ? 's' : ''} (+15 días)
                                             </p>
                                         )}
-                                        <p className="text-xs text-orange-700 mt-2">
+                                        <p className="text-xs text-slate-300 mt-2">
                                             Click para gestionar →
                                         </p>
                                     </div>
@@ -438,7 +438,7 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingPurchases === 0 && metrics.pendingSales === 0 && metrics.pendingDeliveries === 0 && (!pendingItemsStats || pendingItemsStats.totalCount === 0) && (
-                                <p className="text-gray-500 text-center py-4">No hay alertas pendientes</p>
+                                <p className="text-slate-400 text-center py-4">No hay alertas pendientes</p>
                             )}
                         </div>
                     </CardContent>
@@ -487,16 +487,16 @@ export default function Dashboard() {
                 <div className="space-y-4">
                     {!updateCatalogMutation.isSuccess && !updateCatalogMutation.isError && (
                         <>
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <p className="text-sm text-blue-800">
+                            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+                                <p className="text-sm text-white">
                                     <span className="font-semibold">📥 Descargar datos actualizados</span>
                                     <br className="mt-2" />
                                     Esto descargará el catálogo completo de Hot Wheels desde la Wiki de Fandom (1995 - {new Date().getFullYear()}) y actualizará la base de datos local.
                                 </p>
                             </div>
 
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                                <p className="text-sm text-amber-800">
+                            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+                                <p className="text-sm text-white">
                                     <span className="font-semibold">⏱️ Tiempo estimado:</span> 2-5 minutos
                                     <br />
                                     <span className="text-xs text-amber-700 mt-2 block">La aplicación puede estar lenta durante la actualización.</span>
@@ -505,7 +505,7 @@ export default function Dashboard() {
 
                             {updateStatus && (
                                 <div className="bg-slate-700/30 rounded-lg p-4 text-sm">
-                                    <p className="font-semibold text-gray-700 mb-2">Última actualización:</p>
+                                    <p className="font-semibold text-white mb-2">Última actualización:</p>
                                     <p className="text-slate-400">
                                         {new Date(updateStatus.lastModified).toLocaleDateString('es-ES', {
                                             year: 'numeric',
@@ -524,17 +524,17 @@ export default function Dashboard() {
                         <div className="flex items-center justify-center py-8">
                             <div className="text-center space-y-3">
                                 <div className="animate-spin">
-                                    <RefreshCw size={32} className="text-blue-600" />
+                                    <RefreshCw size={32} className="text-emerald-400" />
                                 </div>
-                                <p className="text-gray-700 font-medium">Descargando catálogo...</p>
-                                <p className="text-sm text-gray-500">No cierres esta ventana</p>
+                                <p className="text-white font-medium">Descargando catálogo...</p>
+                                <p className="text-sm text-slate-400">No cierres esta ventana</p>
                             </div>
                         </div>
                     )}
 
                     {updateCatalogMutation.isSuccess && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <p className="text-green-800">
+                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+                            <p className="text-white">
                                 <span className="font-semibold">✅ Actualización completada</span>
                                 <br className="mt-2" />
                                 El catálogo de Hot Wheels ha sido actualizado exitosamente.
@@ -543,8 +543,8 @@ export default function Dashboard() {
                     )}
 
                     {updateCatalogMutation.isError && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <p className="text-red-800">
+                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+                            <p className="text-white">
                                 <span className="font-semibold">❌ Error en la actualización</span>
                                 <br className="mt-2" />
                                 {updateCatalogMutation.error?.message || 'No se pudo actualizar el catálogo'}
@@ -584,7 +584,7 @@ export default function Dashboard() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Buscar por nombre de modelo..."
-                            className="flex-1 px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                     searchByName(searchQuery)
@@ -613,7 +613,7 @@ export default function Dashboard() {
 
                     {/* Results Count */}
                     {searchResults.length > 0 && (
-                        <p className="text-sm font-semibold text-gray-700">
+                        <p className="text-sm font-semibold text-white">
                             {searchQuery ? `Se encontraron ${searchResults.length} resultados` : `Total: ${searchResults.length} modelos`}
                         </p>
                     )}
@@ -659,10 +659,10 @@ export default function Dashboard() {
                                         <div className="p-3 space-y-1 flex-grow">
                                             <h3 className="font-semibold text-white text-sm line-clamp-2">{item.model}</h3>
                                             <div className="space-y-0.5 text-xs text-slate-400">
-                                                <p><span className="font-medium">Serie:</span> <span className="text-gray-700">{item.series}</span></p>
-                                                <p><span className="font-medium">Año:</span> <span className="text-gray-700">{item.year}</span></p>
-                                                <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs text-gray-700">{item.toy_num}</span></p>
-                                                <p><span className="font-medium">Serie #:</span> <span className="text-gray-700">{item.series_num}</span></p>
+                                                <p><span className="font-medium">Serie:</span> <span className="text-slate-300">{item.series}</span></p>
+                                                <p><span className="font-medium">Año:</span> <span className="text-slate-300">{item.year}</span></p>
+                                                <p><span className="font-medium">Toy #:</span> <span className="font-mono text-xs text-slate-300">{item.toy_num}</span></p>
+                                                <p><span className="font-medium">Serie #:</span> <span className="text-slate-300">{item.series_num}</span></p>
                                             </div>
                                         </div>
                                     </div>
@@ -676,17 +676,17 @@ export default function Dashboard() {
                         <div className="flex items-center justify-center py-12">
                             <div className="text-center space-y-2">
                                 <div className="animate-spin inline-block">
-                                    <RefreshCw size={24} className="text-blue-600" />
+                                    <RefreshCw size={24} className="text-emerald-400" />
                                 </div>
-                                <p className="text-gray-700 font-medium">Cargando...</p>
+                                <p className="text-white font-medium">Cargando...</p>
                             </div>
                         </div>
                     )}
 
                     {/* Empty State */}
                     {!isSearching && searchResults.length === 0 && !searchQuery && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                            <p className="text-blue-800 text-sm">
+                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 text-center">
+                            <p className="text-white text-sm">
                                 Cargando listado de modelos...
                             </p>
                         </div>
@@ -694,8 +694,8 @@ export default function Dashboard() {
 
                     {/* No Results State */}
                     {!isSearching && searchResults.length === 0 && searchQuery && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
-                            <p className="text-amber-800 text-sm">
+                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 text-center">
+                            <p className="text-white text-sm">
                                 No se encontraron resultados para "{searchQuery}"
                             </p>
                         </div>
