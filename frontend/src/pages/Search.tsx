@@ -4,7 +4,7 @@ import { useQuery } from 'react-query'
 import { api } from '@/services/api'
 import {
     Search as SearchIcon, ShoppingCart, Package, Truck, User, AlertCircle, ChevronRight,
-    Plus, TrendingUp, MapPin, Phone, Mail, X
+    Plus, TrendingUp, MapPin, Phone, Mail, X, Edit
 } from 'lucide-react'
 import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
@@ -12,6 +12,8 @@ import { useAppDispatch } from '@/hooks/redux'
 import { addToCart } from '@/store/slices/cartSlice'
 import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
+import CustomerEditForm from '@/components/CustomerEditForm'
+import { customersService } from '@/services/customers'
 
 interface SearchResultItem {
     _id: string
@@ -167,6 +169,15 @@ export default function Search() {
         }
 
         setModal(newModalState)
+    }
+
+    // Callback para refrescar datos después de editar entregas
+    const handleDeliveryUpdated = async (updatedDelivery: any) => {
+        setModal(prev => ({
+            ...prev,
+            delivery: updatedDelivery
+        }))
+        toast.success('Entrega actualizada correctamente')
     }
 
     // Cierra el modal y limpia
@@ -549,7 +560,6 @@ export default function Search() {
                     sale={modal.sale}
                     isOpen={modal.isOpen}
                     onClose={closeModal}
-                    readonly={true}
                 />
             )}
 
@@ -558,7 +568,7 @@ export default function Search() {
                     delivery={modal.delivery}
                     isOpen={modal.isOpen}
                     onClose={closeModal}
-                    readonly={true}
+                    onEdit={handleDeliveryUpdated}
                     inventoryItems={[]}
                     preSaleItems={[]}
                 />
@@ -586,6 +596,9 @@ function GenericDetailModal({
     id: string
     onClose: () => void
 }) {
+    const [isEditingCustomer, setIsEditingCustomer] = useState(false)
+    const [editingCustomer, setEditingCustomer] = useState<any>(null)
+
     const { data: inventoryData } = useQuery(
         ['inventory-detail', id],
         async () => {
@@ -596,7 +609,7 @@ function GenericDetailModal({
         { enabled: type === 'inventory' }
     )
 
-    const { data: customerData } = useQuery(
+    const { data: customerData, refetch: refetchCustomer } = useQuery(
         ['customer-detail', id],
         async () => {
             if (type !== 'customer') return null
@@ -605,6 +618,21 @@ function GenericDetailModal({
         },
         { enabled: type === 'customer' }
     )
+
+    const handleSaveCustomer = async (updated: any) => {
+        try {
+            if (!customerData?._id) {
+                throw new Error('Customer ID not found')
+            }
+            await customersService.update(customerData._id, updated)
+            setIsEditingCustomer(false)
+            refetchCustomer()
+            toast.success('Cliente actualizado correctamente')
+        } catch (error) {
+            toast.error('Error al actualizar cliente')
+            console.error(error)
+        }
+    }
 
     return (
         <div
@@ -673,41 +701,69 @@ function GenericDetailModal({
 
                     {/* CUSTOMER DETAIL */}
                     {type === 'customer' && customerData && (
-                        <div className="space-y-4 text-slate-300">
-                            <div className="bg-slate-700/50 rounded-lg p-4">
-                                <h3 className="font-semibold text-white text-lg mb-3">{customerData.name}</h3>
-                                <div className="space-y-2 text-sm">
-                                    {customerData.email && (
-                                        <div className="flex items-center gap-2">
-                                            <Mail className="w-4 h-4 text-slate-400" />
-                                            <p><span className="text-slate-400">Email:</span> <span className="text-white">{customerData.email}</span></p>
+                        <>
+                            {!isEditingCustomer ? (
+                                <div className="space-y-4 text-slate-300">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="font-semibold text-white text-lg">{customerData.name}</h3>
+                                        <Button
+                                            size="sm"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setEditingCustomer(customerData)
+                                                setIsEditingCustomer(true)
+                                            }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <Edit size={16} />
+                                            Editar
+                                        </Button>
+                                    </div>
+                                    <div className="bg-slate-700/50 rounded-lg p-4">
+                                        <div className="space-y-2 text-sm">
+                                            {customerData.email && (
+                                                <div className="flex items-center gap-2">
+                                                    <Mail className="w-4 h-4 text-slate-400" />
+                                                    <p><span className="text-slate-400">Email:</span> <span className="text-white">{customerData.email}</span></p>
+                                                </div>
+                                            )}
+                                            {customerData.phone && (
+                                                <div className="flex items-center gap-2">
+                                                    <Phone className="w-4 h-4 text-slate-400" />
+                                                    <p><span className="text-slate-400">Teléfono:</span> <span className="text-white">{customerData.phone}</span></p>
+                                                </div>
+                                            )}
+                                            {customerData.address && (
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin className="w-4 h-4 text-slate-400" />
+                                                    <p><span className="text-slate-400">Dirección:</span> <span className="text-white">{customerData.address}</span></p>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                    {customerData.phone && (
-                                        <div className="flex items-center gap-2">
-                                            <Phone className="w-4 h-4 text-slate-400" />
-                                            <p><span className="text-slate-400">Teléfono:</span> <span className="text-white">{customerData.phone}</span></p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-slate-700/50 rounded-lg p-3">
+                                            <p className="text-xs text-slate-400">Total Gastado</p>
+                                            <p className="font-semibold text-emerald-400">${(customerData.totalSpent || 0).toFixed(2)}</p>
                                         </div>
-                                    )}
-                                    {customerData.address && (
-                                        <div className="flex items-center gap-2">
-                                            <MapPin className="w-4 h-4 text-slate-400" />
-                                            <p><span className="text-slate-400">Dirección:</span> <span className="text-white">{customerData.address}</span></p>
+                                        <div className="bg-slate-700/50 rounded-lg p-3">
+                                            <p className="text-xs text-slate-400">Total Órdenes</p>
+                                            <p className="font-semibold text-blue-400">{customerData.totalOrders || 0}</p>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Total Gastado</p>
-                                    <p className="font-semibold text-emerald-400">${(customerData.totalSpent || 0).toFixed(2)}</p>
-                                </div>
-                                <div className="bg-slate-700/50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-400">Total Órdenes</p>
-                                    <p className="font-semibold text-blue-400">{customerData.totalOrders || 0}</p>
-                                </div>
-                            </div>
-                        </div>
+                            ) : (
+                                <CustomerEditForm
+                                    customer={editingCustomer}
+                                    onCancel={() => {
+                                        setIsEditingCustomer(false)
+                                        setEditingCustomer(null)
+                                    }}
+                                    onSave={handleSaveCustomer}
+                                    onChange={setEditingCustomer}
+                                />
+                            )}
+                        </>
                     )}
 
                     {/* Loading state */}
