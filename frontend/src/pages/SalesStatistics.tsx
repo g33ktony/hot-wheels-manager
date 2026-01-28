@@ -453,7 +453,7 @@ export default function SalesStatistics() {
                                                     <tr
                                                         key={idx}
                                                         className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors cursor-pointer"
-                                                        onClick={() => navigate(`/sales/${transaction._id}`)}
+                                                        onClick={() => navigate(`/sales?id=${transaction._id}`)}
                                                     >
                                                         <td className="py-3 px-4 text-slate-200">{transaction.customerName}</td>
                                                         <td className="py-3 px-4 text-slate-400">

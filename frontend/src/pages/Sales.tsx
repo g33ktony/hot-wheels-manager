@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useSales, useDeleteSale } from '@/hooks/useSales'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -9,6 +10,7 @@ import { Loading } from '@/components/common/Loading'
 import { Plus, Search, ShoppingCart, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function Sales() {
+    const [searchParams] = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
@@ -19,6 +21,18 @@ export default function Sales() {
 
     const { data: sales, isLoading, error } = useSales()
     const deleteSaleMutation = useDeleteSale()
+
+    // Auto-open modal if id parameter is provided in URL
+    useEffect(() => {
+        const saleId = searchParams.get('id')
+        if (saleId && sales && sales.length > 0) {
+            const sale = sales.find(s => s._id === saleId)
+            if (sale) {
+                setSelectedSale(sale)
+                setShowDetailsModal(true)
+            }
+        }
+    }, [searchParams, sales])
 
     if (isLoading) {
         return <Loading text="Cargando ventas..." />
