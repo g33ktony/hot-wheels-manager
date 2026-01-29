@@ -665,7 +665,7 @@ export default function Search() {
                                 {groupedResults.catalog.map((result) => (
                                     <div
                                         key={result._id}
-                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-emerald-500 transition-all ${isDark
+                                        className={`p-4 flex flex-col md:flex-row md:items-center md:justify-between rounded-lg hover:border-emerald-500 transition-all gap-3 ${isDark
                                             ? 'bg-emerald-900/30 border border-emerald-600/50'
                                             : 'bg-emerald-50 border border-emerald-200'
                                             }`}
@@ -675,7 +675,7 @@ export default function Search() {
                                             <img
                                                 src={`/api/hotwheels/image?url=${encodeURIComponent(result.metadata.photoUrl)}`}
                                                 alt={result.title}
-                                                className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
+                                                className="w-16 h-16 object-cover rounded flex-shrink-0"
                                                 crossOrigin="anonymous"
                                                 onError={(e) => {
                                                     e.currentTarget.style.display = 'none'
@@ -702,7 +702,7 @@ export default function Search() {
                                                     result.metadata
                                                 )
                                             }}
-                                            className="ml-4 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                                            className="md:ml-4 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto justify-center md:justify-start"
                                         >
                                             + Agregar a Stock
                                         </button>
