@@ -413,31 +413,49 @@ export const proxyImage = async (req: Request, res: Response) => {
       })
     }
 
-    // Validar que sea una URL de Wikia o vcdn (Wikia CDN)
-    if (!url.includes('wikia') && !url.includes('fandom') && !url.includes('vcdn')) {
+    // Validar que sea una URL de Wikia, Fandom o CDN
+    if (!url.includes('wikia') && !url.includes('fandom') && !url.includes('vcdn') && !url.includes('static.')) {
       return res.status(403).json({
         success: false,
-        error: 'Solo URLs de Wikia permitidas'
+        error: 'Solo URLs de Wikia/Fandom permitidas'
       })
     }
 
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://hotwheels.fandom.com/',
+        'Accept': 'image/*,*/*',
+        'Accept-Encoding': 'gzip, deflate, br'
       },
-      timeout: 10000
+      timeout: 15000,
+      maxRedirects: 5,
+      validateStatus: (status) => status < 500 // Allow 3xx, 4xx to be handled
     })
 
+    // Check if response is valid
+    if (response.status >= 400) {
+      console.warn(`Image fetch returned ${response.status} for URL: ${url}`)
+      return res.status(response.status).json({
+        success: false,
+        error: `Failed to fetch image: ${response.status}`
+      })
+    }
+
     res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg')
-    res.setHeader('Cache-Control', 'public, max-age=86400')
+    res.setHeader('Cache-Control', 'public, max-age=604800') // Cache for 1 week
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.send(response.data)
   } catch (error: any) {
-    console.error('Error proxying image:', error.message)
+    console.error('Error proxying image:', {
+      message: error.message,
+      code: error.code,
+      url: req.query.url
+    })
     res.status(500).json({
       success: false,
-      error: 'Error al cargar imagen'
+      error: 'Error al cargar imagen desde Fandom'
     })
   }
 }
