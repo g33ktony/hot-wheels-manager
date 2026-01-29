@@ -260,8 +260,8 @@ export default function Search() {
                             onChange={(e) => setQuery(e.target.value)}
                             autoFocus
                             className={`w-full pl-12 pr-4 py-3 rounded-lg border text-lg focus:border-emerald-500 focus:outline-none ${isDark
-                                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
-                                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
+                                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
+                                : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                                 }`}
                         />
                         {query && (
@@ -431,8 +431,8 @@ export default function Search() {
                                     <div
                                         key={result._id}
                                         className={`p-4 flex items-center justify-between rounded-lg hover:border-blue-500 transition-all cursor-pointer ${isDark
-                                                ? 'bg-slate-800/50 border border-slate-700'
-                                                : 'bg-slate-100 border border-slate-300'
+                                            ? 'bg-slate-800/50 border border-slate-700'
+                                            : 'bg-slate-100 border border-slate-300'
                                             }`}
                                         onClick={() => handleResultClick(result)}
                                     >
@@ -500,8 +500,8 @@ export default function Search() {
                                     <div
                                         key={result._id}
                                         className={`p-4 flex items-center justify-between rounded-lg hover:border-emerald-500 transition-all cursor-pointer ${isDark
-                                                ? 'bg-slate-800/50 border border-slate-700'
-                                                : 'bg-slate-100 border border-slate-300'
+                                            ? 'bg-slate-800/50 border border-slate-700'
+                                            : 'bg-slate-100 border border-slate-300'
                                             }`}
                                         onClick={() => handleResultClick(result)}
                                     >
@@ -548,8 +548,8 @@ export default function Search() {
                                     <div
                                         key={result._id}
                                         className={`p-4 flex items-center justify-between rounded-lg hover:border-orange-500 transition-all cursor-pointer ${isDark
-                                                ? 'bg-slate-800/50 border border-slate-700'
-                                                : 'bg-slate-100 border border-slate-300'
+                                            ? 'bg-slate-800/50 border border-slate-700'
+                                            : 'bg-slate-100 border border-slate-300'
                                             }`}
                                         onClick={() => handleResultClick(result)}
                                     >
@@ -592,8 +592,8 @@ export default function Search() {
                                     <div
                                         key={result._id}
                                         className={`p-4 flex items-center justify-between rounded-lg hover:border-purple-500 transition-all cursor-pointer ${isDark
-                                                ? 'bg-slate-800/50 border border-slate-700'
-                                                : 'bg-slate-100 border border-slate-300'
+                                            ? 'bg-slate-800/50 border border-slate-700'
+                                            : 'bg-slate-100 border border-slate-300'
                                             }`}
                                         onClick={() => handleResultClick(result)}
                                     >
@@ -635,8 +635,8 @@ export default function Search() {
                                     <div
                                         key={result._id}
                                         className={`p-4 flex items-center justify-between rounded-lg hover:border-yellow-500 transition-all cursor-pointer ${isDark
-                                                ? 'bg-slate-800/50 border border-slate-700'
-                                                : 'bg-slate-100 border border-slate-300'
+                                            ? 'bg-slate-800/50 border border-slate-700'
+                                            : 'bg-slate-100 border border-slate-300'
                                             }`}
                                         onClick={() => handleResultClick(result)}
                                     >
@@ -666,8 +666,8 @@ export default function Search() {
                                     <div
                                         key={result._id}
                                         className={`p-4 flex items-center justify-between rounded-lg hover:border-emerald-500 transition-all ${isDark
-                                                ? 'bg-emerald-900/30 border border-emerald-600/50'
-                                                : 'bg-emerald-50 border border-emerald-200'
+                                            ? 'bg-emerald-900/30 border border-emerald-600/50'
+                                            : 'bg-emerald-50 border border-emerald-200'
                                             }`}
                                     >
                                         {/* Imagen del catálogo */}
@@ -687,8 +687,8 @@ export default function Search() {
                                             <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{result.subtitle}</p>
                                             <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>{result.description}</p>
                                             <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${isDark
-                                                    ? 'bg-emerald-500/20 text-emerald-300'
-                                                    : 'bg-emerald-200 text-emerald-800'
+                                                ? 'bg-emerald-500/20 text-emerald-300'
+                                                : 'bg-emerald-200 text-emerald-800'
                                                 }`}>
                                                 ✨ No en stock
                                             </span>
