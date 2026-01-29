@@ -128,6 +128,9 @@ export interface SaleItem {
     carName: string;
     quantity: number;
     unitPrice: number;
+    costPrice?: number;
+    profit?: number;
+    photos?: string[]; // Fotos del item en el momento de la venta
 }
 export interface BuyerInfo {
     name: string;

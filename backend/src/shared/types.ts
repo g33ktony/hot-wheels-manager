@@ -29,6 +29,7 @@ export interface RecentActivity {
 export interface InventoryItem {
   _id?: string;
   carId: string; // Referencia al HotWheelsCar
+  carName?: string; // Nombre del carro (para items del catálogo)
   quantity: number;
   reservedQuantity?: number; // Cantidad reservada para entregas pendientes
   purchasePrice: number;
@@ -67,6 +68,10 @@ export interface InventoryItem {
   // Source box tracking (for pieces that came from a box)
   sourceBox?: string; // Name of source box (e.g., "Caja P")
   sourceBoxId?: string; // ID of source box for tracking
+  // Catálogo fields (for items added from catalog)
+  series?: string; // Series name from catalog
+  year?: number; // Year from catalog
+  color?: string; // Color from catalog
   // Relación poblada con el Hot Wheels
   hotWheelsCar?: HotWheelsCar;
 }
@@ -241,6 +246,7 @@ export interface SaleItem {
   unitPrice: number;
   costPrice?: number; // Precio de costo (por unidad)
   profit?: number; // Ganancia total por este item
+  photos?: string[]; // Fotos del item en el momento de la venta
 }
 
 export interface BuyerInfo {

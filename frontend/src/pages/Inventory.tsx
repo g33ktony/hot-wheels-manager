@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
 import { useNavigate } from 'react-router-dom'
 import { useSearch } from '@/contexts/SearchContext'
+import { useTheme } from '@/contexts/ThemeContext'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
@@ -217,6 +218,10 @@ function base64ToFile(base64: string, fileName: string): File {
 export default function Inventory() {
     // Sync inventory in background (keeps Redux cache fresh for other pages)
     useInventorySyncInBackground()
+
+    // Get theme
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
 
     // Cloudinary upload
     const { uploadImage } = useCloudinaryUpload()
@@ -595,9 +600,9 @@ export default function Inventory() {
         if (!pagination || pagination.totalPages <= 1) return null
 
         return (
-            <div className="bg-slate-800 border rounded-lg p-3 w-full">
+            <div className={`border rounded-lg p-3 w-full ${isDark ? 'bg-slate-800' : 'bg-white border-gray-200'}`}>
                 {/* Info text - hidden on mobile to save space */}
-                <div className="hidden sm:flex items-center justify-center text-sm text-slate-300 mb-3">
+                <div className={`hidden sm:flex items-center justify-center text-sm mb-3 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
                     <span>
                         Mostrando <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> -{' '}
                         <span className="font-medium">
@@ -608,7 +613,7 @@ export default function Inventory() {
                 </div>
 
                 {/* Mobile compact info */}
-                <div className="sm:hidden text-xs text-slate-400 text-center mb-2">
+                <div className={`sm:hidden text-xs text-center mb-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                     {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, pagination.totalItems)} de {pagination.totalItems} items
                 </div>
 
@@ -640,7 +645,7 @@ export default function Inventory() {
                                         onClick={() => handlePageChange(pageNum)}
                                         className={`px-2 sm:px-3 py-1 rounded text-sm font-medium transition-colors min-w-[32px] ${currentPage === pageNum
                                             ? 'bg-primary-500 text-white'
-                                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                            : (isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
                                             }`}
                                     >
                                         {pageNum}
@@ -650,7 +655,7 @@ export default function Inventory() {
                                 pageNum === currentPage - 2 ||
                                 pageNum === currentPage + 2
                             ) {
-                                return <span key={pageNum} className="px-1 text-slate-400">...</span>
+                                return <span key={pageNum} className={`px-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>...</span>
                             }
                             return null
                         })}

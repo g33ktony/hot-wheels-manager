@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { usePreSaleItems } from '@/hooks/usePresale'
+import { useTheme } from '@/contexts/ThemeContext'
 import PreSaleItemCard from './PreSaleItemCard'
 import PreSaleFilters from './PreSaleFilters'
 import PreSaleStats from './PreSaleStats'
@@ -18,6 +19,8 @@ interface Filters {
 
 const PreSaleDashboard: React.FC = () => {
     const { data: preSalesData, isLoading, error, refetch } = usePreSaleItems()
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const [showDetailModal, setShowDetailModal] = useState(false)
     const [filters, setFilters] = useState<Filters>({
         status: 'all',
@@ -86,11 +89,11 @@ const PreSaleDashboard: React.FC = () => {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+            <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
                 <div className="max-w-6xl mx-auto">
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                        <h3 className="text-red-800 font-semibold mb-2">Error loading pre-sales</h3>
-                        <p className="text-red-700">{error instanceof Error ? error.message : 'An unknown error occurred'}</p>
+                    <div className={`border rounded-lg p-6 ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
+                        <h3 className={`font-semibold mb-2 ${isDark ? 'text-red-300' : 'text-red-800'}`}>Error loading pre-sales</h3>
+                        <p className={isDark ? 'text-red-200' : 'text-red-700'}>{error instanceof Error ? error.message : 'An unknown error occurred'}</p>
                         <button
                             onClick={handleRefresh}
                             className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
@@ -104,19 +107,19 @@ const PreSaleDashboard: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+        <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Panel de Pre-Ventas</h1>
-                            <p className="text-gray-600 mt-2">Gestiona y monitorea tus compras pre-venta de Hot Wheels</p>
+                            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Panel de Pre-Ventas</h1>
+                            <p className={`mt-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Gestiona y monitorea tus compras pre-venta de Hot Wheels</p>
                         </div>
                         <button
                             onClick={handleRefresh}
                             disabled={isLoading}
-                            className="p-2 hover:bg-gray-200 rounded-lg transition disabled:opacity-50"
+                            className={`p-2 rounded-lg transition disabled:opacity-50 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-gray-200'}`}
                             title="Refresh"
                         >
                             <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
@@ -128,11 +131,11 @@ const PreSaleDashboard: React.FC = () => {
                 <PreSaleStats items={preSales} />
 
                 {/* Filters Section */}
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div className={`rounded-lg shadow-md p-6 mb-6 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            <Filter className="w-5 h-5 text-blue-600" />
-                            <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
+                            <Filter className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Filtros</h2>
                         </div>
                         <div className="flex gap-2">
                             {(filters.status !== 'all' ||
@@ -141,7 +144,7 @@ const PreSaleDashboard: React.FC = () => {
                                 filters.searchTerm) && (
                                     <button
                                         onClick={handleReset}
-                                        className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+                                        className={`px-3 py-1 text-sm rounded hover:opacity-80 transition ${isDark ? 'bg-slate-700 text-slate-200' : 'bg-gray-200 text-gray-700'}`}
                                     >
                                         Limpiar Filtros
                                     </button>
@@ -170,14 +173,14 @@ const PreSaleDashboard: React.FC = () => {
                             </div>
                         </div>
                     ) : filteredPreSales.length === 0 ? (
-                        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-                            <div className="text-gray-400 mb-4">
+                        <div className={`rounded-lg shadow-md p-12 text-center ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                            <div className={`mb-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                                 <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                 </svg>
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay pre-ventas</h3>
-                            <p className="text-gray-600">
+                            <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No hay pre-ventas</h3>
+                            <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
                                 {filters.status !== 'all' ||
                                     filters.carId ||
                                     filters.supplierId ||
@@ -197,7 +200,7 @@ const PreSaleDashboard: React.FC = () => {
 
                 {/* Results count */}
                 {!isLoading && filteredPreSales.length > 0 && (
-                    <div className="mt-6 text-center text-gray-600">
+                    <div className={`mt-6 text-center ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                         Mostrando <span className="font-semibold">{filteredPreSales.length}</span> de{' '}
                         <span className="font-semibold">{preSales.length}</span> pre-ventas
                     </div>

@@ -822,8 +822,8 @@ export default function Deliveries() {
                             <Truck size={20} className="text-blue-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-slate-400">Total Activas</p>
-                            <p className="text-lg lg:text-2xl font-bold text-white">{totalDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-400 dark:text-slate-400">Total Activas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-slate-900 dark:text-white">{totalDeliveries}</p>
                         </div>
                     </div>
                 </Card>
@@ -837,8 +837,8 @@ export default function Deliveries() {
                             <Clock size={20} className="text-yellow-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-slate-400">Pendientes</p>
-                            <p className="text-lg lg:text-2xl font-bold text-white">{pendingDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400">Pendientes</p>
+                            <p className="text-lg lg:text-2xl font-bold text-slate-900 dark:text-white">{pendingDeliveries}</p>
                         </div>
                     </div>
                 </Card>
@@ -852,8 +852,8 @@ export default function Deliveries() {
                             <Package size={20} className="text-orange-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-slate-400">Preparadas</p>
-                            <p className="text-lg lg:text-2xl font-bold text-white">{preparedDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400">Preparadas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-slate-900 dark:text-white">{preparedDeliveries}</p>
                         </div>
                     </div>
                 </Card>
@@ -867,8 +867,8 @@ export default function Deliveries() {
                             <CheckCircle size={20} className="text-green-600" />
                         </div>
                         <div className="lg:ml-4">
-                            <p className="text-xs lg:text-sm font-medium text-slate-400">Completadas</p>
-                            <p className="text-lg lg:text-2xl font-bold text-white">{completedDeliveries}</p>
+                            <p className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400">Completadas</p>
+                            <p className="text-lg lg:text-2xl font-bold text-slate-900 dark:text-white">{completedDeliveries}</p>
                         </div>
                     </div>
                 </Card>

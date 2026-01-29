@@ -1,6 +1,7 @@
 import { Delivery, InventoryItem } from '../../../shared/types'
 import Button from '@/components/common/Button'
 import { CheckCircle, Clock, MapPin, Package, Calendar, Eye, Edit, Share2, Trash2 } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface DeliveryCardProps {
     delivery: Delivery
@@ -32,6 +33,19 @@ export default function DeliveryCard({
     isLoadingCompleted,
     isLoadingDelete
 }: DeliveryCardProps) {
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
+
+    // Colores dinámicos basados en el tema
+    const cardBg = isDark ? 'bg-slate-800' : 'bg-white'
+    const cardBorder = isDark ? 'border-slate-700' : 'border-gray-200'
+    const textPrimary = isDark ? 'text-white' : 'text-gray-900'
+    const textSecondary = isDark ? 'text-slate-300' : 'text-gray-600'
+    const textMuted = isDark ? 'text-slate-400' : 'text-gray-500'
+    const bgCollage = isDark ? 'bg-slate-900' : 'bg-gray-100'
+    const photoBg = isDark ? 'bg-slate-700' : 'bg-gray-300'
+    const photoBorder = isDark ? 'border-slate-600' : 'border-gray-300'
+
     // Get photos from all items in the delivery (from inventory)
     const getItemPhotos = () => {
         const photos: string[] = []
@@ -48,17 +62,17 @@ export default function DeliveryCard({
     const itemPhotos = getItemPhotos()
 
     const statusConfig = {
-        scheduled: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Programada', icon: Clock },
-        prepared: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Preparada', icon: Package },
-        completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completada', icon: CheckCircle },
-        rescheduled: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Reprogramada', icon: Clock },
-        cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelada', icon: Clock }
+        scheduled: { bg: isDark ? 'bg-blue-900/40' : 'bg-blue-100', text: isDark ? 'text-blue-300' : 'text-blue-800', label: 'Programada', icon: Clock },
+        prepared: { bg: isDark ? 'bg-orange-900/40' : 'bg-orange-100', text: isDark ? 'text-orange-300' : 'text-orange-800', label: 'Preparada', icon: Package },
+        completed: { bg: isDark ? 'bg-green-900/40' : 'bg-green-100', text: isDark ? 'text-green-300' : 'text-green-800', label: 'Completada', icon: CheckCircle },
+        rescheduled: { bg: isDark ? 'bg-yellow-900/40' : 'bg-yellow-100', text: isDark ? 'text-yellow-300' : 'text-yellow-800', label: 'Reprogramada', icon: Clock },
+        cancelled: { bg: isDark ? 'bg-red-900/40' : 'bg-red-100', text: isDark ? 'text-red-300' : 'text-red-800', label: 'Cancelada', icon: Clock }
     }
 
     const paymentConfig = {
-        paid: { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Pagado' },
-        partial: { bg: 'bg-orange-100', text: 'text-orange-800', label: `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` },
-        pending: { bg: 'bg-red-100', text: 'text-red-800', label: 'Sin pagar' }
+        paid: { bg: isDark ? 'bg-green-900/40' : 'bg-green-100', text: isDark ? 'text-green-300' : 'text-green-800', label: '✓ Pagado' },
+        partial: { bg: isDark ? 'bg-orange-900/40' : 'bg-orange-100', text: isDark ? 'text-orange-300' : 'text-orange-800', label: `Parcial: $${(delivery.paidAmount || 0).toFixed(2)}` },
+        pending: { bg: isDark ? 'bg-red-900/40' : 'bg-red-100', text: isDark ? 'text-red-300' : 'text-red-800', label: 'Sin pagar' }
     }
 
     const status = delivery.status as keyof typeof statusConfig
@@ -71,26 +85,26 @@ export default function DeliveryCard({
     const formattedDate = `${day}/${month}/${year}`
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow overflow-hidden flex flex-col h-full">
+        <div className={`${cardBg} rounded-lg border ${cardBorder} hover:shadow-lg transition-all overflow-hidden flex flex-col h-full`}>
             {/* Header with status and customer name */}
-            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white flex-shrink-0">
+            <div className={`p-4 border-b ${cardBorder} ${isDark ? 'bg-gradient-to-r from-slate-900 to-slate-800' : 'bg-gray-50'} flex-shrink-0`}>
                 <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{delivery.customer?.name}</h3>
+                    <h3 className={`text-lg font-semibold ${textPrimary}`}>{delivery.customer?.name}</h3>
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${statusInfo.bg} ${statusInfo.text}`}>
                         {statusInfo.label}
                     </span>
                 </div>
-                <div className="text-sm text-gray-600">{delivery.items.length} items en esta entrega</div>
+                <div className={`text-sm ${textSecondary}`}>{delivery.items.length} items en esta entrega</div>
             </div>
 
             {/* Photo collage */}
             {itemPhotos.length > 0 && (
-                <div className="p-4 bg-gray-50 border-b border-gray-100 flex-shrink-0">
+                <div className={`p-4 ${bgCollage} border-b ${cardBorder} flex-shrink-0`}>
                     <div className="grid grid-cols-6 gap-1">
                         {itemPhotos.map((photo, idx) => (
                             <div
                                 key={idx}
-                                className="aspect-square rounded overflow-hidden bg-gray-200 border border-gray-300"
+                                className={`aspect-square rounded overflow-hidden ${photoBg} border ${photoBorder}`}
                             >
                                 <img
                                     src={photo}
@@ -111,35 +125,35 @@ export default function DeliveryCard({
                 <div className="space-y-3 overflow-hidden">
                     {/* Recipient info - Only show if third party */}
                     {delivery.isThirdPartyDelivery && delivery.thirdPartyRecipient && (
-                        <div className="bg-purple-50 rounded-lg p-2 border border-purple-200">
-                            <p className="text-xs text-purple-900 font-medium">Entrega a tercero</p>
-                            <p className="text-sm font-semibold text-purple-900 truncate">{delivery.thirdPartyRecipient}</p>
+                        <div className="bg-purple-900/40 rounded-lg p-2 border border-purple-700/50">
+                            <p className="text-xs text-purple-300 font-medium">Entrega a tercero</p>
+                            <p className="text-sm font-semibold text-purple-200 truncate">{delivery.thirdPartyRecipient}</p>
                             {delivery.thirdPartyPhone && (
-                                <p className="text-xs text-purple-700">📱 {delivery.thirdPartyPhone}</p>
+                                <p className="text-xs text-purple-300">📱 {delivery.thirdPartyPhone}</p>
                             )}
                         </div>
                     )}
 
                     {/* Date and location */}
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Calendar size={16} className="text-gray-400 flex-shrink-0" />
+                        <div className={`flex items-center gap-2 text-sm ${textSecondary}`}>
+                            <Calendar size={16} className={`${textMuted} flex-shrink-0`} />
                             <span>{formattedDate}{delivery.scheduledTime ? ` a las ${delivery.scheduledTime}` : ''}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <MapPin size={16} className="text-gray-400 flex-shrink-0" />
+                        <div className={`flex items-center gap-2 text-sm ${textSecondary}`}>
+                            <MapPin size={16} className={`${textMuted} flex-shrink-0`} />
                             <span className="font-medium">{delivery.location}</span>
                         </div>
                     </div>
 
                     {/* Amount and payment status */}
-                    <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                    <div className={`${isDark ? 'bg-slate-900/50' : 'bg-gray-100'} rounded-lg p-3 space-y-2`}>
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Total:</span>
-                            <span className="text-xl font-bold text-gray-900">${delivery.totalAmount.toFixed(2)}</span>
+                            <span className={`text-sm ${textSecondary}`}>Total:</span>
+                            <span className={`text-xl font-bold ${textPrimary}`}>${delivery.totalAmount.toFixed(2)}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Estado de pago:</span>
+                            <span className={`text-sm ${textSecondary}`}>Estado de pago:</span>
                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${paymentInfo.bg} ${paymentInfo.text}`}>
                                 {paymentInfo.label}
                             </span>
@@ -148,14 +162,14 @@ export default function DeliveryCard({
 
                     {/* Notes */}
                     {delivery.notes && (
-                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                            <p className="text-xs text-blue-900">{delivery.notes}</p>
+                        <div className={`${isDark ? 'bg-blue-900/40 border-blue-700/50' : 'bg-blue-100 border-blue-300'} rounded-lg p-3 border`}>
+                            <p className={`text-xs ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>{delivery.notes}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Action buttons - Always at bottom */}
-                <div className="flex items-center gap-2 pt-4 flex-wrap border-t border-gray-100 mt-auto">
+                <div className={`flex items-center gap-2 pt-4 flex-wrap border-t ${cardBorder} mt-auto`}>
                     {delivery.status === 'scheduled' && (
                         <Button
                             size="sm"

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearch } from '@/contexts/SearchContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { setInventoryItems, setLoading, setError } from '@/store/slices/inventorySlice';
@@ -41,6 +42,10 @@ const POS: React.FC = () => {
     filterMoto,
     filterCamioneta
   } = filters;
+
+  // Get theme
+  const { mode } = useTheme()
+  const isDark = mode === 'dark'
 
   // Get inventory from Redux cache
   const reduxInventory = useAppSelector(state => state.inventory);
@@ -598,476 +603,478 @@ const POS: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold !text-white">🛒 Punto de Venta (POS)</h1>
-        <p className="text-slate-400">Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
-      </div>
+    <div className={isDark ? 'bg-slate-900' : 'bg-gray-50'}>
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6">
+          <h1 className={`text-3xl font-bold ${isDark ? '!text-white' : '!text-gray-900'}`}>🛒 Punto de Venta (POS)</h1>
+          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Lista de Inventario */}
-        <div className="lg:col-span-2">
-          <div className="bg-slate-800 rounded-lg shadow p-4">
-            {/* Barra de búsqueda */}
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
-                value={searchTerm}
-                onChange={(e) => updateFilter('searchTerm', e.target.value)}
-                className="w-full px-4 py-2 border border-slate-600 bg-slate-700 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500"
-              />
-            </div>
-
-            {/* Filtros */}
-            <div className="mb-4 space-y-3">
-              {/* Primera fila de filtros */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <select
-                  value={filterCondition}
-                  onChange={(e) => updateFilter('filterCondition', e.target.value)}
-                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
-                >
-                  <option value="">Todas las condiciones</option>
-                  <option value="mint">Mint</option>
-                  <option value="good">Bueno</option>
-                  <option value="fair">Regular</option>
-                  <option value="poor">Malo</option>
-                </select>
-
-                <select
-                  value={filterBrand}
-                  onChange={(e) => {
-                    updateFilter('filterBrand', e.target.value);
-                    if (!e.target.value) updateFilter('filterPieceType', ''); // Reset tipo al cambiar marca
-                  }}
-                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
-                >
-                  <option value="">Todas las marcas</option>
-                  {uniqueBrands.map(brand => (
-                    <option key={brand} value={brand}>{brand}</option>
-                  ))}
-                </select>
-
-                <select
-                  value={filterPieceType}
-                  onChange={(e) => updateFilter('filterPieceType', e.target.value)}
-                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 disabled:opacity-50"
-                  disabled={!filterBrand}
-                >
-                  <option value="">Todos los tipos</option>
-                  <option value="basic">Básico</option>
-                  <option value="premium">Premium</option>
-                  <option value="rlc">RLC</option>
-                  <option value="silver_series">Silver Series</option>
-                  <option value="elite_64">Elite 64</option>
-                </select>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Lista de Inventario */}
+          <div className="lg:col-span-2">
+            <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-4`}>
+              {/* Barra de búsqueda */}
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
+                  value={searchTerm}
+                  onChange={(e) => updateFilter('searchTerm', e.target.value)}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400' : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'}`}
+                />
               </div>
 
-              {/* Segunda fila de filtros */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <select
-                  value={filterLocation}
-                  onChange={(e) => updateFilter('filterLocation', e.target.value)}
-                  className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
-                >
-                  <option value="">Todas las ubicaciones</option>
-                  {uniqueLocations.map(location => (
-                    <option key={location} value={location}>{location}</option>
-                  ))}
-                </select>
-
-                {/* Filtro TH/STH solo para Hot Wheels Basic */}
-                {filterBrand === 'Hot Wheels' && filterPieceType === 'basic' && (
+              {/* Filtros */}
+              <div className="mb-4 space-y-3">
+                {/* Primera fila de filtros */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   <select
-                    value={filterTreasureHunt}
-                    onChange={(e) => updateFilter('filterTreasureHunt', e.target.value)}
-                    className="px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500"
+                    value={filterCondition}
+                    onChange={(e) => updateFilter('filterCondition', e.target.value)}
+                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
                   >
-                    <option value="">Todos (TH/STH/Normal)</option>
-                    <option value="th">Solo Treasure Hunt (TH)</option>
-                    <option value="sth">Solo Super TH (STH)</option>
+                    <option value="">Todas las condiciones</option>
+                    <option value="mint">Mint</option>
+                    <option value="good">Bueno</option>
+                    <option value="fair">Regular</option>
+                    <option value="poor">Malo</option>
                   </select>
-                )}
 
-                <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
-                  <input
-                    type="checkbox"
-                    checked={filterLowStock}
-                    onChange={(e) => updateFilter('filterLowStock', e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm font-medium text-slate-300">
-                    Solo stock bajo (≤3)
-                  </span>
-                </label>
-              </div>
+                  <select
+                    value={filterBrand}
+                    onChange={(e) => {
+                      updateFilter('filterBrand', e.target.value);
+                      if (!e.target.value) updateFilter('filterPieceType', ''); // Reset tipo al cambiar marca
+                    }}
+                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                  >
+                    <option value="">Todas las marcas</option>
+                    {uniqueBrands.map(brand => (
+                      <option key={brand} value={brand}>{brand}</option>
+                    ))}
+                  </select>
 
-              {/* Tercera fila de filtros */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {/* Filtro Chase */}
-                <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
-                  <input
-                    type="checkbox"
-                    checked={filterChase}
-                    onChange={(e) => updateFilter('filterChase', e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm font-medium text-slate-300">
-                    Solo Chase
-                  </span>
-                </label>
+                  <select
+                    value={filterPieceType}
+                    onChange={(e) => updateFilter('filterPieceType', e.target.value)}
+                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 disabled:opacity-50 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                    disabled={!filterBrand}
+                  >
+                    <option value="">Todos los tipos</option>
+                    <option value="basic">Básico</option>
+                    <option value="premium">Premium</option>
+                    <option value="rlc">RLC</option>
+                    <option value="silver_series">Silver Series</option>
+                    <option value="elite_64">Elite 64</option>
+                  </select>
+                </div>
 
-                {/* Filtro Fantasy solo para Hot Wheels */}
-                {filterBrand === 'Hot Wheels' && (
-                  <label className="flex items-center gap-2 px-3 py-2 border border-purple-600 bg-purple-900/50 rounded-lg cursor-pointer hover:bg-purple-800/50">
+                {/* Segunda fila de filtros */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <select
+                    value={filterLocation}
+                    onChange={(e) => updateFilter('filterLocation', e.target.value)}
+                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                  >
+                    <option value="">Todas las ubicaciones</option>
+                    {uniqueLocations.map(location => (
+                      <option key={location} value={location}>{location}</option>
+                    ))}
+                  </select>
+
+                  {/* Filtro TH/STH solo para Hot Wheels Basic */}
+                  {filterBrand === 'Hot Wheels' && filterPieceType === 'basic' && (
+                    <select
+                      value={filterTreasureHunt}
+                      onChange={(e) => updateFilter('filterTreasureHunt', e.target.value)}
+                      className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                    >
+                      <option value="">Todos (TH/STH/Normal)</option>
+                      <option value="th">Solo Treasure Hunt (TH)</option>
+                      <option value="sth">Solo Super TH (STH)</option>
+                    </select>
+                  )}
+
+                  <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
                     <input
                       type="checkbox"
-                      checked={filterFantasy}
-                      onChange={(e) => updateFilter('filterFantasy', e.target.checked)}
+                      checked={filterLowStock}
+                      onChange={(e) => updateFilter('filterLowStock', e.target.checked)}
                       className="rounded"
                     />
-                    <span className="text-sm font-medium text-purple-300">
-                      Solo Fantasías
+                    <span className="text-sm font-medium text-slate-300">
+                      Solo stock bajo (≤3)
                     </span>
                   </label>
-                )}
+                </div>
 
-                {/* Filtro Moto */}
-                <label className="flex items-center gap-2 px-3 py-2 border border-orange-600 bg-orange-900/50 rounded-lg cursor-pointer hover:bg-orange-800/50">
-                  <input
-                    type="checkbox"
-                    checked={filterMoto}
-                    onChange={(e) => updateFilter('filterMoto', e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm font-medium text-orange-300">
-                    Solo Motos 🏍️
-                  </span>
-                </label>
+                {/* Tercera fila de filtros */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {/* Filtro Chase */}
+                  <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
+                    <input
+                      type="checkbox"
+                      checked={filterChase}
+                      onChange={(e) => updateFilter('filterChase', e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium text-slate-300">
+                      Solo Chase
+                    </span>
+                  </label>
 
-                {/* Filtro Camioneta */}
-                <label className="flex items-center gap-2 px-3 py-2 border border-blue-600 bg-blue-900/50 rounded-lg cursor-pointer hover:bg-blue-800/50">
-                  <input
-                    type="checkbox"
-                    checked={filterCamioneta}
-                    onChange={(e) => updateFilter('filterCamioneta', e.target.checked)}
-                    className="rounded"
-                  />
-                  <span className="text-sm font-medium text-blue-300">
-                    Solo Camionetas 🚚
-                  </span>
-                </label>
+                  {/* Filtro Fantasy solo para Hot Wheels */}
+                  {filterBrand === 'Hot Wheels' && (
+                    <label className="flex items-center gap-2 px-3 py-2 border border-purple-600 bg-purple-900/50 rounded-lg cursor-pointer hover:bg-purple-800/50">
+                      <input
+                        type="checkbox"
+                        checked={filterFantasy}
+                        onChange={(e) => updateFilter('filterFantasy', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium text-purple-300">
+                        Solo Fantasías
+                      </span>
+                    </label>
+                  )}
 
-                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
-                  <button
-                    onClick={() => {
-                      updateFilter('searchTerm', '');
-                      updateFilter('filterCondition', '');
-                      updateFilter('filterBrand', '');
-                      updateFilter('filterPieceType', '');
-                      updateFilter('filterLocation', '');
-                      updateFilter('filterLowStock', false);
-                      updateFilter('filterTreasureHunt', 'all');
-                      updateFilter('filterChase', false);
-                      updateFilter('filterFantasy', false);
-                      updateFilter('filterMoto', false);
-                      updateFilter('filterCamioneta', false);
-                    }}
-                    className="px-3 py-2 bg-slate-600 text-slate-200 rounded-lg hover:bg-slate-500 text-sm font-medium border border-slate-600"
-                  >
-                    Limpiar filtros
-                  </button>
-                )}
+                  {/* Filtro Moto */}
+                  <label className="flex items-center gap-2 px-3 py-2 border border-orange-600 bg-orange-900/50 rounded-lg cursor-pointer hover:bg-orange-800/50">
+                    <input
+                      type="checkbox"
+                      checked={filterMoto}
+                      onChange={(e) => updateFilter('filterMoto', e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium text-orange-300">
+                      Solo Motos 🏍️
+                    </span>
+                  </label>
+
+                  {/* Filtro Camioneta */}
+                  <label className="flex items-center gap-2 px-3 py-2 border border-blue-600 bg-blue-900/50 rounded-lg cursor-pointer hover:bg-blue-800/50">
+                    <input
+                      type="checkbox"
+                      checked={filterCamioneta}
+                      onChange={(e) => updateFilter('filterCamioneta', e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium text-blue-300">
+                      Solo Camionetas 🚚
+                    </span>
+                  </label>
+
+                  {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
+                    <button
+                      onClick={() => {
+                        updateFilter('searchTerm', '');
+                        updateFilter('filterCondition', '');
+                        updateFilter('filterBrand', '');
+                        updateFilter('filterPieceType', '');
+                        updateFilter('filterLocation', '');
+                        updateFilter('filterLowStock', false);
+                        updateFilter('filterTreasureHunt', 'all');
+                        updateFilter('filterChase', false);
+                        updateFilter('filterFantasy', false);
+                        updateFilter('filterMoto', false);
+                        updateFilter('filterCamioneta', false);
+                      }}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium border ${isDark ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border-slate-600' : 'bg-gray-300 text-gray-700 hover:bg-gray-400 border-gray-300'}`}
+                    >
+                      Limpiar filtros
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Contador de resultados */}
-            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
-              <div className="mb-3 text-sm text-slate-400">
-                {filteredInventory.length} resultado(s) encontrado(s)
-              </div>
-            )}
+              {/* Contador de resultados */}
+              {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
+                <div className={`mb-3 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  {filteredInventory.length} resultado(s) encontrado(s)
+                </div>
+              )}
 
-            <div className="overflow-y-auto max-h-[600px]">
-              {filteredInventory.length === 0 ? (
-                <p className="text-center text-slate-400 py-8">
-                  {searchTerm ? 'No se encontraron artículos' : 'No hay artículos disponibles'}
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredInventory.map(item => {
-                    if (!item._id) return null;
+              <div className="overflow-y-auto max-h-[600px]">
+                {filteredInventory.length === 0 ? (
+                  <p className={`text-center py-8 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    {searchTerm ? 'No se encontraron artículos' : 'No hay artículos disponibles'}
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filteredInventory.map(item => {
+                      if (!item._id) return null;
 
-                    // Extraer datos del carId si está poblado
-                    const carData = typeof item.carId === 'object' ? item.carId : null;
-                    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-                    const displayName = carData?.name || carIdStr || 'Sin nombre';
-                    const price = item.actualPrice || item.suggestedPrice || 0;
-                    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
-                    const cartItem = cart.find(c => c._id === item._id);
-                    const cartQty = cartItem?.cartQuantity || 0;
-                    const isInCart = !!cartItem;
+                      // Extraer datos del carId si está poblado
+                      const carData = typeof item.carId === 'object' ? item.carId : null;
+                      const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+                      const displayName = carData?.name || carIdStr || 'Sin nombre';
+                      const price = item.actualPrice || item.suggestedPrice || 0;
+                      const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+                      const cartItem = cart.find(c => c._id === item._id);
+                      const cartQty = cartItem?.cartQuantity || 0;
+                      const isInCart = !!cartItem;
 
-                    return (
-                      <div
-                        key={item._id}
-                        className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-slate-800"
-                      >
-                        {/* Item Image */}
-                        <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
-                          {item.photos && item.photos.length > 0 ? (
-                            <img
-                              src={item.photos[0]}
-                              alt={displayName}
-                              className="w-full h-48 object-cover"
-                              crossOrigin="anonymous"
-                            />
-                          ) : (
-                            <div className="w-full h-48 flex items-center justify-center bg-slate-700">
-                              <svg className="w-20 h-20 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          )}
-                          {isInCart && (
-                            <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                              En carrito
-                            </div>
-                          )}
-                          {availableQty <= 3 && (
-                            <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                              Solo {availableQty}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Item Details */}
-                        <div className="p-4">
-                          <h3 className="font-bold text-lg mb-1 line-clamp-2 text-white">{displayName}</h3>
-                          <p className="text-xs text-slate-400 mb-2">{carIdStr}</p>
-                          <div className="space-y-1 mb-3">
-                            <p className="text-sm text-slate-300 font-medium">
-                              {item.brand} {item.year && `• ${item.year}`}
-                            </p>
-                            {item.color && (
-                              <p className="text-xs text-slate-400">🎨 {item.color}</p>
+                      return (
+                        <div
+                          key={item._id}
+                          className={`border rounded-lg overflow-hidden hover:shadow-lg transition-shadow ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}
+                        >
+                          {/* Item Image */}
+                          <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
+                            {item.photos && item.photos.length > 0 ? (
+                              <img
+                                src={item.photos[0]}
+                                alt={displayName}
+                                className="w-full h-48 object-cover"
+                                crossOrigin="anonymous"
+                              />
+                            ) : (
+                              <div className="w-full h-48 flex items-center justify-center bg-slate-700">
+                                <svg className="w-20 h-20 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
                             )}
-                            {item.series && (
-                              <p className="text-xs text-slate-400">📦 {item.series}</p>
+                            {isInCart && (
+                              <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                En carrito
+                              </div>
                             )}
-                            <p className="text-xs text-slate-400">🏷️ {formatPieceType(item.pieceType)}</p>
-                            <p className="text-xs text-slate-400">📍 Disponible: {availableQty}</p>
+                            {availableQty <= 3 && (
+                              <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                Solo {availableQty}
+                              </div>
+                            )}
                           </div>
 
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-600">
-                            <span className="text-2xl font-bold text-emerald-400">
-                              ${price.toFixed(2)}
-                            </span>
-                            {availableQty <= 1 ? (
-                              <button
-                                onClick={() => addToCart(item)}
-                                disabled={isInCart}
-                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
-                                  ? 'bg-slate-600 cursor-not-allowed text-slate-400'
-                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                  }`}
-                              >
-                                {isInCart ? '✓ Agregado' : '+ Agregar'}
-                              </button>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                {isInCart && (
-                                  <>
-                                    <button
-                                      onClick={() => updateCartQuantity(item._id, cartQty - 1)}
-                                      className="w-9 h-9 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors"
-                                    >
-                                      −
-                                    </button>
-                                    <span className="font-bold text-lg min-w-[2.5rem] text-center text-white">{cartQty}</span>
-                                  </>
-                                )}
+                          {/* Item Details */}
+                          <div className="p-4">
+                            <h3 className={`font-bold text-lg mb-1 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{displayName}</h3>
+                            <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{carIdStr}</p>
+                            <div className="space-y-1 mb-3">
+                              <p className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                                {item.brand} {item.year && `• ${item.year}`}
+                              </p>
+                              {item.color && (
+                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>🎨 {item.color}</p>
+                              )}
+                              {item.series && (
+                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>📦 {item.series}</p>
+                              )}
+                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>🏷️ {formatPieceType(item.pieceType)}</p>
+                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>📍 Disponible: {availableQty}</p>
+                            </div>
+
+                            <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isDark ? 'border-slate-600' : 'border-gray-200'}`}>
+                              <span className="text-2xl font-bold text-emerald-400">
+                                ${price.toFixed(2)}
+                              </span>
+                              {availableQty <= 1 ? (
                                 <button
-                                  onClick={() => addToCart(item, 1)}
-                                  disabled={cartQty >= availableQty}
-                                  className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${cartQty >= availableQty
-                                    ? 'bg-gray-300 cursor-not-allowed'
+                                  onClick={() => addToCart(item)}
+                                  disabled={isInCart}
+                                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
+                                    ? 'bg-slate-600 cursor-not-allowed text-slate-400'
                                     : 'bg-blue-600 hover:bg-blue-700 text-white'
                                     }`}
                                 >
-                                  +
+                                  {isInCart ? '✓ Agregado' : '+ Agregar'}
                                 </button>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  {isInCart && (
+                                    <>
+                                      <button
+                                        onClick={() => updateCartQuantity(item._id, cartQty - 1)}
+                                        className="w-9 h-9 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors"
+                                      >
+                                        −
+                                      </button>
+                                      <span className="font-bold text-lg min-w-[2.5rem] text-center text-white">{cartQty}</span>
+                                    </>
+                                  )}
+                                  <button
+                                    onClick={() => addToCart(item, 1)}
+                                    disabled={cartQty >= availableQty}
+                                    className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${cartQty >= availableQty
+                                      ? 'bg-gray-300 cursor-not-allowed'
+                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                      }`}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Carrito */}
+          <div className="lg:col-span-1">
+            <div className={`rounded-lg shadow p-4 sticky top-4 border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+              <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Carrito ({cart.length})</h2>
+
+              <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
+                {cart.length === 0 ? (
+                  <p className={`text-center py-8 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Carrito vacío</p>
+                ) : (
+                  cart.map(item => {
+                    if (!item._id) return null;
+
+                    const carData = typeof item.carId === 'object' ? item.carId : null;
+                    const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+                    const displayName = carData?.name || carIdStr || 'Sin nombre';
+                    const originalPrice = item.actualPrice || item.suggestedPrice || 0;
+                    const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+
+                    return (
+                      <div key={item._id} className={`border rounded-lg overflow-hidden hover:shadow-md transition-shadow ${isDark ? 'border-slate-600 bg-slate-700/50' : 'border-gray-200 bg-gray-50'}`}>
+                        <div className="flex gap-2 p-2">
+                          {/* Cart Item Image */}
+                          <div className="flex-shrink-0">
+                            {item.photos && item.photos.length > 0 ? (
+                              <img
+                                src={item.photos[0]}
+                                alt={displayName}
+                                className="w-16 h-16 object-cover rounded border border-slate-600"
+                                crossOrigin="anonymous"
+                              />
+                            ) : (
+                              <div className={`w-16 h-16 rounded border flex items-center justify-center ${isDark ? 'bg-slate-600 border-slate-500' : 'bg-gray-100 border-gray-300'}`}>
+                                <svg className={`w-8 h-8 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Cart Item Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <div className="flex-1 min-w-0">
+                                <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{displayName}</p>
+                                <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{carIdStr}</p>
+                              </div>
+                              <button
+                                onClick={() => removeFromCart(item._id)}
+                                className="text-red-500 hover:text-red-400 ml-2 flex-shrink-0"
+                              >
+                                ✕
+                              </button>
+                            </div>
+
+                            {/* Price Input */}
+                            <div className="flex items-center gap-1 mb-2">
+                              <span className={`text-xs line-through ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                                ${originalPrice.toFixed(2)}
+                              </span>
+                              <input
+                                type="number"
+                                value={item.customPrice}
+                                onChange={(e) =>
+                                  updatePrice(item._id, parseFloat(e.target.value) || 0)
+                                }
+                                className={`flex-1 px-2 py-1 border rounded text-sm font-semibold ${isDark ? 'bg-slate-700 border-slate-600 text-green-600' : 'bg-gray-50 border-gray-300 text-green-600'}`}
+                                step="0.01"
+                                min="0"
+                              />
+                            </div>
+
+                            {/* Quantity Controls */}
+                            {availableQty > 1 && (
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() =>
+                                      updateCartQuantity(item._id, item.cartQuantity - 1)
+                                    }
+                                    className="w-6 h-6 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded font-bold text-xs"
+                                  >
+                                    −
+                                  </button>
+                                  <span className={`text-sm font-bold min-w-[2rem] text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    {item.cartQuantity}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      updateCartQuantity(item._id, item.cartQuantity + 1)
+                                    }
+                                    disabled={item.cartQuantity >= availableQty}
+                                    className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${item.cartQuantity >= availableQty
+                                      ? 'bg-gray-300 cursor-not-allowed'
+                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                      }`}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <span className="text-xs font-semibold text-emerald-400">
+                                  ${(item.customPrice * item.cartQuantity).toFixed(2)}
+                                </span>
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
                     );
-                  })}
+                  })
+                )}
+              </div>
+
+              <div className={`border-t pt-4 ${isDark ? 'border-slate-600' : 'border-gray-200'}`}>
+                <div className="mb-4">
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Método de Pago
+                  </label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                  >
+                    <option value="cash">Efectivo</option>
+                    <option value="transfer">Transferencia</option>
+                    <option value="paypal">PayPal</option>
+                    <option value="mercadopago">MercadoPago</option>
+                    <option value="other">Otro</option>
+                  </select>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
 
-        {/* Carrito */}
-        <div className="lg:col-span-1">
-          <div className="bg-slate-800 rounded-lg shadow p-4 sticky top-4 border border-slate-700">
-            <h2 className="text-xl font-bold mb-4 text-white">Carrito ({cart.length})</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Total:</span>
+                  <span className="text-3xl font-bold text-emerald-400">
+                    ${calculateTotal().toFixed(2)}
+                  </span>
+                </div>
 
-            <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
-              {cart.length === 0 ? (
-                <p className="text-center text-slate-400 py-8">Carrito vacío</p>
-              ) : (
-                cart.map(item => {
-                  if (!item._id) return null;
-
-                  const carData = typeof item.carId === 'object' ? item.carId : null;
-                  const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-                  const displayName = carData?.name || carIdStr || 'Sin nombre';
-                  const originalPrice = item.actualPrice || item.suggestedPrice || 0;
-                  const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
-
-                  return (
-                    <div key={item._id} className="border border-slate-600 rounded-lg overflow-hidden bg-slate-700/50 hover:shadow-md transition-shadow">
-                      <div className="flex gap-2 p-2">
-                        {/* Cart Item Image */}
-                        <div className="flex-shrink-0">
-                          {item.photos && item.photos.length > 0 ? (
-                            <img
-                              src={item.photos[0]}
-                              alt={displayName}
-                              className="w-16 h-16 object-cover rounded border border-slate-600"
-                              crossOrigin="anonymous"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 bg-slate-600 rounded border border-slate-500 flex items-center justify-center">
-                              <svg className="w-8 h-8 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Cart Item Details */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start mb-1">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm truncate text-white">{displayName}</p>
-                              <p className="text-xs text-slate-400 truncate">{carIdStr}</p>
-                            </div>
-                            <button
-                              onClick={() => removeFromCart(item._id)}
-                              className="text-red-500 hover:text-red-400 ml-2 flex-shrink-0"
-                            >
-                              ✕
-                            </button>
-                          </div>
-
-                          {/* Price Input */}
-                          <div className="flex items-center gap-1 mb-2">
-                            <span className="text-xs text-slate-500 line-through">
-                              ${originalPrice.toFixed(2)}
-                            </span>
-                            <input
-                              type="number"
-                              value={item.customPrice}
-                              onChange={(e) =>
-                                updatePrice(item._id, parseFloat(e.target.value) || 0)
-                              }
-                              className="flex-1 px-2 py-1 border rounded text-sm font-semibold text-green-600"
-                              step="0.01"
-                              min="0"
-                            />
-                          </div>
-
-                          {/* Quantity Controls */}
-                          {availableQty > 1 && (
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() =>
-                                    updateCartQuantity(item._id, item.cartQuantity - 1)
-                                  }
-                                  className="w-6 h-6 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded font-bold text-xs"
-                                >
-                                  −
-                                </button>
-                                <span className="text-sm font-bold min-w-[2rem] text-center">
-                                  {item.cartQuantity}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                    updateCartQuantity(item._id, item.cartQuantity + 1)
-                                  }
-                                  disabled={item.cartQuantity >= availableQty}
-                                  className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${item.cartQuantity >= availableQty
-                                    ? 'bg-gray-300 cursor-not-allowed'
-                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                    }`}
-                                >
-                                  +
-                                </button>
-                              </div>
-                              <span className="text-xs font-semibold text-emerald-400">
-                                ${(item.customPrice * item.cartQuantity).toFixed(2)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            <div className="border-t border-slate-600 pt-4">
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-white">
-                  Método de Pago
-                </label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-600 bg-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500"
+                <button
+                  onClick={processSale}
+                  disabled={cart.length === 0 || processing}
+                  className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
+                    ? (isDark ? 'bg-slate-600 cursor-not-allowed text-slate-400' : 'bg-gray-300 cursor-not-allowed text-gray-500')
+                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
                 >
-                  <option value="cash">Efectivo</option>
-                  <option value="transfer">Transferencia</option>
-                  <option value="paypal">PayPal</option>
-                  <option value="mercadopago">MercadoPago</option>
-                  <option value="other">Otro</option>
-                </select>
+                  {processing ? 'Procesando...' : 'Completar Venta'}
+                </button>
+
+                <button
+                  onClick={() => dispatch(clearCart())}
+                  disabled={cart.length === 0}
+                  className={`w-full mt-2 py-2 border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'border-slate-600 hover:bg-slate-700/50 text-slate-300 hover:text-white' : 'border-gray-300 hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
+                >
+                  Limpiar Carrito
+                </button>
               </div>
-
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-2xl font-bold text-white">Total:</span>
-                <span className="text-3xl font-bold text-emerald-400">
-                  ${calculateTotal().toFixed(2)}
-                </span>
-              </div>
-
-              <button
-                onClick={processSale}
-                disabled={cart.length === 0 || processing}
-                className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
-                  ? 'bg-slate-600 cursor-not-allowed text-slate-400'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  }`}
-              >
-                {processing ? 'Procesando...' : 'Completar Venta'}
-              </button>
-
-              <button
-                onClick={() => dispatch(clearCart())}
-                disabled={cart.length === 0}
-                className="w-full mt-2 py-2 border border-slate-600 rounded-lg hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Limpiar Carrito
-              </button>
             </div>
           </div>
         </div>

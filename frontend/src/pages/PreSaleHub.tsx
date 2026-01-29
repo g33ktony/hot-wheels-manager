@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Package, LayoutDashboard, CreditCard, TrendingUp } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
 import PreSalePurchase from './PreSalePurchase'
 import PreSaleDashboardPage from './PreSaleDashboardPage'
 import PreSalePayments from './PreSalePayments'
@@ -9,6 +10,8 @@ type TabType = 'purchase' | 'dashboard' | 'payments' | 'reports'
 
 export default function PreSaleHub() {
     const [activeTab, setActiveTab] = useState<TabType>('dashboard')
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
 
     const tabs = [
         {
@@ -41,15 +44,15 @@ export default function PreSaleHub() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-white">🎯 Pre-Ventas</h1>
-                <p className="text-sm text-slate-400 mt-1">
+                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>🎯 Pre-Ventas</h1>
+                <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                     Gestión completa del ciclo de pre-ventas
                 </p>
             </div>
 
             {/* Tabs Navigation */}
-            <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700 overflow-hidden">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 border-b border-slate-700">
+            <div className={`rounded-lg shadow-sm border overflow-hidden ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+                <div className={`grid grid-cols-2 lg:grid-cols-4 gap-0 border-b ${isDark ? 'border-slate-700' : 'border-gray-200'}`}>
                     {tabs.map((tab) => {
                         const Icon = tab.icon
                         const isActive = activeTab === tab.id
@@ -63,7 +66,7 @@ export default function PreSaleHub() {
                                     transition-all duration-200 group
                                     ${isActive
                                         ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700/30 border-b-2 border-transparent'
+                                        : (isDark ? 'bg-slate-800 text-slate-400 hover:bg-slate-700/30 border-b-2 border-transparent' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-b-2 border-transparent')
                                     }
                                 `}
                             >

@@ -8,6 +8,7 @@ export interface IInventoryItem extends Omit<InventoryItem, '_id'>, Document {
 
 const inventoryItemSchema = new Schema({
   carId: { type: String, required: true }, // Usará toy_num de HotWheelsCar
+  carName: { type: String }, // Nombre del carro (para items del catálogo)
   quantity: { type: Number, required: true, min: 0 },
   reservedQuantity: { type: Number, required: true, min: 0, default: 0 }, // Cantidad reservada para entregas pendientes
   purchasePrice: { type: Number, required: true, min: 0 },
@@ -62,7 +63,11 @@ const inventoryItemSchema = new Schema({
   registeredPieces: { type: Number, default: 0, min: 0 }, // Number of pieces already registered
   // Source box tracking (for pieces that came from a box)
   sourceBox: { type: String }, // Name of source box (e.g., "Caja P")
-  sourceBoxId: { type: String } // ID of source box for tracking
+  sourceBoxId: { type: String }, // ID of source box for tracking
+  // Catálogo fields (for items added from catalog)
+  series: { type: String }, // Series name from catalog
+  year: { type: Number }, // Year from catalog
+  color: { type: String } // Color from catalog
 }, {
   timestamps: true,
 })

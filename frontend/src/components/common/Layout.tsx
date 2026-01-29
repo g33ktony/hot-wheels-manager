@@ -129,7 +129,7 @@ export default function Layout({ children }: LayoutProps) {
 
     return (
         <div
-            className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex overflow-x-hidden w-full max-w-full"
+            className={`min-h-screen ${mode === 'dark' ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'} flex overflow-x-hidden w-full max-w-full`}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -149,15 +149,16 @@ export default function Layout({ children }: LayoutProps) {
             <div
                 ref={sidebarRef}
                 className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r border-slate-700
+        fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r
+        ${mode === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className="flex items-center justify-between h-16 px-4 border-b border-slate-700 flex-shrink-0 bg-slate-900 z-10">
-                    <h1 className="text-lg lg:text-xl font-bold text-white select-none">🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
+                <div className={`flex items-center justify-between h-16 px-4 border-b flex-shrink-0 z-10 ${mode === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
+                    <h1 className={`text-lg lg:text-xl font-bold select-none ${mode === 'dark' ? 'text-white' : 'text-gray-900'}`}>🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
                     <button
-                        className="lg:hidden p-2 -mr-2 hover:bg-slate-700 rounded-lg active:bg-slate-600 transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center"
+                        className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                         onClick={() => setSidebarOpen(false)}
                         aria-label="Cerrar menú"
                         style={{
@@ -165,7 +166,7 @@ export default function Layout({ children }: LayoutProps) {
                             WebkitTouchCallout: 'none',
                         }}
                     >
-                        <X size={24} className="text-slate-300" />
+                        <X size={24} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
                     </button>
                 </div>
 
@@ -183,11 +184,11 @@ export default function Layout({ children }: LayoutProps) {
                   min-h-[44px] touch-manipulation relative select-none
                   ${isActive
                                             ? item.highlight
-                                                ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30'
-                                                : 'bg-blue-500/20 text-blue-300 shadow-sm border border-blue-500/30'
+                                                ? (mode === 'dark' ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30' : 'bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200')
+                                                : (mode === 'dark' ? 'bg-blue-500/20 text-blue-300 shadow-sm border border-blue-500/30' : 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200')
                                             : item.highlight
-                                                ? 'text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 active:bg-orange-500/20 border border-orange-500/20'
-                                                : 'text-slate-300 hover:bg-slate-700 hover:text-white active:bg-slate-600'
+                                                ? (mode === 'dark' ? 'text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 active:bg-orange-500/20 border border-orange-500/20' : 'text-orange-600 hover:bg-orange-50 hover:text-orange-700 active:bg-orange-100 border border-orange-200')
+                                                : (mode === 'dark' ? 'text-slate-300 hover:bg-slate-700 hover:text-white active:bg-slate-600' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200')
                                         }
                 `}
                                     style={{
@@ -216,7 +217,7 @@ export default function Layout({ children }: LayoutProps) {
                         {/* Logout button */}
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20 mt-4"
+                            className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 ${mode === 'dark' ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20' : 'text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100'}`}
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',
@@ -232,9 +233,9 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className="h-16 bg-slate-800/80 border-b border-slate-700 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm backdrop-blur">
+                <div className={`h-16 border-b px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm backdrop-blur ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}`}>
                     <button
-                        className="lg:hidden p-2 -ml-2 hover:bg-slate-700 rounded-lg active:bg-slate-600 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className={`lg:hidden p-2 -ml-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                         onClick={() => setSidebarOpen(true)}
                         aria-label="Abrir menú"
                         style={{
@@ -242,19 +243,19 @@ export default function Layout({ children }: LayoutProps) {
                             WebkitTouchCallout: 'none',
                         }}
                     >
-                        <Menu size={24} className="text-slate-300" />
+                        <Menu size={24} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
                     </button>
 
                     {/* Búsqueda global */}
                     <form onSubmit={handleSearch} className="flex-1 max-w-sm">
                         <div className="relative">
-                            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <SearchIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${mode === 'dark' ? 'text-slate-400' : 'text-gray-400'}`} />
                             <input
                                 type="text"
                                 placeholder="Busca piezas, clientes, ventas..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-sm text-white placeholder-slate-400 focus:bg-slate-700 focus:border-emerald-500 focus:outline-none transition-colors"
+                                className={`w-full pl-10 pr-3 py-2 rounded-lg border text-sm focus:outline-none transition-colors ${mode === 'dark' ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:bg-slate-700 focus:border-emerald-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:bg-white focus:border-emerald-500'}`}
                             />
                         </div>
                     </form>
@@ -263,7 +264,7 @@ export default function Layout({ children }: LayoutProps) {
                         {/* Theme toggle button */}
                         <button
                             onClick={toggleTheme}
-                            className="p-2 hover:bg-slate-700 rounded-lg active:bg-slate-600 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+                            className={`p-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                             aria-label={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
                             title={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
                             style={{
@@ -274,11 +275,11 @@ export default function Layout({ children }: LayoutProps) {
                             {mode === 'dark' ? (
                                 <Sun size={20} className="text-slate-300" />
                             ) : (
-                                <Moon size={20} className="text-slate-600" />
+                                <Moon size={20} className="text-gray-600" />
                             )}
                         </button>
 
-                        <div className="text-sm text-slate-400 hidden sm:block select-none">
+                        <div className={`text-sm hidden sm:block select-none ${mode === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>
                             {user?.name || 'Usuario'}
                         </div>
                     </div>

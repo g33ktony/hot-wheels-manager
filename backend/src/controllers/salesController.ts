@@ -107,6 +107,11 @@ export const getSaleById = async (req: Request, res: Response) => {
       if (!item.profit) {
         item.profit = (item.unitPrice - (item.costPrice || 0)) * item.quantity;
       }
+      // If photos are not already in the item, get them from inventory
+      if (!item.photos || item.photos.length === 0) {
+        const inventory = item.inventoryItemId as any;
+        item.photos = inventory?.photos || [];
+      }
       return item;
     });
 
@@ -182,7 +187,8 @@ export const createSale = async (req: Request, res: Response) => {
         processedItems.push({
           ...item,
           costPrice,
-          profit: totalProfit
+          profit: totalProfit,
+          photos: inventoryItem.photos || [] // Copy photos from inventory
         });
       } else {
         // For catalog items, use provided costPrice or calculate from unitPrice
@@ -193,7 +199,8 @@ export const createSale = async (req: Request, res: Response) => {
         processedItems.push({
           ...item,
           costPrice,
-          profit: totalProfit
+          profit: totalProfit,
+          photos: item.photos || [] // Use provided photos or empty array
         });
       }
     }
@@ -495,7 +502,8 @@ export const createPOSSale = async (req: Request, res: Response) => {
         unitPrice: finalPrice,
         originalPrice: itemPrice, // Guardar el precio original
         costPrice: costPrice,
-        profit: totalProfit
+        profit: totalProfit,
+        photos: inventoryItem.photos || [] // Incluir fotos del inventario
       });
 
       totalAmount += finalPrice * parsedQuantity;

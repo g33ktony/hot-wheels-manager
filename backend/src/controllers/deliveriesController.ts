@@ -227,10 +227,13 @@ export const createDelivery = async (req: Request, res: Response) => {
 
         // Validate items and calculate total
     let totalAmount = requestTotalAmount ?? 0;
+    const enrichedItems = items ? [...items] : []; // Clone items array
+    
     if (items && items.length > 0) {
       // Calculate from items if they exist (overrides requestTotalAmount)
       totalAmount = 0;
-      for (const item of items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
         let itemExists = false;
         
         // Skip validation for presale items (they start with "presale_")
@@ -242,6 +245,11 @@ export const createDelivery = async (req: Request, res: Response) => {
           const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
           if (inventoryItem) {
             itemExists = true;
+            // Enrich item with photos from inventory
+            enrichedItems[i] = {
+              ...item,
+              photos: inventoryItem.photos || []
+            };
             // Validate available quantity for real inventory items (quantity - reservedQuantity)
             const availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0);
             if (availableQuantity < item.quantity) {
@@ -315,7 +323,7 @@ export const createDelivery = async (req: Request, res: Response) => {
     const delivery = new DeliveryModel({
       customerId,
       customer,
-      items,
+      items: enrichedItems,
       scheduledDate: parsedScheduledDate,
       scheduledTime,
       location: resolvedLocation,
@@ -371,7 +379,27 @@ export const updateDelivery = async (req: Request, res: Response) => {
     }
 
     delivery.customerId = customerId || delivery.customerId;
-    delivery.items = items || delivery.items;
+    
+    // Enrich items with photos if they're being updated
+    let enrichedItems = delivery.items;
+    if (items) {
+      enrichedItems = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        let enrichedItem = { ...item };
+        
+        // If item doesn't have photos, try to get them from inventory
+        if ((!enrichedItem.photos || enrichedItem.photos.length === 0) && item.inventoryItemId && !item.inventoryItemId.startsWith('presale_')) {
+          const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
+          if (inventoryItem) {
+            enrichedItem.photos = inventoryItem.photos || [];
+          }
+        }
+        enrichedItems.push(enrichedItem);
+      }
+    }
+    
+    delivery.items = enrichedItems;
     delivery.scheduledDate = scheduledDate || delivery.scheduledDate;
     delivery.scheduledTime = scheduledTime || delivery.scheduledTime;
     delivery.location = location || delivery.location;
@@ -661,7 +689,8 @@ const createSalesFromDelivery = async (delivery: any) => {
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         costPrice: item.costPrice || 0,
-        profit: item.profit || 0
+        profit: item.profit || 0,
+        photos: item.photos || [] // Include photos from delivery item
       });
     }
     

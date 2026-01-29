@@ -256,16 +256,16 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
   try {
     invalidateInventoryCache()
     const { 
-      carId, quantity, purchasePrice, suggestedPrice, condition, notes, photos, location,
+      carId, carName, quantity, purchasePrice, suggestedPrice, condition, notes, photos, location,
       seriesId, seriesName, seriesSize, seriesPosition, seriesPrice,
-      brand, pieceType, isTreasureHunt, isSuperTreasureHunt, isChase, isFantasy
+      brand, pieceType, isTreasureHunt, isSuperTreasureHunt, isChase, isFantasy, series, year, color
     } = req.body;
 
-    // Validate required fields
-    if (!carId || quantity === undefined || purchasePrice === undefined || suggestedPrice === undefined) {
+    // Validate required fields - allow carId or carName
+    if ((!carId && !carName) || quantity === undefined || purchasePrice === undefined || suggestedPrice === undefined) {
       res.status(400).json({ 
         success: false,
-        error: 'Missing required fields: carId, quantity, purchasePrice, suggestedPrice' 
+        error: 'Missing required fields: (carId or carName), quantity, purchasePrice, suggestedPrice' 
       });
       return;
     }
@@ -295,7 +295,8 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
     }
 
     // Check if this car is already in inventory
-    const existingItem = await InventoryItemModel.findOne({ carId });
+    const searchQuery = carId ? { carId } : { carName };
+    const existingItem = await InventoryItemModel.findOne(searchQuery);
     
     if (existingItem) {
       // Update existing item quantity
@@ -343,7 +344,8 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
     } else {
       // Create new inventory item
       const inventoryItem = new InventoryItemModel({
-        carId,
+        carId: carId || carName, // Use carName directly if carId not provided
+        carName: carName || '',
         quantity,
         purchasePrice,
         suggestedPrice,
@@ -359,6 +361,10 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
         isSuperTreasureHunt: isSuperTreasureHunt || false,
         isChase: isChase || false,
         isFantasy: isFantasy || false,
+        // Catalog fields (optional)
+        ...(series && { series }),
+        ...(year && { year }),
+        ...(color && { color }),
         // Series fields
         ...(seriesId && {
           seriesId,

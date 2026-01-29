@@ -13,12 +13,15 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
 }) => {
     const isDark = theme === 'dark'
 
-    const borderColor = isDark ? 'border-slate-600' : 'border-gray-300'
+    // const borderColor = isDark ? 'border-slate-600' : 'border-gray-300'
     const textPrimary = isDark ? 'text-white' : 'text-gray-900'
-    const textSecondary = isDark ? 'text-slate-300' : 'text-gray-700'
-    const textMuted = isDark ? 'text-slate-400' : 'text-gray-600'
+    const textSecondary = isDark ? 'text-slate-200' : 'text-gray-700'
+    const textMuted = isDark ? 'text-slate-400' : 'text-gray-500'
     const badgeBg = isDark ? 'bg-emerald-500/20' : 'bg-green-100'
     const badgeText = isDark ? 'text-emerald-300' : 'text-green-800'
+    const cardBg = isDark ? 'bg-slate-800' : 'bg-white'
+    const cardBorder = isDark ? 'border-slate-700' : 'border-gray-200'
+    const labelBg = isDark ? 'bg-slate-900/50' : 'bg-gray-50'
 
     const totalProfit = sale.items?.reduce((total: number, item: any) => {
         const profit = item.profit !== undefined && item.profit !== null ? item.profit : (item.quantity * (item.unitPrice || 0) - (item.costPrice || 0) * item.quantity)
@@ -118,15 +121,15 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                         const photos = item.photos || inventoryItem?.photos || []
 
                         return (
-                            <div key={idx} className={`border rounded-lg overflow-hidden ${borderColor} ${isDark ? 'bg-slate-700/30' : 'bg-white'}`}>
-                                {/* Photos Grid */}
-                                {photos.length > 0 && (
-                                    <div className={`${isDark ? 'bg-slate-800/50' : 'bg-gray-100'} p-3 border-b ${borderColor}`}>
-                                        <div className="grid grid-cols-4 gap-2">
+                            <div key={idx} className={`border rounded-lg overflow-hidden ${cardBorder} ${cardBg} shadow-md hover:shadow-lg transition-shadow`}>
+                                {/* Photos Grid - Always Show */}
+                                <div className={`${isDark ? 'bg-slate-900' : 'bg-gray-100'} p-3 border-b ${cardBorder} min-h-[120px] flex items-center justify-center`}>
+                                    {photos.length > 0 ? (
+                                        <div className="grid grid-cols-4 gap-2 w-full">
                                             {photos.slice(0, 4).map((photo: string, photoIdx: number) => (
                                                 <div
                                                     key={photoIdx}
-                                                    className={`aspect-square rounded overflow-hidden ${isDark ? 'bg-slate-600 border-slate-500 hover:border-emerald-500' : 'bg-gray-200 border-gray-300 hover:border-emerald-500'} border transition-all cursor-pointer`}
+                                                    className={`aspect-square rounded overflow-hidden ${isDark ? 'bg-slate-700 border-slate-600 hover:border-emerald-500' : 'bg-gray-200 border-gray-300 hover:border-emerald-500'} border transition-all cursor-pointer`}
                                                     onClick={() => onOpenImageModal && onOpenImageModal(photos)}
                                                 >
                                                     <img
@@ -137,41 +140,48 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                                                 </div>
                                             ))}
                                         </div>
-                                        {photos.length > 4 && (
-                                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'} mt-2`}>
-                                                +{photos.length - 4} fotos más
-                                            </p>
-                                        )}
+                                    ) : (
+                                        <div className="text-center w-full">
+                                            <p className={`text-sm ${textMuted} font-medium`}>📷 Sin imágenes</p>
+                                            <p className={`text-xs ${textMuted} mt-1`}>No hay fotos disponibles</p>
+                                        </div>
+                                    )}
+                                </div>
+                                {photos.length > 4 && (
+                                    <div className={`${isDark ? 'bg-slate-900' : 'bg-gray-100'} px-3 py-2 border-b ${cardBorder}`}>
+                                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                                            +{photos.length - 4} fotos más
+                                        </p>
                                     </div>
                                 )}
 
                                 {/* Item Info */}
-                                <div className="p-4">
-                                    <p className={`font-semibold ${textPrimary} mb-3`}>{item.carName || 'Artículo desconocido'}</p>
-                                    <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                                        <div>
-                                            <p className={`text-xs ${textMuted}`}>Cantidad</p>
-                                            <p className={`${textPrimary} font-semibold`}>{item.quantity}</p>
+                                <div className="p-4 space-y-3">
+                                    <p className={`font-bold text-lg ${textPrimary}`}>{item.carName || 'Artículo desconocido'}</p>
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                            <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>Cantidad</p>
+                                            <p className={`${textPrimary} font-bold text-base`}>{item.quantity}</p>
                                         </div>
-                                        <div>
-                                            <p className={`text-xs ${textMuted}`}>P. Unitario</p>
-                                            <p className={`${textPrimary} font-semibold`}>${item.unitPrice?.toFixed(2) || '0.00'}</p>
+                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                            <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>P. Unitario</p>
+                                            <p className={`${isDark ? 'text-emerald-400' : 'text-green-600'} font-bold text-base`}>${item.unitPrice?.toFixed(2) || '0.00'}</p>
                                         </div>
-                                        <div>
-                                            <p className={`text-xs ${textMuted}`}>Costo Unit.</p>
-                                            <p className={`${textPrimary} font-semibold`}>${(item.costPrice || 0).toFixed(2)}</p>
+                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                            <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>Costo Unit.</p>
+                                            <p className={`${isDark ? 'text-orange-400' : 'text-orange-600'} font-bold text-base`}>${(item.costPrice || 0).toFixed(2)}</p>
                                         </div>
-                                        <div>
-                                            <p className={`text-xs ${textMuted}`}>Ganancia</p>
-                                            <p className={`font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                            <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>Ganancia</p>
+                                            <p className={`font-bold text-base ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                                                 ${((item.profit !== undefined && item.profit !== null) ? item.profit : (item.quantity * (item.unitPrice || 0) - (item.costPrice || 0) * item.quantity)).toFixed(2)}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className={`pt-3 border-t ${borderColor} text-sm`}>
-                                        <div className="flex justify-between">
-                                            <span className={textMuted}>Subtotal:</span>
-                                            <span className={`font-semibold ${isDark ? 'text-emerald-400' : 'text-green-600'}`}>
+                                    <div className={`pt-3 border-t ${cardBorder} text-sm`}>
+                                        <div className="flex justify-between items-center">
+                                            <span className={`font-semibold ${textMuted}`}>Subtotal:</span>
+                                            <span className={`font-bold text-lg ${isDark ? 'text-emerald-400' : 'text-green-600'}`}>
                                                 ${(item.quantity * (item.unitPrice || 0)).toFixed(2)}
                                             </span>
                                         </div>
@@ -185,7 +195,7 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
 
             {/* Notes */}
             {sale.notes && (
-                <div className={`rounded-lg p-4 border ${borderColor} ${isDark ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
+                <div className={`rounded-lg p-4 border ${cardBorder} ${cardBg} shadow-md`}>
                     <h3 className={`font-semibold ${textPrimary} mb-2`}>
                         {isDark ? '📝 Notas' : 'Notas'}
                     </h3>

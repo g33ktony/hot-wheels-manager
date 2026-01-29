@@ -3,10 +3,12 @@ import { SaleModel } from '../models/Sale';
 import { DeliveryModel } from '../models/Delivery';
 import { InventoryItemModel } from '../models/InventoryItem';
 import { CustomerModel } from '../models/Customer';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface SearchResult {
   _id: string;
-  type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa';
+  type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa' | 'catalog';
   title: string;
   subtitle?: string;
   description?: string;
@@ -261,6 +263,66 @@ export const globalSearch = async (req: Request, res: Response) => {
           });
         }
       }
+    }
+
+    // 6. Buscar en CATÁLOGO HOT WHEELS (items no añadidos a inventario)
+    try {
+      const catalogPath = path.join(__dirname, '../../data/hotwheels_database.json');
+      const catalogData = JSON.parse(fs.readFileSync(catalogPath, 'utf-8'));
+      
+      // Filtrar catálogo según búsqueda (ignorar el header si existe)
+      const catalogItems = Array.isArray(catalogData) ? catalogData : (catalogData.data || []);
+      const searchLower = searchTerm.toLowerCase();
+      
+      let count = 0;
+      for (const car of catalogItems) {
+        if (count >= 15) break; // Limitar a 15 resultados
+        
+        // Buscar en model, series, year, color
+        const model = ((car as any).model || '').toLowerCase();
+        const series = ((car as any).series || '').toLowerCase();
+        const year = ((car as any).year || '').toString();
+        const color = ((car as any).color || '').toLowerCase();
+        
+        const matches = model.includes(searchLower) || 
+                       series.includes(searchLower) || 
+                       year.includes(searchLower) || 
+                       color.includes(searchLower);
+        
+        if (matches) {
+          // Verificar si este car ya está en el inventario
+          const existsInInventory = await InventoryItemModel.findOne({
+            carName: (car as any).model
+          });
+
+          // Solo mostrar si NO está en el inventario
+          if (!existsInInventory) {
+            const catalogResult: SearchResult = {
+              _id: `catalog-${(car as any).model}-${count}`,
+              type: 'catalog',
+              title: (car as any).model,
+              subtitle: `${(car as any).year} - ${(car as any).series}`,
+              description: `Año: ${(car as any).year}${(car as any).color ? ` | Color: ${(car as any).color}` : ''}`,
+              metadata: {
+                model: (car as any).model,
+                year: (car as any).year,
+                series: (car as any).series,
+                color: (car as any).color,
+                photoUrl: (car as any).photo_url,
+                tampo: (car as any).tampo,
+                wheelType: (car as any).wheel_type,
+                carMake: (car as any).car_make
+              },
+              inStock: false // Catálogo items no están en stock
+            };
+            results.push(catalogResult);
+            count++;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading catalog:', error);
+      // Continuar sin resultados de catálogo si hay error
     }
 
     // Ordenar por relevancia (exactas primero, luego por fecha)

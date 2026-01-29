@@ -17,7 +17,7 @@ import { customersService } from '@/services/customers'
 
 interface SearchResultItem {
     _id: string
-    type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa'
+    type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa' | 'catalog'
     title: string
     subtitle?: string
     description?: string
@@ -28,7 +28,7 @@ interface SearchResultItem {
 
 interface ModalState {
     isOpen: boolean
-    type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa' | null
+    type: 'sale' | 'delivery' | 'inventory' | 'customer' | 'preventa' | 'catalog' | null
     id: string | null
     sale?: any
     delivery?: any
@@ -50,6 +50,7 @@ export default function Search() {
         deliveries: true,
         customers: true,
         preventas: true,
+        catalog: true, // Agregar filtro para catálogo
         inventoryStock: 'all' // 'all', 'inStock', 'outOfStock'
     })
     const { data: results = [], isLoading } = useQuery(
@@ -72,7 +73,8 @@ export default function Search() {
             sale: [],
             delivery: [],
             customer: [],
-            preventa: []
+            preventa: [],
+            catalog: []
         }
 
         results.forEach((result: SearchResultItem) => {
@@ -82,6 +84,7 @@ export default function Search() {
             if (result.type === 'delivery' && !filters.deliveries) return
             if (result.type === 'customer' && !filters.customers) return
             if (result.type === 'preventa' && !filters.preventas) return
+            if (result.type === 'catalog' && !filters.catalog) return
 
             // Filtro especial para inventory stock
             if (result.type === 'inventory' && filters.inventoryStock !== 'all') {
@@ -144,7 +147,56 @@ export default function Search() {
         }
     }, [])
 
+    const handleAddCatalogToStock = useCallback(async (carName: string, photoUrl?: string, catalogMetadata?: any) => {
+        try {
+            const quantityStr = prompt('¿Cuántas unidades agregar al stock?')
+            if (!quantityStr || isNaN(parseInt(quantityStr))) {
+                toast.error('Cantidad inválida')
+                return
+            }
+
+            const quantity = parseInt(quantityStr)
+            const suggestedPrice = prompt('¿Precio sugerido?', '0')
+            if (!suggestedPrice || isNaN(parseFloat(suggestedPrice))) {
+                toast.error('Precio inválido')
+                return
+            }
+
+            // Crear nuevo item en inventario desde catálogo
+            const newItem = {
+                carId: carName, // Usar directamente el nombre del carro
+                carName: carName,
+                quantity,
+                purchasePrice: 0,
+                suggestedPrice: parseFloat(suggestedPrice),
+                condition: 'mint',
+                photos: photoUrl ? [photoUrl] : [],
+                notes: 'Agregado desde catálogo',
+                // Pasar metadata del catálogo si disponible
+                ...(catalogMetadata && {
+                    series: catalogMetadata.series,
+                    year: catalogMetadata.year,
+                    color: catalogMetadata.color
+                })
+            }
+
+            await api.post('/inventory', newItem)
+            toast.success(`✅ ${quantity} unidades agregadas al inventario`)
+
+            // Actualizar búsqueda para reflejar cambio
+            // (Se eliminará del catálogo porque ahora está en inventario)
+        } catch (error) {
+            toast.error('Error al agregar al inventario')
+            console.error(error)
+        }
+    }, [])
+
     const handleResultClick = async (result: SearchResultItem) => {
+        // Para catálogo, no abrir modal - solo hacer click en el botón de "Agregar a Stock"
+        if (result.type === 'catalog') {
+            return
+        }
+
         const newModalState: ModalState = {
             isOpen: true,
             type: result.type,
@@ -264,6 +316,15 @@ export default function Search() {
                                     className="rounded"
                                 />
                                 <span className="text-sm text-slate-300">⏳ Preventas</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.catalog}
+                                    onChange={(e) => setFilters({ ...filters, catalog: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-sm text-slate-300">📚 Catálogo</span>
                             </label>
                         </div>
 
@@ -546,6 +607,45 @@ export default function Search() {
                                             </span>
                                         </div>
                                         <ChevronRight className="w-5 h-5 text-slate-500" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* CATALOG RESULTS */}
+                    {groupedResults.catalog.length > 0 && (
+                        <div>
+                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                                <span className="text-2xl">📚</span> Catálogo ({groupedResults.catalog.length})
+                            </h2>
+                            <div className="grid gap-3">
+                                {groupedResults.catalog.map((result) => (
+                                    <div
+                                        key={result._id}
+                                        className="p-4 flex items-center justify-between bg-emerald-900/30 border border-emerald-600/50 rounded-lg hover:border-emerald-500 transition-all"
+                                    >
+                                        <div className="flex-1">
+                                            <h3 className="font-semibold text-white">{result.title}</h3>
+                                            <p className="text-sm text-emerald-300">{result.subtitle}</p>
+                                            <p className="text-sm text-slate-400 mt-1">{result.description}</p>
+                                            <span className="inline-block mt-2 px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs rounded-full">
+                                                ✨ No en stock
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleAddCatalogToStock(
+                                                    result.metadata.model,
+                                                    result.metadata.photoUrl,
+                                                    result.metadata
+                                                )
+                                            }}
+                                            className="ml-4 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                                        >
+                                            + Agregar a Stock
+                                        </button>
                                     </div>
                                 ))}
                             </div>

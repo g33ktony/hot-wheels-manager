@@ -10,6 +10,7 @@ export interface SaleItem {
   originalPrice?: number // Precio original del inventario (para tracking)
   costPrice?: number // Precio de costo (por unidad)
   profit?: number // Ganancia total por este item (unitPrice - costPrice) * quantity
+  photos?: string[] // Fotos del item en el momento de la venta
 }
 
 export interface ISale extends Document {
@@ -71,7 +72,8 @@ const SaleItemSchema = new Schema<SaleItem>({
     type: Number,
     required: false,
     min: 0
-  }
+  },
+  photos: [{ type: String }] // Fotos del item en el momento de la venta
 })
 
 const SaleSchema = new Schema<ISale>({
