@@ -9,6 +9,21 @@ export interface AuthRequest extends Request {
   }
 }
 
+// Helper to get JWT_SECRET safely
+const getJWTSecret = (): string => {
+  const secret = process.env.JWT_SECRET
+  // En producción, JWT_SECRET DEBE estar configurado
+  // En desarrollo, usamos un fallback seguro
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET is required in production!')
+    }
+    console.warn('⚠️  JWT_SECRET not configured, using development fallback')
+    return 'your-secret-key-change-this-in-development'
+  }
+  return secret
+}
+
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     // Obtener token del header
@@ -22,7 +37,8 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     }
 
     // Verificar token
-    const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this'
+    const JWT_SECRET = getJWTSecret()
+    
     const decoded = jwt.verify(token, JWT_SECRET) as {
       userId: string
       email: string

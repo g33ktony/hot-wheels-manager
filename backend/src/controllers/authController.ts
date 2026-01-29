@@ -3,12 +3,28 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserModel } from '../models/User'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this'
 const JWT_EXPIRES_IN = '1d' // Token válido por 1 día
+
+// Helper to get JWT_SECRET safely
+const getJWTSecret = (): string => {
+  const secret = process.env.JWT_SECRET
+  // En producción, JWT_SECRET DEBE estar configurado
+  // En desarrollo, usamos un fallback seguro
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET is required in production!')
+    }
+    console.warn('⚠️  JWT_SECRET not configured, using development fallback')
+    return 'your-secret-key-change-this-in-development'
+  }
+  return secret
+}
 
 // Login
 export const login = async (req: Request, res: Response) => {
   try {
+    const JWT_SECRET = getJWTSecret()
+    
     const { email, password } = req.body
 
     // DEBUG: Log datos recibidos
@@ -110,6 +126,8 @@ export const login = async (req: Request, res: Response) => {
 // Verificar token (para mantener sesión)
 export const verifyToken = async (req: Request, res: Response) => {
   try {
+    const JWT_SECRET = getJWTSecret()
+    
     const token = req.headers.authorization?.replace('Bearer ', '')
 
     if (!token) {
@@ -178,6 +196,8 @@ export const verifyToken = async (req: Request, res: Response) => {
 // Cambiar contraseña
 export const changePassword = async (req: Request, res: Response) => {
   try {
+    const JWT_SECRET = getJWTSecret()
+    
     const { currentPassword, newPassword } = req.body
     const token = req.headers.authorization?.replace('Bearer ', '')
 

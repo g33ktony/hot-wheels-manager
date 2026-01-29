@@ -18,6 +18,15 @@
     "build:backend": "cd backend && npm run build",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "start": "cd backend && npm start",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:dev": "npm run build && npm run pm2:start",
+    "pm2:restart": "pm2 restart all",
+    "pm2:stop": "pm2 stop all",
+    "pm2:logs": "pm2 logs",
+    "pm2:logs:backend": "pm2 logs hw-backend",
+    "pm2:logs:frontend": "pm2 logs hw-frontend",
+    "pm2:kill": "pm2 kill",
+    "pm2:status": "pm2 status",
     "verify": "./verify.sh",
     "commit": "./verify-and-commit.sh",
     "deploy": "./deploy.sh"
@@ -35,7 +44,7 @@
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "pm2": "^5.4.3",
     "typescript": "^5.3.3"
-  },
-  "dependencies": {}
+  }
 }

@@ -3,6 +3,13 @@ import { toast } from 'react-hot-toast'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
+// Asegurar que siempre termine con /api si no lo tiene
+const normalizedAPI_URL = API_URL.endsWith('/api') ? API_URL : API_URL.includes('/api') ? API_URL : `${API_URL}/api`
+
+console.log('🔐 AuthContext: VITE_API_URL =', import.meta.env.VITE_API_URL)
+console.log('🔐 AuthContext: API_URL =', API_URL)
+console.log('🔐 AuthContext: normalizedAPI_URL =', normalizedAPI_URL)
+
 interface User {
   id: string
   email: string
@@ -53,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const verifyTokenAPI = async (tokenToVerify: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_URL}/auth/verify`, {
+      const response = await fetch(`${normalizedAPI_URL}/auth/verify`, {
         headers: {
           Authorization: `Bearer ${tokenToVerify}`,
         },
@@ -78,7 +85,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
 
-      const response = await fetch(`${API_URL}/auth/login`, {
+      console.log('🔐 LOGIN: Enviando petición a:', `${normalizedAPI_URL}/auth/login`)
+      console.log('📧 Email:', email)
+
+      const response = await fetch(`${normalizedAPI_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,11 +99,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       clearTimeout(timeoutId)
 
+      console.log('🔐 LOGIN: Respuesta recibida:', response.status, response.statusText)
+
       // Check if response is ok before trying to parse JSON
       if (!response.ok) {
         let errorMessage = 'Error al iniciar sesión'
         try {
           const data = await response.json()
+          console.log('❌ LOGIN ERROR:', data)
           errorMessage = data.message || errorMessage
         } catch {
           // If JSON parsing fails, use status text
@@ -103,17 +116,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const data = await response.json()
+      console.log('✅ LOGIN: Datos recibidos:', data)
 
       // Guardar token y usuario
-      localStorage.setItem('token', data.data.token)
-      localStorage.setItem('user', JSON.stringify(data.data.user))
+      if (data.data && data.data.token) {
+        console.log('💾 Guardando token en localStorage')
+        localStorage.setItem('token', data.data.token)
+        localStorage.setItem('user', JSON.stringify(data.data.user))
 
-      setToken(data.data.token)
-      setUser(data.data.user)
+        console.log('📍 Token guardado:', data.data.token.substring(0, 20) + '...')
+        console.log('👤 Usuario guardado:', data.data.user.email)
 
-      toast.success('¡Bienvenido!')
+        setToken(data.data.token)
+        setUser(data.data.user)
+
+        toast.success('¡Bienvenido!')
+      } else {
+        throw new Error('Respuesta inválida del servidor: token no encontrado')
+      }
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('❌ Login error:', error)
 
       // Provide more specific error messages
       if (error instanceof Error) {
