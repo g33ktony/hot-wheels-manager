@@ -671,17 +671,21 @@ export default function Search() {
                                             }`}
                                     >
                                         {/* Imagen del catálogo */}
-                                        {result.metadata?.photoUrl && (
-                                            <img
-                                                src={`/api/hotwheels/image?url=${encodeURIComponent(result.metadata.photoUrl)}`}
-                                                alt={result.title}
-                                                className="w-16 h-16 object-cover rounded flex-shrink-0"
-                                                crossOrigin="anonymous"
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none'
-                                                }}
-                                            />
-                                        )}
+                                        {result.metadata?.photoUrl ? (
+                                            <div className="w-16 h-16 rounded flex-shrink-0 bg-slate-200 flex items-center justify-center overflow-hidden">
+                                                <img
+                                                    src={result.metadata.photoUrl}
+                                                    alt={result.title}
+                                                    className="w-full h-full object-cover"
+                                                    crossOrigin="anonymous"
+                                                    onError={(e) => {
+                                                        // Fallback a placeholder
+                                                        e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"%3E%3Crect x="3" y="3" width="18" height="18" rx="2" ry="2"/%3E%3Ccircle cx="8.5" cy="8.5" r="1.5"/%3E%3Cpolyline points="21 15 16 10 5 21"/%3E%3C/svg%3E'
+                                                        e.currentTarget.style.opacity = '0.5'
+                                                    }}
+                                                />
+                                            </div>
+                                        ) : null}
                                         <div className="flex-1">
                                             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
                                             <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{result.subtitle}</p>
