@@ -121,16 +121,21 @@ app.get('/health', (req, res) => {
   })
 })
 
-// API routes
-// Auth routes (sin protección)
-app.use('/api/auth', authRoutes)
-
-// Rutas públicas (sin autenticación requerida)
+// Rutas públicas (sin autenticación)
 // Endpoint proxy de imágenes - debe ser público para que funcione desde el navegador
 app.get('/api/hotwheels/image', async (req, res) => {
   const { proxyImage } = await import('./controllers/hotWheelsController')
   return proxyImage(req, res)
 })
+
+// Búsqueda predictiva - pública (sin autenticación)
+app.get('/api/search/predictive', async (req, res) => {
+  const { predictiveSearch } = await import('./controllers/searchController')
+  return predictiveSearch(req, res)
+})
+
+// Rutas de autenticación (públicas, sin protección)
+app.use('/api/auth', authRoutes)
 
 // Rutas protegidas (requieren autenticación)
 app.use('/api/hotwheels', authMiddleware, hotWheelsRoutes)

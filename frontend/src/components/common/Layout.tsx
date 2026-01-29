@@ -149,13 +149,13 @@ export default function Layout({ children }: LayoutProps) {
             <div
                 ref={sidebarRef}
                 className={`
-        fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r
-        ${mode === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}
+        fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r backdrop-blur
+        ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className={`flex items-center justify-between h-16 px-4 border-b flex-shrink-0 z-10 ${mode === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`flex items-center justify-between h-16 px-4 border-b flex-shrink-0 z-10 backdrop-blur ${mode === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-gray-50/80 border-gray-200'}`}>
                     <h1 className={`text-lg lg:text-xl font-bold select-none ${mode === 'dark' ? 'text-white' : 'text-gray-900'}`}>🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
                     <button
                         className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
@@ -246,16 +246,19 @@ export default function Layout({ children }: LayoutProps) {
                         <Menu size={24} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
                     </button>
 
-                    {/* Búsqueda global */}
-                    <form onSubmit={handleSearch} className="flex-1 max-w-sm">
-                        <div className="relative">
+                    {/* Search form */}
+                    <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-md mx-4">
+                        <div className="relative w-full">
                             <SearchIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${mode === 'dark' ? 'text-slate-400' : 'text-gray-400'}`} />
                             <input
                                 type="text"
-                                placeholder="Busca piezas, clientes, ventas..."
+                                placeholder="Buscar..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className={`w-full pl-10 pr-3 py-2 rounded-lg border text-sm focus:outline-none transition-colors ${mode === 'dark' ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:bg-slate-700 focus:border-emerald-500' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500 focus:bg-white focus:border-emerald-500'}`}
+                                className={`w-full pl-10 pr-4 py-2 rounded-lg border text-sm transition-colors ${mode === 'dark'
+                                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                                }`}
                             />
                         </div>
                     </form>

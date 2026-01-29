@@ -15,6 +15,7 @@ interface UseInventoryOptions {
   treasureHunt?: 'all' | 'th' | 'sth'
   chase?: boolean
   fantasy?: boolean
+  fantasyOnly?: boolean
   moto?: boolean
   camioneta?: boolean
   fastFurious?: boolean
@@ -32,6 +33,7 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
     treasureHunt = 'all',
     chase = false,
     fantasy = false,
+    fantasyOnly = false,
     moto = false,
     camioneta = false,
     fastFurious = false,
@@ -41,8 +43,8 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
   const dispatch = useAppDispatch()
   
   return useQuery<PaginatedInventoryResponse, Error>(
-    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase, fantasy, moto, camioneta, fastFurious],
-    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase, fantasy, moto, camioneta, fastFurious }),
+    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase, fantasy, fantasyOnly, moto, camioneta, fastFurious],
+    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase, fantasy, fantasyOnly, moto, camioneta, fastFurious }),
     {
       staleTime: 2 * 60 * 1000, // 2 minutes - shorter for more frequent updates
       cacheTime: 10 * 60 * 1000, // 10 minutes in cache

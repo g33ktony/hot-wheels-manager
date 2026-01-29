@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { api } from '@/services/api'
@@ -15,6 +15,7 @@ import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 import CustomerEditForm from '@/components/CustomerEditForm'
 import { customersService } from '@/services/customers'
+import { searchService } from '@/services/search'
 
 interface SearchResultItem {
     _id: string
@@ -45,6 +46,13 @@ export default function Search() {
     const [query, setQuery] = useState(initialQuery)
     const [modal, setModal] = useState<ModalState>({ isOpen: false, type: null, id: null })
     const [addToCartQuantity, setAddToCartQuantity] = useState<{ [key: string]: number }>({})
+    
+    // Predictive search state
+    const [predictions, setPredictions] = useState<any[]>([])
+    const [isLoadingPredictions, setIsLoadingPredictions] = useState(false)
+    const [showPredictions, setShowPredictions] = useState(false)
+    const debounceTimer = useRef<NodeJS.Timeout>()
+    const searchRef = useRef<HTMLDivElement>(null)
 
     // Filtros de tipos de resultado
     const [filters, setFilters] = useState({
@@ -240,6 +248,53 @@ export default function Search() {
         setModal({ isOpen: false, type: null, id: null })
     }
 
+    // Handle predictive search input
+    const handlePredictiveInputChange = useCallback((value: string) => {
+        setQuery(value)
+
+        // Clear previous timer
+        if (debounceTimer.current) clearTimeout(debounceTimer.current)
+
+        if (value.length < 3) {
+            setPredictions([])
+            setShowPredictions(false)
+            return
+        }
+
+        setIsLoadingPredictions(true)
+        debounceTimer.current = setTimeout(async () => {
+            try {
+                const results = await searchService.predictive(value)
+                setPredictions(results.slice(0, 10))
+                setShowPredictions(true)
+            } catch (error) {
+                console.error('Error fetching predictions:', error)
+                setPredictions([])
+            } finally {
+                setIsLoadingPredictions(false)
+            }
+        }, 300) // 300ms debounce
+    }, [])
+
+    // Handle selecting a prediction
+    const handleSelectPrediction = (prediction: any) => {
+        setQuery(prediction.name)
+        setPredictions([])
+        setShowPredictions(false)
+    }
+
+    // Close predictions when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowPredictions(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
     return (
         <div className={`min-h-screen p-4 md:p-6 ${isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'}`}>
             {/* Header */}
@@ -248,16 +303,17 @@ export default function Search() {
                 <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>Encuentra ventas, entregas, items, clientes y preventas</p>
             </div>
 
-            {/* Search Input */}
-            <div className={`mb-6 rounded-lg sticky top-6 z-40 ${isDark ? 'bg-slate-800/50 border border-slate-700' : 'bg-white border border-slate-200 shadow-sm'}`}>
+            {/* Predictive Search Input */}
+            <div className={`mb-6 rounded-lg sticky top-6 z-40 ${isDark ? 'bg-slate-800/50 border border-slate-700' : 'bg-white border border-slate-200 shadow-sm'}`} ref={searchRef}>
                 <div className="p-6">
                     <div className="relative">
                         <SearchIcon className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
                         <input
                             type="text"
-                            placeholder="Busca por: marca (Lambo), cliente, item, número..."
+                            placeholder="Busca por: marca, cliente, item, número... (3+ caracteres)"
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
+                            onChange={(e) => handlePredictiveInputChange(e.target.value)}
+                            onFocus={() => query.length >= 3 && predictions.length > 0 && setShowPredictions(true)}
                             autoFocus
                             className={`w-full pl-12 pr-4 py-3 rounded-lg border text-lg focus:border-emerald-500 focus:outline-none ${isDark
                                 ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
@@ -266,11 +322,49 @@ export default function Search() {
                         />
                         {query && (
                             <button
-                                onClick={() => setQuery('')}
+                                onClick={() => {
+                                    setQuery('')
+                                    setPredictions([])
+                                    setShowPredictions(false)
+                                }}
                                 className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
                             >
                                 <X className="w-5 h-5" />
                             </button>
+                        )}
+                        
+                        {/* Predictions Dropdown */}
+                        {showPredictions && predictions.length > 0 && (
+                            <div className={`absolute top-full left-0 right-0 mt-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-300'} shadow-lg max-h-96 overflow-y-auto z-50`}>
+                                {predictions.map((prediction, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => handleSelectPrediction(prediction)}
+                                        className={`w-full text-left px-4 py-3 flex items-center gap-3 border-b last:border-b-0 transition-colors ${isDark ? 'hover:bg-slate-600 border-slate-600' : 'hover:bg-slate-50 border-slate-200'}`}
+                                    >
+                                        {prediction.photoUrl && (
+                                            <img src={prediction.photoUrl} alt={prediction.name} className="w-10 h-10 rounded object-cover" />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{prediction.name}</p>
+                                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{prediction.extra}</p>
+                                        </div>
+                                        {prediction.price && (
+                                            <p className={`text-sm font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>${prediction.price}</p>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {/* Loading State */}
+                        {isLoadingPredictions && query.length >= 3 && (
+                            <div className={`absolute top-full left-0 right-0 mt-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-300'} shadow-lg p-4 text-center`}>
+                                <div className="inline-flex items-center gap-2">
+                                    <div className="animate-spin h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
+                                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Buscando...</span>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -387,6 +481,7 @@ export default function Search() {
                                 </div>
                             </div>
                         )}
+
                     </div>
                 </div>
             </div>
@@ -671,17 +766,32 @@ export default function Search() {
                                             }`}
                                     >
                                         {/* Imagen del catálogo */}
-                                        {result.metadata?.photoUrl ? (
-                                            <div className="w-16 h-16 rounded flex-shrink-0 bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div className="w-16 h-16 rounded flex-shrink-0 bg-emerald-800 flex items-center justify-center overflow-hidden relative">
+                                            {result.metadata?.photoUrl ? (
                                                 <img
-                                                    src={`/api/hotwheels/image?url=${encodeURIComponent(result.metadata.photoUrl)}`}
+                                                    src={result.metadata.photoUrl}
                                                     alt={result.title}
-                                                    className="w-full h-full object-cover"
+                                                    className="w-full h-full object-contain bg-slate-700"
                                                     crossOrigin="anonymous"
-                                                    loading="lazy"
+                                                    onLoad={() => console.log('✅ Imagen catálogo cargada:', result.title)}
+                                                    onError={(e) => {
+                                                        console.warn('❌ Error cargando imagen:', result.title);
+                                                        // Fallback a emoji
+                                                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                                                        if (parent && !parent.querySelector('[data-fallback]')) {
+                                                            const fallback = document.createElement('div');
+                                                            fallback.setAttribute('data-fallback', 'true');
+                                                            fallback.className = 'absolute inset-0 flex items-center justify-center text-2xl';
+                                                            fallback.textContent = '🚗';
+                                                            parent.appendChild(fallback);
+                                                        }
+                                                    }}
                                                 />
-                                            </div>
-                                        ) : null}
+                                            ) : (
+                                                <div className="text-2xl">🚗</div>
+                                            )}
+                                        </div>
                                         <div className="flex-1">
                                             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
                                             <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{result.subtitle}</p>

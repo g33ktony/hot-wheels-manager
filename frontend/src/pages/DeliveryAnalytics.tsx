@@ -42,13 +42,15 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
 export const DeliveryAnalytics: React.FC = () => {
     const { data: deliveries = [], isLoading, error } = useQuery(
         ['deliveries'],
-        () => deliveriesService.getAll(),
+        () => deliveriesService.getAll(undefined, undefined, true), // includeCompleted: true
         { staleTime: 5 * 60 * 1000 }
     );
 
-    // Calculate delivery status breakdown
+    // Calculate delivery status breakdown (ONLY ACTIVE - excluding completed)
     const deliveryStatusData = useMemo(() => {
-        const statusCounts = deliveries.reduce(
+        const activeDeliveries = deliveries.filter((d: Delivery) => d.status !== 'completed');
+        
+        const statusCounts = activeDeliveries.reduce(
             (acc: Record<string, number>, delivery: Delivery) => {
                 const status = delivery.status || 'unknown';
                 acc[status] = (acc[status] || 0) + 1;
@@ -57,7 +59,7 @@ export const DeliveryAnalytics: React.FC = () => {
             {} as Record<string, number>
         );
 
-        const total = deliveries.length;
+        const total = activeDeliveries.length;
         return Object.entries(statusCounts)
             .map(([status, count]) => ({
                 status: status.charAt(0).toUpperCase() + status.slice(1),
@@ -67,9 +69,11 @@ export const DeliveryAnalytics: React.FC = () => {
             .sort((a, b) => (b.count as number) - (a.count as number));
     }, [deliveries]);
 
-    // Calculate payment status breakdown
+    // Calculate payment status breakdown (ONLY ACTIVE - excluding completed)
     const paymentStatusData = useMemo(() => {
-        const paymentCounts = deliveries.reduce(
+        const activeDeliveries = deliveries.filter((d: Delivery) => d.status !== 'completed');
+        
+        const paymentCounts = activeDeliveries.reduce(
             (acc: Record<string, number>, delivery: Delivery) => {
                 const status = delivery.paymentStatus || 'unknown';
                 acc[status] = (acc[status] || 0) + 1;
@@ -78,7 +82,7 @@ export const DeliveryAnalytics: React.FC = () => {
             {} as Record<string, number>
         );
 
-        const total = deliveries.length;
+        const total = activeDeliveries.length;
         return Object.entries(paymentCounts)
             .map(([status, count]) => ({
                 status: status.charAt(0).toUpperCase() + status.slice(1),

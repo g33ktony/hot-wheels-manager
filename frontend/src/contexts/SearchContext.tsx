@@ -32,7 +32,7 @@ const defaultFilters: SearchFilters = {
   filterLowStock: false,
   filterTreasureHunt: 'all',
   filterChase: false,
-  filterFantasy: false,
+  filterFantasy: true,
   filterMoto: false,
   filterCamioneta: false,
   filterFastFurious: false

@@ -315,6 +315,26 @@ export default function Inventory() {
         filterFastFurious
     } = filters
 
+    // Additional fantasy filter state
+    const [filterFantasyOnly, setFilterFantasyOnly] = useState(false)
+
+    // Handle fantasy filters - only one can be active at a time
+    const handleFantasyOnlyChange = (checked: boolean) => {
+        setFilterFantasyOnly(checked)
+        if (checked) {
+            // Activate "Solo Fantasías", deactivate "Ocultar Fantasías"
+            updateFilter('fantasy', false)
+        }
+    }
+
+    const handleHideFantasyChange = (checked: boolean) => {
+        updateFilter('fantasy', checked)
+        if (checked) {
+            // Activate "Ocultar Fantasías", deactivate "Solo Fantasías"
+            setFilterFantasyOnly(false)
+        }
+    }
+
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(30) // Increased from 15 to load more with lazy loading
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('') // For debounced API calls
@@ -421,6 +441,7 @@ export default function Inventory() {
         treasureHunt: filterTreasureHunt,
         chase: filterChase,
         fantasy: filterFantasy,
+        fantasyOnly: filterFantasyOnly,
         moto: filterMoto,
         camioneta: filterCamioneta,
         fastFurious: filterFastFurious
@@ -1595,7 +1616,7 @@ export default function Inventory() {
                                 placeholder="Buscar por nombre o código..."
                                 value={searchTerm}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                                className="pl-10 pr-10"
+                                className={`pl-10 pr-10 ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-300' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
                             />
                             {searchTerm && (
                                 <button
@@ -1612,7 +1633,7 @@ export default function Inventory() {
                         <select
                             value={filterCondition}
                             onChange={(e) => handleFilterChange('condition', e.target.value)}
-                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
+                            className={`input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                             style={{
                                 fontSize: '16px',
                                 WebkitAppearance: 'none',
@@ -1646,7 +1667,7 @@ export default function Inventory() {
                                     handleFilterChange('chase', false)
                                 }
                             }}
-                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
+                            className={`input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                             style={{
                                 fontSize: '16px',
                                 WebkitAppearance: 'none',
@@ -1669,7 +1690,7 @@ export default function Inventory() {
                                     handleFilterChange('treasureHunt', 'all')
                                     handleFilterChange('chase', false)
                                 }}
-                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
+                                className={`input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 style={{
                                     fontSize: '16px',
                                     WebkitAppearance: 'none',
@@ -1690,7 +1711,7 @@ export default function Inventory() {
                             <select
                                 value={filterTreasureHunt}
                                 onChange={(e) => handleFilterChange('treasureHunt', e.target.value as 'all' | 'th' | 'sth')}
-                                className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
+                                className={`input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 style={{
                                     fontSize: '16px',
                                     WebkitAppearance: 'none',
@@ -1706,69 +1727,83 @@ export default function Inventory() {
                         {/* Chase filter - for Mini GT, Kaido, M2, or Hot Wheels Premium */}
                         {((filterBrand && ['mini gt', 'kaido house', 'm2 machines'].includes(filterBrand.toLowerCase())) ||
                             (filterBrand?.toLowerCase() === 'hot wheels' && filterPieceType === 'premium')) && (
-                                <label className="flex items-center gap-2 input cursor-pointer">
+                                <label className={`flex items-center gap-2 input cursor-pointer ${isDark ? 'bg-slate-700/50 hover:bg-slate-600/50' : 'hover:bg-gray-50'}`}>
                                     <input
                                         type="checkbox"
                                         checked={filterChase}
                                         onChange={(e) => handleFilterChange('chase', e.target.checked)}
-                                        className="rounded"
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">
+                                    <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                         Solo Chase 🌟
                                     </span>
                                 </label>
                             )}
 
-                        {/* Fantasy filter - only for Hot Wheels */}
-                        {filterBrand?.toLowerCase() === 'hot wheels' && (
-                            <label className="flex items-center gap-2 input cursor-pointer">
+                        {/* Fantasy filters */}
+                        <div className="space-y-2">
+                            {/* Show only fantasies */}
+                            <label className={`flex items-center gap-2 input cursor-pointer ${isDark ? 'bg-slate-700/50 hover:bg-slate-600/50' : 'hover:bg-gray-50'}`}>
                                 <input
                                     type="checkbox"
-                                    checked={filterFantasy}
-                                    onChange={(e) => handleFilterChange('fantasy', e.target.checked)}
-                                    className="rounded"
+                                    checked={filterFantasyOnly}
+                                    onChange={(e) => handleFantasyOnlyChange(e.target.checked)}
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                 />
-                                <span className="text-sm font-medium text-gray-700">
+                                <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     Solo Fantasías 🎨
                                 </span>
                             </label>
-                        )}
+
+                            {/* Hide fantasies */}
+                            <label className={`flex items-center gap-2 input cursor-pointer ${isDark ? 'bg-slate-700/50 hover:bg-slate-600/50' : 'hover:bg-gray-50'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={filterFantasy}
+                                    onChange={(e) => handleHideFantasyChange(e.target.checked)}
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
+                                />
+                                <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    Ocultar Fantasías 🎨
+                                </span>
+                            </label>
+                        </div>
 
                         {/* Moto filter */}
-                        <label className="flex items-center gap-2 input cursor-pointer">
+                        <label className={`flex items-center gap-2 input cursor-pointer ${isDark ? 'bg-slate-700/50 hover:bg-slate-600/50' : 'hover:bg-gray-50'}`}>
                             <input
                                 type="checkbox"
                                 checked={filterMoto}
                                 onChange={(e) => handleFilterChange('moto', e.target.checked)}
-                                className="rounded"
+                                className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Solo Motos 🏍️
                             </span>
                         </label>
 
                         {/* Camioneta filter */}
-                        <label className="flex items-center gap-2 input cursor-pointer">
+                        <label className={`flex items-center gap-2 input cursor-pointer ${isDark ? 'bg-slate-700/50 hover:bg-slate-600/50' : 'hover:bg-gray-50'}`}>
                             <input
                                 type="checkbox"
                                 checked={filterCamioneta}
                                 onChange={(e) => handleFilterChange('camioneta', e.target.checked)}
-                                className="rounded"
+                                className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Solo Camionetas 🚚
                             </span>
                         </label>
 
                         {/* Fast and Furious filter */}
-                        <label className="flex items-center gap-2 input cursor-pointer">
+                        <label className={`flex items-center gap-2 input cursor-pointer ${isDark ? 'bg-slate-700/50 hover:bg-slate-600/50' : 'hover:bg-gray-50'}`}>
                             <input
                                 type="checkbox"
                                 checked={filterFastFurious}
                                 onChange={(e) => handleFilterChange('fastFurious', e.target.checked)}
-                                className="rounded"
+                                className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Solo Fast and Furious 🏎️
                             </span>
                         </label>
@@ -1782,7 +1817,7 @@ export default function Inventory() {
                                 setCurrentPage(1);
                                 updateFilter('filterLocation', e.target.value);
                             }}
-                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
+                            className={`input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                             style={{
                                 fontSize: '16px',
                                 WebkitAppearance: 'none',
@@ -1795,7 +1830,7 @@ export default function Inventory() {
                             ))}
                         </select>
 
-                        <label className="flex items-center gap-2 input cursor-pointer">
+                        <label className={`flex items-center gap-2 input cursor-pointer ${isDark ? 'bg-slate-700/50 hover:bg-slate-600/50' : 'hover:bg-gray-50'}`}>
                             <input
                                 type="checkbox"
                                 checked={filterLowStock}
@@ -1803,9 +1838,9 @@ export default function Inventory() {
                                     setCurrentPage(1);
                                     updateFilter('filterLowStock', e.target.checked);
                                 }}
-                                className="rounded"
+                                className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Stock bajo (≤3)
                             </span>
                         </label>
@@ -1818,7 +1853,7 @@ export default function Inventory() {
                                 setFilterPriceMin(e.target.value);
                             }}
                             placeholder="Precio mínimo"
-                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
+                            className={`input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-300' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
                             style={{
                                 fontSize: '16px',
                                 WebkitTapHighlightColor: 'transparent',
@@ -1833,7 +1868,7 @@ export default function Inventory() {
                                 setFilterPriceMax(e.target.value);
                             }}
                             placeholder="Precio máximo"
-                            className="input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full"
+                            className={`input px-4 py-3 min-h-[44px] touch-manipulation rounded-lg w-full ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-300' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
                             style={{
                                 fontSize: '16px',
                                 WebkitTapHighlightColor: 'transparent',
@@ -1921,217 +1956,243 @@ export default function Inventory() {
                     </Card>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
-                        {filteredItems.map((item: InventoryItem) => (
-                            <Card
-                                key={item._id}
-                                hover={!isSelectionMode}
-                                className={`relative ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''}`}
-                            >
-                                <div
-                                    className={`${isSelectionMode ? 'cursor-pointer' : ''}`}
-                                    onClick={() => isSelectionMode && item._id && handleToggleItemSelection(item._id)}
+                        {filteredItems.map((item: InventoryItem) => {
+                            const isAvailable = item.quantity > (item.reservedQuantity || 0);
+                            return (
+                                <Card
+                                    key={item._id}
+                                    hover={!isSelectionMode && isAvailable}
+                                    className={`relative ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    {/* Selection Checkbox */}
-                                    {isSelectionMode && (
-                                        <div className="absolute top-3 left-3 z-10">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedItems.has(item._id!)}
-                                                onChange={() => item._id && handleToggleItemSelection(item._id)}
-                                                className="w-6 h-6 rounded border-slate-600 text-primary-600 focus:ring-primary-500 cursor-pointer"
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
-                                        </div>
-                                    )}
-
-                                    <div className="space-y-4">
-                                        {/* Car Image Placeholder */}
-                                        <div
-                                            className="bg-slate-700 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
-                                            onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
-                                        >
-                                            {item.photos && item.photos.length > 0 ? (
-                                                <>
-                                                    <LazyImage
-                                                        src={item.photos[0]}
-                                                        alt="Hot Wheels"
-                                                        className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
-                                                            }`}
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image'
-                                                        }}
-                                                        onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
-                                                    />
-                                                    {/* Zoom indicator */}
-                                                    {!isSelectionMode && (
-                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20 rounded-lg">
-                                                            <Maximize2 size={32} className="text-white drop-shadow-lg" />
-                                                        </div>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <Package size={48} className="text-slate-400" />
-                                            )}
-
-                                            {/* Brand Badge - Top Left */}
-                                            {item.brand && (
-                                                <div className="absolute top-2 left-2 px-2 py-1 bg-slate-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
-                                                    {item.brand}
-                                                </div>
-                                            )}
-
-                                            {/* Type and Special Badges - Top Right */}
-                                            <div className="absolute top-2 right-2 flex flex-col gap-1">
-                                                {/* Piece Type Badge */}
-                                                {item.pieceType && (
-                                                    <span className={`px-2 py-1 text-xs font-bold rounded shadow-lg backdrop-blur-sm ${item.pieceType === 'basic' ? 'bg-blue-500 bg-opacity-90 text-white' :
-                                                        item.pieceType === 'premium' ? 'bg-purple-500 bg-opacity-90 text-white' :
-                                                            item.pieceType === 'rlc' ? 'bg-orange-500 bg-opacity-90 text-white' :
-                                                                item.pieceType === 'silver_series' ? 'bg-slate-700/300 bg-opacity-90 text-white' :
-                                                                    item.pieceType === 'elite_64' ? 'bg-red-500 bg-opacity-90 text-white' :
-                                                                        'bg-slate-600 bg-opacity-90 text-white'
-                                                        }`}>
-                                                        {formatPieceType(item.pieceType).toUpperCase()}
-                                                    </span>
-                                                )}
-
-                                                {/* Treasure Hunt Badge */}
-                                                {item.isSuperTreasureHunt && (
-                                                    <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded shadow-lg">
-                                                        $TH
-                                                    </span>
-                                                )}
-                                                {item.isTreasureHunt && !item.isSuperTreasureHunt && (
-                                                    <span className="px-2 py-1 text-xs font-bold bg-green-500 bg-opacity-90 text-white rounded shadow-lg">
-                                                        TH
-                                                    </span>
-                                                )}
-
-                                                {/* Chase Badge */}
-                                                {item.isChase && (
-                                                    <span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-red-500 to-pink-600 text-white rounded shadow-lg">
-                                                        CHASE
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>                                {/* Car Info */}
-                                        <div>
-                                            <h3 className="font-semibold text-white truncate">
-                                                {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
-                                            </h3>
-                                            <p className="text-sm text-slate-400 truncate">
-                                                {item.hotWheelsCar?.series} {item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}
-                                            </p>
-                                            <p className="text-xs text-slate-400">
-                                                {item.hotWheelsCar?.toy_num || item.carId}
-                                            </p>
-
-                                            {/* Series Badge */}
-                                            {item.seriesId && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                                                    🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})
-                                                </div>
-                                            )}
-
-                                            {/* Box Badge - If this IS a sealed box */}
-                                            {item.isBox && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                                                    📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas
-                                                    {item.boxStatus === 'sealed' && ' 🔒'}
-                                                    {item.boxStatus === 'unpacking' && ' ⏳'}
-                                                </div>
-                                            )}
-
-                                            {/* Source Box Badge - If this piece came from a box */}
-                                            {item.sourceBox && !item.isBox && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full">
-                                                    📦 De: {item.sourceBox}
-                                                </div>
-                                            )}
-
-                                            <div className="flex items-center justify-between mt-2 gap-2">
-                                                <span className={`
-                      px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap
-                      ${item.condition === 'mint' ? 'bg-slate-700 text-emerald-400' :
-                                                        item.condition === 'good' ? 'bg-blue-100 text-blue-800' :
-                                                            item.condition === 'fair' ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-red-100 text-red-800'
-                                                    }
-                    `}>
-                                                    {item.condition === 'mint' ? 'Mint' :
-                                                        item.condition === 'good' ? 'Bueno' :
-                                                            item.condition === 'fair' ? 'Regular' : 'Malo'}
-                                                </span>
-                                                <span className="text-xs font-medium text-white text-right flex-shrink-0">
-                                                    {item.quantity - (item.reservedQuantity || 0)}/{item.quantity}
-                                                    {(item.reservedQuantity || 0) > 0 && (
-                                                        <span className="text-orange-600 block text-xs">
-                                                            ({item.reservedQuantity} res.)
-                                                        </span>
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Pricing */}
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-slate-400">Costo:</span>
-                                                <span className="font-medium">${item.purchasePrice.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-slate-400">Sugerido:</span>
-                                                <span className="font-medium text-emerald-400">${item.suggestedPrice.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm border-t pt-1">
-                                                <span className="text-slate-400">Ganancia:</span>
-                                                <span className="font-semibold text-primary-600">
-                                                    ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
-                                                    <span className="text-xs ml-1">
-                                                        (+{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%)
-                                                    </span>
-                                                </span>
-                                            </div>
-                                            {item.location && (
-                                                <div className="flex items-center gap-1 text-xs text-slate-400 pt-1 border-t">
-                                                    <MapPin size={12} />
-                                                    <span className="truncate">{item.location}</span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Actions */}
-                                        {!isSelectionMode && (
-                                            <div className="flex space-x-2 pt-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="primary"
-                                                    className="flex-1"
-                                                    onClick={() => navigate(`/inventory/${item._id}`)}
-                                                >
-                                                    <Info size={16} className="mr-1" />
-                                                    Detalle
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="secondary"
-                                                    onClick={() => handleEditItem(item)}
-                                                >
-                                                    <Edit size={16} />
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="danger"
-                                                    onClick={() => item._id && handleDeleteItem(item._id)}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </Button>
+                                    <div
+                                        className={`${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
+                                        onClick={() => isSelectionMode && isAvailable && item._id && handleToggleItemSelection(item._id)}
+                                    >
+                                        {/* Selection Checkbox */}
+                                        {isSelectionMode && (
+                                            <div className="absolute top-3 left-3 z-10">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedItems.has(item._id!)}
+                                                    onChange={() => item._id && isAvailable && handleToggleItemSelection(item._id)}
+                                                    disabled={!isAvailable}
+                                                    className={`w-6 h-6 rounded border-slate-600 text-primary-600 focus:ring-primary-500 ${isAvailable ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
                                             </div>
                                         )}
+
+                                        {/* Unavailable Badge */}
+                                        {!isAvailable && isSelectionMode && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/30 rounded-lg z-5">
+                                                <div className="text-white text-center">
+                                                    <div className="text-2xl mb-1">🔒</div>
+                                                    <div className="text-xs font-semibold">No disponible</div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-4">
+                                            {/* Car Image Placeholder */}
+                                            <div
+                                                className="bg-slate-700 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
+                                                onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
+                                            >
+                                                {item.photos && item.photos.length > 0 ? (
+                                                    <>
+                                                        <LazyImage
+                                                            src={item.photos[0]}
+                                                            alt="Hot Wheels"
+                                                            className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
+                                                                }`}
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image'
+                                                            }}
+                                                            onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
+                                                        />
+                                                        {/* Zoom indicator */}
+                                                        {!isSelectionMode && (
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20 rounded-lg">
+                                                                <Maximize2 size={32} className="text-white drop-shadow-lg" />
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <Package size={48} className="text-slate-400" />
+                                                )}
+
+                                                {/* Brand Badge - Top Left */}
+                                                {item.brand && (
+                                                    <div className="absolute top-2 left-2 px-2 py-1 bg-slate-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
+                                                        {item.brand}
+                                                    </div>
+                                                )}
+
+                                                {/* Type and Special Badges - Top Right */}
+                                                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                                    {/* Piece Type Badge */}
+                                                    {item.pieceType && (
+                                                        <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${item.pieceType === 'basic'
+                                                                ? isDark ? 'bg-blue-500/30 text-white' : 'bg-blue-400/30 text-white'
+                                                                : item.pieceType === 'premium'
+                                                                    ? isDark ? 'bg-purple-500/30 text-white' : 'bg-purple-400/30 text-white'
+                                                                    : item.pieceType === 'rlc'
+                                                                        ? isDark ? 'bg-orange-500/30 text-white' : 'bg-orange-400/30 text-white'
+                                                                        : item.pieceType === 'silver_series'
+                                                                            ? isDark ? 'bg-slate-400/30 text-white' : 'bg-slate-300/30 text-white'
+                                                                            : item.pieceType === 'elite_64'
+                                                                                ? isDark ? 'bg-red-500/30 text-white' : 'bg-red-400/30 text-white'
+                                                                                : isDark ? 'bg-slate-500/30 text-white' : 'bg-slate-400/30 text-white'
+                                                            }`}>
+                                                            {formatPieceType(item.pieceType).toUpperCase()}
+                                                        </span>
+                                                    )}
+
+                                                    {/* Treasure Hunt Badge */}
+                                                    {item.isSuperTreasureHunt && (
+                                                        <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark
+                                                                ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white'
+                                                                : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'
+                                                            }`}>
+                                                            $TH
+                                                        </span>
+                                                    )}
+                                                    {item.isTreasureHunt && !item.isSuperTreasureHunt && (
+                                                        <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-green-500/40 text-white' : 'bg-green-400/40 text-white'
+                                                            }`}>
+                                                            TH
+                                                        </span>
+                                                    )}
+
+                                                    {/* Chase Badge */}
+                                                    {item.isChase && (
+                                                        <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark
+                                                                ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white'
+                                                                : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'
+                                                            }`}>
+                                                            CHASE
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>                                {/* Car Info */}
+                                            <div>
+                                                <h3 className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                    {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
+                                                </h3>
+                                                <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                    {item.hotWheelsCar?.series} {item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}
+                                                </p>
+                                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                    {item.hotWheelsCar?.toy_num || item.carId}
+                                                </p>
+
+                                                {/* Series Badge */}
+                                                {item.seriesId && (
+                                                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                                                        🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})
+                                                    </div>
+                                                )}
+
+                                                {/* Box Badge - If this IS a sealed box */}
+                                                {item.isBox && (
+                                                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                                                        📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas
+                                                        {item.boxStatus === 'sealed' && ' 🔒'}
+                                                        {item.boxStatus === 'unpacking' && ' ⏳'}
+                                                    </div>
+                                                )}
+
+                                                {/* Source Box Badge - If this piece came from a box */}
+                                                {item.sourceBox && !item.isBox && (
+                                                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full">
+                                                        📦 De: {item.sourceBox}
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-center justify-between mt-2 gap-2">
+                                                    <span className={`
+                      px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap
+                      ${item.condition === 'mint' ? 'bg-slate-700 text-emerald-400' :
+                                                            item.condition === 'good' ? 'bg-blue-100 text-blue-800' :
+                                                                item.condition === 'fair' ? 'bg-yellow-100 text-yellow-800' :
+                                                                    'bg-red-100 text-red-800'
+                                                        }
+                    `}>
+                                                        {item.condition === 'mint' ? 'Mint' :
+                                                            item.condition === 'good' ? 'Bueno' :
+                                                                item.condition === 'fair' ? 'Regular' : 'Malo'}
+                                                    </span>
+                                                    <span className={`text-xs font-medium text-right flex-shrink-0 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                                        {item.quantity - (item.reservedQuantity || 0)}/{item.quantity}
+                                                        {(item.reservedQuantity || 0) > 0 && (
+                                                            <span className="text-orange-600 block text-xs">
+                                                                ({item.reservedQuantity} res.)
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Pricing */}
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Costo:</span>
+                                                    <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>${item.purchasePrice.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm">
+                                                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Sugerido:</span>
+                                                    <span className="font-medium text-emerald-400">${item.suggestedPrice.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm border-t pt-1">
+                                                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Ganancia:</span>
+                                                    <span className="font-semibold text-primary-600">
+                                                        ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
+                                                        <span className="text-xs ml-1">
+                                                            (+{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%)
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                                {item.location && (
+                                                    <div className={`flex items-center gap-1 text-xs pt-1 border-t ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                        <MapPin size={12} />
+                                                        <span className="truncate">{item.location}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Actions */}
+                                            {!isSelectionMode && (
+                                                <div className="flex space-x-2 pt-2">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="primary"
+                                                        className="flex-1"
+                                                        onClick={() => navigate(`/inventory/${item._id}`)}
+                                                    >
+                                                        <Info size={16} className="mr-1" />
+                                                        Detalle
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => handleEditItem(item)}
+                                                    >
+                                                        <Edit size={16} />
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="danger"
+                                                        onClick={() => item._id && handleDeleteItem(item._id)}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </Card>
-                        ))}
+                                </Card>
+                            )
+                        })}
                     </div>
                 )}
             </div>
@@ -2621,25 +2682,25 @@ export default function Inventory() {
                                                         {/* Imagen pequeña del catálogo */}
                                                         <div className="flex-shrink-0 w-12 h-12 bg-emerald-800 rounded overflow-hidden flex items-center justify-center relative">
                                                             {item.photo_url ? (
-                                                                <>
-                                                                    <img
-                                                                        src={item.photo_url}
-                                                                        alt={item.model}
-                                                                        className="w-full h-full object-contain"
-                                                                        crossOrigin="anonymous"
-                                                                        onError={(e) => {
-                                                                            // Keep the container visible even if image fails
-                                                                            e.currentTarget.style.display = 'none'
-                                                                        }}
-                                                                        onLoad={() => {
-                                                                            console.log('✅ Catalog image loaded:', item.model)
-                                                                        }}
-                                                                    />
-                                                                    {/* Fallback if image fails */}
-                                                                    <div className="absolute inset-0 flex items-center justify-center text-emerald-300 text-sm font-bold group-has-[img:hidden]:flex hidden" id={`fallback-${idx}`}>
-                                                                        🚗
-                                                                    </div>
-                                                                </>
+                                                                <img
+                                                                    src={item.photo_url}
+                                                                    alt={item.model}
+                                                                    className="w-full h-full object-contain"
+                                                                    crossOrigin="anonymous"
+                                                                    onError={(e) => {
+                                                                        // Fallback a emoji si falla
+                                                                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                                                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                                                                        if (parent && !parent.querySelector('[data-fallback]')) {
+                                                                            const fallback = document.createElement('div');
+                                                                            fallback.setAttribute('data-fallback', 'true');
+                                                                            fallback.className = 'flex items-center justify-center text-emerald-300 text-sm font-bold';
+                                                                            fallback.textContent = '🚗';
+                                                                            parent.appendChild(fallback);
+                                                                        }
+                                                                    }}
+                                                                    onLoad={() => console.log('✅ Catalog image loaded:', item.model)}
+                                                                />
                                                             ) : (
                                                                 <div className="text-emerald-300 text-sm">🚗</div>
                                                             )}
@@ -2821,11 +2882,11 @@ export default function Inventory() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Condición (afecta margen sugerido)
                             </label>
                             <select
-                                className="input w-full"
+                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 value={newItem.condition}
                                 onChange={(e) => handleConditionChange(e.target.value)}
                             >
@@ -2855,11 +2916,11 @@ export default function Inventory() {
 
                         {/* Brand Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Marca
                             </label>
                             <select
-                                className="input w-full"
+                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 value={showCustomBrandInput ? 'custom' : newItem.brand}
                                 onChange={(e) => handleBrandChange(e.target.value)}
                             >
@@ -2909,11 +2970,11 @@ export default function Inventory() {
                         {/* Piece Type */}
                         {newItem.brand && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     Tipo de Pieza
                                 </label>
                                 <select
-                                    className="input w-full"
+                                    className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                     value={newItem.pieceType}
                                     onChange={(e) => setNewItem({ ...newItem, pieceType: e.target.value as any })}
                                 >
@@ -2969,14 +3030,14 @@ export default function Inventory() {
                         {/* Fantasy Casting (only for Hot Wheels) */}
                         {newItem.brand?.toLowerCase() === 'hot wheels' && (
                             <div>
-                                <label className="flex items-center gap-2">
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     <input
                                         type="checkbox"
                                         checked={newItem.isFantasy}
                                         onChange={(e) => setNewItem({ ...newItem, isFantasy: e.target.checked })}
-                                        className="rounded"
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">
+                                    <span className="text-sm font-medium">
                                         🎨 Fantasía (diseño original)
                                     </span>
                                 </label>
@@ -2985,14 +3046,14 @@ export default function Inventory() {
 
                         {/* Moto flag */}
                         <div>
-                            <label className="flex items-center gap-2">
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 <input
                                     type="checkbox"
                                     checked={newItem.isMoto}
                                     onChange={(e) => setNewItem({ ...newItem, isMoto: e.target.checked })}
-                                    className="rounded"
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                 />
-                                <span className="text-sm font-medium text-gray-700">
+                                <span className="text-sm font-medium">
                                     🏍️ Moto
                                 </span>
                             </label>
@@ -3000,14 +3061,14 @@ export default function Inventory() {
 
                         {/* Camioneta flag */}
                         <div>
-                            <label className="flex items-center gap-2">
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 <input
                                     type="checkbox"
                                     checked={newItem.isCamioneta}
                                     onChange={(e) => setNewItem({ ...newItem, isCamioneta: e.target.checked })}
-                                    className="rounded"
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                 />
-                                <span className="text-sm font-medium text-gray-700">
+                                <span className="text-sm font-medium">
                                     🚙 Camioneta
                                 </span>
                             </label>
@@ -3015,14 +3076,14 @@ export default function Inventory() {
 
                         {/* Fast and Furious flag */}
                         <div>
-                            <label className="flex items-center gap-2">
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 <input
                                     type="checkbox"
                                     checked={newItem.isFastFurious}
                                     onChange={(e) => setNewItem({ ...newItem, isFastFurious: e.target.checked })}
-                                    className="rounded"
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                 />
-                                <span className="text-sm font-medium text-gray-700">
+                                <span className="text-sm font-medium">
                                     🏎️ Fast and Furious
                                 </span>
                             </label>
@@ -3032,12 +3093,12 @@ export default function Inventory() {
                         {(newItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) ||
                             (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium') ? (
                             <div>
-                                <label className="flex items-center gap-2">
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     <input
                                         type="checkbox"
                                         checked={newItem.isChase}
                                         onChange={(e) => setNewItem({ ...newItem, isChase: e.target.checked })}
-                                        className="rounded"
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                     />
                                     <span className="text-sm font-medium text-gray-700">
                                         🌟 Chase
@@ -3376,11 +3437,11 @@ export default function Inventory() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Condición
                             </label>
                             <select
-                                className="input w-full"
+                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 value={editingItem.condition}
                                 onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
                             >
@@ -3406,11 +3467,11 @@ export default function Inventory() {
 
                         {/* Brand Selection - Edit Mode */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Marca
                             </label>
                             <select
-                                className="input w-full"
+                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 value={editingItem.brand || ''}
                                 onChange={(e) => setEditingItem({ ...editingItem, brand: e.target.value })}
                             >
@@ -3424,11 +3485,11 @@ export default function Inventory() {
                         {/* Piece Type - Edit Mode */}
                         {editingItem.brand && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     Tipo de Pieza
                                 </label>
                                 <select
-                                    className="input w-full"
+                                    className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                     value={editingItem.pieceType || ''}
                                     onChange={(e) => setEditingItem({ ...editingItem, pieceType: e.target.value })}
                                 >
@@ -3445,7 +3506,7 @@ export default function Inventory() {
                         {/* Treasure Hunt - Edit Mode */}
                         {editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'basic' && (
                             <div className="space-y-2">
-                                <label className="flex items-center gap-2">
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     <input
                                         type="checkbox"
                                         checked={editingItem.isTreasureHunt || false}
@@ -3455,14 +3516,14 @@ export default function Inventory() {
                                             isTreasureHunt: e.target.checked,
                                             isSuperTreasureHunt: false
                                         })}
-                                        className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
-                                    <span className={`text-sm font-medium ${editingItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                    <span className={`text-sm font-medium ${editingItem.isSuperTreasureHunt ? (isDark ? 'text-slate-500' : 'text-gray-400') : ''}`}>
                                         🔍 Treasure Hunt (TH)
                                     </span>
                                 </label>
 
-                                <label className="flex items-center gap-2">
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     <input
                                         type="checkbox"
                                         checked={editingItem.isSuperTreasureHunt || false}
@@ -3472,9 +3533,9 @@ export default function Inventory() {
                                             isSuperTreasureHunt: e.target.checked,
                                             isTreasureHunt: false
                                         })}
-                                        className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
-                                    <span className={`text-sm font-medium ${editingItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                                    <span className={`text-sm font-medium ${editingItem.isTreasureHunt ? (isDark ? 'text-slate-500' : 'text-gray-400') : ''}`}>
                                         ⭐ Super Treasure Hunt (STH)
                                     </span>
                                 </label>
@@ -3484,14 +3545,14 @@ export default function Inventory() {
                         {/* Fantasy Casting - Edit Mode (only for Hot Wheels) */}
                         {editingItem.brand?.toLowerCase() === 'hot wheels' && (
                             <div>
-                                <label className="flex items-center gap-2">
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     <input
                                         type="checkbox"
                                         checked={editingItem.isFantasy || false}
                                         onChange={(e) => setEditingItem({ ...editingItem, isFantasy: e.target.checked })}
-                                        className="rounded"
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">
+                                    <span className="text-sm font-medium">
                                         🎨 Fantasía (diseño original)
                                     </span>
                                 </label>
@@ -3502,14 +3563,14 @@ export default function Inventory() {
                         {(editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase())) ||
                             (editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'premium') ? (
                             <div>
-                                <label className="flex items-center gap-2">
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                     <input
                                         type="checkbox"
                                         checked={editingItem.isChase || false}
                                         onChange={(e) => setEditingItem({ ...editingItem, isChase: e.target.checked })}
-                                        className="rounded"
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                     />
-                                    <span className="text-sm font-medium text-gray-700">
+                                    <span className="text-sm font-medium">
                                         🌟 Chase
                                     </span>
                                 </label>
@@ -3518,14 +3579,14 @@ export default function Inventory() {
 
                         {/* Moto - Edit Mode */}
                         <div>
-                            <label className="flex items-center gap-2">
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 <input
                                     type="checkbox"
                                     checked={editingItem.isMoto || false}
                                     onChange={(e) => setEditingItem({ ...editingItem, isMoto: e.target.checked })}
-                                    className="rounded"
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                 />
-                                <span className="text-sm font-medium text-gray-700">
+                                <span className="text-sm font-medium">
                                     🏍️ Moto
                                 </span>
                             </label>
@@ -3533,7 +3594,7 @@ export default function Inventory() {
 
                         {/* Camioneta - Edit Mode */}
                         <div>
-                            <label className="flex items-center gap-2">
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 <input
                                     type="checkbox"
                                     checked={editingItem.isCamioneta || false}

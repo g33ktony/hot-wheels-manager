@@ -362,13 +362,13 @@ export default function PreSalePayments() {
                             <p className="font-medium">{getCustomerName(selectedPlan.customerId)}</p>
                             <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                                 <div>
-                                    <span className="text-slate-400">Restante:</span>
+                                    <span className="text-slate-600">Restante:</span>
                                     <span className="ml-2 font-bold text-orange-600">
                                         ${selectedPlan.remainingAmount.toFixed(2)}
                                     </span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-400">Sugerido:</span>
+                                    <span className="text-slate-600">Sugerido:</span>
                                     <span className="ml-2 font-medium">
                                         ${selectedPlan.amountPerPayment.toFixed(2)}
                                     </span>

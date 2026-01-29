@@ -1220,19 +1220,19 @@ export default function Purchases() {
                                                                 </div>
                                                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                                                     <div>
-                                                                        <div className="text-slate-400">Costo por Pieza:</div>
+                                                                        <div className="text-slate-600">Costo por Pieza:</div>
                                                                         <div className="font-semibold text-purple-700">
                                                                             ${item.boxSize && item.boxPrice ? (item.boxPrice / item.boxSize).toFixed(2) : '0.00'}
                                                                         </div>
                                                                     </div>
                                                                     <div>
-                                                                        <div className="text-slate-400">Total Piezas:</div>
+                                                                        <div className="text-slate-600">Total Piezas:</div>
                                                                         <div className="font-semibold text-purple-700">
                                                                             {(item.boxSize || 0) * (item.quantity || 1)} piezas
                                                                         </div>
                                                                     </div>
                                                                     <div className="col-span-2 pt-2 border-t border-purple-300">
-                                                                        <div className="text-slate-400">Subtotal:</div>
+                                                                        <div className="text-slate-600">Subtotal:</div>
                                                                         <div className="font-bold text-lg text-purple-900">
                                                                             ${((item.boxPrice || 0) * (item.quantity || 1)).toFixed(2)}
                                                                         </div>

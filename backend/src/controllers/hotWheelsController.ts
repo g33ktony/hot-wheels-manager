@@ -413,8 +413,8 @@ export const proxyImage = async (req: Request, res: Response) => {
       })
     }
 
-    // Validar que sea una URL de Wikia
-    if (!url.includes('static.wikia.nocookie.net')) {
+    // Validar que sea una URL de Wikia o vcdn (Wikia CDN)
+    if (!url.includes('wikia') && !url.includes('fandom') && !url.includes('vcdn')) {
       return res.status(403).json({
         success: false,
         error: 'Solo URLs de Wikia permitidas'
@@ -424,13 +424,14 @@ export const proxyImage = async (req: Request, res: Response) => {
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       },
-      timeout: 5000
+      timeout: 10000
     })
 
     res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg')
     res.setHeader('Cache-Control', 'public, max-age=86400')
+    res.setHeader('Access-Control-Allow-Origin', '*')
     res.send(response.data)
   } catch (error: any) {
     console.error('Error proxying image:', error.message)

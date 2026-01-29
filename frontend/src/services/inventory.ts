@@ -23,6 +23,7 @@ export interface InventoryFilters {
   treasureHunt?: 'all' | 'th' | 'sth'
   chase?: boolean
   fantasy?: boolean
+  fantasyOnly?: boolean
   moto?: boolean
   camioneta?: boolean
   fastFurious?: boolean
@@ -62,6 +63,9 @@ export const inventoryService = {
     }
     if (filters.fantasy) {
       params.append('fantasy', 'true')
+    }
+    if (filters.fantasyOnly) {
+      params.append('fantasyOnly', 'true')
     }
     if (filters.moto) {
       params.append('moto', 'true')

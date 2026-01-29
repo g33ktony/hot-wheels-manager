@@ -347,3 +347,128 @@ export const globalSearch = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const predictiveSearch = async (req: Request, res: Response) => {
+  try {
+    const { q } = req.query;
+    const limit = Math.min(parseInt((req.query.limit as string) || '10'), 10);
+
+    if (!q || typeof q !== 'string' || q.trim().length < 3) {
+      return res.json({
+        success: true,
+        data: [],
+        message: 'Query must be at least 3 characters'
+      });
+    }
+
+    const searchTerm = q.trim();
+    const searchRegex = { $regex: searchTerm, $options: 'i' };
+    const results: any[] = [];
+
+    // 1. Inventario
+    const inventoryItems = await InventoryItemModel.find({
+      $or: [
+        { 'carName': searchRegex },
+        { 'carId': searchRegex },
+        { 'brand': searchRegex },
+        { 'location': searchRegex }
+      ]
+    })
+      .select('carId carName brand suggestedPrice photos quantity')
+      .limit(limit);
+
+    for (const item of inventoryItems) {
+      results.push({
+        id: (item._id as any).toString(),
+        type: 'inventory',
+        name: item.carName || item.carId || 'Item sin nombre',
+        price: item.suggestedPrice,
+        photoUrl: item.photos?.[0],
+        extra: `${item.brand} - Stock: ${item.quantity}`
+      });
+    }
+
+    // 2. Ventas
+    const sales = await SaleModel.find({
+      status: 'completed',
+      $or: [
+        { 'customer.name': searchRegex },
+        { 'items.carName': searchRegex }
+      ]
+    })
+      .select('customerId totalAmount items saleDate')
+      .limit(limit);
+
+    for (const sale of sales) {
+      const customerData = sale.customerId as any;
+      const customerName = customerData?.name || 'Cliente POS';
+      
+      results.push({
+        id: (sale._id as any).toString(),
+        type: 'sale',
+        name: `Venta a ${customerName}`,
+        price: sale.totalAmount,
+        extra: `${sale.items.length} pieza${sale.items.length !== 1 ? 's' : ''}`
+      });
+    }
+
+    // 3. Entregas
+    const deliveries = await DeliveryModel.find({
+      status: { $in: ['scheduled', 'prepared', 'completed'] },
+      $or: [
+        { 'customer.name': searchRegex },
+        { 'items.carName': searchRegex }
+      ]
+    })
+      .select('customerId status items location')
+      .limit(limit);
+
+    for (const delivery of deliveries) {
+      const customerData = delivery.customerId as any;
+      const customerName = customerData?.name || 'Cliente';
+      
+      results.push({
+        id: (delivery._id as any).toString(),
+        type: 'delivery',
+        name: `Entrega a ${customerName}`,
+        extra: `Estado: ${delivery.status}`
+      });
+    }
+
+    // 4. Clientes
+    const customers = await CustomerModel.find({
+      $or: [
+        { 'name': searchRegex },
+        { 'email': searchRegex },
+        { 'phone': searchRegex }
+      ]
+    })
+      .select('name email phone')
+      .limit(limit);
+
+    for (const customer of customers) {
+      results.push({
+        id: (customer._id as any).toString(),
+        type: 'customer',
+        name: customer.name,
+        extra: customer.email || customer.phone || 'Cliente'
+      });
+    }
+
+    // Return top results by type (balanced)
+    const finalResults = results.slice(0, limit);
+
+    return res.json({
+      success: true,
+      data: finalResults,
+      message: 'Predictive search results'
+    });
+  } catch (error) {
+    console.error('Error en búsqueda predictiva:', error);
+    res.status(500).json({
+      success: false,
+      data: [],
+      message: 'Error al realizar la búsqueda predictiva'
+    });
+  }
+};

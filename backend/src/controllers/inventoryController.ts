@@ -29,6 +29,7 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     const filterTreasureHunt = req.query.treasureHunt as string; // 'all' | 'th' | 'sth'
     const filterChase = req.query.chase === 'true';
     const filterFantasy = req.query.fantasy === 'true';
+    const filterFantasyOnly = req.query.fantasyOnly === 'true';
     const filterMoto = req.query.moto === 'true';
     const filterCamioneta = req.query.camioneta === 'true';
     const filterFastFurious = req.query.fastFurious === 'true';
@@ -66,8 +67,12 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     }
 
     // Fantasy filter
-    if (filterFantasy) {
+    if (filterFantasyOnly) {
+      // Show only fantasies
       query.isFantasy = true;
+    } else if (filterFantasy) {
+      // Hide fantasies
+      query.isFantasy = { $ne: true };
     }
 
     // Moto filter

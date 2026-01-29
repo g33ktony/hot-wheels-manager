@@ -633,34 +633,35 @@ export default function Dashboard() {
                                 {searchResults.map((item, idx) => (
                                     <div key={idx} className="bg-slate-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-slate-700 flex flex-col">
                                         {/* Imagen */}
-                                        <div className="h-40 bg-slate-700 overflow-hidden flex items-center justify-center relative group">
+                                        <div className="h-40 bg-slate-700 overflow-hidden flex items-center justify-center relative">
                                             {item.photo_url ? (
-                                                <>
-                                                    <img
-                                                        src={item.photo_url}
-                                                        alt={item.model}
-                                                        className="w-full h-full object-contain bg-slate-800"
-                                                        crossOrigin="anonymous"
-                                                        onLoad={() => {
-                                                            console.log('✅ Imagen cargada:', item.model, item.photo_url)
-                                                        }}
-                                                        onError={(e) => {
-                                                            console.warn('❌ Error cargando imagen:', {
-                                                                model: item.model,
-                                                                url: item.photo_url,
-                                                                error: (e.target as HTMLImageElement).currentSrc
-                                                            })
-                                                        }}
-                                                    />
-                                                    {/* Fallback si falla */}
-                                                    <div className="absolute inset-0 bg-gray-200 flex items-center justify-center text-gray-500 text-xs hidden group-has-:hidden">
-                                                        Cargando...
-                                                    </div>
-                                                </>
+                                                <img
+                                                    src={item.photo_url}
+                                                    alt={item.model}
+                                                    className="w-full h-full object-contain bg-slate-800"
+                                                    crossOrigin="anonymous"
+                                                    onLoad={() => {
+                                                        console.log('✅ Imagen cargada:', item.model, item.photo_url)
+                                                    }}
+                                                    onError={(e) => {
+                                                        console.warn('❌ Error cargando imagen:', {
+                                                            model: item.model,
+                                                            url: item.photo_url
+                                                        });
+                                                        // Fallback a emoji
+                                                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                                                        if (parent && !parent.querySelector('[data-fallback]')) {
+                                                            const fallback = document.createElement('div');
+                                                            fallback.setAttribute('data-fallback', 'true');
+                                                            fallback.className = 'flex items-center justify-center text-6xl';
+                                                            fallback.textContent = '🚗';
+                                                            parent.appendChild(fallback);
+                                                        }
+                                                    }}
+                                                />
                                             ) : (
-                                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                                                    Sin URL
-                                                </div>
+                                                <div className="flex items-center justify-center text-6xl">🚗</div>
                                             )}
                                         </div>
                                         {/* Datos */}

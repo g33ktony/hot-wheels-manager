@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { inventoryService } from '@/services/inventory'
+import { useTheme } from '@/contexts/ThemeContext'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import jsPDF from 'jspdf'
@@ -27,6 +28,8 @@ import toast from 'react-hot-toast'
 export default function ItemDetail() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const [item, setItem] = useState<InventoryItem | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [showShareModal, setShowShareModal] = useState(false)
@@ -810,9 +813,9 @@ export default function ItemDetail() {
     const finalPrice = getFinalPrice()
 
     return (
-        <div className="min-h-screen bg-slate-700/30 pb-24">
+        <div className={`min-h-screen pb-24 ${isDark ? 'bg-slate-700/30' : 'bg-slate-50'}`}>
             {/* Header */}
-            <div className="bg-slate-800 border-b sticky top-0 z-10">
+            <div className={`border-b sticky top-0 z-10 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
                     <Button
                         variant="secondary"
@@ -822,7 +825,7 @@ export default function ItemDetail() {
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
-                    <h1 className="text-lg font-bold truncate flex-1">{carName}</h1>
+                    <h1 className={`text-lg font-bold truncate flex-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{carName}</h1>
                 </div>
             </div>
 
@@ -835,7 +838,7 @@ export default function ItemDetail() {
                                 src={item.photos[selectedPhotoIndex]}
                                 alt={carName}
                                 crossOrigin="anonymous"
-                                className="w-full h-64 object-contain bg-slate-700"
+                                className={`w-full h-64 object-contain ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}
                             />
                             {item.photos.length > 1 && (
                                 <div className="flex gap-2 p-3 overflow-x-auto">
@@ -860,7 +863,7 @@ export default function ItemDetail() {
                             )}
                         </div>
                     ) : (
-                        <div className="h-64 flex items-center justify-center bg-slate-700">
+                        <div className={`h-64 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}>
                             <Package className="w-16 h-16 text-gray-400" />
                         </div>
                     )}
