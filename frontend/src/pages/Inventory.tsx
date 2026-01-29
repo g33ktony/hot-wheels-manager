@@ -323,12 +323,12 @@ export default function Inventory() {
         setFilterFantasyOnly(checked)
         if (checked) {
             // Activate "Solo Fantasías", deactivate "Ocultar Fantasías"
-            updateFilter('fantasy', false)
+            updateFilter('filterFantasy', false)
         }
     }
 
     const handleHideFantasyChange = (checked: boolean) => {
-        updateFilter('fantasy', checked)
+        updateFilter('filterFantasy', checked)
         if (checked) {
             // Activate "Ocultar Fantasías", deactivate "Solo Fantasías"
             setFilterFantasyOnly(false)

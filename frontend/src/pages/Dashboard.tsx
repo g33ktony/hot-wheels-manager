@@ -276,7 +276,7 @@ export default function Dashboard() {
                 {/* Recent Activity */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Actividad Reciente</CardTitle>
+                        <CardTitle className="text-white">Actividad Reciente</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
@@ -337,7 +337,7 @@ export default function Dashboard() {
                 {/* Alerts and Notifications */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center">
+                        <CardTitle className="flex items-center text-white">
                             <AlertTriangle size={20} className="text-red-500 mr-2" />
                             Alertas y Notificaciones
                         </CardTitle>
