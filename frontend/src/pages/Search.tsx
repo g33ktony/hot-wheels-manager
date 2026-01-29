@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { api } from '@/services/api'
+import { useTheme } from '@/contexts/ThemeContext'
 import {
     Search as SearchIcon, ShoppingCart, Package, Truck, User, AlertCircle, ChevronRight,
     Plus, TrendingUp, MapPin, Phone, Mail, X, Edit, Save
@@ -35,6 +36,8 @@ interface ModalState {
 }
 
 export default function Search() {
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const [searchParams] = useSearchParams()
     const initialQuery = searchParams.get('q') || ''
     const dispatch = useAppDispatch()
@@ -45,12 +48,12 @@ export default function Search() {
 
     // Filtros de tipos de resultado
     const [filters, setFilters] = useState({
-        sales: true,
         inventory: true,
         deliveries: true,
-        customers: true,
-        preventas: true,
-        catalog: true, // Agregar filtro para catálogo
+        catalog: true,
+        sales: false,
+        customers: false,
+        preventas: false,
         inventoryStock: 'all' // 'all', 'inStock', 'outOfStock'
     })
     const { data: results = [], isLoading } = useQuery(
@@ -238,25 +241,28 @@ export default function Search() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
+        <div className={`min-h-screen p-4 md:p-6 ${isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'}`}>
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-4xl font-bold text-white mb-2">🔍 Búsqueda Global</h1>
-                <p className="text-slate-400">Encuentra ventas, entregas, items, clientes y preventas</p>
+                <h1 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>🔍 Búsqueda Global</h1>
+                <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>Encuentra ventas, entregas, items, clientes y preventas</p>
             </div>
 
             {/* Search Input */}
-            <div className="mb-6 bg-slate-800/50 border border-slate-700 rounded-lg sticky top-6 z-40">
+            <div className={`mb-6 rounded-lg sticky top-6 z-40 ${isDark ? 'bg-slate-800/50 border border-slate-700' : 'bg-white border border-slate-200 shadow-sm'}`}>
                 <div className="p-6">
                     <div className="relative">
-                        <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <SearchIcon className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
                         <input
                             type="text"
                             placeholder="Busca por: marca (Lambo), cliente, item, número..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             autoFocus
-                            className="w-full pl-12 pr-4 py-3 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none text-lg"
+                            className={`w-full pl-12 pr-4 py-3 rounded-lg border text-lg focus:border-emerald-500 focus:outline-none ${isDark
+                                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
+                                    : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
+                                }`}
                         />
                         {query && (
                             <button
@@ -269,71 +275,81 @@ export default function Search() {
                     </div>
 
                     {/* Filtros */}
-                    <div className="mt-4 pt-4 border-t border-slate-700">
-                        <p className="text-xs font-semibold text-slate-400 mb-3 uppercase">Filtrar por tipo:</p>
+                    <div className={`mt-4 pt-4 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
+                        <p className={`text-xs font-semibold mb-3 uppercase ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Filtrar por tipo:</p>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
-                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.sales}
-                                    onChange={(e) => setFilters({ ...filters, sales: e.target.checked })}
-                                    className="rounded"
-                                />
-                                <span className="text-sm text-slate-300">💳 Ventas</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                            {/* Seleccionados por default */}
+                            <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                }`}>
                                 <input
                                     type="checkbox"
                                     checked={filters.inventory}
                                     onChange={(e) => setFilters({ ...filters, inventory: e.target.checked })}
                                     className="rounded"
                                 />
-                                <span className="text-sm text-slate-300">📦 Items</span>
+                                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>📦 Items</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                            <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                }`}>
                                 <input
                                     type="checkbox"
                                     checked={filters.deliveries}
                                     onChange={(e) => setFilters({ ...filters, deliveries: e.target.checked })}
                                     className="rounded"
                                 />
-                                <span className="text-sm text-slate-300">🚚 Entregas</span>
+                                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>🚚 Entregas</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.customers}
-                                    onChange={(e) => setFilters({ ...filters, customers: e.target.checked })}
-                                    className="rounded"
-                                />
-                                <span className="text-sm text-slate-300">👤 Clientes</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
-                                <input
-                                    type="checkbox"
-                                    checked={filters.preventas}
-                                    onChange={(e) => setFilters({ ...filters, preventas: e.target.checked })}
-                                    className="rounded"
-                                />
-                                <span className="text-sm text-slate-300">⏳ Preventas</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                            <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                }`}>
                                 <input
                                     type="checkbox"
                                     checked={filters.catalog}
                                     onChange={(e) => setFilters({ ...filters, catalog: e.target.checked })}
                                     className="rounded"
                                 />
-                                <span className="text-sm text-slate-300">📚 Catálogo</span>
+                                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>📚 Catálogo</span>
+                            </label>
+
+                            {/* Deseleccionados por default */}
+                            <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                }`}>
+                                <input
+                                    type="checkbox"
+                                    checked={filters.sales}
+                                    onChange={(e) => setFilters({ ...filters, sales: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>💳 Ventas</span>
+                            </label>
+                            <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                }`}>
+                                <input
+                                    type="checkbox"
+                                    checked={filters.customers}
+                                    onChange={(e) => setFilters({ ...filters, customers: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>👤 Clientes</span>
+                            </label>
+                            <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                }`}>
+                                <input
+                                    type="checkbox"
+                                    checked={filters.preventas}
+                                    onChange={(e) => setFilters({ ...filters, preventas: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>⏳ Preventas</span>
                             </label>
                         </div>
 
                         {/* Filtro de stock para items */}
                         {filters.inventory && (
                             <div>
-                                <p className="text-xs font-semibold text-slate-400 mb-2 uppercase">Stock de items:</p>
+                                <p className={`text-xs font-semibold mb-2 uppercase ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Stock de items:</p>
                                 <div className="flex gap-2">
-                                    <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                    <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                        }`}>
                                         <input
                                             type="radio"
                                             name="stock-filter"
@@ -344,7 +360,8 @@ export default function Search() {
                                         />
                                         <span className="text-sm text-slate-300">Todo</span>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                    <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                        }`}>
                                         <input
                                             type="radio"
                                             name="stock-filter"
@@ -353,9 +370,10 @@ export default function Search() {
                                             onChange={(e) => setFilters({ ...filters, inventoryStock: e.target.value as any })}
                                             className="rounded"
                                         />
-                                        <span className="text-sm text-slate-300">✅ Con stock</span>
+                                        <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>✅ Con stock</span>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer hover:bg-slate-700/50 p-2 rounded transition-colors">
+                                    <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
+                                        }`}>
                                         <input
                                             type="radio"
                                             name="stock-filter"
@@ -364,7 +382,7 @@ export default function Search() {
                                             onChange={(e) => setFilters({ ...filters, inventoryStock: e.target.value as any })}
                                             className="rounded"
                                         />
-                                        <span className="text-sm text-slate-300">❌ Sin stock</span>
+                                        <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>❌ Sin stock</span>
                                     </label>
                                 </div>
                             </div>
@@ -386,8 +404,8 @@ export default function Search() {
             {/* No Query State */}
             {query.length < 2 && (
                 <div className="text-center py-16">
-                    <Package className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400 text-lg">Escribe al menos 2 caracteres para buscar</p>
+                    <Package className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
+                    <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Escribe al menos 2 caracteres para buscar</p>
                 </div>
             )}
 
@@ -395,7 +413,7 @@ export default function Search() {
             {query.length >= 2 && !isLoading && results.length === 0 && (
                 <div className="text-center py-16">
                     <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                    <p className="text-slate-400 text-lg">No se encontraron resultados para "{query}"</p>
+                    <p className={isDark ? 'text-slate-400 text-lg' : 'text-slate-600 text-lg'}>No se encontraron resultados para "{query}"</p>
                 </div>
             )}
 
@@ -405,20 +423,32 @@ export default function Search() {
                     {/* INVENTORY RESULTS */}
                     {groupedResults.inventory.length > 0 && (
                         <div>
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 <Package className="w-5 h-5 text-blue-500" /> Items ({groupedResults.inventory.length})
                             </h2>
                             <div className="grid gap-3">
                                 {groupedResults.inventory.map((result) => (
                                     <div
                                         key={result._id}
-                                        className="p-4 flex items-center justify-between bg-slate-800/50 border border-slate-700 rounded-lg hover:border-blue-500 transition-all cursor-pointer"
+                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-blue-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                            }`}
                                         onClick={() => handleResultClick(result)}
                                     >
+                                        {/* Imagen del item */}
+                                        {result.metadata?.photos && result.metadata.photos.length > 0 && (
+                                            <img
+                                                src={result.metadata.photos[0]}
+                                                alt={result.title}
+                                                className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
+                                                crossOrigin="anonymous"
+                                            />
+                                        )}
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-white">{result.title}</h3>
-                                            <p className="text-sm text-slate-400">{result.subtitle}</p>
-                                            <p className="text-sm text-slate-500 mt-1">{result.description}</p>
+                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
+                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {!result.inStock && (
@@ -462,20 +492,23 @@ export default function Search() {
                     {/* SALES RESULTS */}
                     {groupedResults.sale.length > 0 && (
                         <div>
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 <TrendingUp className="w-5 h-5 text-emerald-500" /> Ventas ({groupedResults.sale.length})
                             </h2>
                             <div className="grid gap-3">
                                 {groupedResults.sale.map((result) => (
                                     <div
                                         key={result._id}
-                                        className="p-4 flex items-center justify-between bg-slate-800/50 border border-slate-700 rounded-lg hover:border-emerald-500 transition-all cursor-pointer"
+                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-emerald-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                            }`}
                                         onClick={() => handleResultClick(result)}
                                     >
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-white">{result.title}</h3>
-                                            <p className="text-sm text-slate-400">{result.subtitle}</p>
-                                            <p className="text-sm text-slate-500 mt-1">{result.description}</p>
+                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
+                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
                                             {result.metadata?.saleType && (
                                                 <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${result.metadata.saleType === 'delivery'
                                                     ? 'bg-emerald-500/20 text-emerald-300'
@@ -487,11 +520,11 @@ export default function Search() {
                                         </div>
                                         <div className="text-right">
                                             {result.metadata?.profit !== undefined && (
-                                                <p className="text-lg font-semibold text-blue-400">
+                                                <p className={`text-lg font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                                                     💰 ${result.metadata.profit.toFixed(2)}
                                                 </p>
                                             )}
-                                            <p className="text-sm text-slate-500 mt-2">
+                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-2`}>
                                                 {result.date && typeof result.date === 'string'
                                                     ? new Date(result.date).toLocaleDateString('es-ES')
                                                     : 'Sin fecha'}
@@ -507,19 +540,22 @@ export default function Search() {
                     {/* DELIVERY RESULTS */}
                     {groupedResults.delivery.length > 0 && (
                         <div>
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 <Truck className="w-5 h-5 text-orange-500" /> Entregas ({groupedResults.delivery.length})
                             </h2>
                             <div className="grid gap-3">
                                 {groupedResults.delivery.map((result) => (
                                     <div
                                         key={result._id}
-                                        className="p-4 flex items-center justify-between bg-slate-800/50 border border-slate-700 rounded-lg hover:border-orange-500 transition-all cursor-pointer"
+                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-orange-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                            }`}
                                         onClick={() => handleResultClick(result)}
                                     >
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-white">{result.title}</h3>
-                                            <p className="text-sm text-slate-400">{result.subtitle}</p>
+                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
                                             <div className="flex gap-2 mt-2">
                                                 <span className={`px-2 py-1 text-xs rounded-full font-medium ${result.metadata?.status === 'completed'
                                                     ? 'bg-emerald-500/20 text-emerald-300'
@@ -548,19 +584,22 @@ export default function Search() {
                     {/* CUSTOMER RESULTS */}
                     {groupedResults.customer.length > 0 && (
                         <div>
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 <User className="w-5 h-5 text-purple-500" /> Clientes ({groupedResults.customer.length})
                             </h2>
                             <div className="grid gap-3">
                                 {groupedResults.customer.map((result) => (
                                     <div
                                         key={result._id}
-                                        className="p-4 flex items-center justify-between bg-slate-800/50 border border-slate-700 rounded-lg hover:border-purple-500 transition-all cursor-pointer"
+                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-purple-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                            }`}
                                         onClick={() => handleResultClick(result)}
                                     >
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-white">{result.title}</h3>
-                                            <div className="flex gap-3 mt-2 text-sm text-slate-400">
+                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                            <div className={`flex gap-3 mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                                                 {result.metadata?.email && (
                                                     <span className="flex items-center gap-1">
                                                         <Mail className="w-4 h-4" /> {result.metadata.email}
@@ -588,20 +627,23 @@ export default function Search() {
                     {/* PREVENTA RESULTS */}
                     {groupedResults.preventa.length > 0 && (
                         <div>
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 <AlertCircle className="w-5 h-5 text-yellow-500" /> Preventas ({groupedResults.preventa.length})
                             </h2>
                             <div className="grid gap-3">
                                 {groupedResults.preventa.map((result) => (
                                     <div
                                         key={result._id}
-                                        className="p-4 flex items-center justify-between bg-slate-800/50 border border-slate-700 rounded-lg hover:border-yellow-500 transition-all cursor-pointer"
+                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-yellow-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                            }`}
                                         onClick={() => handleResultClick(result)}
                                     >
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-white">{result.title}</h3>
-                                            <p className="text-sm text-slate-400">{result.subtitle}</p>
-                                            <p className="text-sm text-slate-500 mt-1">{result.description}</p>
+                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
+                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
                                             <span className="inline-block mt-2 px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs rounded-full">
                                                 ⏳ Pendiente de compra
                                             </span>
@@ -616,20 +658,38 @@ export default function Search() {
                     {/* CATALOG RESULTS */}
                     {groupedResults.catalog.length > 0 && (
                         <div>
-                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 <span className="text-2xl">📚</span> Catálogo ({groupedResults.catalog.length})
                             </h2>
                             <div className="grid gap-3">
                                 {groupedResults.catalog.map((result) => (
                                     <div
                                         key={result._id}
-                                        className="p-4 flex items-center justify-between bg-emerald-900/30 border border-emerald-600/50 rounded-lg hover:border-emerald-500 transition-all"
+                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-emerald-500 transition-all ${isDark
+                                                ? 'bg-emerald-900/30 border border-emerald-600/50'
+                                                : 'bg-emerald-50 border border-emerald-200'
+                                            }`}
                                     >
+                                        {/* Imagen del catálogo */}
+                                        {result.metadata?.photoUrl && (
+                                            <img
+                                                src={`/api/hotwheels/image?url=${encodeURIComponent(result.metadata.photoUrl)}`}
+                                                alt={result.title}
+                                                className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
+                                                crossOrigin="anonymous"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none'
+                                                }}
+                                            />
+                                        )}
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-white">{result.title}</h3>
-                                            <p className="text-sm text-emerald-300">{result.subtitle}</p>
-                                            <p className="text-sm text-slate-400 mt-1">{result.description}</p>
-                                            <span className="inline-block mt-2 px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs rounded-full">
+                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                            <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{result.subtitle}</p>
+                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>{result.description}</p>
+                                            <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${isDark
+                                                    ? 'bg-emerald-500/20 text-emerald-300'
+                                                    : 'bg-emerald-200 text-emerald-800'
+                                                }`}>
                                                 ✨ No en stock
                                             </span>
                                         </div>
