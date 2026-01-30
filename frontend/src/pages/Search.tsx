@@ -14,6 +14,7 @@ import { addToCart } from '@/store/slices/cartSlice'
 import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 import CustomerEditForm from '@/components/CustomerEditForm'
+import CatalogItemModal from '@/components/CatalogItemModal'
 import { customersService } from '@/services/customers'
 import { searchService } from '@/services/search'
 
@@ -46,7 +47,9 @@ export default function Search() {
     const [query, setQuery] = useState(initialQuery)
     const [modal, setModal] = useState<ModalState>({ isOpen: false, type: null, id: null })
     const [addToCartQuantity, setAddToCartQuantity] = useState<{ [key: string]: number }>({})
-    
+    const [selectedCatalogItem, setSelectedCatalogItem] = useState<any>(null)
+    const [catalogItemMode, setCatalogItemMode] = useState<'detail' | 'add'>('detail')
+
     // Predictive search state
     const [predictions, setPredictions] = useState<any[]>([])
     const [isLoadingPredictions, setIsLoadingPredictions] = useState(false)
@@ -158,53 +161,11 @@ export default function Search() {
         }
     }, [])
 
-    const handleAddCatalogToStock = useCallback(async (carName: string, photoUrl?: string, catalogMetadata?: any) => {
-        try {
-            const quantityStr = prompt('¿Cuántas unidades agregar al stock?')
-            if (!quantityStr || isNaN(parseInt(quantityStr))) {
-                toast.error('Cantidad inválida')
-                return
-            }
-
-            const quantity = parseInt(quantityStr)
-            const suggestedPrice = prompt('¿Precio sugerido?', '0')
-            if (!suggestedPrice || isNaN(parseFloat(suggestedPrice))) {
-                toast.error('Precio inválido')
-                return
-            }
-
-            // Crear nuevo item en inventario desde catálogo
-            const newItem = {
-                carId: carName, // Usar directamente el nombre del carro
-                carName: carName,
-                quantity,
-                purchasePrice: 0,
-                suggestedPrice: parseFloat(suggestedPrice),
-                condition: 'mint',
-                photos: photoUrl ? [photoUrl] : [],
-                notes: 'Agregado desde catálogo',
-                // Pasar metadata del catálogo si disponible
-                ...(catalogMetadata && {
-                    series: catalogMetadata.series,
-                    year: catalogMetadata.year,
-                    color: catalogMetadata.color
-                })
-            }
-
-            await api.post('/inventory', newItem)
-            toast.success(`✅ ${quantity} unidades agregadas al inventario`)
-
-            // Actualizar búsqueda para reflejar cambio
-            // (Se eliminará del catálogo porque ahora está en inventario)
-        } catch (error) {
-            toast.error('Error al agregar al inventario')
-            console.error(error)
-        }
-    }, [])
-
     const handleResultClick = async (result: SearchResultItem) => {
-        // Para catálogo, no abrir modal - solo hacer click en el botón de "Agregar a Stock"
+        // Para catálogo, abrir modal del catálogo en modo detalle
         if (result.type === 'catalog') {
+            setSelectedCatalogItem(result)
+            setCatalogItemMode('detail')
             return
         }
 
@@ -332,7 +293,7 @@ export default function Search() {
                                 <X className="w-5 h-5" />
                             </button>
                         )}
-                        
+
                         {/* Predictions Dropdown */}
                         {showPredictions && predictions.length > 0 && (
                             <div className={`absolute top-full left-0 right-0 mt-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-300'} shadow-lg max-h-96 overflow-y-auto z-50`}>
@@ -356,7 +317,7 @@ export default function Search() {
                                 ))}
                             </div>
                         )}
-                        
+
                         {/* Loading State */}
                         {isLoadingPredictions && query.length >= 3 && (
                             <div className={`absolute top-full left-0 right-0 mt-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-300'} shadow-lg p-4 text-center`}>
@@ -806,11 +767,8 @@ export default function Search() {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation()
-                                                handleAddCatalogToStock(
-                                                    result.metadata.model,
-                                                    result.metadata.photoUrl,
-                                                    result.metadata
-                                                )
+                                                setSelectedCatalogItem(result)
+                                                setCatalogItemMode('add')
                                             }}
                                             className="md:ml-4 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto justify-center md:justify-start"
                                         >
@@ -852,6 +810,17 @@ export default function Search() {
                     onClose={closeModal}
                 />
             )}
+
+            {/* Catalog Item Modal */}
+            <CatalogItemModal
+                isOpen={!!selectedCatalogItem}
+                item={selectedCatalogItem}
+                onClose={() => {
+                    setSelectedCatalogItem(null)
+                    setCatalogItemMode('detail')
+                }}
+                initialMode={catalogItemMode}
+            />
         </div>
     )
 }

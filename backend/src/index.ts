@@ -81,7 +81,7 @@ app.use(responseSizeLogger) // Response size tracking
 app.use(limiter) // Rate limiting (skips auth routes)
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173']
+    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173', 'http://localhost:5174']
     console.log('🔍 CORS Check - Origin:', origin, 'Allowed:', allowedOrigins)
     
     // Allow requests with no origin (like mobile apps or Postman)
