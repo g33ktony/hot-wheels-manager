@@ -57,11 +57,11 @@ export default function CollageGenerator({
         }
     }, [isOpen]) // Solo cuando se abre el modal
 
-    // Split items into groups of 6
+    // Split items into groups of 4
     const getCollageGroups = () => {
         const groups: CollageItem[][] = []
-        for (let i = 0; i < collageItems.length; i += 6) {
-            groups.push(collageItems.slice(i, i + 6))
+        for (let i = 0; i < collageItems.length; i += 4) {
+            groups.push(collageItems.slice(i, i + 4))
         }
         return groups
     }
@@ -232,10 +232,10 @@ export default function CollageGenerator({
             }
 
             // Canvas dimensions - High quality, minimal design
-            const cols = items.length <= 3 ? items.length : 3
-            const rows = Math.ceil(items.length / 3)
-            const cellWidth = 800 // Increased for better quality
-            const cellHeight = 800 // Increased for better quality
+            const cols = items.length <= 2 ? items.length : 2
+            const rows = Math.ceil(items.length / 2)
+            const cellWidth = 1000 // Larger cells for 2x2 grid
+            const cellHeight = 1000 // Larger cells for 2x2 grid
             const borderWidth = 1 // Thin border to separate images
             const headerHeight = 0 // No header - minimalist
             const footerHeight = 0 // No footer - minimalist
@@ -262,8 +262,8 @@ export default function CollageGenerator({
                 img.crossOrigin = 'anonymous'
 
                 img.onload = () => {
-                    const col = index % 3
-                    const row = Math.floor(index / 3)
+                    const col = index % 2
+                    const row = Math.floor(index / 2)
                     const x = col * (cellWidth + borderWidth)
                     const y = row * (cellHeight + borderWidth) + headerHeight
 
@@ -321,6 +321,30 @@ export default function CollageGenerator({
                         ctx.shadowBlur = 8
                         ctx.shadowOffsetY = 2
                         ctx.fillText(`${availableQty} disponibles`, x + cellWidth / 2, y + cellHeight - 25)
+                        ctx.shadowColor = 'transparent'
+                        ctx.shadowBlur = 0
+                        ctx.shadowOffsetY = 0
+                    }
+
+                    // CHASE badge - top right corner if item is Chase
+                    if (item.item.isChase) {
+                        const badgeWidth = 140
+                        const badgeHeight = 60
+                        const badgeX = x + cellWidth - badgeWidth - 15
+                        const badgeY = y + 15
+
+                        // Red background badge
+                        ctx.fillStyle = '#DC2626'
+                        ctx.fillRect(badgeX, badgeY, badgeWidth, badgeHeight)
+
+                        // CHASE text
+                        ctx.fillStyle = '#ffffff'
+                        ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        ctx.textAlign = 'center'
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
+                        ctx.shadowBlur = 6
+                        ctx.shadowOffsetY = 2
+                        ctx.fillText('CHASE', badgeX + badgeWidth / 2, badgeY + 42)
                         ctx.shadowColor = 'transparent'
                         ctx.shadowBlur = 0
                         ctx.shadowOffsetY = 0
