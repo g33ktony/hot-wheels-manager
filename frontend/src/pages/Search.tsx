@@ -266,17 +266,17 @@ export default function Search() {
 
             {/* Predictive Search Input */}
             <div className={`mb-6 rounded-lg sticky top-6 z-40 ${isDark ? 'bg-slate-800/50 border border-slate-700' : 'bg-white border border-slate-200 shadow-sm'}`} ref={searchRef}>
-                <div className="p-6">
+                <div className="p-3 md:p-6">
                     <div className="relative">
                         <SearchIcon className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
                         <input
                             type="text"
-                            placeholder="Busca por: marca, cliente, item, número... (3+ caracteres)"
+                            placeholder="Busca: marca, cliente, item..."
                             value={query}
                             onChange={(e) => handlePredictiveInputChange(e.target.value)}
                             onFocus={() => query.length >= 3 && predictions.length > 0 && setShowPredictions(true)}
                             autoFocus
-                            className={`w-full pl-12 pr-4 py-3 rounded-lg border text-lg focus:border-emerald-500 focus:outline-none ${isDark
+                            className={`w-full pl-12 pr-4 py-2 md:py-3 rounded-lg border text-base md:text-lg focus:border-emerald-500 focus:outline-none ${isDark
                                 ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
                                 : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                                 }`}
@@ -330,8 +330,8 @@ export default function Search() {
                     </div>
 
                     {/* Filtros */}
-                    <div className={`mt-4 pt-4 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
-                        <p className={`text-xs font-semibold mb-3 uppercase ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Filtrar por tipo:</p>
+                    <div className={`mt-3 md:mt-4 pt-3 md:pt-4 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
+                        <p className={`text-xs font-semibold mb-2 md:mb-3 uppercase ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Filtrar:</p>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
                             {/* Seleccionados por default */}
                             <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
