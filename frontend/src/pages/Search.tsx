@@ -266,17 +266,17 @@ export default function Search() {
 
             {/* Predictive Search Input */}
             <div className={`mb-6 rounded-lg sticky top-6 z-40 ${isDark ? 'bg-slate-800/50 border border-slate-700' : 'bg-white border border-slate-200 shadow-sm'}`} ref={searchRef}>
-                <div className="p-3 md:p-6">
+                <div className="p-2 md:p-6">
                     <div className="relative">
-                        <SearchIcon className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+                        <SearchIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
                         <input
                             type="text"
-                            placeholder="Busca: marca, cliente, item..."
+                            placeholder="Busca..."
                             value={query}
                             onChange={(e) => handlePredictiveInputChange(e.target.value)}
                             onFocus={() => query.length >= 3 && predictions.length > 0 && setShowPredictions(true)}
                             autoFocus
-                            className={`w-full pl-12 pr-4 py-2 md:py-3 rounded-lg border text-base md:text-lg focus:border-emerald-500 focus:outline-none ${isDark
+                            className={`w-full pl-9 md:pl-12 pr-3 md:pr-4 py-1.5 md:py-3 rounded-lg border text-sm md:text-base focus:border-emerald-500 focus:outline-none ${isDark
                                 ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
                                 : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
                                 }`}
