@@ -636,7 +636,7 @@ export default function Dashboard() {
                                         <div className="h-40 bg-slate-700 overflow-hidden flex items-center justify-center relative">
                                             {item.photo_url ? (
                                                 <img
-                                                    src={`/api/hotwheels/image?url=${encodeURIComponent(item.photo_url)}`}
+                                                    src={`https://images.weserv.nl/?url=${encodeURIComponent(item.photo_url)}&w=600&h=600&fit=contain`}
                                                     alt={item.model}
                                                     className="w-full h-full object-contain bg-slate-800"
                                                     crossOrigin="anonymous"

@@ -730,7 +730,7 @@ export default function Search() {
                                         <div className="w-16 h-16 rounded flex-shrink-0 bg-emerald-800 flex items-center justify-center overflow-hidden relative">
                                             {result.metadata?.photoUrl ? (
                                                 <img
-                                                    src={`/api/hotwheels/image?url=${encodeURIComponent(result.metadata.photoUrl)}`}
+                                                    src={`https://images.weserv.nl/?url=${encodeURIComponent(result.metadata.photoUrl)}&w=300&h=300&fit=contain`}
                                                     alt={result.title}
                                                     className="w-full h-full object-contain bg-slate-700"
                                                     crossOrigin="anonymous"

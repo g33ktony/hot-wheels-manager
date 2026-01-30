@@ -122,6 +122,9 @@ app.get('/health', (req, res) => {
 })
 
 // Rutas públicas (sin autenticación)
+// CORS preflight for image proxy
+app.options('/api/hotwheels/image', cors())
+
 // Endpoint proxy de imágenes - debe ser público para que funcione desde el navegador
 app.get('/api/hotwheels/image', async (req, res) => {
   const { proxyImage } = await import('./controllers/hotWheelsController')

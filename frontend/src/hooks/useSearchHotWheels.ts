@@ -15,10 +15,9 @@ export interface HotWheelsItem {
 // Helper function to proxy image URLs
 const getProxiedImageUrl = (imageUrl: string): string => {
   if (!imageUrl) return ''
-  // If it's a Wikia URL, use the backend proxy
-  if (imageUrl.includes('static.wikia.nocookie.net')) {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-    return `${apiUrl}/hotwheels/image?url=${encodeURIComponent(imageUrl)}`
+  // Use weserv.nl CDN for free image proxy (works worldwide, no registration needed)
+  if (imageUrl.includes('static.wikia.nocookie.net') || imageUrl.includes('fandom.com')) {
+    return `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}&w=300&h=300&fit=contain`
   }
   // Otherwise return as-is (for absolute URLs)
   return imageUrl

@@ -421,6 +421,8 @@ export const proxyImage = async (req: Request, res: Response) => {
       })
     }
 
+    console.log('🖼️ Proxying image:', { url })
+
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
       headers: {
@@ -446,6 +448,8 @@ export const proxyImage = async (req: Request, res: Response) => {
     res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg')
     res.setHeader('Cache-Control', 'public, max-age=604800') // Cache for 1 week
     res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Allow-Methods', 'GET')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
     res.send(response.data)
   } catch (error: any) {
     console.error('Error proxying image:', {

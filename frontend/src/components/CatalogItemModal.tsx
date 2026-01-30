@@ -171,7 +171,7 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
                                         {item.metadata.photoUrl ? (
                                             <>
                                                 <img
-                                                    src={`/api/hotwheels/image?url=${encodeURIComponent(item.metadata.photoUrl)}`}
+                                                    src={`https://images.weserv.nl/?url=${encodeURIComponent(item.metadata.photoUrl)}&w=600&h=600&fit=contain`}
                                                     alt={item.metadata.model}
                                                     className="w-full h-full object-contain group-hover:opacity-75 transition-opacity"
                                                     crossOrigin="anonymous"
@@ -334,7 +334,7 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
                         </button>
 
                         <img
-                            src={`/api/hotwheels/image?url=${encodeURIComponent(item.metadata.photoUrl)}`}
+                            src={`https://images.weserv.nl/?url=${encodeURIComponent(item.metadata.photoUrl)}&w=1200&h=1200&fit=contain`}
                             alt={item.metadata.model}
                             className="w-full h-full object-contain"
                             crossOrigin="anonymous"
