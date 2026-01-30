@@ -3,6 +3,7 @@ import { X, ChevronLeft, Plus } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import Button from './common/Button'
 import toast from 'react-hot-toast'
+import api from '@/services/api'
 
 interface CatalogItem {
     _id: string
@@ -91,18 +92,7 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
                 ...(item.metadata.wheelType && { wheelType: item.metadata.wheelType })
             }
 
-            const response = await fetch('/api/inventory', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(newItem)
-            })
-
-            if (!response.ok) {
-                throw new Error('Error al agregar al inventario')
-            }
+            await api.post('/inventory', newItem)
 
             toast.success(`✅ ${quantity} unidades de ${item.metadata.model} agregadas al inventario`)
             onClose()
