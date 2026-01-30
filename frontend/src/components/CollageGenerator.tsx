@@ -37,6 +37,8 @@ export default function CollageGenerator({
     const imgRef = useRef<HTMLImageElement>(null)
     const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
     const [tempPrice, setTempPrice] = useState('')
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
     const storeName = import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'
 
@@ -173,6 +175,45 @@ export default function CollageGenerator({
     const cancelPriceEdit = () => {
         setEditingPriceIndex(null)
         setTempPrice('')
+    }
+
+    const handleDragStart = (index: number) => {
+        setDraggedIndex(index)
+    }
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        setDragOverIndex(index)
+    }
+
+    const handleDragLeave = () => {
+        setDragOverIndex(null)
+    }
+
+    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+        e.preventDefault()
+        if (draggedIndex === null || draggedIndex === dropIndex) {
+            setDraggedIndex(null)
+            setDragOverIndex(null)
+            return
+        }
+
+        // Reorder items
+        const updated = [...collageItems]
+        const draggedItem = updated[draggedIndex]
+        updated.splice(draggedIndex, 1)
+        updated.splice(dropIndex, 0, draggedItem)
+        setCollageItems(updated)
+
+        // Reset drag states
+        setDraggedIndex(null)
+        setDragOverIndex(null)
+    }
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null)
+        setDragOverIndex(null)
     }
 
     const handleDeleteItem = (index: number) => {
@@ -620,10 +661,35 @@ export default function CollageGenerator({
                 {/* Price Edit Step */}
                 {currentStep === 'price' && (
                     <div className="space-y-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                            <p className="text-sm text-blue-800">
+                                💡 <strong>Consejo:</strong> Arrastra las cajas para reordenar los items antes de generar los collages
+                            </p>
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {collageItems.map((item, index) => (
-                                <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden relative group">
-                                    {/* Bot\u00f3n de eliminar */}
+                                <div
+                                    key={index}
+                                    draggable
+                                    onDragStart={() => handleDragStart(index)}
+                                    onDragOver={(e) => handleDragOver(e, index)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(e, index)}
+                                    onDragEnd={handleDragEnd}
+                                    className={`bg-white border-2 rounded-lg overflow-hidden relative group cursor-move transition-all ${
+                                        draggedIndex === index
+                                            ? 'opacity-50 border-gray-400'
+                                            : dragOverIndex === index
+                                                ? 'border-blue-500 bg-blue-50'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                    }`}
+                                >
+                                    {/* Indicador de posición */}
+                                    <div className="absolute top-1 left-1 z-20 bg-gray-800 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                                        {index + 1}
+                                    </div>
+
+                                    {/* Botón de eliminar */}
                                     <button
                                         onClick={() => handleDeleteItem(index)}
                                         className="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
