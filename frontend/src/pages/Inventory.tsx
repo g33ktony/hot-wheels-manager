@@ -6,6 +6,9 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
 import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
+import { useCreateDelivery } from '@/hooks/useDeliveries'
+import { useCustomers } from '@/hooks/useCustomers'
+import { useDeliveryLocations } from '@/hooks/useDeliveryLocations'
 import { inventoryService } from '@/services/inventory'
 import { useAppSelector, useAppDispatch } from '@/hooks/redux'
 import { setInventoryItems } from '@/store/slices/inventorySlice'
@@ -24,11 +27,13 @@ import FacebookPublishModal from '@/components/FacebookPublishModal'
 import InventoryQuoteReport from '@/components/InventoryQuoteReport'
 import CollageGenerator from '@/components/CollageGenerator'
 import BulkEditModal from '@/components/BulkEditModal'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image, ShoppingCart } from 'lucide-react'
+import InventoryItemSelector from '@/components/InventoryItemSelector'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image, ShoppingCart, Truck } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
 import OCRScanner from '@/components/OCRScanner'
+import { dateToString } from '@/utils/dateUtils'
 import type { InventoryItem } from '../../../shared/types'
 
 // Helper para formatear el tipo de pieza
@@ -357,6 +362,8 @@ export default function Inventory() {
     const [showCollageModal, setShowCollageModal] = useState(false)
     // Bulk edit modal
     const [showBulkEditModal, setShowBulkEditModal] = useState(false)
+    // Delivery creation modal from inventory
+    const [showCreateDeliveryModal, setShowCreateDeliveryModal] = useState(false)
     // Search suggestions state
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [existingItemToUpdate, setExistingItemToUpdate] = useState<any>(null)
@@ -431,6 +438,26 @@ export default function Inventory() {
         seriesDefaultPrice: 0
     })
 
+    // Delivery creation state for bulk delivery creation
+    const [newDelivery, setNewDelivery] = useState({
+        customerId: '',
+        items: [] as {
+            inventoryItemId?: string;
+            carId: string;
+            carName: string;
+            quantity: number;
+            unitPrice: number;
+        }[],
+        scheduledDate: dateToString(new Date()),
+        scheduledTime: '09:00',
+        location: '',
+        totalAmount: 0,
+        notes: '',
+        isThirdPartyDelivery: false,
+        thirdPartyRecipient: '',
+        thirdPartyPhone: ''
+    })
+
     const { data: inventoryData, isLoading, error } = useInventory({
         page: currentPage,
         limit: itemsPerPage,
@@ -451,6 +478,11 @@ export default function Inventory() {
     const deleteItemMutation = useDeleteInventoryItem()
     const updateItemMutation = useUpdateInventoryItem()
     const createCustomBrandMutation = useCreateCustomBrand()
+    
+    // Delivery creation hooks
+    const createDeliveryMutation = useCreateDelivery()
+    const { data: customers } = useCustomers()
+    const { data: deliveryLocations } = useDeliveryLocations()
 
     // Query client for prefetching
     const queryClient = useQueryClient()
@@ -1164,6 +1196,99 @@ export default function Inventory() {
         dispatch(setSelectionMode(false))
     }
 
+    const handleCreateDeliveryFromInventory = () => {
+        if (selectedItems.size === 0) return
+
+        const itemsToDeliver = getSelectedItems()
+
+        // Convert inventory items to delivery items format
+        const deliveryItems = itemsToDeliver.map(item => ({
+            inventoryItemId: item._id,
+            carId: item.carId,
+            carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
+            quantity: 1, // Default quantity, user can change it in modal
+            unitPrice: item.actualPrice || item.suggestedPrice || 0
+        }))
+
+        // Pre-populate newDelivery with selected items
+        setNewDelivery(prev => ({
+            ...prev,
+            items: deliveryItems,
+            totalAmount: deliveryItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0)
+        }))
+
+        // Open delivery creation modal
+        setShowCreateDeliveryModal(true)
+    }
+
+    const handleCreateDelivery = async () => {
+        if (!newDelivery.customerId.trim()) {
+            toast.error('Por favor selecciona un cliente')
+            return
+        }
+
+        if (newDelivery.items.length === 0) {
+            toast.error('Por favor agrega al menos un item')
+            return
+        }
+
+        try {
+            await createDeliveryMutation.mutateAsync({
+                customerId: newDelivery.customerId,
+                items: newDelivery.items,
+                scheduledDate: new Date(newDelivery.scheduledDate),
+                scheduledTime: newDelivery.scheduledTime,
+                location: newDelivery.location,
+                totalAmount: newDelivery.totalAmount,
+                notes: newDelivery.notes || undefined,
+                isThirdPartyDelivery: newDelivery.isThirdPartyDelivery,
+                thirdPartyRecipient: newDelivery.thirdPartyRecipient || undefined,
+                thirdPartyPhone: newDelivery.thirdPartyPhone || undefined
+            })
+
+            toast.success('✅ Entrega creada exitosamente')
+
+            // Clear selection and close modal
+            dispatch(setSelectionMode(false))
+            dispatch(clearSelection())
+            setShowCreateDeliveryModal(false)
+
+            // Reset form
+            setNewDelivery({
+                customerId: '',
+                items: [],
+                scheduledDate: dateToString(new Date()),
+                scheduledTime: '09:00',
+                location: '',
+                totalAmount: 0,
+                notes: '',
+                isThirdPartyDelivery: false,
+                thirdPartyRecipient: '',
+                thirdPartyPhone: ''
+            })
+        } catch (error) {
+            console.error('Error creating delivery:', error)
+            toast.error('Error al crear la entrega')
+        }
+    }
+
+    const handleCloseDeliveryModal = () => {
+        setShowCreateDeliveryModal(false)
+        // Reset form
+        setNewDelivery({
+            customerId: '',
+            items: [],
+            scheduledDate: dateToString(new Date()),
+            scheduledTime: '09:00',
+            location: '',
+            totalAmount: 0,
+            notes: '',
+            isThirdPartyDelivery: false,
+            thirdPartyRecipient: '',
+            thirdPartyPhone: ''
+        })
+    }
+
     const handleBulkDelete = async () => {
         if (selectedItems.size === 0) return
 
@@ -1526,6 +1651,14 @@ export default function Inventory() {
                                         size="sm"
                                     >
                                         Agregar al Carrito ({selectedItems.size})
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        icon={<Truck size={18} />}
+                                        onClick={handleCreateDeliveryFromInventory}
+                                        size="sm"
+                                    >
+                                        Crear Entrega ({selectedItems.size})
                                     </Button>
                                     <Button
                                         variant="primary"
@@ -3918,6 +4051,275 @@ export default function Inventory() {
                     }
                 }}
             />
+
+            {/* Create Delivery Modal */}
+            {showCreateDeliveryModal && (
+                <Modal
+                    isOpen={showCreateDeliveryModal}
+                    onClose={handleCloseDeliveryModal}
+                    title="Nueva Entrega desde Inventario"
+                    maxWidth="4xl"
+                    headerActions={
+                        <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => {
+                                setNewDelivery({
+                                    ...newDelivery,
+                                    items: [
+                                        ...newDelivery.items,
+                                        {
+                                            inventoryItemId: '',
+                                            carId: '',
+                                            carName: '',
+                                            quantity: 1,
+                                            unitPrice: 0
+                                        }
+                                    ]
+                                })
+                            }}
+                            className="flex items-center gap-2"
+                        >
+                            <Plus size={16} />
+                            Agregar Item
+                        </Button>
+                    }
+                    footer={
+                        <div className="flex space-x-3">
+                            <Button
+                                variant="secondary"
+                                className="flex-1"
+                                onClick={handleCloseDeliveryModal}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                className="flex-1"
+                                onClick={handleCreateDelivery}
+                                disabled={createDeliveryMutation.isLoading}
+                            >
+                                {createDeliveryMutation.isLoading ? 'Creando...' : 'Crear Entrega'}
+                            </Button>
+                        </div>
+                    }
+                >
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Cliente *
+                                </label>
+                                <div className="flex gap-2">
+                                    <select
+                                        className="input flex-1"
+                                        value={newDelivery.customerId}
+                                        onChange={(e) => setNewDelivery({ ...newDelivery, customerId: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Seleccionar cliente</option>
+                                        {customers?.map((customer: any) => (
+                                            <option key={customer._id} value={customer._id}>
+                                                {customer.name} - {customer.email}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Fecha Programada *
+                                </label>
+                                <Input
+                                    type="date"
+                                    value={newDelivery.scheduledDate}
+                                    onChange={(e) => setNewDelivery({ ...newDelivery, scheduledDate: e.target.value })}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Hora Programada
+                                </label>
+                                <Input
+                                    type="time"
+                                    value={newDelivery.scheduledTime}
+                                    onChange={(e) => setNewDelivery({ ...newDelivery, scheduledTime: e.target.value })}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Ubicación *
+                                </label>
+                                <select
+                                    className="w-full px-3 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    value={newDelivery.location}
+                                    onChange={(e) => setNewDelivery({ ...newDelivery, location: e.target.value })}
+                                    required
+                                >
+                                    <option value="">Seleccionar ubicación</option>
+                                    {deliveryLocations?.map((loc) => (
+                                        <option key={loc._id} value={loc.name}>
+                                            {loc.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Delivery Items */}
+                        <div>
+                            <div className="mb-4">
+                                <h3 className="text-lg font-medium text-white">Items de la Entrega</h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                {newDelivery.items.map((item, index) => (
+                                    <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 border-slate-600 rounded-lg">
+                                        <div className="flex-1">
+                                            <InventoryItemSelector
+                                                value={item.inventoryItemId || ''}
+                                                onChange={(itemId: string) => {
+                                                    const updatedItems = [...newDelivery.items]
+                                                    updatedItems[index].inventoryItemId = itemId
+                                                    setNewDelivery({ ...newDelivery, items: updatedItems })
+                                                }}
+                                                placeholder="Buscar pieza en inventario..."
+                                                required
+                                            />
+                                        </div>
+                                        <div className="flex gap-3 sm:gap-4 sm:w-auto">
+                                            <div className="w-20 min-w-[80px]">
+                                                <Input
+                                                    type="number"
+                                                    inputMode="numeric"
+                                                    placeholder="Qty"
+                                                    value={item.quantity || ''}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                        const val = e.target.value
+                                                        const updatedItems = [...newDelivery.items]
+                                                        if (val === '') {
+                                                            updatedItems[index].quantity = 1
+                                                        } else {
+                                                            const num = parseInt(val)
+                                                            updatedItems[index].quantity = isNaN(num) ? 1 : Math.max(1, num)
+                                                        }
+                                                        setNewDelivery({ ...newDelivery, items: updatedItems })
+                                                    }}
+                                                    min="1"
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
+                                            <div className="flex-1 sm:w-24 sm:flex-none">
+                                                <Input
+                                                    type="number"
+                                                    inputMode="decimal"
+                                                    placeholder="Precio"
+                                                    value={item.unitPrice || ''}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                        const val = e.target.value
+                                                        const updatedItems = [...newDelivery.items]
+                                                        if (val === '') {
+                                                            updatedItems[index].unitPrice = 0
+                                                        } else {
+                                                            const num = parseFloat(val)
+                                                            updatedItems[index].unitPrice = isNaN(num) ? 0 : num
+                                                        }
+                                                        setNewDelivery({ ...newDelivery, items: updatedItems })
+                                                    }}
+                                                    step="0.01"
+                                                    min="0"
+                                                    className="min-h-[44px]"
+                                                />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="danger"
+                                                onClick={() => {
+                                                    const updatedItems = newDelivery.items.filter((_, i) => i !== index)
+                                                    setNewDelivery({ ...newDelivery, items: updatedItems })
+                                                }}
+                                                className="min-h-[44px] min-w-[44px] px-3"
+                                            >
+                                                ×
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {newDelivery.items.length > 0 && (
+                                <div className="mt-4 p-4 bg-slate-700/30 rounded-lg">
+                                    <p className="text-lg font-semibold">
+                                        Total: ${newDelivery.items.reduce((sum, item) => sum + (item.quantity * (item.unitPrice || 0)), 0).toFixed(2)}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Notas (Opcional)
+                            </label>
+                            <textarea
+                                className="input w-full h-20 resize-none"
+                                placeholder="Notas adicionales sobre la entrega..."
+                                value={newDelivery.notes}
+                                onChange={(e) => setNewDelivery({ ...newDelivery, notes: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Third Party Delivery Section */}
+                        <div className="border rounded-lg p-4 bg-purple-50 border-purple-200">
+                            <div className="flex items-center gap-2 mb-4">
+                                <input
+                                    type="checkbox"
+                                    id="isThirdParty"
+                                    checked={newDelivery.isThirdPartyDelivery}
+                                    onChange={(e) => setNewDelivery({
+                                        ...newDelivery,
+                                        isThirdPartyDelivery: e.target.checked,
+                                        thirdPartyRecipient: e.target.checked ? newDelivery.thirdPartyRecipient : '',
+                                        thirdPartyPhone: e.target.checked ? newDelivery.thirdPartyPhone : ''
+                                    })}
+                                    className="h-4 w-4 text-purple-600 rounded cursor-pointer"
+                                />
+                                <label htmlFor="isThirdParty" className="font-medium text-purple-900 cursor-pointer">
+                                    ¿Entregar a una tercera persona?
+                                </label>
+                            </div>
+
+                            {newDelivery.isThirdPartyDelivery && (
+                                <div className="space-y-3">
+                                    <Input
+                                        type="text"
+                                        label="Nombre del Receptor *"
+                                        placeholder="Nombre de la persona que recibirá la entrega"
+                                        value={newDelivery.thirdPartyRecipient}
+                                        onChange={(e) => setNewDelivery({
+                                            ...newDelivery,
+                                            thirdPartyRecipient: e.target.value
+                                        })}
+                                    />
+                                    <Input
+                                        type="tel"
+                                        label="Teléfono del Receptor (Opcional)"
+                                        placeholder="Número de teléfono para contacto"
+                                        value={newDelivery.thirdPartyPhone}
+                                        onChange={(e) => setNewDelivery({
+                                            ...newDelivery,
+                                            thirdPartyPhone: e.target.value
+                                        })}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </div>
     )
 }
