@@ -30,6 +30,40 @@ interface CatalogItemModalProps {
     initialMode?: 'detail' | 'add'
 }
 
+// Función para determinar el tipo de pieza basada en la serie
+const getCatalogPieceType = (series: string): { type: string; label: string; emoji: string } => {
+    const seriesLower = series.toLowerCase()
+    
+    // RLC (Racing & Legends Collection)
+    if (seriesLower.includes('rlc') || seriesLower.includes('racing') || seriesLower.includes('legends')) {
+        return { type: 'rlc', label: 'RLC', emoji: '🏆' }
+    }
+    
+    // Premium (Porsche, Ferrari, BMW, Lamborghini, etc.)
+    if (seriesLower.includes('premium') || seriesLower.includes('porsche') || seriesLower.includes('ferrari') || 
+        seriesLower.includes('lamborghini') || seriesLower.includes('bugatti') || seriesLower.includes('mclaren')) {
+        return { type: 'premium', label: 'Premium', emoji: '⭐' }
+    }
+    
+    // Elite / Special editions
+    if (seriesLower.includes('elite') || seriesLower.includes('special') || seriesLower.includes('limited')) {
+        return { type: 'elite', label: 'Elite', emoji: '✨' }
+    }
+    
+    // Treasure Hunt
+    if (seriesLower.includes('treasure hunt')) {
+        return { type: 'treasure_hunt', label: 'Treasure Hunt', emoji: '💎' }
+    }
+    
+    // Super Treasure Hunt
+    if (seriesLower.includes('super treasure hunt')) {
+        return { type: 'super_treasure_hunt', label: 'Super Treasure Hunt', emoji: '💎💎' }
+    }
+    
+    // Default: Basic
+    return { type: 'basic', label: 'Básico', emoji: '🚗' }
+}
+
 export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 'detail' }: CatalogItemModalProps) {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
@@ -43,6 +77,8 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
     const costRef = useRef<HTMLInputElement>(null)
 
     if (!item || !isOpen) return null
+    
+    const pieceTypeInfo = getCatalogPieceType(item.metadata.series)
 
     const handleSwitchToAdd = () => {
         setCurrentMode('add')
@@ -202,6 +238,15 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
                                             <label className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Marca</label>
                                             <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.metadata.carMake || 'Hot Wheels'}</p>
                                         </div>
+                                    </div>
+
+                                    {/* Tipo de Pieza */}
+                                    <div className={`p-3 rounded-lg ${isDark ? 'bg-slate-700/50 border border-slate-600' : 'bg-blue-50 border border-blue-200'}`}>
+                                        <label className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Tipo de Pieza</label>
+                                        <p className={`text-lg font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                            <span>{pieceTypeInfo.emoji}</span>
+                                            {pieceTypeInfo.label}
+                                        </p>
                                     </div>
 
                                     {item.metadata.wheelType && (

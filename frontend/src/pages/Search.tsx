@@ -87,6 +87,27 @@ export default function Search() {
         preventas: false,
         inventoryStock: 'all' // 'all', 'inStock', 'outOfStock'
     })
+    
+    // Sincronizar query con Header Search
+    useEffect(() => {
+        // Escuchar cambios en localStorage de la búsqueda del header
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'globalSearchQuery' && e.newValue) {
+                setQuery(e.newValue)
+            }
+        }
+        
+        window.addEventListener('storage', handleStorageChange)
+        return () => window.removeEventListener('storage', handleStorageChange)
+    }, [])
+    
+    // Guardar query actual en localStorage para que el header pueda sincronizar
+    useEffect(() => {
+        if (query && query.length > 0) {
+            localStorage.setItem('globalSearchQuery', query)
+        }
+    }, [query])
+    
     const { data: results = [], isLoading } = useQuery(
         ['global-search', query],
         async () => {

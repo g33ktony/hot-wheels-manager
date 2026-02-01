@@ -190,7 +190,14 @@ export default function Deliveries() {
 
                 // If editing, add back the quantity that was reserved by this delivery
                 if (isEditMode && editingDelivery) {
-                    const originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+                    // Try to find the original item by inventoryItemId first
+                    let originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+                    
+                    // If not found, try to find by carId (for items that were not yet assigned an inventoryItemId)
+                    if (!originalItem && item.carId) {
+                        originalItem = editingDelivery.items.find((i: any) => i.carId === item.carId)
+                    }
+                    
                     if (originalItem) {
                         availableQuantity += originalItem.quantity
                     }
@@ -206,7 +213,14 @@ export default function Deliveries() {
 
                     // If editing, add back the quantity that was reserved by this delivery
                     if (isEditMode && editingDelivery) {
-                        const originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+                        // Try to find the original item by inventoryItemId first
+                        let originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+                        
+                        // If not found, try to find by carId (for items that were not yet assigned an inventoryItemId)
+                        if (!originalItem && item.carId) {
+                            originalItem = editingDelivery.items.find((i: any) => i.carId === item.carId)
+                        }
+                        
                         if (originalItem) {
                             availableQuantity += originalItem.quantity
                         }

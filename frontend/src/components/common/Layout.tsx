@@ -54,9 +54,16 @@ export default function Layout({ children }: LayoutProps) {
         e.preventDefault()
         if (searchQuery.trim()) {
             navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
+            // Guardar en localStorage para sincronizar con Search page
+            localStorage.setItem('globalSearchQuery', searchQuery)
             setSearchQuery('')
         }
     }
+    
+    // Sincronizar cambios de búsqueda con localStorage para que Search page los vea
+    useEffect(() => {
+        localStorage.setItem('globalSearchQuery', searchQuery)
+    }, [searchQuery])
 
     const navigationItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
