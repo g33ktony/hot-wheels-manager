@@ -67,6 +67,16 @@ export default function Search() {
         catalog: false
     })
 
+    // Pagination per section
+    const [sectionPagination, setSectionPagination] = useState<{ [key: string]: number }>({
+        inventory: 10,
+        sale: 10,
+        delivery: 10,
+        customer: 10,
+        preventa: 10,
+        catalog: 20
+    })
+
     // Filtros de tipos de resultado
     const [filters, setFilters] = useState({
         inventory: true,
@@ -491,15 +501,15 @@ export default function Search() {
                         <div>
                             <div
                                 className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
-                                onClick={() => setCollapsedSections({...collapsedSections, inventory: !collapsedSections.inventory})}
+                                onClick={() => setCollapsedSections({ ...collapsedSections, inventory: !collapsedSections.inventory })}
                             >
-                                <Package className="w-5 h-5 text-blue-500" /> 
+                                <Package className="w-5 h-5 text-blue-500" />
                                 Items ({groupedResults.inventory.length})
                                 <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.inventory ? '-rotate-90' : ''}`} />
                             </div>
                             {!collapsedSections.inventory && (
                                 <div className="grid gap-3">
-                                    {groupedResults.inventory.map((result) => (
+                                    {groupedResults.inventory.slice(0, sectionPagination.inventory).map((result) => (
                                         <div
                                             key={result._id}
                                             className={`p-4 flex items-center justify-between rounded-lg hover:border-blue-500 transition-all cursor-pointer ${isDark
@@ -514,50 +524,61 @@ export default function Search() {
                                                     src={result.metadata.photos[0]}
                                                     alt={result.title}
                                                     className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
-                                                crossOrigin="anonymous"
-                                            />
-                                        )}
-                                        <div className="flex-1">
-                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
-                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
-                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {!result.inStock && (
-                                                <span className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-full">
-                                                    ❌ Sin Stock
-                                                </span>
+                                                    crossOrigin="anonymous"
+                                                />
                                             )}
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        handleAddToCart(
-                                                            result._id,
-                                                            addToCartQuantity[result._id] || 1
-                                                        )
-                                                    }}
-                                                    disabled={!result.inStock}
-                                                    className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1 flex items-center gap-1"
-                                                >
-                                                    <ShoppingCart className="w-4 h-4" /> Carrito
-                                                </Button>
-                                                <Button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        handleAddToInventory(result._id)
-                                                    }}
-                                                    disabled={result.inStock}
-                                                    className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-3 py-1 flex items-center gap-1"
-                                                >
-                                                    <Plus className="w-4 h-4" /> Stock
-                                                </Button>
+                                            <div className="flex-1">
+                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
+                                                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
                                             </div>
-                                            <ChevronRight className="w-5 h-5 text-slate-500" />
+                                            <div className="flex items-center gap-3">
+                                                {!result.inStock && (
+                                                    <span className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-full">
+                                                        ❌ Sin Stock
+                                                    </span>
+                                                )}
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleAddToCart(
+                                                                result._id,
+                                                                addToCartQuantity[result._id] || 1
+                                                            )
+                                                        }}
+                                                        disabled={!result.inStock}
+                                                        className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1 flex items-center gap-1"
+                                                    >
+                                                        <ShoppingCart className="w-4 h-4" /> Carrito
+                                                    </Button>
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleAddToInventory(result._id)
+                                                        }}
+                                                        disabled={result.inStock}
+                                                        className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-3 py-1 flex items-center gap-1"
+                                                    >
+                                                        <Plus className="w-4 h-4" /> Stock
+                                                    </Button>
+                                                </div>
+                                                <ChevronRight className="w-5 h-5 text-slate-500" />
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
                                 </div>
+                            )}
+                            {!collapsedSections.inventory && sectionPagination.inventory < groupedResults.inventory.length && (
+                                <button
+                                    onClick={() => setSectionPagination({ ...sectionPagination, inventory: sectionPagination.inventory + 10 })}
+                                    className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
+                                        ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/30'
+                                        : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                                    }`}
+                                >
+                                    <span>Mostrar más ({sectionPagination.inventory} de {groupedResults.inventory.length})</span>
+                                </button>
                             )}
                         </div>
                     )}
@@ -567,52 +588,63 @@ export default function Search() {
                         <div>
                             <div
                                 className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
-                                onClick={() => setCollapsedSections({...collapsedSections, sale: !collapsedSections.sale})}
+                                onClick={() => setCollapsedSections({ ...collapsedSections, sale: !collapsedSections.sale })}
                             >
-                                <TrendingUp className="w-5 h-5 text-emerald-500" /> 
+                                <TrendingUp className="w-5 h-5 text-emerald-500" />
                                 Ventas ({groupedResults.sale.length})
                                 <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.sale ? '-rotate-90' : ''}`} />
                             </div>
                             {!collapsedSections.sale && (
-                            <div className="grid gap-3">
-                                {groupedResults.sale.map((result) => (
-                                    <div
-                                        key={result._id}
-                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-emerald-500 transition-all cursor-pointer ${isDark
-                                            ? 'bg-slate-800/50 border border-slate-700'
-                                            : 'bg-slate-100 border border-slate-300'
-                                            }`}
-                                        onClick={() => handleResultClick(result)}
-                                    >
-                                        <div className="flex-1">
-                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
-                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
-                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
-                                            {result.metadata?.saleType && (
-                                                <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${result.metadata.saleType === 'delivery'
-                                                    ? 'bg-emerald-500/20 text-emerald-300'
-                                                    : 'bg-blue-500/20 text-blue-300'
-                                                    }`}>
-                                                    {result.metadata.saleType === 'delivery' ? '📦 Entrega' : '🛒 POS'}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="text-right">
-                                            {result.metadata?.profit !== undefined && (
-                                                <p className={`text-lg font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                    💰 ${result.metadata.profit.toFixed(2)}
+                                <div className="grid gap-3">
+                                    {groupedResults.sale.slice(0, sectionPagination.sale).map((result) => (
+                                        <div
+                                            key={result._id}
+                                            className={`p-4 flex items-center justify-between rounded-lg hover:border-emerald-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                                }`}
+                                            onClick={() => handleResultClick(result)}
+                                        >
+                                            <div className="flex-1">
+                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
+                                                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
+                                                {result.metadata?.saleType && (
+                                                    <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${result.metadata.saleType === 'delivery'
+                                                        ? 'bg-emerald-500/20 text-emerald-300'
+                                                        : 'bg-blue-500/20 text-blue-300'
+                                                        }`}>
+                                                        {result.metadata.saleType === 'delivery' ? '📦 Entrega' : '🛒 POS'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                {result.metadata?.profit !== undefined && (
+                                                    <p className={`text-lg font-semibold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                        💰 ${result.metadata.profit.toFixed(2)}
+                                                    </p>
+                                                )}
+                                                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-2`}>
+                                                    {result.date && typeof result.date === 'string'
+                                                        ? new Date(result.date).toLocaleDateString('es-ES')
+                                                        : 'Sin fecha'}
                                                 </p>
-                                            )}
-                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-2`}>
-                                                {result.date && typeof result.date === 'string'
-                                                    ? new Date(result.date).toLocaleDateString('es-ES')
-                                                    : 'Sin fecha'}
-                                            </p>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-slate-500 ml-4" />
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-slate-500 ml-4" />
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
+                            {!collapsedSections.sale && sectionPagination.sale < groupedResults.sale.length && (
+                                <button
+                                    onClick={() => setSectionPagination({ ...sectionPagination, sale: sectionPagination.sale + 10 })}
+                                    className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
+                                        ? 'bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-600/30'
+                                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                    }`}
+                                >
+                                    <span>Mostrar más ({sectionPagination.sale} de {groupedResults.sale.length})</span>
+                                </button>
                             )}
                         </div>
                     )}
@@ -622,48 +654,59 @@ export default function Search() {
                         <div>
                             <div
                                 className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
-                                onClick={() => setCollapsedSections({...collapsedSections, delivery: !collapsedSections.delivery})}
+                                onClick={() => setCollapsedSections({ ...collapsedSections, delivery: !collapsedSections.delivery })}
                             >
-                                <Truck className="w-5 h-5 text-orange-500" /> 
+                                <Truck className="w-5 h-5 text-orange-500" />
                                 Entregas ({groupedResults.delivery.length})
                                 <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.delivery ? '-rotate-90' : ''}`} />
                             </div>
                             {!collapsedSections.delivery && (
-                            <div className="grid gap-3">
-                                {groupedResults.delivery.map((result) => (
-                                    <div
-                                        key={result._id}
-                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-orange-500 transition-all cursor-pointer ${isDark
-                                            ? 'bg-slate-800/50 border border-slate-700'
-                                            : 'bg-slate-100 border border-slate-300'
-                                            }`}
-                                        onClick={() => handleResultClick(result)}
-                                    >
-                                        <div className="flex-1">
-                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
-                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
-                                            <div className="flex gap-2 mt-2">
-                                                <span className={`px-2 py-1 text-xs rounded-full font-medium ${result.metadata?.status === 'completed'
-                                                    ? 'bg-emerald-500/20 text-emerald-300'
-                                                    : result.metadata?.status === 'prepared'
-                                                        ? 'bg-blue-500/20 text-blue-300'
-                                                        : 'bg-yellow-500/20 text-yellow-300'
-                                                    }`}>
-                                                    {result.metadata?.status === 'completed' ? '✓ Entregada'
-                                                        : result.metadata?.status === 'prepared' ? '📦 Preparada'
-                                                            : '⏳ Pendiente'}
-                                                </span>
-                                                {result.metadata?.location && (
-                                                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                                                        <MapPin className="w-3 h-3" /> {result.metadata.location}
+                                <div className="grid gap-3">
+                                    {groupedResults.delivery.slice(0, sectionPagination.delivery).map((result) => (
+                                        <div
+                                            key={result._id}
+                                            className={`p-4 flex items-center justify-between rounded-lg hover:border-orange-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                                }`}
+                                            onClick={() => handleResultClick(result)}
+                                        >
+                                            <div className="flex-1">
+                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
+                                                <div className="flex gap-2 mt-2">
+                                                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${result.metadata?.status === 'completed'
+                                                        ? 'bg-emerald-500/20 text-emerald-300'
+                                                        : result.metadata?.status === 'prepared'
+                                                            ? 'bg-blue-500/20 text-blue-300'
+                                                            : 'bg-yellow-500/20 text-yellow-300'
+                                                        }`}>
+                                                        {result.metadata?.status === 'completed' ? '✓ Entregada'
+                                                            : result.metadata?.status === 'prepared' ? '📦 Preparada'
+                                                                : '⏳ Pendiente'}
                                                     </span>
-                                                )}
+                                                    {result.metadata?.location && (
+                                                        <span className="flex items-center gap-1 text-xs text-slate-400">
+                                                            <MapPin className="w-3 h-3" /> {result.metadata.location}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
+                                            <ChevronRight className="w-5 h-5 text-slate-500" />
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-slate-500" />
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
+                            {!collapsedSections.delivery && sectionPagination.delivery < groupedResults.delivery.length && (
+                                <button
+                                    onClick={() => setSectionPagination({ ...sectionPagination, delivery: sectionPagination.delivery + 10 })}
+                                    className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
+                                        ? 'bg-orange-600/20 hover:bg-orange-600/40 text-orange-300 border border-orange-600/30'
+                                        : 'bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200'
+                                    }`}
+                                >
+                                    <span>Mostrar más ({sectionPagination.delivery} de {groupedResults.delivery.length})</span>
+                                </button>
                             )}
                         </div>
                     )}
@@ -673,47 +716,58 @@ export default function Search() {
                         <div>
                             <div
                                 className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
-                                onClick={() => setCollapsedSections({...collapsedSections, customer: !collapsedSections.customer})}
+                                onClick={() => setCollapsedSections({ ...collapsedSections, customer: !collapsedSections.customer })}
                             >
-                                <User className="w-5 h-5 text-purple-500" /> 
+                                <User className="w-5 h-5 text-purple-500" />
                                 Clientes ({groupedResults.customer.length})
                                 <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.customer ? '-rotate-90' : ''}`} />
                             </div>
                             {!collapsedSections.customer && (
-                            <div className="grid gap-3">
-                                {groupedResults.customer.map((result) => (
-                                    <div
-                                        key={result._id}
-                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-purple-500 transition-all cursor-pointer ${isDark
-                                            ? 'bg-slate-800/50 border border-slate-700'
-                                            : 'bg-slate-100 border border-slate-300'
-                                            }`}
-                                        onClick={() => handleResultClick(result)}
-                                    >
-                                        <div className="flex-1">
-                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
-                                            <div className={`flex gap-3 mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                {result.metadata?.email && (
-                                                    <span className="flex items-center gap-1">
-                                                        <Mail className="w-4 h-4" /> {result.metadata.email}
-                                                    </span>
-                                                )}
-                                                {result.metadata?.phone && (
-                                                    <span className="flex items-center gap-1">
-                                                        <Phone className="w-4 h-4" /> {result.metadata.phone}
-                                                    </span>
+                                <div className="grid gap-3">
+                                    {groupedResults.customer.slice(0, sectionPagination.customer).map((result) => (
+                                        <div
+                                            key={result._id}
+                                            className={`p-4 flex items-center justify-between rounded-lg hover:border-purple-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                                }`}
+                                            onClick={() => handleResultClick(result)}
+                                        >
+                                            <div className="flex-1">
+                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                                <div className={`flex gap-3 mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                    {result.metadata?.email && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Mail className="w-4 h-4" /> {result.metadata.email}
+                                                        </span>
+                                                    )}
+                                                    {result.metadata?.phone && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Phone className="w-4 h-4" /> {result.metadata.phone}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {result.metadata?.totalSpent > 0 && (
+                                                    <p className="text-sm text-emerald-400 mt-2">
+                                                        Total gastado: ${result.metadata.totalSpent.toFixed(2)}
+                                                    </p>
                                                 )}
                                             </div>
-                                            {result.metadata?.totalSpent > 0 && (
-                                                <p className="text-sm text-emerald-400 mt-2">
-                                                    Total gastado: ${result.metadata.totalSpent.toFixed(2)}
-                                                </p>
-                                            )}
+                                            <ChevronRight className="w-5 h-5 text-slate-500" />
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-slate-500" />
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
+                            {!collapsedSections.customer && sectionPagination.customer < groupedResults.customer.length && (
+                                <button
+                                    onClick={() => setSectionPagination({ ...sectionPagination, customer: sectionPagination.customer + 10 })}
+                                    className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
+                                        ? 'bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-600/30'
+                                        : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
+                                    }`}
+                                >
+                                    <span>Mostrar más ({sectionPagination.customer} de {groupedResults.customer.length})</span>
+                                </button>
                             )}
                         </div>
                     )}
@@ -722,37 +776,48 @@ export default function Search() {
                         <div>
                             <div
                                 className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
-                                onClick={() => setCollapsedSections({...collapsedSections, preventa: !collapsedSections.preventa})}
+                                onClick={() => setCollapsedSections({ ...collapsedSections, preventa: !collapsedSections.preventa })}
                             >
-                                <AlertCircle className="w-5 h-5 text-yellow-500" /> 
+                                <AlertCircle className="w-5 h-5 text-yellow-500" />
                                 Preventas ({groupedResults.preventa.length})
                                 <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.preventa ? '-rotate-90' : ''}`} />
                             </div>
                             {!collapsedSections.preventa && (
-                            <div className="grid gap-3">
-                                {groupedResults.preventa.map((result) => (
-                                    <div
-                                        key={result._id}
-                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-yellow-500 transition-all cursor-pointer ${isDark
-                                            ? 'bg-slate-800/50 border border-slate-700'
-                                            : 'bg-slate-100 border border-slate-300'
-                                            }`}
-                                        onClick={() => handleResultClick(result)}
-                                    >
-                                        <div className="flex-1">
-                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
-                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
-                                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
-                                            <span className="inline-block mt-2 px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs rounded-full">
-                                                ⏳ Pendiente de compra
-                                            </span>
+                                <div className="grid gap-3">
+                                    {groupedResults.preventa.slice(0, sectionPagination.preventa).map((result) => (
+                                        <div
+                                            key={result._id}
+                                            className={`p-4 flex items-center justify-between rounded-lg hover:border-yellow-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                                }`}
+                                            onClick={() => handleResultClick(result)}
+                                        >
+                                            <div className="flex-1">
+                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{result.subtitle}</p>
+                                                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'} mt-1`}>{result.description}</p>
+                                                <span className="inline-block mt-2 px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs rounded-full">
+                                                    ⏳ Pendiente de compra
+                                                </span>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-slate-500" />
                                         </div>
-                                        <ChevronRight className="w-5 h-5 text-slate-500" />
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
+                    )}
+                    {!collapsedSections.preventa && sectionPagination.preventa < groupedResults.preventa.length && (
+                        <button
+                            onClick={() => setSectionPagination({ ...sectionPagination, preventa: sectionPagination.preventa + 10 })}
+                            className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
+                                ? 'bg-pink-600/20 hover:bg-pink-600/40 text-pink-300 border border-pink-600/30'
+                                : 'bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200'
+                            }`}
+                        >
+                            <span>Mostrar más ({sectionPagination.preventa} de {groupedResults.preventa.length})</span>
+                        </button>
                     )}
 
                     {/* CATALOG RESULTS */}
@@ -760,73 +825,84 @@ export default function Search() {
                         <div>
                             <div
                                 className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
-                                onClick={() => setCollapsedSections({...collapsedSections, catalog: !collapsedSections.catalog})}
+                                onClick={() => setCollapsedSections({ ...collapsedSections, catalog: !collapsedSections.catalog })}
                             >
-                                <span className="text-2xl">📚</span> 
+                                <span className="text-2xl">📚</span>
                                 Catálogo ({groupedResults.catalog.length})
                                 <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.catalog ? '-rotate-90' : ''}`} />
                             </div>
                             {!collapsedSections.catalog && (
-                            <div className="grid gap-3">
-                                {groupedResults.catalog.map((result) => (
-                                    <div
-                                        key={result._id}
-                                        className={`p-4 flex flex-col md:flex-row md:items-center md:justify-between rounded-lg hover:border-emerald-500 transition-all gap-3 ${isDark
-                                            ? 'bg-emerald-900/30 border border-emerald-600/50'
-                                            : 'bg-emerald-50 border border-emerald-200'
-                                            }`}
-                                    >
-                                        {/* Imagen del catálogo */}
-                                        <div className="w-16 h-16 rounded flex-shrink-0 bg-emerald-800 flex items-center justify-center overflow-hidden relative">
-                                            {result.metadata?.photoUrl ? (
-                                                <img
-                                                    src={`https://images.weserv.nl/?url=${encodeURIComponent(result.metadata.photoUrl)}&w=300&h=300&fit=contain`}
-                                                    alt={result.title}
-                                                    className="w-full h-full object-contain bg-slate-700"
-                                                    crossOrigin="anonymous"
-                                                    onLoad={() => console.log('✅ Imagen catálogo cargada:', result.title)}
-                                                    onError={(e) => {
-                                                        console.warn('❌ Error cargando imagen del proxy:', result.title, result.metadata?.photoUrl);
-                                                        // Fallback a emoji
-                                                        (e.currentTarget as HTMLImageElement).style.display = 'none';
-                                                        const parent = (e.currentTarget as HTMLImageElement).parentElement;
-                                                        if (parent && !parent.querySelector('[data-fallback]')) {
-                                                            const fallback = document.createElement('div');
-                                                            fallback.setAttribute('data-fallback', 'true');
-                                                            fallback.className = 'absolute inset-0 flex items-center justify-center text-2xl';
-                                                            fallback.textContent = '🚗';
-                                                            parent.appendChild(fallback);
-                                                        }
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="text-2xl">🚗</div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
-                                            <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{result.subtitle}</p>
-                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>{result.description}</p>
-                                            <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${isDark
-                                                ? 'bg-emerald-500/20 text-emerald-300'
-                                                : 'bg-emerald-200 text-emerald-800'
-                                                }`}>
-                                                ✨ No en stock
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                setSelectedCatalogItem(result)
-                                                setCatalogItemMode('add')
-                                            }}
-                                            className="md:ml-4 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto justify-center md:justify-start"
+                                <div className="grid gap-3">
+                                    {groupedResults.catalog.slice(0, sectionPagination.catalog).map((result) => (
+                                        <div
+                                            key={result._id}
+                                            className={`p-4 flex flex-col md:flex-row md:items-center md:justify-between rounded-lg hover:border-emerald-500 transition-all gap-3 ${isDark
+                                                ? 'bg-emerald-900/30 border border-emerald-600/50'
+                                                : 'bg-emerald-50 border border-emerald-200'
+                                                }`}
                                         >
-                                            + Agregar a Stock
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                                            {/* Imagen del catálogo */}
+                                            <div className="w-16 h-16 rounded flex-shrink-0 bg-emerald-800 flex items-center justify-center overflow-hidden relative">
+                                                {result.metadata?.photoUrl ? (
+                                                    <img
+                                                        src={`https://images.weserv.nl/?url=${encodeURIComponent(result.metadata.photoUrl)}&w=300&h=300&fit=contain`}
+                                                        alt={result.title}
+                                                        className="w-full h-full object-contain bg-slate-700"
+                                                        crossOrigin="anonymous"
+                                                        onLoad={() => console.log('✅ Imagen catálogo cargada:', result.title)}
+                                                        onError={(e) => {
+                                                            console.warn('❌ Error cargando imagen del proxy:', result.title, result.metadata?.photoUrl);
+                                                            // Fallback a emoji
+                                                            (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                                            const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                                                            if (parent && !parent.querySelector('[data-fallback]')) {
+                                                                const fallback = document.createElement('div');
+                                                                fallback.setAttribute('data-fallback', 'true');
+                                                                fallback.className = 'absolute inset-0 flex items-center justify-center text-2xl';
+                                                                fallback.textContent = '🚗';
+                                                                parent.appendChild(fallback);
+                                                            }
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="text-2xl">🚗</div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
+                                                <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{result.subtitle}</p>
+                                                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>{result.description}</p>
+                                                <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${isDark
+                                                    ? 'bg-emerald-500/20 text-emerald-300'
+                                                    : 'bg-emerald-200 text-emerald-800'
+                                                    }`}>
+                                                    ✨ No en stock
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setSelectedCatalogItem(result)
+                                                    setCatalogItemMode('add')
+                                                }}
+                                                className="md:ml-4 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap w-full md:w-auto justify-center md:justify-start"
+                                            >
+                                                Ver mas
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {!collapsedSections.catalog && sectionPagination.catalog < groupedResults.catalog.length && (
+                                <button
+                                    onClick={() => setSectionPagination({ ...sectionPagination, catalog: sectionPagination.catalog + 20 })}
+                                    className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
+                                        ? 'bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-600/30'
+                                        : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                    }`}
+                                >
+                                    <span>Mostrar más ({sectionPagination.catalog} de {groupedResults.catalog.length})</span>
+                                </button>
                             )}
                         </div>
                     )}

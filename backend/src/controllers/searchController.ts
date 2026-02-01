@@ -48,7 +48,7 @@ export const globalSearch = async (req: Request, res: Response) => {
         select: 'brand carName'
       })
       .populate('customerId', 'name email')
-      .limit(10);
+      .limit(50);
 
     for (const sale of sales) {
       // Encontrar qué items coinciden
@@ -276,7 +276,7 @@ export const globalSearch = async (req: Request, res: Response) => {
       
       let count = 0;
       for (const car of catalogItems) {
-        if (count >= 15) break; // Limitar a 15 resultados
+        if (count >= 100) break; // Aumentado de 15 a 100 resultados
         
         // Buscar en model, series, year, color
         const model = ((car as any).model || '').toLowerCase();
@@ -335,7 +335,7 @@ export const globalSearch = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: sorted.slice(0, 50), // Limitar a 50 resultados
+      data: sorted.slice(0, 200), // Aumentado de 50 a 200 resultados
       message: `${sorted.length} resultados encontrados`
     });
   } catch (error) {
