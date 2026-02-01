@@ -4,7 +4,7 @@ import { useQuery } from 'react-query'
 import { api } from '@/services/api'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
-    Search as SearchIcon, ShoppingCart, Package, Truck, User, AlertCircle, ChevronRight,
+    Search as SearchIcon, ShoppingCart, Package, Truck, User, AlertCircle, ChevronRight, ChevronDown,
     Plus, TrendingUp, MapPin, Phone, Mail, X, Edit, Save
 } from 'lucide-react'
 import Button from '@/components/common/Button'
@@ -56,6 +56,16 @@ export default function Search() {
     const [showPredictions, setShowPredictions] = useState(false)
     const debounceTimer = useRef<NodeJS.Timeout>()
     const searchRef = useRef<HTMLDivElement>(null)
+
+    // Collapsed sections state
+    const [collapsedSections, setCollapsedSections] = useState<{ [key: string]: boolean }>({
+        inventory: false,
+        sale: false,
+        delivery: false,
+        customer: false,
+        preventa: false,
+        catalog: false
+    })
 
     // Filtros de tipos de resultado
     const [filters, setFilters] = useState({
@@ -479,25 +489,31 @@ export default function Search() {
                     {/* INVENTORY RESULTS */}
                     {groupedResults.inventory.length > 0 && (
                         <div>
-                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                <Package className="w-5 h-5 text-blue-500" /> Items ({groupedResults.inventory.length})
-                            </h2>
-                            <div className="grid gap-3">
-                                {groupedResults.inventory.map((result) => (
-                                    <div
-                                        key={result._id}
-                                        className={`p-4 flex items-center justify-between rounded-lg hover:border-blue-500 transition-all cursor-pointer ${isDark
-                                            ? 'bg-slate-800/50 border border-slate-700'
-                                            : 'bg-slate-100 border border-slate-300'
-                                            }`}
-                                        onClick={() => handleResultClick(result)}
-                                    >
-                                        {/* Imagen del item */}
-                                        {result.metadata?.photos && result.metadata.photos.length > 0 && (
-                                            <img
-                                                src={result.metadata.photos[0]}
-                                                alt={result.title}
-                                                className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
+                            <div
+                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
+                                onClick={() => setCollapsedSections({...collapsedSections, inventory: !collapsedSections.inventory})}
+                            >
+                                <Package className="w-5 h-5 text-blue-500" /> 
+                                Items ({groupedResults.inventory.length})
+                                <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.inventory ? '-rotate-90' : ''}`} />
+                            </div>
+                            {!collapsedSections.inventory && (
+                                <div className="grid gap-3">
+                                    {groupedResults.inventory.map((result) => (
+                                        <div
+                                            key={result._id}
+                                            className={`p-4 flex items-center justify-between rounded-lg hover:border-blue-500 transition-all cursor-pointer ${isDark
+                                                ? 'bg-slate-800/50 border border-slate-700'
+                                                : 'bg-slate-100 border border-slate-300'
+                                                }`}
+                                            onClick={() => handleResultClick(result)}
+                                        >
+                                            {/* Imagen del item */}
+                                            {result.metadata?.photos && result.metadata.photos.length > 0 && (
+                                                <img
+                                                    src={result.metadata.photos[0]}
+                                                    alt={result.title}
+                                                    className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
                                                 crossOrigin="anonymous"
                                             />
                                         )}
@@ -541,16 +557,23 @@ export default function Search() {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* SALES RESULTS */}
                     {groupedResults.sale.length > 0 && (
                         <div>
-                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                <TrendingUp className="w-5 h-5 text-emerald-500" /> Ventas ({groupedResults.sale.length})
-                            </h2>
+                            <div
+                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
+                                onClick={() => setCollapsedSections({...collapsedSections, sale: !collapsedSections.sale})}
+                            >
+                                <TrendingUp className="w-5 h-5 text-emerald-500" /> 
+                                Ventas ({groupedResults.sale.length})
+                                <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.sale ? '-rotate-90' : ''}`} />
+                            </div>
+                            {!collapsedSections.sale && (
                             <div className="grid gap-3">
                                 {groupedResults.sale.map((result) => (
                                     <div
@@ -590,15 +613,22 @@ export default function Search() {
                                     </div>
                                 ))}
                             </div>
+                            )}
                         </div>
                     )}
 
                     {/* DELIVERY RESULTS */}
                     {groupedResults.delivery.length > 0 && (
                         <div>
-                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                <Truck className="w-5 h-5 text-orange-500" /> Entregas ({groupedResults.delivery.length})
-                            </h2>
+                            <div
+                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
+                                onClick={() => setCollapsedSections({...collapsedSections, delivery: !collapsedSections.delivery})}
+                            >
+                                <Truck className="w-5 h-5 text-orange-500" /> 
+                                Entregas ({groupedResults.delivery.length})
+                                <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.delivery ? '-rotate-90' : ''}`} />
+                            </div>
+                            {!collapsedSections.delivery && (
                             <div className="grid gap-3">
                                 {groupedResults.delivery.map((result) => (
                                     <div
@@ -634,15 +664,22 @@ export default function Search() {
                                     </div>
                                 ))}
                             </div>
+                            )}
                         </div>
                     )}
 
                     {/* CUSTOMER RESULTS */}
                     {groupedResults.customer.length > 0 && (
                         <div>
-                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                <User className="w-5 h-5 text-purple-500" /> Clientes ({groupedResults.customer.length})
-                            </h2>
+                            <div
+                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
+                                onClick={() => setCollapsedSections({...collapsedSections, customer: !collapsedSections.customer})}
+                            >
+                                <User className="w-5 h-5 text-purple-500" /> 
+                                Clientes ({groupedResults.customer.length})
+                                <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.customer ? '-rotate-90' : ''}`} />
+                            </div>
+                            {!collapsedSections.customer && (
                             <div className="grid gap-3">
                                 {groupedResults.customer.map((result) => (
                                     <div
@@ -677,15 +714,21 @@ export default function Search() {
                                     </div>
                                 ))}
                             </div>
+                            )}
                         </div>
                     )}
-
                     {/* PREVENTA RESULTS */}
                     {groupedResults.preventa.length > 0 && (
                         <div>
-                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                <AlertCircle className="w-5 h-5 text-yellow-500" /> Preventas ({groupedResults.preventa.length})
-                            </h2>
+                            <div
+                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
+                                onClick={() => setCollapsedSections({...collapsedSections, preventa: !collapsedSections.preventa})}
+                            >
+                                <AlertCircle className="w-5 h-5 text-yellow-500" /> 
+                                Preventas ({groupedResults.preventa.length})
+                                <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.preventa ? '-rotate-90' : ''}`} />
+                            </div>
+                            {!collapsedSections.preventa && (
                             <div className="grid gap-3">
                                 {groupedResults.preventa.map((result) => (
                                     <div
@@ -708,15 +751,22 @@ export default function Search() {
                                     </div>
                                 ))}
                             </div>
+                            )}
                         </div>
                     )}
 
                     {/* CATALOG RESULTS */}
                     {groupedResults.catalog.length > 0 && (
                         <div>
-                            <h2 className={`text-xl font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                <span className="text-2xl">📚</span> Catálogo ({groupedResults.catalog.length})
-                            </h2>
+                            <div
+                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
+                                onClick={() => setCollapsedSections({...collapsedSections, catalog: !collapsedSections.catalog})}
+                            >
+                                <span className="text-2xl">📚</span> 
+                                Catálogo ({groupedResults.catalog.length})
+                                <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.catalog ? '-rotate-90' : ''}`} />
+                            </div>
+                            {!collapsedSections.catalog && (
                             <div className="grid gap-3">
                                 {groupedResults.catalog.map((result) => (
                                     <div
@@ -777,6 +827,7 @@ export default function Search() {
                                     </div>
                                 ))}
                             </div>
+                            )}
                         </div>
                     )}
                 </div>
