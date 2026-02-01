@@ -2134,7 +2134,7 @@ export default function Inventory() {
                                                 {item.photos && item.photos.length > 0 ? (
                                                     <>
                                                         <LazyImage
-                                                            src={item.photos[0]}
+                                                            src={item.photos[0].includes('weserv') ? item.photos[0] : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[0])}&w=300&h=200&fit=contain`}
                                                             alt="Hot Wheels"
                                                             className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
                                                                 }`}
