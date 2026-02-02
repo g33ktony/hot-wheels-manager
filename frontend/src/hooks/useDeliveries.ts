@@ -15,7 +15,7 @@ export const useAllDeliveries = (fromDate?: string) => {
 
 // Fetch deliveries with optional status filter for display list
 export const useDeliveries = (status?: string, fromDate?: string) => {
-  return useQuery(['deliveries', status, fromDate], () => deliveriesService.getAll(status, fromDate), {
+  return useQuery(['deliveries', status, fromDate], () => deliveriesService.getAll(status, fromDate, undefined, !status), {
     staleTime: 2 * 60 * 1000, // 2 minutos
     retry: 3, // Retry 3 times on failure
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff

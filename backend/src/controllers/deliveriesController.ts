@@ -10,7 +10,7 @@ import { getDayRangeUTC } from '../utils/dateUtils';
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
     // Get status filter from query params
-    const { status, fromDate, includeCompleted } = req.query;
+    const { status, fromDate, includeCompleted, includeUnpaidCompleted } = req.query;
 
     // Build filter
     const filter: any = {};
@@ -27,7 +27,18 @@ export const getDeliveries = async (req: Request, res: Response) => {
     } else if (includeCompleted !== 'true') {
       // Default: show only active deliveries (scheduled and prepared), not completed
       // unless includeCompleted is explicitly set to true
-      filter.status = { $in: ['scheduled', 'prepared'] };
+      // OR include unpaid/partial completed deliveries if requested
+      if (includeUnpaidCompleted === 'true') {
+        filter.$or = [
+          { status: { $in: ['scheduled', 'prepared'] } },
+          { 
+            status: 'completed',
+            paymentStatus: { $in: ['unpaid', 'partial'] }
+          }
+        ];
+      } else {
+        filter.status = { $in: ['scheduled', 'prepared'] };
+      }
     }
     // else: no filter, show all deliveries (including completed)
     

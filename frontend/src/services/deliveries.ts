@@ -7,11 +7,12 @@ import type {
 
 export const deliveriesService = {
   // Obtener todas las entregas
-  getAll: async (status?: string, fromDate?: string, includeCompleted?: boolean): Promise<Delivery[]> => {
+  getAll: async (status?: string, fromDate?: string, includeCompleted?: boolean, includeUnpaidCompleted?: boolean): Promise<Delivery[]> => {
     const params: any = {};
     if (status) params.status = status;
     if (fromDate) params.fromDate = fromDate;
     if (includeCompleted) params.includeCompleted = 'true';
+    if (includeUnpaidCompleted) params.includeUnpaidCompleted = 'true';
     const response = await api.get<ApiResponse<Delivery[]>>('/deliveries', { params })
     return response.data.data || []
   },
