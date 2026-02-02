@@ -34,6 +34,7 @@ export default function CollageGenerator({
     const [isGenerating, setIsGenerating] = useState(false)
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
     const [isDownloadingImages, setIsDownloadingImages] = useState(false)
+    const [itemsPerCollage, setItemsPerCollage] = useState(4) // Nueva opción: 1, 2 o 4 items por collage
     const imgRef = useRef<HTMLImageElement>(null)
     const [editingPriceIndex, setEditingPriceIndex] = useState<number | null>(null)
     const [tempPrice, setTempPrice] = useState('')
@@ -56,14 +57,15 @@ export default function CollageGenerator({
             setCollageItems(items)
             // Ir directamente a la lista de precios
             setCurrentStep('price')
+            setItemsPerCollage(4) // Reset a 4 items por defecto
         }
     }, [isOpen]) // Solo cuando se abre el modal
 
-    // Split items into groups of 4
+    // Split items into groups based on itemsPerCollage setting
     const getCollageGroups = () => {
         const groups: CollageItem[][] = []
-        for (let i = 0; i < collageItems.length; i += 4) {
-            groups.push(collageItems.slice(i, i + 4))
+        for (let i = 0; i < collageItems.length; i += itemsPerCollage) {
+            groups.push(collageItems.slice(i, i + itemsPerCollage))
         }
         return groups
     }
@@ -272,11 +274,24 @@ export default function CollageGenerator({
                 return
             }
 
-            // Canvas dimensions - High quality, minimal design
-            const cols = items.length <= 2 ? items.length : 2
-            const rows = Math.ceil(items.length / 2)
-            const cellWidth = 1000 // Larger cells for 2x2 grid
-            const cellHeight = 1000 // Larger cells for 2x2 grid
+            // Canvas dimensions - Dynamic based on itemsPerCollage
+            let cols: number
+            let rows: number
+            
+            if (itemsPerCollage === 1) {
+                cols = 1
+                rows = 1
+            } else if (itemsPerCollage === 2) {
+                cols = 2
+                rows = 1
+            } else {
+                // itemsPerCollage === 4
+                cols = items.length === 1 ? 1 : items.length === 2 ? 2 : items.length === 3 ? 2 : 2
+                rows = Math.ceil(items.length / 2)
+            }
+            
+            const cellWidth = 1000 // High quality cells
+            const cellHeight = 1000
             const borderWidth = 1 // Thin border to separate images
             const headerHeight = 0 // No header - minimalist
             const footerHeight = 0 // No footer - minimalist
@@ -303,8 +318,8 @@ export default function CollageGenerator({
                 img.crossOrigin = 'anonymous'
 
                 img.onload = () => {
-                    const col = index % 2
-                    const row = Math.floor(index / 2)
+                    const col = index % cols
+                    const row = Math.floor(index / cols)
                     const x = col * (cellWidth + borderWidth)
                     const y = row * (cellHeight + borderWidth) + headerHeight
 
@@ -666,6 +681,44 @@ export default function CollageGenerator({
                                 💡 <strong>Consejo:</strong> Arrastra las cajas para reordenar los items antes de generar los collages
                             </p>
                         </div>
+
+                        {/* Items Per Collage Selector */}
+                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+                            <label className="block text-sm font-semibold text-gray-900 mb-3">
+                                📐 Imágenes por Collage
+                            </label>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[1, 2, 4].map((num) => (
+                                    <button
+                                        key={num}
+                                        onClick={() => setItemsPerCollage(num)}
+                                        className={`py-3 px-4 rounded-lg font-medium transition-all ${
+                                            itemsPerCollage === num
+                                                ? 'bg-purple-600 text-white shadow-lg scale-105'
+                                                : 'bg-white text-gray-700 border border-purple-200 hover:bg-purple-50'
+                                        }`}
+                                    >
+                                        <div className="text-base">
+                                            {num === 1 ? '1️⃣' : num === 2 ? '2️⃣' : '4️⃣'}
+                                        </div>
+                                        <div className="text-xs mt-1">
+                                            {num === 1 ? 'Una' : num === 2 ? 'Dos' : 'Cuatro'}
+                                        </div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                                            {num === 1 ? 'destacada' : num === 2 ? 'horizontal' : '2x2'}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-3 text-center font-medium">
+                                {`Generarás ${Math.ceil(collageItems.length / itemsPerCollage)} ${
+                                    Math.ceil(collageItems.length / itemsPerCollage) === 1 ? 'collage' : 'collages'
+                                } de ${collageItems.length} ${
+                                    collageItems.length === 1 ? 'item' : 'items'
+                                }`}
+                            </p>
+                        </div>
+
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {collageItems.map((item, index) => (
                                 <div
