@@ -75,5 +75,11 @@ export const dashboardService = {
       status: string
     }[]>>('/dashboard/pending-purchases')
     return response.data.data || []
+  },
+
+  // Obtener entregas completadas pero sin pagar
+  getUnpaidDeliveries: async () => {
+    const response = await api.get<ApiResponse<any[]>>('/deliveries?status=completed&paymentStatus=unpaid,partial')
+    return response.data.data || []
   }
 }

@@ -10,6 +10,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Ca
 import { Loading } from '@/components/common/Loading'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
+import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, RefreshCw, Search, X, Download } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
 import toast from 'react-hot-toast'
@@ -20,9 +21,17 @@ export default function Dashboard() {
     const [showSearchModal, setShowSearchModal] = React.useState(false)
     const [searchQuery, setSearchQuery] = React.useState('')
     const [isDownloading, setIsDownloading] = React.useState(false)
+    const [selectedUnpaidDelivery, setSelectedUnpaidDelivery] = React.useState<any>(null)
     const { data: metrics, isLoading, error } = useQuery(
         'dashboard-metrics',
         dashboardService.getMetrics,
+        {
+            refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
+        }
+    )
+    const { data: unpaidDeliveries = [] } = useQuery(
+        'unpaid-deliveries',
+        dashboardService.getUnpaidDeliveries,
         {
             refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
         }
@@ -411,6 +420,27 @@ export default function Dashboard() {
                                 </div>
                             )}
 
+                            {/* Unpaid Deliveries Alert */}
+                            {unpaidDeliveries && unpaidDeliveries.length > 0 && (
+                                <div
+                                    className="flex items-start p-4 bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border-2 border-yellow-600 rounded-lg cursor-pointer hover:from-yellow-900/70 hover:to-orange-900/70 transition-colors"
+                                    onClick={() => setSelectedUnpaidDelivery(unpaidDeliveries[0])}
+                                >
+                                    <AlertCircle className="text-yellow-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold text-white mb-1">
+                                            💳 {unpaidDeliveries.length} Entrega{unpaidDeliveries.length > 1 ? 's' : ''} Sin Cobrar
+                                        </p>
+                                        <p className="text-xs text-yellow-200">
+                                            Pendiente de pago total: ${unpaidDeliveries.reduce((sum: number, d: any) => sum + (d.totalAmount - d.paidAmount), 0).toFixed(2)}
+                                        </p>
+                                        <p className="text-xs text-slate-300 mt-2">
+                                            Click para gestionar pago →
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Pending Items Widget */}
                             {pendingItemsStats && pendingItemsStats.totalCount > 0 && (
                                 <div
@@ -437,7 +467,7 @@ export default function Dashboard() {
                                 </div>
                             )}
 
-                            {metrics.pendingPurchases === 0 && metrics.pendingSales === 0 && metrics.pendingDeliveries === 0 && (!pendingItemsStats || pendingItemsStats.totalCount === 0) && (
+                            {metrics.pendingPurchases === 0 && metrics.pendingSales === 0 && metrics.pendingDeliveries === 0 && (!pendingItemsStats || pendingItemsStats.totalCount === 0) && (!unpaidDeliveries || unpaidDeliveries.length === 0) && (
                                 <p className="text-slate-400 text-center py-4">No hay alertas pendientes</p>
                             )}
                         </div>
@@ -712,6 +742,17 @@ export default function Dashboard() {
                     )}
                 </div>
             </Modal>
+
+            {/* Unpaid Delivery Details Modal */}
+            <DeliveryDetailsModal
+                delivery={selectedUnpaidDelivery}
+                isOpen={!!selectedUnpaidDelivery}
+                onClose={() => setSelectedUnpaidDelivery(null)}
+                onMarkAsCompleted={() => {}} // Already completed, so no marking needed
+                onRegisterPayment={() => {}} // Payment registration handled elsewhere
+                readonly={false}
+            />
         </div>
     )
 }
+
