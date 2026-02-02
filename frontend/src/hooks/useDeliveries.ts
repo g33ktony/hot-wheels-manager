@@ -95,13 +95,20 @@ export const useMarkDeliveryAsCompleted = () => {
   const queryClient = useQueryClient()
 
   return useMutation(
-    (id: string) => deliveriesService.markAsCompleted(id),
+    ({ id, paymentStatus }: { id: string; paymentStatus?: 'paid' | 'unpaid' | 'partial' }) => 
+      deliveriesService.markAsCompleted(id, paymentStatus),
     {
-      onSuccess: () => {
+      onSuccess: (data) => {
         queryClient.invalidateQueries('deliveries')
-        queryClient.invalidateQueries('sales') // Invalidar ventas porque se pueden crear automáticamente
-        queryClient.invalidateQueries('inventory') // Invalidar inventario porque se reduce
-        toast.success('Entrega completada, venta creada y marcada como pagada')
+        queryClient.invalidateQueries('sales')
+        queryClient.invalidateQueries('inventory')
+        
+        const paymentMsg = 
+          data.paymentStatus === 'paid' ? 'Entrega completada y pagada. Venta creada.' :
+          data.paymentStatus === 'partial' ? 'Entrega completada con pago parcial. Pendiente cobro.' :
+          'Entrega completada. Pendiente cobro.'
+        
+        toast.success(paymentMsg)
       },
       onError: (error: any) => {
         toast.error(error.message || 'Error al completar entrega')

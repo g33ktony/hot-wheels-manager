@@ -1,5 +1,82 @@
 import { Request, Response } from 'express'
 import { DeliveryModel } from '../models/Delivery'
+import { SaleModel } from '../models/Sale'
+import { InventoryItemModel } from '../models/InventoryItem'
+
+/**
+ * Create sales from delivery items (helper function)
+ */
+const createSalesFromDelivery = async (delivery: any) => {
+  try {
+    const saleItems = []
+
+    for (const item of delivery.items) {
+      // Skip presale items - they are handled separately by PreSalePaymentPlan
+      if (item.inventoryItemId?.startsWith('presale_')) {
+        continue
+      }
+      
+      let shouldRemoveFromInventory = false
+      
+      if (item.inventoryItemId) {
+        const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId)
+        if (inventoryItem) {
+          shouldRemoveFromInventory = true
+          await InventoryItemModel.findByIdAndUpdate(
+            item.inventoryItemId,
+            { 
+              $inc: { 
+                reservedQuantity: -item.quantity,
+                quantity: -item.quantity 
+              }
+            }
+          )
+        }
+      }
+      
+      saleItems.push({
+        inventoryItemId: item.inventoryItemId || null,
+        hotWheelsCarId: item.hotWheelsCarId || null,
+        carId: item.carId,
+        carName: item.carName,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        costPrice: item.costPrice || 0,
+        profit: item.profit || 0,
+        photos: item.photos || []
+      })
+    }
+    
+    if (saleItems.length === 0) {
+      console.log(`No non-presale items in delivery ${delivery._id}, skipping sale creation`)
+      return
+    }
+
+    const sale = new SaleModel({
+      customerId: delivery.customerId,
+      customer: delivery.customer,
+      items: saleItems,
+      totalAmount: delivery.totalAmount,
+      saleDate: new Date(),
+      deliveryId: delivery._id,
+      delivery: {
+        id: delivery._id,
+        scheduledDate: delivery.scheduledDate,
+        location: delivery.location
+      },
+      paymentMethod: 'cash',
+      status: 'completed',
+      notes: `Venta generada automáticamente desde entrega ${delivery._id} (pago completado)`
+    })
+
+    await sale.save()
+
+    console.log(`Created 1 sale with ${saleItems.length} items from delivery ${delivery._id}`)
+  } catch (error) {
+    console.error('Error creating sales from delivery:', error)
+    throw error
+  }
+}
 
 /**
  * Add a payment to a delivery
@@ -46,9 +123,13 @@ export const addPayment = async (req: Request, res: Response) => {
     // Update paid amount
     delivery.paidAmount += amount
 
+    // Track if payment was just completed
+    let paymentJustCompleted = false
+
     // Update payment status
     if (delivery.paidAmount >= delivery.totalAmount) {
       delivery.paymentStatus = 'paid'
+      paymentJustCompleted = true
     } else if (delivery.paidAmount > 0) {
       delivery.paymentStatus = 'partial'
     } else {
@@ -56,6 +137,26 @@ export const addPayment = async (req: Request, res: Response) => {
     }
 
     await delivery.save()
+
+    // If payment just became complete and delivery is already completed, create sale
+    if (paymentJustCompleted && delivery.status === 'completed') {
+      try {
+        await createSalesFromDelivery(delivery)
+        return res.json({ 
+          success: true, 
+          message: 'Pago registrado exitosamente. Venta creada automáticamente.',
+          data: delivery 
+        })
+      } catch (error) {
+        console.error('Warning: Sale creation failed, but payment was recorded:', error)
+        return res.json({ 
+          success: true, 
+          message: 'Pago registrado exitosamente. Nota: Venta no se pudo crear automáticamente.',
+          data: delivery,
+          warning: 'Sale creation failed'
+        })
+      }
+    }
 
     res.json({ 
       success: true, 

@@ -336,8 +336,8 @@ export default function Deliveries() {
         }
     }
 
-    const handleMarkAsCompleted = async (deliveryId: string) => {
-        await markCompletedMutation.mutateAsync(deliveryId)
+    const handleMarkAsCompleted = async (deliveryId: string, paymentStatus?: 'paid' | 'unpaid' | 'partial') => {
+        await markCompletedMutation.mutateAsync({ id: deliveryId, paymentStatus })
     }
 
     const handleMarkAsPrepared = async (deliveryId: string) => {

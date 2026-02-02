@@ -503,6 +503,7 @@ export const deleteDelivery = async (req: Request, res: Response) => {
 export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const { paymentStatus } = req.body; // 'unpaid', 'partial', or 'paid'
 
     const delivery = await DeliveryModel.findById(id);
     if (!delivery) {
@@ -522,44 +523,58 @@ export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
       });
     }
 
-    // Mark as completed and create sales
+    // Mark as completed
     delivery.status = 'completed';
     delivery.completedDate = new Date();
     
-    // Automatically mark as paid when completing the delivery (if not already fully paid)
-    const currentPaidAmount = delivery.paidAmount || 0;
-    if (currentPaidAmount < delivery.totalAmount) {
-      const remainingAmount = delivery.totalAmount - currentPaidAmount;
-      
-      // Initialize payments array if it doesn't exist
-      if (!delivery.payments) {
-        delivery.payments = [];
+    // Handle payment status
+    if (paymentStatus === 'paid') {
+      // If marking as fully paid, auto-complete remaining amount (if any)
+      const currentPaidAmount = delivery.paidAmount || 0;
+      if (currentPaidAmount < delivery.totalAmount) {
+        const remainingAmount = delivery.totalAmount - currentPaidAmount;
+        
+        // Initialize payments array if it doesn't exist
+        if (!delivery.payments) {
+          delivery.payments = [];
+        }
+        
+        // Add automatic payment for remaining amount
+        delivery.payments.push({
+          amount: remainingAmount,
+          paymentDate: new Date(),
+          paymentMethod: 'cash',
+          notes: 'Pago registrado al entregar'
+        } as any);
+        
+        // Update paid amount
+        delivery.paidAmount = delivery.totalAmount;
       }
       
-      // Add automatic payment for remaining amount
-      delivery.payments.push({
-        amount: remainingAmount,
-        paymentDate: new Date(),
-        paymentMethod: 'cash',
-        notes: 'Pago automático al completar entrega'
-      } as any);
+      delivery.paymentStatus = 'paid';
       
-      // Update paid amount and status
-      delivery.paidAmount = delivery.totalAmount;
+      await delivery.save();
+      
+      // Create sales ONLY if fully paid
+      await createSalesFromDelivery(delivery);
+      
+      return res.json({
+        success: true,
+        data: delivery,
+        message: 'Entrega completada y marcada como pagada. Venta creada.'
+      });
+    } else {
+      // For 'unpaid' or 'partial' or no explicit status, just mark as completed without auto-payment
+      // Keep the current paymentStatus
+      
+      await delivery.save();
+      
+      return res.json({
+        success: true,
+        data: delivery,
+        message: `Entrega completada. Pago: ${delivery.paymentStatus}`
+      });
     }
-    
-    delivery.paymentStatus = 'paid';
-    
-    await delivery.save();
-    
-    // Create sales from delivery items
-    await createSalesFromDelivery(delivery);
-
-    res.json({
-      success: true,
-      data: delivery,
-      message: 'Entrega completada y marcada como pagada'
-    });
   } catch (error) {
     console.error('Error marking delivery as completed:', error);
     res.status(500).json({

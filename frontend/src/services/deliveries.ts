@@ -55,8 +55,10 @@ export const deliveriesService = {
   },
 
   // Marcar entrega como completada
-  markAsCompleted: async (id: string): Promise<Delivery> => {
-    const response = await api.patch<ApiResponse<Delivery>>(`/deliveries/${id}/completed`)
+  markAsCompleted: async (id: string, paymentStatus?: 'paid' | 'unpaid' | 'partial'): Promise<Delivery> => {
+    const response = await api.patch<ApiResponse<Delivery>>(`/deliveries/${id}/completed`, {
+      paymentStatus: paymentStatus || 'unpaid'
+    })
     if (!response.data.data) {
       throw new Error('Failed to mark delivery as completed')
     }

@@ -9,7 +9,7 @@ interface DeliveryDetailsModalProps {
     isOpen: boolean
     onClose: () => void
     onMarkAsPrepared?: (id: string) => void
-    onMarkAsCompleted?: (id: string) => void
+    onMarkAsCompleted?: (id: string, paymentStatus?: 'paid' | 'unpaid' | 'partial') => void
     onEdit?: (delivery: any) => void
     onViewCustomer?: (customerId: string) => void
     onShareReport?: () => void
@@ -42,6 +42,8 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
     readonly = false,
 }) => {
     const [isEditingDelivery, setIsEditingDelivery] = useState(false)
+    const [showPaymentStatusDialog, setShowPaymentStatusDialog] = useState(false)
+    const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<'paid' | 'unpaid' | 'partial'>('unpaid')
 
     if (!isOpen || !delivery) return null
 
@@ -61,6 +63,18 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
             console.error('Error saving delivery:', error)
             throw error
         }
+    }
+
+    const handleMarkAsCompletedClick = () => {
+        setShowPaymentStatusDialog(true)
+    }
+
+    const handleConfirmPaymentStatus = () => {
+        if (onMarkAsCompleted) {
+            onMarkAsCompleted(delivery._id!, selectedPaymentStatus)
+            onClose()
+        }
+        setShowPaymentStatusDialog(false)
     }
 
     return (
@@ -109,12 +123,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                 {delivery.status === 'prepared' && onMarkAsCompleted && (
                                     <Button
                                         size="sm"
-                                        onClick={() => {
-                                            if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada? Los items serán eliminados del inventario y se marcará como pagada.')) {
-                                                onMarkAsCompleted(delivery._id!)
-                                                onClose()
-                                            }
-                                        }}
+                                        onClick={handleMarkAsCompletedClick}
                                         disabled={markCompletedLoading}
                                         variant="success"
                                         className="flex items-center gap-2"
@@ -431,6 +440,97 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                     )}
                         </div>
                     </>
+                )}
+
+                {/* Payment Status Dialog */}
+                {showPaymentStatusDialog && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                💳 Estado de Pago al Entregar
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-6">
+                                ¿Cuál es el estado de pago de esta entrega?
+                            </p>
+
+                            <div className="space-y-3 mb-6">
+                                <label className="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all"
+                                    style={{
+                                        borderColor: selectedPaymentStatus === 'paid' ? '#10b981' : '#e5e7eb',
+                                        backgroundColor: selectedPaymentStatus === 'paid' ? '#f0fdf4' : '#ffffff'
+                                    }}>
+                                    <input
+                                        type="radio"
+                                        name="paymentStatus"
+                                        value="paid"
+                                        checked={selectedPaymentStatus === 'paid'}
+                                        onChange={() => setSelectedPaymentStatus('paid')}
+                                        className="w-4 h-4 cursor-pointer"
+                                    />
+                                    <div className="ml-3">
+                                        <span className="font-medium text-gray-900">✅ Pagado</span>
+                                        <p className="text-xs text-gray-600">Se cobrará el total y se creará la venta</p>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all"
+                                    style={{
+                                        borderColor: selectedPaymentStatus === 'unpaid' ? '#ef4444' : '#e5e7eb',
+                                        backgroundColor: selectedPaymentStatus === 'unpaid' ? '#fef2f2' : '#ffffff'
+                                    }}>
+                                    <input
+                                        type="radio"
+                                        name="paymentStatus"
+                                        value="unpaid"
+                                        checked={selectedPaymentStatus === 'unpaid'}
+                                        onChange={() => setSelectedPaymentStatus('unpaid')}
+                                        className="w-4 h-4 cursor-pointer"
+                                    />
+                                    <div className="ml-3">
+                                        <span className="font-medium text-gray-900">❌ No pagado</span>
+                                        <p className="text-xs text-gray-600">Pendiente cobro. No se creará venta</p>
+                                    </div>
+                                </label>
+
+                                <label className="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all"
+                                    style={{
+                                        borderColor: selectedPaymentStatus === 'partial' ? '#f59e0b' : '#e5e7eb',
+                                        backgroundColor: selectedPaymentStatus === 'partial' ? '#fffbeb' : '#ffffff'
+                                    }}>
+                                    <input
+                                        type="radio"
+                                        name="paymentStatus"
+                                        value="partial"
+                                        checked={selectedPaymentStatus === 'partial'}
+                                        onChange={() => setSelectedPaymentStatus('partial')}
+                                        className="w-4 h-4 cursor-pointer"
+                                    />
+                                    <div className="ml-3">
+                                        <span className="font-medium text-gray-900">⚠️ Pago Parcial</span>
+                                        <p className="text-xs text-gray-600">Se cobrará lo faltante después</p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button
+                                    onClick={() => setShowPaymentStatusDialog(false)}
+                                    variant="secondary"
+                                    className="flex-1"
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    onClick={handleConfirmPaymentStatus}
+                                    variant="success"
+                                    disabled={markCompletedLoading}
+                                    className="flex-1"
+                                >
+                                    {markCompletedLoading ? 'Completando...' : 'Confirmar'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>
