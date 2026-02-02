@@ -133,6 +133,10 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
     return quoteItems.reduce((sum, item) => sum + item.customPrice, 0)
   }
 
+  const getTotalQuantity = () => {
+    return quoteItems.reduce((sum, item) => sum + (item.inventoryItem.quantity || 0), 0)
+  }
+
   const handlePriceEdit = (index: number) => {
     setEditingPriceIndex(index)
     setTempPrice(quoteItems[index].customPrice.toString())
@@ -394,7 +398,11 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
       {/* Summary */}
       <div className="border-t-2 border-gray-300 pt-4">
         <div className="flex justify-end">
-          <div className="w-64">
+          <div className="w-80">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-gray-600">Total de piezas:</span>
+              <span className="font-medium">{getTotalQuantity()}</span>
+            </div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-gray-600">Subtotal:</span>
               <span className="font-medium">{formatCurrency(getTotalPrice())}</span>

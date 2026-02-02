@@ -40,6 +40,7 @@ export default function CollageGenerator({
     const [tempPrice, setTempPrice] = useState('')
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
     const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+    const [showPricesOnCollage, setShowPricesOnCollage] = useState(true) // Toggle para mostrar/ocultar precios en collages
 
     const storeName = import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'
 
@@ -58,6 +59,7 @@ export default function CollageGenerator({
             // Ir directamente a la lista de precios
             setCurrentStep('price')
             setItemsPerCollage(4) // Reset a 4 items por defecto
+            setShowPricesOnCollage(true) // Reset a mostrar precios por defecto
         }
     }, [isOpen]) // Solo cuando se abre el modal
 
@@ -339,25 +341,28 @@ export default function CollageGenerator({
                     ctx.imageSmoothingQuality = 'high'
                     ctx.drawImage(img, imgX, imgY, scaledWidth, scaledHeight)
 
-                    // Semi-transparent overlay at top for price (minimal, overlaid on image)
-                    const overlayHeight = 90
-                    const gradient = ctx.createLinearGradient(x, y, x, y + overlayHeight)
-                    gradient.addColorStop(0, 'rgba(0, 0, 0, 0.7)')
-                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
-                    ctx.fillStyle = gradient
-                    ctx.fillRect(x, y, cellWidth, overlayHeight)
+                    // Only show price overlay if showPricesOnCollage is true
+                    if (showPricesOnCollage) {
+                        // Semi-transparent overlay at top for price (minimal, overlaid on image)
+                        const overlayHeight = 90
+                        const gradient = ctx.createLinearGradient(x, y, x, y + overlayHeight)
+                        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.7)')
+                        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+                        ctx.fillStyle = gradient
+                        ctx.fillRect(x, y, cellWidth, overlayHeight)
 
-                    // Price text - top center, overlaid on image
-                    ctx.fillStyle = '#ffffff'
-                    ctx.font = 'bold 64px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
-                    ctx.textAlign = 'center'
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
-                    ctx.shadowBlur = 8
-                    ctx.shadowOffsetY = 2
-                    ctx.fillText(`$${item.customPrice.toFixed(2)}`, x + cellWidth / 2, y + 60)
-                    ctx.shadowColor = 'transparent'
-                    ctx.shadowBlur = 0
-                    ctx.shadowOffsetY = 0
+                        // Price text - top center, overlaid on image
+                        ctx.fillStyle = '#ffffff'
+                        ctx.font = 'bold 64px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
+                        ctx.textAlign = 'center'
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
+                        ctx.shadowBlur = 8
+                        ctx.shadowOffsetY = 2
+                        ctx.fillText(`$${item.customPrice.toFixed(2)}`, x + cellWidth / 2, y + 60)
+                        ctx.shadowColor = 'transparent'
+                        ctx.shadowBlur = 0
+                        ctx.shadowOffsetY = 0
+                    }
 
                     // Quantity text - bottom center, overlaid on image
                     const availableQty = item.item.quantity - (item.item.reservedQuantity || 0)
@@ -716,6 +721,26 @@ export default function CollageGenerator({
                                 } de ${collageItems.length} ${
                                     collageItems.length === 1 ? 'item' : 'items'
                                 }`}
+                            </p>
+                        </div>
+
+                        {/* Price Display Toggle */}
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={showPricesOnCollage}
+                                    onChange={(e) => setShowPricesOnCollage(e.target.checked)}
+                                    className="w-5 h-5 text-blue-600 rounded cursor-pointer"
+                                />
+                                <span className="text-sm font-medium text-gray-900">
+                                    💲 Mostrar precios en los collages
+                                </span>
+                            </label>
+                            <p className="text-xs text-gray-600 mt-2 ml-8">
+                                {showPricesOnCollage 
+                                    ? 'Los precios aparecerán en la parte superior de cada imagen' 
+                                    : 'Los precios estarán ocultos (solo mostrará disponibilidad)'}
                             </p>
                         </div>
 
