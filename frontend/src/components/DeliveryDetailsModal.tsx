@@ -66,7 +66,9 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
     }
 
     const handleMarkAsCompletedClick = () => {
-        setShowPaymentStatusDialog(true)
+        if (confirm('¿Marcar esta entrega como completada?')) {
+            setShowPaymentStatusDialog(true)
+        }
     }
 
     const handleConfirmPaymentStatus = () => {

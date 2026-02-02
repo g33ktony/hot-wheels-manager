@@ -31,6 +31,8 @@ export default function Deliveries() {
     const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [showReportModal, setShowReportModal] = useState(false)
     const [showImageModal, setShowImageModal] = useState(false)
+    const [showPaymentStatusDialog, setShowPaymentStatusDialog] = useState(false)
+    const [deliveryToCompleteId, setDeliveryToCompleteId] = useState<string | null>(null)
     const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
@@ -338,6 +340,22 @@ export default function Deliveries() {
 
     const handleMarkAsCompleted = async (deliveryId: string, paymentStatus?: 'paid' | 'unpaid' | 'partial') => {
         await markCompletedMutation.mutateAsync({ id: deliveryId, paymentStatus })
+        setShowPaymentStatusDialog(false)
+        setDeliveryToCompleteId(null)
+    }
+
+    const handleOpenPaymentStatusDialog = (deliveryId: string) => {
+        // Show confirmation first
+        if (confirm('¿Marcar esta entrega como completada?')) {
+            setDeliveryToCompleteId(deliveryId)
+            setShowPaymentStatusDialog(true)
+        }
+    }
+
+    const handleConfirmPaymentStatus = (paymentStatus: 'paid' | 'unpaid' | 'partial') => {
+        if (deliveryToCompleteId) {
+            handleMarkAsCompleted(deliveryToCompleteId, paymentStatus)
+        }
     }
 
     const handleMarkAsPrepared = async (deliveryId: string) => {
@@ -956,7 +974,7 @@ export default function Deliveries() {
                                 onViewDetails={handleViewDetails}
                                 onEdit={handleEditDelivery}
                                 onMarkAsPrepared={handleMarkAsPrepared}
-                                onMarkAsCompleted={handleMarkAsCompleted}
+                                onMarkAsCompleted={handleOpenPaymentStatusDialog}
                                 onDelete={handleDeleteDelivery}
                                 onShare={handleShowReport}
                                 isLoadingPrepared={markPreparedMutation.isLoading}
@@ -1797,6 +1815,67 @@ export default function Deliveries() {
                     </button>
                 </div>
             )}
+
+            {/* Payment Status Dialog Modal */}
+            <Modal
+                isOpen={showPaymentStatusDialog}
+                onClose={() => {
+                    setShowPaymentStatusDialog(false)
+                    setDeliveryToCompleteId(null)
+                }}
+                title="Estado de Pago"
+                maxWidth="md"
+                footer={
+                    <div className="flex gap-3">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => {
+                                setShowPaymentStatusDialog(false)
+                                setDeliveryToCompleteId(null)
+                            }}
+                        >
+                            Cancelar
+                        </Button>
+                    </div>
+                }
+            >
+                <div className="space-y-4">
+                    <p className="text-slate-300">
+                        Selecciona el estado de pago para esta entrega:
+                    </p>
+                    <div className="grid grid-cols-3 gap-3">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => handleConfirmPaymentStatus('unpaid')}
+                            disabled={markCompletedMutation.isLoading}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            {markCompletedMutation.isLoading ? '...' : 'Sin Pago'}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => handleConfirmPaymentStatus('partial')}
+                            disabled={markCompletedMutation.isLoading}
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                        >
+                            {markCompletedMutation.isLoading ? '...' : 'Parcial'}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => handleConfirmPaymentStatus('paid')}
+                            disabled={markCompletedMutation.isLoading}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                            {markCompletedMutation.isLoading ? '...' : 'Pagado'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     )
 }

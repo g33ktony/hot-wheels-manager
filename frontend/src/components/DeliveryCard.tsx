@@ -185,11 +185,7 @@ export default function DeliveryCard({
                     {delivery.status === 'prepared' && (
                         <Button
                             size="sm"
-                            onClick={() => {
-                                if (confirm('¿Estás seguro de que quieres marcar esta entrega como completada?')) {
-                                    onMarkAsCompleted(delivery._id!)
-                                }
-                            }}
+                            onClick={() => onMarkAsCompleted(delivery._id!)}
                             disabled={isLoadingCompleted}
                             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                             title="Marcar como completada"
