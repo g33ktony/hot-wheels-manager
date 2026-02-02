@@ -355,6 +355,28 @@ export const deleteSale = async (req: Request, res: Response) => {
       });
     }
 
+    // If sale is related to a delivery, delete the delivery too
+    if (deletedSale.deliveryId) {
+      const { DeliveryModel } = await import('../models/Delivery');
+      const delivery = await DeliveryModel.findById(deletedSale.deliveryId);
+      
+      if (delivery) {
+        // Release reserved inventory items from delivery
+        for (const item of delivery.items) {
+          if (item.inventoryItemId) {
+            await InventoryItemModel.findByIdAndUpdate(
+              item.inventoryItemId,
+              { $inc: { reservedQuantity: -item.quantity } }
+            );
+          }
+        }
+        
+        // Delete the delivery
+        await DeliveryModel.findByIdAndDelete(deletedSale.deliveryId);
+        console.log(`Delivery ${deletedSale.deliveryId} deleted along with sale ${id}`);
+      }
+    }
+
     // Restore inventory quantities for all items in the sale
     for (const item of deletedSale.items) {
       if (item.inventoryItemId) {
@@ -372,7 +394,7 @@ export const deleteSale = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: deletedSale,
-      message: 'Venta eliminada exitosamente'
+      message: 'Venta y entrega relacionada eliminadas exitosamente'
     });
   } catch (error) {
     console.error('Error deleting sale:', error);
