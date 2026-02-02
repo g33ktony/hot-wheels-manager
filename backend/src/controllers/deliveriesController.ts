@@ -474,13 +474,32 @@ export const deleteDelivery = async (req: Request, res: Response) => {
       });
     }
 
-    // Don't allow deletion of completed deliveries
+    // If completed, also delete related sales and restore inventory properly
     if (delivery.status === 'completed') {
-      return res.status(400).json({
-        success: false,
-        data: null,
-        message: 'No se puede eliminar una entrega completada'
-      });
+      // Find and delete sales created from this delivery
+      const sales = await SaleModel.find({ deliveryId: delivery._id });
+      
+      for (const sale of sales) {
+        // Restore inventory for each item in the sale (only non-presale items)
+        for (const saleItem of sale.items) {
+          const itemId = saleItem.inventoryItemId?.toString() || '';
+          if (itemId && !itemId.startsWith('presale_')) {
+            const inventoryItem = await InventoryItemModel.findById(saleItem.inventoryItemId);
+            if (inventoryItem) {
+              // Restore inventory quantity
+              await InventoryItemModel.findByIdAndUpdate(
+                saleItem.inventoryItemId,
+                { $inc: { quantity: saleItem.quantity } }
+              );
+            }
+          }
+        }
+        
+        // Delete the sale
+        await SaleModel.findByIdAndDelete(sale._id);
+      }
+
+      console.log(`Deleted ${sales.length} sales from delivery ${delivery._id}`);
     }
 
     // Release reserved inventory items

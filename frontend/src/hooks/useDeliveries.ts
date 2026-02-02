@@ -82,6 +82,8 @@ export const useDeleteDelivery = () => {
     {
       onSuccess: () => {
         queryClient.invalidateQueries('deliveries')
+        queryClient.invalidateQueries('sales')
+        queryClient.invalidateQueries('inventory')
         toast.success('Entrega eliminada exitosamente')
       },
       onError: (error: any) => {

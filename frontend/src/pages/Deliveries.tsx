@@ -194,12 +194,12 @@ export default function Deliveries() {
                 if (isEditMode && editingDelivery) {
                     // Try to find the original item by inventoryItemId first
                     let originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
-                    
+
                     // If not found, try to find by carId (for items that were not yet assigned an inventoryItemId)
                     if (!originalItem && item.carId) {
                         originalItem = editingDelivery.items.find((i: any) => i.carId === item.carId)
                     }
-                    
+
                     if (originalItem) {
                         availableQuantity += originalItem.quantity
                     }
@@ -217,12 +217,12 @@ export default function Deliveries() {
                     if (isEditMode && editingDelivery) {
                         // Try to find the original item by inventoryItemId first
                         let originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
-                        
+
                         // If not found, try to find by carId (for items that were not yet assigned an inventoryItemId)
                         if (!originalItem && item.carId) {
                             originalItem = editingDelivery.items.find((i: any) => i.carId === item.carId)
                         }
-                        
+
                         if (originalItem) {
                             availableQuantity += originalItem.quantity
                         }
@@ -1640,6 +1640,7 @@ export default function Deliveries() {
                 onShareReport={() => setShowReportModal(true)}
                 onRegisterPayment={handleOpenPaymentModal}
                 onDeletePayment={handleDeletePayment}
+                onDelete={(id) => deleteDeliveryMutation.mutateAsync(id)}
                 inventoryItems={inventoryItems}
                 preSaleItems={preSaleItems}
                 markPreparedLoading={markPreparedMutation.isLoading}
