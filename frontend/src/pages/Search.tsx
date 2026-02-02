@@ -77,6 +77,10 @@ export default function Search() {
         catalog: 20
     })
 
+    // Catalog sorting and filtering
+    const [catalogSort, setCatalogSort] = useState<'relevance' | 'year-asc' | 'year-desc'>('relevance')
+    const [catalogYearFilter, setCatalogYearFilter] = useState<{ min?: number; max?: number }>({})
+
     // Filtros de tipos de resultado
     const [filters, setFilters] = useState({
         inventory: true,
@@ -147,12 +151,36 @@ export default function Search() {
                 if (filters.inventoryStock === 'outOfStock' && result.inStock) return
             }
 
+            // Filtro de año para catálogo
+            if (result.type === 'catalog') {
+                const year = result.metadata?.year
+                if (catalogYearFilter.min && year && year < catalogYearFilter.min) return
+                if (catalogYearFilter.max && year && year > catalogYearFilter.max) return
+            }
+
             if (groups[result.type]) {
                 groups[result.type].push(result)
             }
         })
+
+        // Aplicar sorting al catálogo
+        if (groups.catalog.length > 0) {
+            groups.catalog.sort((a, b) => {
+                if (catalogSort === 'year-asc') {
+                    const yearA = a.metadata?.year || 0
+                    const yearB = b.metadata?.year || 0
+                    return yearA - yearB
+                } else if (catalogSort === 'year-desc') {
+                    const yearA = a.metadata?.year || 0
+                    const yearB = b.metadata?.year || 0
+                    return yearB - yearA
+                }
+                return 0 // relevance (orden original)
+            })
+        }
+
         return groups
-    }, [results, filters])
+    }, [results, filters, catalogSort, catalogYearFilter])
 
     const handleAddToCart = useCallback(async (itemId: string, quantity: number = 1) => {
         if (quantity <= 0) {
@@ -852,6 +880,89 @@ export default function Search() {
                                 Catálogo ({groupedResults.catalog.length})
                                 <ChevronDown className={`w-5 h-5 ml-auto transition-transform ${collapsedSections.catalog ? '-rotate-90' : ''}`} />
                             </div>
+                            
+                            {/* Catalog Filters & Sorting */}
+                            {!collapsedSections.catalog && (
+                                <div className={`mb-4 p-4 rounded-lg ${isDark ? 'bg-emerald-900/20 border border-emerald-600/30' : 'bg-emerald-50 border border-emerald-200'}`}>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {/* Sort by Year */}
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-emerald-300' : 'text-emerald-900'}`}>
+                                                📅 Ordenar por año
+                                            </label>
+                                            <select
+                                                value={catalogSort}
+                                                onChange={(e) => setCatalogSort(e.target.value as 'relevance' | 'year-asc' | 'year-desc')}
+                                                className={`w-full px-3 py-2 rounded-lg border ${isDark
+                                                    ? 'bg-slate-700 border-slate-600 text-white'
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                                } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                                            >
+                                                <option value="relevance">Relevancia</option>
+                                                <option value="year-asc">Año (menor a mayor)</option>
+                                                <option value="year-desc">Año (mayor a menor)</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Year Range - Min */}
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-emerald-300' : 'text-emerald-900'}`}>
+                                                📆 Año mínimo
+                                            </label>
+                                            <input
+                                                type="number"
+                                                placeholder="Desde..."
+                                                value={catalogYearFilter.min || ''}
+                                                onChange={(e) => setCatalogYearFilter({
+                                                    ...catalogYearFilter,
+                                                    min: e.target.value ? parseInt(e.target.value) : undefined
+                                                })}
+                                                className={`w-full px-3 py-2 rounded-lg border ${isDark
+                                                    ? 'bg-slate-700 border-slate-600 text-white'
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                                } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                                            />
+                                        </div>
+
+                                        {/* Year Range - Max */}
+                                        <div>
+                                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-emerald-300' : 'text-emerald-900'}`}>
+                                                📆 Año máximo
+                                            </label>
+                                            <input
+                                                type="number"
+                                                placeholder="Hasta..."
+                                                value={catalogYearFilter.max || ''}
+                                                onChange={(e) => setCatalogYearFilter({
+                                                    ...catalogYearFilter,
+                                                    max: e.target.value ? parseInt(e.target.value) : undefined
+                                                })}
+                                                className={`w-full px-3 py-2 rounded-lg border ${isDark
+                                                    ? 'bg-slate-700 border-slate-600 text-white'
+                                                    : 'bg-white border-gray-300 text-gray-900'
+                                                } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Reset button */}
+                                    {(catalogSort !== 'relevance' || catalogYearFilter.min || catalogYearFilter.max) && (
+                                        <button
+                                            onClick={() => {
+                                                setCatalogSort('relevance')
+                                                setCatalogYearFilter({})
+                                            }}
+                                            className={`mt-3 text-sm font-medium ${isDark
+                                                ? 'text-emerald-300 hover:text-emerald-200'
+                                                : 'text-emerald-600 hover:text-emerald-700'
+                                            } transition-colors`}
+                                        >
+                                            ✕ Limpiar filtros
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+
                             {!collapsedSections.catalog && (
                                 <div className="grid gap-3">
                                     {groupedResults.catalog.slice(0, sectionPagination.catalog).map((result) => (
@@ -891,7 +1002,14 @@ export default function Search() {
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
-                                                <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{result.subtitle}</p>
+                                                <p className={`text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                                                    {result.subtitle}
+                                                    {result.metadata?.year && (
+                                                        <span className={`ml-2 font-medium ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                            📅 {result.metadata.year}
+                                                        </span>
+                                                    )}
+                                                </p>
                                                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>{result.description}</p>
                                                 <span className={`inline-block mt-2 px-2 py-1 text-xs rounded-full ${isDark
                                                     ? 'bg-emerald-500/20 text-emerald-300'
