@@ -1643,7 +1643,7 @@ export default function Inventory() {
                                 onClick={handleToggleSelectionMode}
                                 size="sm"
                             >
-                                Cancelar
+                                Salir del Modo Selección
                             </Button>
                             {selectedItems.size > 0 && (
                                 <>
