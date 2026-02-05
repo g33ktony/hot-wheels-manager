@@ -1410,7 +1410,14 @@ export default function Inventory() {
         // Add catalog image to photos (as second photo since first is from OCR)
         const photos = [...newItem.photos]
         if (catalogItem.photo_url) {
-            photos.push(catalogItem.photo_url)
+            // Ensure the URL is valid - if it's from the catalog, it should already be proxified
+            // If not, we can use weserv.nl as fallback
+            let photoUrl = catalogItem.photo_url
+            if (!photoUrl.includes('weserv.nl') && !photoUrl.startsWith('http')) {
+                // If it's a relative path, use weserv.nl proxy
+                photoUrl = `https://images.weserv.nl/?url=${encodeURIComponent(photoUrl)}&w=300&h=300&fit=contain`
+            }
+            photos.push(photoUrl)
         }
 
         // Detect piece type from catalog

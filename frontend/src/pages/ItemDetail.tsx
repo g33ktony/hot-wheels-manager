@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { inventoryService } from '@/services/inventory'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import jsPDF from 'jspdf'
+import imageCompression from 'browser-image-compression'
 import type { InventoryItem } from '../../../shared/types'
 import {
     ArrowLeft,
@@ -18,7 +20,10 @@ import {
     Trash2,
     Image as ImageIcon,
     FileText,
-    X
+    X,
+    ChevronLeft,
+    ChevronRight,
+    Upload
 } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -30,15 +35,23 @@ export default function ItemDetail() {
     const navigate = useNavigate()
     const { mode } = useTheme()
     const isDark = mode === 'dark'
+    const { uploadImage } = useCloudinaryUpload()
     const [item, setItem] = useState<InventoryItem | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [showShareModal, setShowShareModal] = useState(false)
     const [showCropModal, setShowCropModal] = useState(false)
+    const [showGalleryModal, setShowGalleryModal] = useState(false)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+    const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
     const [sharePrice, setSharePrice] = useState<number>(0)
+    const [showQuantityInShare, setShowQuantityInShare] = useState(true)
     const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null)
     const [croppedImageData, setCroppedImageData] = useState<string | null>(null)
     const [shareMode, setShareMode] = useState<'image' | 'pdf' | null>(null)
+    const [uploadingPhotos, setUploadingPhotos] = useState(0)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 90,
@@ -69,6 +82,52 @@ export default function ItemDetail() {
         }
     }
 
+    const handleEditItem = (item: InventoryItem) => {
+        setEditingItem({
+            ...item,
+            carId: item.carId || '',
+            quantity: item.quantity || 1,
+            purchasePrice: item.purchasePrice || 0,
+            suggestedPrice: item.suggestedPrice || 0,
+            actualPrice: item.actualPrice,
+            condition: (item.condition || 'mint') as 'mint' | 'good' | 'fair' | 'poor',
+            notes: item.notes || '',
+            photos: item.photos || [],
+            location: item.location || '',
+            brand: item.brand || '',
+            pieceType: (item.pieceType || '') as 'basic' | 'premium' | 'rlc' | 'silver_series' | 'elite_64' | undefined,
+            isTreasureHunt: item.isTreasureHunt || false,
+            isSuperTreasureHunt: item.isSuperTreasureHunt || false,
+            isChase: item.isChase || false,
+            isFantasy: item.isFantasy || false,
+            isMoto: item.isMoto || false,
+            isCamioneta: item.isCamioneta || false,
+            isFastFurious: item.isFastFurious || false,
+            seriesId: item.seriesId || '',
+            seriesName: item.seriesName || '',
+            seriesSize: item.seriesSize,
+            seriesPosition: item.seriesPosition,
+            seriesPrice: item.seriesPrice,
+            seriesDefaultPrice: item.seriesDefaultPrice || 0,
+            primaryPhotoIndex: item.primaryPhotoIndex || 0
+        })
+        setShowEditModal(true)
+    }
+
+    const proxifyImageUrl = (url: string): string => {
+        if (!url) return ''
+        // Si ya está proxificada o es una URL completa con dominio confiable
+        if (url.includes('weserv.nl') || url.includes('cloudinary') || url.includes('localhost')) {
+            return url
+        }
+        // Si es una URL http/https de una fuente externa, proxificar
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=500&h=500&fit=contain`
+        }
+        // Si es una URL relativa o sin protocolo, también proxificar
+        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=500&h=500&fit=contain`
+    }
+
     const getCarName = () => {
         if (!item) return ''
         if (typeof item.carId === 'string') return item.carId
@@ -81,6 +140,113 @@ export default function ItemDetail() {
     const getFinalPrice = () => {
         if (!item) return 0
         return item.actualPrice || item.suggestedPrice || 0
+    }
+
+    const handleDeleteItem = async () => {
+        if (!item?._id) return
+        try {
+            setIsDeleting(true)
+            await inventoryService.delete(item._id)
+            toast.success('Item eliminado correctamente')
+            navigate('/inventory')
+        } catch (error) {
+            console.error('Error deleting item:', error)
+            toast.error('Error al eliminar el item')
+        } finally {
+            setIsDeleting(false)
+            setShowDeleteConfirm(false)
+        }
+    }
+
+    const handleFileUpload = async (files: FileList | null) => {
+        if (!files || !editingItem) return
+
+        const compressionOptions = {
+            maxSizeMB: 0.5,
+            maxWidthOrHeight: 1024,
+            useWebWorker: true,
+            fileType: 'image/jpeg',
+        }
+
+        // Track number of uploads in progress
+        setUploadingPhotos(prev => prev + files.length)
+
+        for (const file of Array.from(files)) {
+            if (file.type.startsWith('image/')) {
+                try {
+                    // Comprimir imagen
+                    const compressedFile = await imageCompression(file, compressionOptions)
+                    console.log(`📸 Imagen comprimida: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
+
+                    // Subir a Cloudinary
+                    const result = await uploadImage(compressedFile)
+                    if (result) {
+                        // Guardar solo la URL de Cloudinary
+                        setEditingItem((prev: any) => ({
+                            ...prev,
+                            photos: [...(prev.photos || []), result.url]
+                        }))
+                        console.log(`☁️ Uploaded to Cloudinary: ${result.url}`)
+                    } else {
+                        toast.error('Falló la carga de imagen a Cloudinary')
+                    }
+                } catch (error) {
+                    console.error('Error al subir imagen:', error)
+                    toast.error('Error al subir imagen a Cloudinary')
+                } finally {
+                    setUploadingPhotos(prev => Math.max(0, prev - 1))
+                }
+            }
+        }
+    }
+
+    const removePhoto = (index: number) => {
+        if (editingItem) {
+            setEditingItem({
+                ...editingItem,
+                photos: editingItem.photos?.filter((_: any, i: number) => i !== index) || []
+            })
+        }
+    }
+
+    const handleUpdateItem = async () => {
+        if (!editingItem?._id) return
+        try {
+            const updateData: any = {
+                carId: editingItem.carId,
+                actualPrice: editingItem.actualPrice,
+                purchasePrice: editingItem.purchasePrice,
+                suggestedPrice: editingItem.suggestedPrice,
+                quantity: editingItem.quantity,
+                condition: editingItem.condition,
+                location: editingItem.location,
+                notes: editingItem.notes,
+                photos: editingItem.photos,
+                brand: editingItem.brand,
+                pieceType: editingItem.pieceType,
+                isTreasureHunt: editingItem.isTreasureHunt,
+                isSuperTreasureHunt: editingItem.isSuperTreasureHunt,
+                isChase: editingItem.isChase,
+                isFantasy: editingItem.isFantasy,
+                isMoto: editingItem.isMoto,
+                isCamioneta: editingItem.isCamioneta,
+                isFastFurious: editingItem.isFastFurious,
+                seriesId: editingItem.seriesId,
+                seriesName: editingItem.seriesName,
+                seriesSize: editingItem.seriesSize,
+                seriesPosition: editingItem.seriesPosition,
+                seriesPrice: editingItem.seriesPrice,
+                primaryPhotoIndex: editingItem.primaryPhotoIndex
+            }
+            const updated = await inventoryService.update(editingItem._id as string, updateData)
+            setItem(updated)
+            setShowEditModal(false)
+            setEditingItem(null)
+            toast.success('Item actualizado correctamente')
+        } catch (error) {
+            console.error('Error updating item:', error)
+            toast.error('Error al actualizar el item')
+        }
     }
 
     const handleOpenShareModal = () => {
@@ -834,29 +1000,36 @@ export default function ItemDetail() {
                 <Card className="overflow-hidden">
                     {item.photos && item.photos.length > 0 ? (
                         <div>
-                            <img
-                                src={item.photos[selectedPhotoIndex]}
-                                alt={carName}
-                                crossOrigin="anonymous"
-                                className={`w-full h-64 object-contain ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}
-                            />
+                            <div className="relative group h-[500px] flex items-center justify-center">
+                                <img
+                                    src={proxifyImageUrl(item.photos[selectedPhotoIndex])}
+                                    alt={carName}
+                                    crossOrigin="anonymous"
+                                    onClick={() => setShowGalleryModal(true)}
+                                    className={`max-h-full max-w-full object-contain cursor-pointer hover:opacity-90 transition-opacity ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}
+                                />
+                            </div>
                             {item.photos.length > 1 && (
                                 <div className="flex gap-2 p-3 overflow-x-auto">
                                     {item.photos.map((photo, index) => (
                                         <button
                                             key={index}
                                             onClick={() => setSelectedPhotoIndex(index)}
-                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${selectedPhotoIndex === index
+                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative ${selectedPhotoIndex === index
                                                 ? 'border-primary-600'
                                                 : 'border-slate-700'
                                                 }`}
                                         >
                                             <img
-                                                src={photo}
+                                                src={proxifyImageUrl(photo)}
                                                 alt={`${carName} ${index + 1}`}
                                                 crossOrigin="anonymous"
                                                 className="w-full h-full object-cover"
                                             />
+                                            {/* Destaca la foto principal */}
+                                            {index === (item.primaryPhotoIndex || 0) && (
+                                                <div className="absolute top-1 right-1 text-lg">⭐</div>
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -899,7 +1072,7 @@ export default function ItemDetail() {
                 {/* Details Section */}
                 <Card>
                     <div className="p-5 space-y-4">
-                        <h2 className="text-lg font-bold flex items-center gap-2">
+                        <h2 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             <Info className="w-5 h-5" />
                             Detalles
                         </h2>
@@ -907,40 +1080,40 @@ export default function ItemDetail() {
                         <div className="space-y-3">
                             {item.brand && (
                                 <div className="flex items-center gap-3">
-                                    <Tag className="w-5 h-5 text-gray-400" />
+                                    <Tag className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
                                     <div className="flex-1">
-                                        <p className="text-sm text-gray-500">Marca</p>
-                                        <p className="font-medium">{item.brand}</p>
+                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Marca</p>
+                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.brand}</p>
                                     </div>
                                 </div>
                             )}
 
                             {item.quantity !== undefined && (
                                 <div className="flex items-center gap-3">
-                                    <Package className="w-5 h-5 text-gray-400" />
+                                    <Package className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
                                     <div className="flex-1">
-                                        <p className="text-sm text-gray-500">Cantidad Disponible</p>
-                                        <p className="font-medium">{item.quantity} unidades</p>
+                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Cantidad Disponible</p>
+                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.quantity} unidades</p>
                                     </div>
                                 </div>
                             )}
 
                             {item.condition && (
                                 <div className="flex items-center gap-3">
-                                    <Info className="w-5 h-5 text-gray-400" />
+                                    <Info className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
                                     <div className="flex-1">
-                                        <p className="text-sm text-gray-500">Condición</p>
-                                        <p className="font-medium capitalize">{item.condition}</p>
+                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Condición</p>
+                                        <p className={`font-medium capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.condition}</p>
                                     </div>
                                 </div>
                             )}
 
                             {item.location && (
                                 <div className="flex items-center gap-3">
-                                    <MapPin className="w-5 h-5 text-gray-400" />
+                                    <MapPin className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
                                     <div className="flex-1">
-                                        <p className="text-sm text-gray-500">Ubicación</p>
-                                        <p className="font-medium">{item.location}</p>
+                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Ubicación</p>
+                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.location}</p>
                                     </div>
                                 </div>
                             )}
@@ -949,7 +1122,7 @@ export default function ItemDetail() {
                                 <div className="flex items-center gap-3">
                                     <Tag className="w-5 h-5 text-yellow-500" />
                                     <div className="flex-1">
-                                        <p className="text-sm text-gray-500">Tipo Especial</p>
+                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Tipo Especial</p>
                                         <div className="flex gap-2 mt-1">
                                             {item.isSuperTreasureHunt && (
                                                 <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
@@ -973,8 +1146,8 @@ export default function ItemDetail() {
 
                             {item.notes && (
                                 <div className="pt-3 border-t">
-                                    <p className="text-sm text-gray-500 mb-1">Notas</p>
-                                    <p className="text-gray-700">{item.notes}</p>
+                                    <p className={`text-sm mb-1 ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Notas</p>
+                                    <p className={isDark ? 'text-slate-200' : 'text-gray-700'}>{item.notes}</p>
                                 </div>
                             )}
                         </div>
@@ -986,7 +1159,7 @@ export default function ItemDetail() {
                     <div className="p-4 space-y-2">
                         <Button
                             className="w-full justify-center gap-2"
-                            onClick={() => navigate(`/inventory?edit=${item._id}`)}
+                            onClick={() => item && handleEditItem(item)}
                         >
                             <Edit className="w-4 h-4" />
                             Editar Item
@@ -994,9 +1167,11 @@ export default function ItemDetail() {
                         <Button
                             variant="secondary"
                             className="w-full justify-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                            onClick={() => setShowDeleteConfirm(true)}
+                            disabled={isDeleting}
                         >
                             <Trash2 className="w-4 h-4" />
-                            Eliminar Item
+                            {isDeleting ? 'Eliminando...' : 'Eliminar Item'}
                         </Button>
                     </div>
                 </Card>
@@ -1034,30 +1209,46 @@ export default function ItemDetail() {
                                 <p className="text-2xl font-bold">${sharePrice.toFixed(2)}</p>
                             </div>
                             <div className="mt-2 bg-slate-700/30 rounded-lg p-2 text-xs space-y-1">
-                                <p className="font-semibold text-blue-900 text-center">📋 ESPECIFICACIONES</p>
-                                {item?.brand && <p className="text-slate-400">🏷️ <span className="font-medium">{item.brand}</span></p>}
-                                {item?.condition && <p className="text-slate-400">✨ <span className="font-medium">{item.condition}</span></p>}
+                                <p className={`font-semibold text-center ${isDark ? 'text-blue-300' : 'text-blue-900'}`}>📋 ESPECIFICACIONES</p>
+                                {item?.brand && <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>🏷️ <span className="font-medium">{item.brand}</span></p>}
+                                {item?.condition && <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>✨ <span className="font-medium">{item.condition}</span></p>}
+                                {showQuantityInShare && item?.quantity !== undefined && <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>📦 <span className="font-medium">{item.quantity} disponibles</span></p>}
                             </div>
                         </div>
-                        <p className="text-xs text-slate-400 mt-2 text-center">
+                        <p className={`text-xs mt-2 text-center ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                             ✨ Diseño profesional con gradientes y efectos modernos
                         </p>
                     </div>
 
                     <div className="bg-slate-700/30 p-4 rounded-lg">
                         <p className="font-semibold text-lg mb-3">{carName}</p>
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">Precio para compartir:</label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={sharePrice}
-                                    onChange={(e) => setSharePrice(parseFloat(e.target.value) || 0)}
-                                    className="w-full pl-8 pr-4 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent text-xl font-bold text-primary-600"
-                                />
+                        <div className="space-y-3">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Precio para compartir:</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={sharePrice}
+                                        onChange={(e) => setSharePrice(parseFloat(e.target.value) || 0)}
+                                        className="w-full pl-8 pr-4 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent text-xl font-bold text-primary-600"
+                                    />
+                                </div>
                             </div>
+                            {item?.quantity !== undefined && (
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={showQuantityInShare}
+                                        onChange={(e) => setShowQuantityInShare(e.target.checked)}
+                                        className="w-4 h-4 accent-primary-600 rounded"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">
+                                        Mostrar disponibilidad ({item.quantity} unidades)
+                                    </span>
+                                </label>
+                            )}
                         </div>
                     </div>
 
@@ -1168,6 +1359,651 @@ export default function ItemDetail() {
                     )}
                 </div>
             </Modal>
+
+            {/* Edit Item Modal */}
+            <Modal
+                isOpen={showEditModal && editingItem !== null}
+                onClose={() => {
+                    setShowEditModal(false)
+                    setEditingItem(null)
+                }}
+                title="Editar Pieza"
+                maxWidth="md"
+                footer={
+                    <div className="flex space-x-3">
+                        <Button
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => {
+                                setShowEditModal(false)
+                                setEditingItem(null)
+                            }}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            className="flex-1"
+                            onClick={handleUpdateItem}
+                            disabled={!editingItem?.carId}
+                        >
+                            Actualizar Pieza
+                        </Button>
+                    </div>
+                }
+            >
+                {editingItem && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Código/ID del Hot Wheels
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="ej: FHY65"
+                                value={editingItem.carId}
+                                onChange={(e) => setEditingItem({ ...editingItem, carId: e.target.value })}
+                            />
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Cantidad
+                            </label>
+                            <input
+                                type="number"
+                                inputMode="numeric"
+                                min="1"
+                                className="input w-full"
+                                value={editingItem.quantity || ''}
+                                onChange={(e) => {
+                                    const value = e.target.value
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, quantity: '' as any })
+                                    } else {
+                                        const numValue = parseInt(value)
+                                        setEditingItem({ ...editingItem, quantity: isNaN(numValue) ? 1 : Math.max(1, numValue) })
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                                        setEditingItem({ ...editingItem, quantity: 1 })
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Precio de Compra
+                            </label>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={!editingItem.purchasePrice ? '' : editingItem.purchasePrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, purchasePrice: 0 })
+                                    } else {
+                                        const numValue = parseFloat(value)
+                                        setEditingItem({ ...editingItem, purchasePrice: isNaN(numValue) ? 0 : numValue })
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, purchasePrice: 0 })
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Precio Sugerido
+                            </label>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={!editingItem.suggestedPrice ? '' : editingItem.suggestedPrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, suggestedPrice: 0 })
+                                    } else {
+                                        const numValue = parseFloat(value)
+                                        setEditingItem({ ...editingItem, suggestedPrice: isNaN(numValue) ? 0 : numValue })
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    if (value === '') {
+                                        setEditingItem({ ...editingItem, suggestedPrice: 0 })
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Precio Actual (Opcional)
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="0.00"
+                                value={editingItem.actualPrice === 0 || editingItem.actualPrice === undefined ? '' : editingItem.actualPrice}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/[^0-9.]/g, '')
+                                    const numValue = value === '' ? undefined : parseFloat(value)
+                                    setEditingItem({ ...editingItem, actualPrice: numValue === undefined || isNaN(numValue) ? undefined : numValue })
+                                }}
+                            />
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Condición
+                            </label>
+                            <select
+                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                                value={editingItem.condition}
+                                onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
+                            >
+                                <option value="mint">Mint</option>
+                                <option value="good">Bueno</option>
+                                <option value="fair">Regular</option>
+                                <option value="poor">Malo</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Ubicación Física (Opcional)
+                            </label>
+                            <input
+                                type="text"
+                                className="input w-full"
+                                placeholder="ej: Caja A, Estante 3"
+                                value={editingItem.location || ''}
+                                onChange={(e) => setEditingItem({ ...editingItem, location: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Brand Selection - Edit Mode */}
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Marca
+                            </label>
+                            <select
+                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                                value={editingItem.brand || ''}
+                                onChange={(e) => setEditingItem({ ...editingItem, brand: e.target.value })}
+                            >
+                                <option value="">Sin marca</option>
+                                <option value="Hot Wheels">Hot Wheels</option>
+                                <option value="Matchbox">Matchbox</option>
+                                <option value="Mini GT">Mini GT</option>
+                                <option value="Kaido House">Kaido House</option>
+                                <option value="M2 Machines">M2 Machines</option>
+                            </select>
+                        </div>
+
+                        {/* Piece Type - Edit Mode */}
+                        {editingItem.brand && (
+                            <div>
+                                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    Tipo de Pieza
+                                </label>
+                                <select
+                                    className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                                    value={editingItem.pieceType || ''}
+                                    onChange={(e) => setEditingItem({ ...editingItem, pieceType: (e.target.value || undefined) as 'basic' | 'premium' | 'rlc' | 'silver_series' | 'elite_64' | undefined })}
+                                >
+                                    <option value="">Sin tipo</option>
+                                    <option value="basic">Básico</option>
+                                    <option value="premium">Premium</option>
+                                    <option value="rlc">RLC</option>
+                                    <option value="silver_series">Silver Series</option>
+                                    <option value="elite_64">Elite 64</option>
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Treasure Hunt - Edit Mode */}
+                        {editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'basic' && (
+                            <div className="space-y-2">
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isTreasureHunt || false}
+                                        disabled={editingItem.isSuperTreasureHunt}
+                                        onChange={(e) => setEditingItem({
+                                            ...editingItem,
+                                            isTreasureHunt: e.target.checked,
+                                            isSuperTreasureHunt: false
+                                        })}
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <span className={`text-sm font-medium ${editingItem.isSuperTreasureHunt ? (isDark ? 'text-slate-500' : 'text-gray-400') : ''}`}>
+                                        🔍 Treasure Hunt (TH)
+                                    </span>
+                                </label>
+
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isSuperTreasureHunt || false}
+                                        disabled={editingItem.isTreasureHunt}
+                                        onChange={(e) => setEditingItem({
+                                            ...editingItem,
+                                            isSuperTreasureHunt: e.target.checked,
+                                            isTreasureHunt: false
+                                        })}
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <span className={`text-sm font-medium ${editingItem.isTreasureHunt ? (isDark ? 'text-slate-500' : 'text-gray-400') : ''}`}>
+                                        ⭐ Super Treasure Hunt (STH)
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
+                        {/* Fantasy Casting - Edit Mode (only for Hot Wheels) */}
+                        {editingItem.brand?.toLowerCase() === 'hot wheels' && (
+                            <div>
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isFantasy || false}
+                                        onChange={(e) => setEditingItem({ ...editingItem, isFantasy: e.target.checked })}
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
+                                    />
+                                    <span className="text-sm font-medium">
+                                        🎨 Fantasía (diseño original)
+                                    </span>
+                                </label>
+                            </div>
+                        )}
+
+                        {/* Chase - Edit Mode (for Mini GT, Kaido House, M2, or Hot Wheels Premium) */}
+                        {(editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase())) ||
+                            (editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'premium') ? (
+                            <div>
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isChase || false}
+                                        onChange={(e) => setEditingItem({ ...editingItem, isChase: e.target.checked })}
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
+                                    />
+                                    <span className="text-sm font-medium">
+                                        🌟 Chase
+                                    </span>
+                                </label>
+                            </div>
+                        ) : null}
+
+                        {/* Moto - Edit Mode */}
+                        <div>
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={editingItem.isMoto || false}
+                                    onChange={(e) => setEditingItem({ ...editingItem, isMoto: e.target.checked })}
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
+                                />
+                                <span className="text-sm font-medium">
+                                    🏍️ Moto
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Camioneta - Edit Mode */}
+                        <div>
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={editingItem.isCamioneta || false}
+                                    onChange={(e) => setEditingItem({ ...editingItem, isCamioneta: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    🚚 Camioneta
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Fast and Furious - Edit Mode */}
+                        <div>
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={editingItem.isFastFurious || false}
+                                    onChange={(e) => setEditingItem({ ...editingItem, isFastFurious: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    🏎️ Fast and Furious
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Series Information Section */}
+                        <div className="pt-4 border-t border-slate-700">
+                            <h3 className="text-sm font-semibold text-white mb-3">Información de Serie (Opcional)</h3>
+
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                            ID de Serie
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="input w-full text-sm"
+                                            placeholder="ej: MARVEL-2024-001"
+                                            value={editingItem.seriesId || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, seriesId: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                            Nombre de Serie
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="input w-full text-sm"
+                                            placeholder="ej: Marvel Series 2024"
+                                            value={editingItem.seriesName || ''}
+                                            onChange={(e) => setEditingItem({ ...editingItem, seriesName: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                            Tamaño Serie
+                                        </label>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            min="1"
+                                            className="input w-full text-sm"
+                                            placeholder="5"
+                                            value={editingItem.seriesSize || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value
+                                                if (value === '') {
+                                                    setEditingItem({ ...editingItem, seriesSize: undefined })
+                                                } else {
+                                                    const numValue = parseInt(value)
+                                                    setEditingItem({ ...editingItem, seriesSize: isNaN(numValue) ? undefined : numValue })
+                                                }
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                            Posición
+                                        </label>
+                                        <input
+                                            type="number"
+                                            inputMode="numeric"
+                                            min="1"
+                                            className="input w-full text-sm"
+                                            placeholder="1"
+                                            value={editingItem.seriesPosition || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value
+                                                if (value === '') {
+                                                    setEditingItem({ ...editingItem, seriesPosition: undefined })
+                                                } else {
+                                                    const numValue = parseInt(value)
+                                                    setEditingItem({ ...editingItem, seriesPosition: isNaN(numValue) ? undefined : numValue })
+                                                }
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                            Precio Serie
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="decimal"
+                                            className="input w-full text-sm"
+                                            placeholder="0.00"
+                                            value={editingItem.seriesPrice || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/[^0-9.]/g, '')
+                                                if (value === '') {
+                                                    setEditingItem({ ...editingItem, seriesPrice: undefined })
+                                                } else {
+                                                    const numValue = parseFloat(value)
+                                                    setEditingItem({ ...editingItem, seriesPrice: isNaN(numValue) ? undefined : numValue })
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {editingItem.seriesId && (
+                                    <div className="text-xs text-gray-500 bg-slate-700/30 p-2 rounded">
+                                        💡 Los items con el mismo ID de serie se pueden vender como set completo
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Notas (Opcional)
+                            </label>
+                            <textarea
+                                className="input w-full h-20 resize-none"
+                                placeholder="Notas adicionales..."
+                                value={editingItem.notes}
+                                onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
+                            />
+                        </div>
+
+                        {/* Photos Section */}
+                        <div>
+                            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                Fotos
+                            </label>
+
+                            {/* Photo Upload */}
+                            <div className="mb-3">
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                                    multiple
+                                    capture="environment"
+                                    onChange={(e) => handleFileUpload(e.target.files)}
+                                    className="hidden"
+                                    id="photo-upload-edit"
+                                    disabled={uploadingPhotos > 0}
+                                />
+                                <label
+                                    htmlFor="photo-upload-edit"
+                                    className={`flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingPhotos > 0
+                                            ? 'opacity-50 cursor-not-allowed border-slate-400'
+                                            : 'border-slate-600 hover:border-gray-400'
+                                        }`}
+                                >
+                                    <Upload size={20} className="text-gray-400" />
+                                    <span className="text-sm text-slate-400">
+                                        {uploadingPhotos > 0 ? `Subiendo ${uploadingPhotos}...` : 'Subir fotos (múltiples archivos)'}
+                                    </span>
+                                </label>
+                            </div>
+
+                            {/* Photo Preview */}
+                            {editingItem.photos && editingItem.photos.length > 0 && (
+                                <div className="space-y-3">
+                                    {/* Foto Principal (Destacada) */}
+                                    <div className="border-2 border-blue-400 rounded-lg p-2 bg-blue-50">
+                                        <p className="text-xs text-blue-700 font-semibold mb-2">⭐ FOTO DESTACADA</p>
+                                        <img
+                                            src={proxifyImageUrl(editingItem.photos[editingItem.primaryPhotoIndex || 0])}
+                                            alt="Foto destacada"
+                                            loading="lazy"
+                                            crossOrigin="anonymous"
+                                            className="w-full h-32 object-contain rounded"
+                                        />
+                                    </div>
+
+                                    {/* Miniaturas para seleccionar */}
+                                    {editingItem.photos.length > 1 && (
+                                        <div>
+                                            <p className="text-xs text-gray-600 font-semibold mb-2">Click para cambiar foto destacada:</p>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {editingItem.photos.map((photo: string, index: number) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative group cursor-pointer"
+                                                        onClick={() => setEditingItem({ ...editingItem, primaryPhotoIndex: index })}
+                                                    >
+                                                        <img
+                                                            src={proxifyImageUrl(photo)}
+                                                            alt={`Foto ${index + 1}`}
+                                                            loading="lazy"
+                                                            crossOrigin="anonymous"
+                                                            className={`w-full h-20 object-cover rounded border-2 transition-all ${(editingItem.primaryPhotoIndex || 0) === index
+                                                                ? 'border-blue-500 ring-2 ring-blue-300'
+                                                                : 'border-gray-300 hover:border-blue-400'
+                                                                }`}
+                                                        />
+                                                        {(editingItem.primaryPhotoIndex || 0) === index && (
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded">
+                                                                <span className="text-white text-xl">⭐</span>
+                                                            </div>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                removePhoto(index)
+                                                            }}
+                                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                title="Eliminar Item"
+            >
+                <div className="space-y-4">
+                    <div className={`p-4 rounded-lg ${isDark ? 'bg-red-500/20 border border-red-500/50' : 'bg-red-50 border border-red-200'}`}>
+                        <p className={isDark ? 'text-red-200' : 'text-red-900'}>
+                            ¿Estás seguro de que quieres eliminar este item? Esta acción no se puede deshacer.
+                        </p>
+                    </div>
+                    <div className="flex gap-3">
+                        <Button
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={() => setShowDeleteConfirm(false)}
+                            disabled={isDeleting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            className="flex-1 bg-red-600 hover:bg-red-700"
+                            onClick={handleDeleteItem}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Lightbox Modal - Simple Image Viewer */}
+            {showGalleryModal && item?.photos && item.photos.length > 0 && (
+                <div
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowGalleryModal(false)}
+                >
+                    {/* Image Container */}
+                    <div
+                        className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Main Image */}
+                        <img
+                            src={proxifyImageUrl(item.photos[selectedPhotoIndex])}
+                            alt={`${carName} - Foto ${selectedPhotoIndex + 1}`}
+                            crossOrigin="anonymous"
+                            className="w-full h-full object-contain"
+                        />
+
+                        {/* Left Arrow */}
+                        {item.photos.length > 1 && (
+                            <button
+                                onClick={() => setSelectedPhotoIndex(prev => prev === 0 ? item.photos!.length - 1 : prev - 1)}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-lg transition-colors"
+                                aria-label="Foto anterior"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                        )}
+
+                        {/* Right Arrow */}
+                        {item.photos.length > 1 && (
+                            <button
+                                onClick={() => setSelectedPhotoIndex(prev => prev === item.photos!.length - 1 ? 0 : prev + 1)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-lg transition-colors"
+                                aria-label="Siguiente foto"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        )}
+
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setShowGalleryModal(false)}
+                            className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-2 rounded-lg transition-colors"
+                            aria-label="Cerrar"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+
+                        {/* Photo Counter */}
+                        {item.photos.length > 1 && (
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                {selectedPhotoIndex + 1} / {item.photos.length}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
         </div>
     )
 }

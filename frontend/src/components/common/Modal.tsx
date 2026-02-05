@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { X } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface ModalProps {
     isOpen: boolean
@@ -22,6 +23,9 @@ export default function Modal({
     maxWidth = '2xl',
     showCloseButton = true
 }: ModalProps) {
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
+
     if (!isOpen) return null
 
     const maxWidthClasses = {
@@ -36,16 +40,16 @@ export default function Modal({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className={`bg-white rounded-lg w-full ${maxWidthClasses[maxWidth]} flex flex-col max-h-[90vh]`}>
+            <div className={`rounded-lg w-full ${maxWidthClasses[maxWidth]} flex flex-col max-h-[90vh] ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                 {/* Fixed Header */}
-                <div className="flex items-center justify-between p-4 lg:p-6 border-b bg-white rounded-t-lg flex-shrink-0">
-                    <h2 className="text-lg lg:text-xl font-semibold text-gray-900">{title}</h2>
+                <div className={`flex items-center justify-between p-4 lg:p-6 border-b rounded-t-lg flex-shrink-0 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+                    <h2 className={`text-lg lg:text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h2>
                     <div className="flex items-center gap-2">
                         {headerActions}
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded transition-colors"
+                                className={`p-1 rounded transition-colors ${isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
                                 aria-label="Cerrar"
                             >
                                 <X size={24} />
@@ -55,13 +59,13 @@ export default function Modal({
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="overflow-y-auto flex-1 p-4 lg:p-6">
+                <div className={`overflow-y-auto flex-1 p-4 lg:p-6 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                     {children}
                 </div>
 
                 {/* Fixed Footer */}
                 {footer && (
-                    <div className="border-t bg-gray-50 p-4 lg:p-6 rounded-b-lg flex-shrink-0">
+                    <div className={`border-t p-4 lg:p-6 rounded-b-lg flex-shrink-0 ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'}`}>
                         {footer}
                     </div>
                 )}
