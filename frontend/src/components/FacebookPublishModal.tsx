@@ -176,9 +176,9 @@ export default function FacebookPublishModal({
                                             className="p-3 flex items-center gap-3 hover:bg-gray-50"
                                         >
                                             {/* Image thumbnail */}
-                                            {item.photos && item.photos[0] && (
+                                            {item.photos && item.photos[item.primaryPhotoIndex || 0] && (
                                                 <img
-                                                    src={item.photos[0]}
+                                                    src={item.photos[item.primaryPhotoIndex || 0]}
                                                     alt={item.carId}
                                                     className="w-16 h-16 object-cover rounded border border-gray-200"
                                                 />

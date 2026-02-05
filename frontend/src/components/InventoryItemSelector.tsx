@@ -40,10 +40,10 @@ export default function InventoryItemSelector({
     const availableItems = (inventoryData?.items || []).filter((item: InventoryItem) => {
         const quantity = item.quantity || 0
         const reservedQuantity = item.reservedQuantity || 0
-        
+
         // Hide only if both quantity and reservedQuantity are 0
         const hasStockOrReservations = !(quantity === 0 && reservedQuantity === 0)
-        
+
         // Exclude already selected items in other rows
         return hasStockOrReservations && item._id && !excludeIds.includes(item._id)
     })
@@ -207,7 +207,7 @@ export default function InventoryItemSelector({
                                 <div className="flex items-center gap-3">
                                     {item.photos && item.photos.length > 0 && (
                                         <img
-                                            src={item.photos[0]}
+                                            src={item.photos[item.primaryPhotoIndex || 0]}
                                             alt={carName}
                                             className="w-16 h-16 object-cover rounded flex-shrink-0"
                                             style={{

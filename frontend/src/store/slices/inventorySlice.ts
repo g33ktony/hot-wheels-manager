@@ -10,6 +10,7 @@ export interface InventoryItem {
   condition?: string;
   notes?: string;
   photos?: string[];
+  primaryPhotoIndex?: number;
   location?: string;
   brand?: string;
   pieceType?: string;

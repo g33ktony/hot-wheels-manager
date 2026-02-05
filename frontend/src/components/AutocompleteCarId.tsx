@@ -130,7 +130,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                                 </div>
                                 {item.photos && item.photos.length > 0 && (
                                     <img
-                                        src={item.photos[0]}
+                                        src={item.photos[item.primaryPhotoIndex || 0]}
                                         alt={item.carId}
                                         className="w-14 h-14 object-cover rounded flex-shrink-0"
                                         style={{

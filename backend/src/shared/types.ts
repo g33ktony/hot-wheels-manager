@@ -37,6 +37,7 @@ export interface InventoryItem {
   actualPrice?: number;
   condition: 'mint' | 'good' | 'fair' | 'poor';
   photos: string[];
+  primaryPhotoIndex?: number; // Índice de la foto destacada (default: 0)
   location?: string;
   notes?: string;
   dateAdded: Date;

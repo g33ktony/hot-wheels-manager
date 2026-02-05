@@ -21,6 +21,7 @@ const inventoryItemSchema = new Schema({
     default: 'mint'
   },
   photos: [{ type: String }],
+  primaryPhotoIndex: { type: Number, default: 0, min: 0 }, // Índice de la foto destacada
   location: { type: String },
   notes: { type: String },
   dateAdded: { type: Date, default: Date.now },

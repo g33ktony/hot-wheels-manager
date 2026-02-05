@@ -334,7 +334,7 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
                   <div className="flex items-center gap-3">
                     {item.inventoryItem.photos && item.inventoryItem.photos.length > 0 && (
                       <img
-                        src={item.inventoryItem.photos[0]}
+                        src={item.inventoryItem.photos[item.inventoryItem.primaryPhotoIndex || 0]}
                         alt="Item"
                         className="w-12 h-12 object-cover rounded border"
                       />

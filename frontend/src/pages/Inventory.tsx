@@ -408,6 +408,7 @@ export default function Inventory() {
         condition: 'mint' as 'mint' | 'good' | 'fair' | 'poor',
         notes: '',
         photos: [] as string[],
+        primaryPhotoIndex: 0, // Índice de la foto destacada
         location: '', // Ubicación física (caja)
         // Brand and type fields
         brand: 'Hot Wheels' as string,
@@ -478,7 +479,7 @@ export default function Inventory() {
     const deleteItemMutation = useDeleteInventoryItem()
     const updateItemMutation = useUpdateInventoryItem()
     const createCustomBrandMutation = useCreateCustomBrand()
-    
+
     // Delivery creation hooks
     const createDeliveryMutation = useCreateDelivery()
     const { data: customers } = useCustomers()
@@ -1002,6 +1003,7 @@ export default function Inventory() {
             condition: 'mint',
             notes: '',
             photos: [],
+            primaryPhotoIndex: 0,
             location: '',
             brand: 'Hot Wheels',
             pieceType: 'basic',
@@ -1377,6 +1379,7 @@ export default function Inventory() {
             condition: item.condition,
             notes: item.notes || '',
             photos: item.photos || [],
+            primaryPhotoIndex: item.primaryPhotoIndex || 0,
             location: item.location || '',
             brand: item.brand || '',
             pieceType: item.pieceType || '',
@@ -2129,19 +2132,19 @@ export default function Inventory() {
                                             {/* Car Image Placeholder */}
                                             <div
                                                 className="bg-slate-700 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
-                                                onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
+                                                onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos, item.primaryPhotoIndex || 0)}
                                             >
                                                 {item.photos && item.photos.length > 0 ? (
                                                     <>
                                                         <LazyImage
-                                                            src={item.photos[0].includes('weserv') ? item.photos[0] : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[0])}&w=300&h=200&fit=contain`}
+                                                            src={item.photos[item.primaryPhotoIndex || 0].includes('weserv') ? item.photos[item.primaryPhotoIndex || 0] : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[item.primaryPhotoIndex || 0])}&w=300&h=200&fit=contain`}
                                                             alt="Hot Wheels"
                                                             className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
                                                                 }`}
                                                             onError={(e) => {
                                                                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image'
                                                             }}
-                                                            onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos)}
+                                                            onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos, item.primaryPhotoIndex || 0)}
                                                         />
                                                         {/* Zoom indicator */}
                                                         {!isSelectionMode && (
@@ -2166,16 +2169,16 @@ export default function Inventory() {
                                                     {/* Piece Type Badge */}
                                                     {item.pieceType && (
                                                         <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${item.pieceType === 'basic'
-                                                                ? isDark ? 'bg-blue-500/30 text-white' : 'bg-blue-400/30 text-white'
-                                                                : item.pieceType === 'premium'
-                                                                    ? isDark ? 'bg-purple-500/30 text-white' : 'bg-purple-400/30 text-white'
-                                                                    : item.pieceType === 'rlc'
-                                                                        ? isDark ? 'bg-orange-500/30 text-white' : 'bg-orange-400/30 text-white'
-                                                                        : item.pieceType === 'silver_series'
-                                                                            ? isDark ? 'bg-slate-400/30 text-white' : 'bg-slate-300/30 text-white'
-                                                                            : item.pieceType === 'elite_64'
-                                                                                ? isDark ? 'bg-red-500/30 text-white' : 'bg-red-400/30 text-white'
-                                                                                : isDark ? 'bg-slate-500/30 text-white' : 'bg-slate-400/30 text-white'
+                                                            ? isDark ? 'bg-blue-500/30 text-white' : 'bg-blue-400/30 text-white'
+                                                            : item.pieceType === 'premium'
+                                                                ? isDark ? 'bg-purple-500/30 text-white' : 'bg-purple-400/30 text-white'
+                                                                : item.pieceType === 'rlc'
+                                                                    ? isDark ? 'bg-orange-500/30 text-white' : 'bg-orange-400/30 text-white'
+                                                                    : item.pieceType === 'silver_series'
+                                                                        ? isDark ? 'bg-slate-400/30 text-white' : 'bg-slate-300/30 text-white'
+                                                                        : item.pieceType === 'elite_64'
+                                                                            ? isDark ? 'bg-red-500/30 text-white' : 'bg-red-400/30 text-white'
+                                                                            : isDark ? 'bg-slate-500/30 text-white' : 'bg-slate-400/30 text-white'
                                                             }`}>
                                                             {formatPieceType(item.pieceType).toUpperCase()}
                                                         </span>
@@ -2184,8 +2187,8 @@ export default function Inventory() {
                                                     {/* Treasure Hunt Badge */}
                                                     {item.isSuperTreasureHunt && (
                                                         <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark
-                                                                ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white'
-                                                                : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'
+                                                            ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white'
+                                                            : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'
                                                             }`}>
                                                             $TH
                                                         </span>
@@ -2200,8 +2203,8 @@ export default function Inventory() {
                                                     {/* Chase Badge */}
                                                     {item.isChase && (
                                                         <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark
-                                                                ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white'
-                                                                : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'
+                                                            ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white'
+                                                            : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'
                                                             }`}>
                                                             CHASE
                                                         </span>
@@ -3282,24 +3285,58 @@ export default function Inventory() {
 
                             {/* Photo Preview */}
                             {newItem.photos.length > 0 && (
-                                <div className="grid grid-cols-2 gap-2">
-                                    {newItem.photos.map((photo, index) => (
-                                        <div key={index} className="relative group">
-                                            <img
-                                                src={photo}
-                                                alt={`Foto ${index + 1}`}
-                                                loading="lazy"
-                                                className="w-full h-20 object-cover rounded border"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => removePhoto(index, false)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X size={12} />
-                                            </button>
+                                <div className="space-y-3">
+                                    {/* Foto Principal (Destacada) */}
+                                    <div className="border-2 border-blue-400 rounded-lg p-2 bg-blue-50">
+                                        <p className="text-xs text-blue-700 font-semibold mb-2">⭐ FOTO DESTACADA</p>
+                                        <img
+                                            src={newItem.photos[newItem.primaryPhotoIndex || 0]}
+                                            alt="Foto destacada"
+                                            loading="lazy"
+                                            className="w-full h-32 object-cover rounded"
+                                        />
+                                    </div>
+
+                                    {/* Miniaturas para seleccionar */}
+                                    {newItem.photos.length > 1 && (
+                                        <div>
+                                            <p className="text-xs text-gray-600 font-semibold mb-2">Click para cambiar foto destacada:</p>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {newItem.photos.map((photo, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative group cursor-pointer"
+                                                        onClick={() => setNewItem({ ...newItem, primaryPhotoIndex: index })}
+                                                    >
+                                                        <img
+                                                            src={photo}
+                                                            alt={`Foto ${index + 1}`}
+                                                            loading="lazy"
+                                                            className={`w-full h-20 object-cover rounded border-2 transition-all ${(newItem.primaryPhotoIndex || 0) === index
+                                                                    ? 'border-blue-500 ring-2 ring-blue-300'
+                                                                    : 'border-gray-300 hover:border-blue-400'
+                                                                }`}
+                                                        />
+                                                        {(newItem.primaryPhotoIndex || 0) === index && (
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded">
+                                                                <span className="text-white text-xl">⭐</span>
+                                                            </div>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                removePhoto(index, false)
+                                                            }}
+                                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -3908,24 +3945,58 @@ export default function Inventory() {
 
                             {/* Photo Preview */}
                             {editingItem.photos && editingItem.photos.length > 0 && (
-                                <div className="grid grid-cols-2 gap-2">
-                                    {editingItem.photos.map((photo: string, index: number) => (
-                                        <div key={index} className="relative group">
-                                            <img
-                                                src={photo}
-                                                alt={`Foto ${index + 1}`}
-                                                loading="lazy"
-                                                className="w-full h-20 object-cover rounded border"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => removePhoto(index, true)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X size={12} />
-                                            </button>
+                                <div className="space-y-3">
+                                    {/* Foto Principal (Destacada) */}
+                                    <div className="border-2 border-blue-400 rounded-lg p-2 bg-blue-50">
+                                        <p className="text-xs text-blue-700 font-semibold mb-2">⭐ FOTO DESTACADA</p>
+                                        <img
+                                            src={editingItem.photos[editingItem.primaryPhotoIndex || 0]}
+                                            alt="Foto destacada"
+                                            loading="lazy"
+                                            className="w-full h-32 object-cover rounded"
+                                        />
+                                    </div>
+
+                                    {/* Miniaturas para seleccionar */}
+                                    {editingItem.photos.length > 1 && (
+                                        <div>
+                                            <p className="text-xs text-gray-600 font-semibold mb-2">Click para cambiar foto destacada:</p>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {editingItem.photos.map((photo: string, index: number) => (
+                                                    <div
+                                                        key={index}
+                                                        className="relative group cursor-pointer"
+                                                        onClick={() => setEditingItem({ ...editingItem, primaryPhotoIndex: index })}
+                                                    >
+                                                        <img
+                                                            src={photo}
+                                                            alt={`Foto ${index + 1}`}
+                                                            loading="lazy"
+                                                            className={`w-full h-20 object-cover rounded border-2 transition-all ${(editingItem.primaryPhotoIndex || 0) === index
+                                                                    ? 'border-blue-500 ring-2 ring-blue-300'
+                                                                    : 'border-gray-300 hover:border-blue-400'
+                                                                }`}
+                                                        />
+                                                        {(editingItem.primaryPhotoIndex || 0) === index && (
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded">
+                                                                <span className="text-white text-xl">⭐</span>
+                                                            </div>
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                removePhoto(index, true)
+                                                            }}
+                                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             )}
                         </div>

@@ -87,10 +87,10 @@ export default function Search() {
         preventas: false,
         inventoryStock: 'all' // 'all', 'inStock', 'outOfStock'
     })
-    
+
     // Filter por año en catálogo
     const [catalogYearFilter, setCatalogYearFilter] = useState<number | null>(null)
-    
+
     // Sincronizar query con Header Search
     useEffect(() => {
         // Escuchar cambios en localStorage de la búsqueda del header
@@ -99,18 +99,18 @@ export default function Search() {
                 setQuery(e.newValue)
             }
         }
-        
+
         window.addEventListener('storage', handleStorageChange)
         return () => window.removeEventListener('storage', handleStorageChange)
     }, [])
-    
+
     // Guardar query actual en localStorage para que el header pueda sincronizar
     useEffect(() => {
         if (query && query.length > 0) {
             localStorage.setItem('globalSearchQuery', query)
         }
     }, [query])
-    
+
     const { data: results = [], isLoading } = useQuery(
         ['global-search', query],
         async () => {
@@ -562,7 +562,7 @@ export default function Search() {
                                             {/* Imagen del item */}
                                             {result.metadata?.photos && result.metadata.photos.length > 0 && (
                                                 <img
-                                                    src={result.metadata.photos[0]}
+                                                    src={result.metadata.photos[result.metadata.primaryPhotoIndex || 0]}
                                                     alt={result.title}
                                                     className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
                                                     crossOrigin="anonymous"
@@ -616,7 +616,7 @@ export default function Search() {
                                     className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
                                         ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/30'
                                         : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
-                                    }`}
+                                        }`}
                                 >
                                     <span>Mostrar más ({sectionPagination.inventory} de {groupedResults.inventory.length})</span>
                                 </button>
@@ -682,7 +682,7 @@ export default function Search() {
                                     className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
                                         ? 'bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-600/30'
                                         : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                    }`}
+                                        }`}
                                 >
                                     <span>Mostrar más ({sectionPagination.sale} de {groupedResults.sale.length})</span>
                                 </button>
@@ -744,7 +744,7 @@ export default function Search() {
                                     className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
                                         ? 'bg-orange-600/20 hover:bg-orange-600/40 text-orange-300 border border-orange-600/30'
                                         : 'bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200'
-                                    }`}
+                                        }`}
                                 >
                                     <span>Mostrar más ({sectionPagination.delivery} de {groupedResults.delivery.length})</span>
                                 </button>
@@ -805,7 +805,7 @@ export default function Search() {
                                     className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
                                         ? 'bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-600/30'
                                         : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
-                                    }`}
+                                        }`}
                                 >
                                     <span>Mostrar más ({sectionPagination.customer} de {groupedResults.customer.length})</span>
                                 </button>
@@ -855,7 +855,7 @@ export default function Search() {
                             className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
                                 ? 'bg-pink-600/20 hover:bg-pink-600/40 text-pink-300 border border-pink-600/30'
                                 : 'bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200'
-                            }`}
+                                }`}
                         >
                             <span>Mostrar más ({sectionPagination.preventa} de {groupedResults.preventa.length})</span>
                         </button>
@@ -878,11 +878,10 @@ export default function Search() {
                                 <div className="mb-4 flex flex-wrap gap-2 items-center">
                                     <button
                                         onClick={() => setCatalogYearFilter(null)}
-                                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                                            catalogYearFilter === null
+                                        className={`px-3 py-1 text-sm rounded-full transition-colors ${catalogYearFilter === null
                                                 ? `${isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-600 text-white'}`
                                                 : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`
-                                        }`}
+                                            }`}
                                     >
                                         Todos
                                     </button>
@@ -890,11 +889,10 @@ export default function Search() {
                                         <button
                                             key={year}
                                             onClick={() => setCatalogYearFilter(year)}
-                                            className={`px-3 py-1 text-sm rounded-full transition-colors font-medium ${
-                                                catalogYearFilter === year
+                                            className={`px-3 py-1 text-sm rounded-full transition-colors font-medium ${catalogYearFilter === year
                                                     ? `${isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-600 text-white'}`
                                                     : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`
-                                            }`}
+                                                }`}
                                         >
                                             {year}
                                         </button>
@@ -980,7 +978,7 @@ export default function Search() {
                                     className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
                                         ? 'bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-600/30'
                                         : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                    }`}
+                                        }`}
                                 >
                                     <span>Mostrar más ({sectionPagination.catalog} de {groupedResults.catalog.length})</span>
                                 </button>

@@ -824,7 +824,7 @@ const POS: React.FC = () => {
                           <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
                             {item.photos && item.photos.length > 0 ? (
                               <img
-                                src={item.photos[0]}
+                                src={item.photos[item.primaryPhotoIndex || 0]}
                                 alt={displayName}
                                 className="w-full h-48 object-cover"
                                 crossOrigin="anonymous"
@@ -943,7 +943,7 @@ const POS: React.FC = () => {
                           <div className="flex-shrink-0">
                             {item.photos && item.photos.length > 0 ? (
                               <img
-                                src={item.photos[0]}
+                                src={item.photos[item.primaryPhotoIndex || 0]}
                                 alt={displayName}
                                 className="w-16 h-16 object-cover rounded border border-slate-600"
                                 crossOrigin="anonymous"

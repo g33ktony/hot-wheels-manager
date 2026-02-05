@@ -262,7 +262,7 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
     invalidateInventoryCache()
     const { 
       carId, carName, quantity, purchasePrice, suggestedPrice, condition, notes, photos, location,
-      seriesId, seriesName, seriesSize, seriesPosition, seriesPrice,
+      seriesId, seriesName, seriesSize, seriesPosition, seriesPrice, primaryPhotoIndex,
       brand, pieceType, isTreasureHunt, isSuperTreasureHunt, isChase, isFantasy, series, year, color
     } = req.body;
 
@@ -288,6 +288,19 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       }
     }
 
+    // Validate primaryPhotoIndex
+    let finalPrimaryPhotoIndex = 0
+    if (primaryPhotoIndex !== undefined) {
+      if (primaryPhotoIndex < 0 || primaryPhotoIndex >= (photos?.length || 1)) {
+        res.status(400).json({
+          success: false,
+          error: `primaryPhotoIndex debe estar entre 0 y ${(photos?.length || 1) - 1}`
+        });
+        return;
+      }
+      finalPrimaryPhotoIndex = primaryPhotoIndex
+    }
+
     // Calculate default series price if this is part of a series
     let seriesDefaultPrice: number | undefined
     let finalSeriesPrice: number | undefined
@@ -311,6 +324,7 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       }
       if (photos) {
         existingItem.photos = photos;
+        existingItem.primaryPhotoIndex = finalPrimaryPhotoIndex;
       }
       if (location) {
         existingItem.location = location;
@@ -357,6 +371,7 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
         condition: condition || 'mint',
         notes: notes || '',
         photos: photos || [],
+        primaryPhotoIndex: finalPrimaryPhotoIndex,
         location: location || '',
         dateAdded: new Date(),
         // Brand and type fields
@@ -414,6 +429,17 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
           });
           return;
         }
+      }
+    }
+
+    // Validate primaryPhotoIndex if provided
+    if (updates.primaryPhotoIndex !== undefined) {
+      if (updates.primaryPhotoIndex < 0 || updates.primaryPhotoIndex >= (updates.photos?.length || 1)) {
+        res.status(400).json({
+          success: false,
+          error: `primaryPhotoIndex debe estar entre 0 y ${(updates.photos?.length || 1) - 1}`
+        });
+        return;
       }
     }
 

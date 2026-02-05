@@ -51,9 +51,9 @@ export default function CollageGenerator({
                 .filter(item => item.photos && item.photos.length > 0)
                 .map(item => ({
                     item,
-                    croppedImage: item.photos![0], // Usar imagen original por defecto
+                    croppedImage: item.photos![item.primaryPhotoIndex || 0], // Usar imagen destacada por defecto
                     customPrice: item.actualPrice || item.suggestedPrice || 0,
-                    originalImage: item.photos![0]
+                    originalImage: item.photos![item.primaryPhotoIndex || 0]
                 }))
             setCollageItems(items)
             // Ir directamente a la lista de precios
@@ -279,7 +279,7 @@ export default function CollageGenerator({
             // Canvas dimensions - Dynamic based on itemsPerCollage
             let cols: number
             let rows: number
-            
+
             if (itemsPerCollage === 1) {
                 cols = 1
                 rows = 1
@@ -291,7 +291,7 @@ export default function CollageGenerator({
                 cols = items.length === 1 ? 1 : items.length === 2 ? 2 : items.length === 3 ? 2 : 2
                 rows = Math.ceil(items.length / 2)
             }
-            
+
             const cellWidth = 1000 // High quality cells
             const cellHeight = 1000
             const borderWidth = 1 // Thin border to separate images
@@ -697,11 +697,10 @@ export default function CollageGenerator({
                                     <button
                                         key={num}
                                         onClick={() => setItemsPerCollage(num)}
-                                        className={`py-3 px-4 rounded-lg font-medium transition-all ${
-                                            itemsPerCollage === num
+                                        className={`py-3 px-4 rounded-lg font-medium transition-all ${itemsPerCollage === num
                                                 ? 'bg-purple-600 text-white shadow-lg scale-105'
                                                 : 'bg-white text-gray-700 border border-purple-200 hover:bg-purple-50'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="text-base">
                                             {num === 1 ? '1️⃣' : num === 2 ? '2️⃣' : '4️⃣'}
@@ -716,11 +715,9 @@ export default function CollageGenerator({
                                 ))}
                             </div>
                             <p className="text-sm text-gray-600 mt-3 text-center font-medium">
-                                {`Generarás ${Math.ceil(collageItems.length / itemsPerCollage)} ${
-                                    Math.ceil(collageItems.length / itemsPerCollage) === 1 ? 'collage' : 'collages'
-                                } de ${collageItems.length} ${
-                                    collageItems.length === 1 ? 'item' : 'items'
-                                }`}
+                                {`Generarás ${Math.ceil(collageItems.length / itemsPerCollage)} ${Math.ceil(collageItems.length / itemsPerCollage) === 1 ? 'collage' : 'collages'
+                                    } de ${collageItems.length} ${collageItems.length === 1 ? 'item' : 'items'
+                                    }`}
                             </p>
                         </div>
 
@@ -738,8 +735,8 @@ export default function CollageGenerator({
                                 </span>
                             </label>
                             <p className="text-xs text-gray-600 mt-2 ml-8">
-                                {showPricesOnCollage 
-                                    ? 'Los precios aparecerán en la parte superior de cada imagen' 
+                                {showPricesOnCollage
+                                    ? 'Los precios aparecerán en la parte superior de cada imagen'
                                     : 'Los precios estarán ocultos (solo mostrará disponibilidad)'}
                             </p>
                         </div>
@@ -754,13 +751,12 @@ export default function CollageGenerator({
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, index)}
                                     onDragEnd={handleDragEnd}
-                                    className={`bg-white border-2 rounded-lg overflow-hidden relative group cursor-move transition-all ${
-                                        draggedIndex === index
+                                    className={`bg-white border-2 rounded-lg overflow-hidden relative group cursor-move transition-all ${draggedIndex === index
                                             ? 'opacity-50 border-gray-400'
                                             : dragOverIndex === index
                                                 ? 'border-blue-500 bg-blue-50'
                                                 : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                        }`}
                                 >
                                     {/* Indicador de posición */}
                                     <div className="absolute top-1 left-1 z-20 bg-gray-800 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">

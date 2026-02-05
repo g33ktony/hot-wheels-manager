@@ -130,14 +130,14 @@ export const InventoryList: React.FC<InventoryListProps> = ({
             {item.photos && item.photos.length > 0 ? (
               <div className="relative h-48 bg-gray-200 cursor-pointer group overflow-hidden">
                 <img
-                  src={item.photos[0]}
+                  src={item.photos[item.primaryPhotoIndex || 0]}
                   alt={carName}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       'https://via.placeholder.com/300x200?text=No+Image'
                   }}
-                  onClick={() => onImageClick(item.photos!, 0)}
+                  onClick={() => onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
                 />
                 {item.photos.length > 1 && (
                   <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-semibold">
