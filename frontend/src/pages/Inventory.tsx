@@ -3300,7 +3300,7 @@ export default function Inventory() {
                                     {/* Miniaturas para seleccionar */}
                                     {newItem.photos.length > 1 && (
                                         <div>
-                                            <p className="text-xs text-gray-600 font-semibold mb-2">Click para cambiar foto destacada:</p>
+                                            <p className="text-xs text-gray-600 font-semibold mb-2">Doble click para cambiar foto destacada:</p>
                                             <div className="grid grid-cols-4 gap-2">
                                                 {newItem.photos.map((photo, index) => (
                                                     <div
@@ -3313,8 +3313,8 @@ export default function Inventory() {
                                                             alt={`Foto ${index + 1}`}
                                                             loading="lazy"
                                                             className={`w-full h-20 object-cover rounded border-2 transition-all ${(newItem.primaryPhotoIndex || 0) === index
-                                                                    ? 'border-blue-500 ring-2 ring-blue-300'
-                                                                    : 'border-gray-300 hover:border-blue-400'
+                                                                ? 'border-blue-500 ring-2 ring-blue-300'
+                                                                : 'border-gray-300 hover:border-blue-400'
                                                                 }`}
                                                         />
                                                         {(newItem.primaryPhotoIndex || 0) === index && (
@@ -3960,7 +3960,7 @@ export default function Inventory() {
                                     {/* Miniaturas para seleccionar */}
                                     {editingItem.photos.length > 1 && (
                                         <div>
-                                            <p className="text-xs text-gray-600 font-semibold mb-2">Click para cambiar foto destacada:</p>
+                                            <p className="text-xs text-gray-600 font-semibold mb-2">Doble click para cambiar foto destacada:</p>
                                             <div className="grid grid-cols-4 gap-2">
                                                 {editingItem.photos.map((photo: string, index: number) => (
                                                     <div
@@ -3973,8 +3973,8 @@ export default function Inventory() {
                                                             alt={`Foto ${index + 1}`}
                                                             loading="lazy"
                                                             className={`w-full h-20 object-cover rounded border-2 transition-all ${(editingItem.primaryPhotoIndex || 0) === index
-                                                                    ? 'border-blue-500 ring-2 ring-blue-300'
-                                                                    : 'border-gray-300 hover:border-blue-400'
+                                                                ? 'border-blue-500 ring-2 ring-blue-300'
+                                                                : 'border-gray-300 hover:border-blue-400'
                                                                 }`}
                                                         />
                                                         {(editingItem.primaryPhotoIndex || 0) === index && (
