@@ -1170,6 +1170,33 @@ export default function Inventory() {
         dispatch(clearSelection())
     }
 
+    // Long press handlers for touch/click
+    const longPressTimers = useRef<{ [key: string]: NodeJS.Timeout }>({})
+    const LONG_PRESS_DURATION = 500 // 500ms
+
+    const handleLongPressStart = (itemId: string) => {
+        // If already in selection mode, don't start long press
+        if (isSelectionMode) return
+
+        longPressTimers.current[itemId] = setTimeout(() => {
+            // Activate selection mode and select this item
+            dispatch(setSelectionMode(true))
+            dispatch(toggleItemSelection(itemId))
+            // Haptic feedback on mobile
+            if (navigator.vibrate) {
+                navigator.vibrate(100)
+            }
+        }, LONG_PRESS_DURATION)
+    }
+
+    const handleLongPressEnd = (itemId: string) => {
+        // Clear the timer when user releases
+        if (longPressTimers.current[itemId]) {
+            clearTimeout(longPressTimers.current[itemId])
+            delete longPressTimers.current[itemId]
+        }
+    }
+
     // Get all selected items from Redux store (includes items from all pages)
     const getSelectedItems = useCallback((): InventoryItem[] => {
         if (selectedItems.size === 0) return []
@@ -2110,6 +2137,11 @@ export default function Inventory() {
                                     <div
                                         className={`${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
                                         onClick={() => isSelectionMode && isAvailable && item._id && handleToggleItemSelection(item._id)}
+                                        onMouseDown={() => item._id && isAvailable && handleLongPressStart(item._id)}
+                                        onMouseUp={() => item._id && handleLongPressEnd(item._id)}
+                                        onMouseLeave={() => item._id && handleLongPressEnd(item._id)}
+                                        onTouchStart={() => item._id && isAvailable && handleLongPressStart(item._id)}
+                                        onTouchEnd={() => item._id && handleLongPressEnd(item._id)}
                                     >
                                         {/* Selection Checkbox */}
                                         {isSelectionMode && (
