@@ -2753,14 +2753,34 @@ export default function Inventory() {
                                         </button>
                                     </div>
                                 )}
-                                <input
-                                    type="text"
-                                    className="input w-full"
-                                    placeholder="ej: FHY65"
-                                    value={newItem.carId}
-                                    onChange={(e) => handleCarIdChange(e.target.value)}
-                                    onFocus={() => newItem.carId.length > 0 && setShowSuggestions(true)}
-                                />
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        className="input w-full"
+                                        placeholder="ej: FHY65"
+                                        value={newItem.carId}
+                                        onChange={(e) => handleCarIdChange(e.target.value)}
+                                        onFocus={() => newItem.carId.length > 0 && setShowSuggestions(true)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Escape') {
+                                                setShowSuggestions(false)
+                                            }
+                                        }}
+                                    />
+                                    {(showSuggestions || showCatalogResults) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowSuggestions(false)
+                                                setShowCatalogResults(false)
+                                            }}
+                                            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                                            title="Cerrar sugerencias"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    )}
+                                </div>
 
                                 {/* Dropdown with suggestions */}
                                 {showSuggestions && !existingItemToUpdate && getMatchingItems.length > 0 && (
