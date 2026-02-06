@@ -23,7 +23,8 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    Upload
+    Upload,
+    Camera
 } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -1824,7 +1825,16 @@ export default function ItemDetail() {
                             </label>
 
                             {/* Photo Upload */}
-                            <div className="mb-3">
+                            <div className="mb-3 space-y-2">
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                                    multiple
+                                    onChange={(e) => handleFileUpload(e.target.files)}
+                                    className="hidden"
+                                    id="photo-upload-edit"
+                                    disabled={uploadingPhotos > 0}
+                                />
                                 <input
                                     type="file"
                                     accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
@@ -1832,21 +1842,31 @@ export default function ItemDetail() {
                                     capture="environment"
                                     onChange={(e) => handleFileUpload(e.target.files)}
                                     className="hidden"
-                                    id="photo-upload-edit"
+                                    id="photo-camera-edit"
                                     disabled={uploadingPhotos > 0}
                                 />
-                                <label
-                                    htmlFor="photo-upload-edit"
-                                    className={`flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingPhotos > 0
+                                <div className="flex gap-2">
+                                    <label
+                                        htmlFor="photo-upload-edit"
+                                        className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingPhotos > 0
                                             ? 'opacity-50 cursor-not-allowed border-slate-400'
                                             : 'border-slate-600 hover:border-gray-400'
-                                        }`}
-                                >
-                                    <Upload size={20} className="text-gray-400" />
-                                    <span className="text-sm text-slate-400">
-                                        {uploadingPhotos > 0 ? `Subiendo ${uploadingPhotos}...` : 'Subir fotos (múltiples archivos)'}
-                                    </span>
-                                </label>
+                                            }`}
+                                    >
+                                        <Upload size={20} className="text-gray-400" />
+                                        <span className="text-sm text-slate-400">Galería</span>
+                                    </label>
+                                    <label
+                                        htmlFor="photo-camera-edit"
+                                        className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingPhotos > 0
+                                            ? 'opacity-50 cursor-not-allowed border-slate-400'
+                                            : 'border-slate-600 hover:border-gray-400'
+                                            }`}
+                                    >
+                                        <Camera size={20} className="text-gray-400" />
+                                        <span className="text-sm text-slate-400">Cámara</span>
+                                    </label>
+                                </div>
                             </div>
 
                             {/* Photo Preview */}

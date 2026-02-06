@@ -28,7 +28,7 @@ import InventoryQuoteReport from '@/components/InventoryQuoteReport'
 import CollageGenerator from '@/components/CollageGenerator'
 import BulkEditModal from '@/components/BulkEditModal'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
-import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image, ShoppingCart, Truck } from 'lucide-react'
+import { Plus, Search, Package, Edit, Trash2, X, Upload, MapPin, TrendingUp, CheckSquare, ChevronLeft, ChevronRight, Maximize2, Facebook, Info, FileText, Image, ShoppingCart, Truck, Camera } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import debounce from 'lodash.debounce'
@@ -3269,7 +3269,15 @@ export default function Inventory() {
                             </label>
 
                             {/* Photo Upload */}
-                            <div className="mb-3">
+                            <div className="mb-3 space-y-2">
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                                    multiple
+                                    onChange={(e) => handleFileUpload(e.target.files, false)}
+                                    className="hidden"
+                                    id="photo-upload"
+                                />
                                 <input
                                     type="file"
                                     accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
@@ -3277,17 +3285,24 @@ export default function Inventory() {
                                     capture="environment"
                                     onChange={(e) => handleFileUpload(e.target.files, false)}
                                     className="hidden"
-                                    id="photo-upload"
+                                    id="photo-camera"
                                 />
-                                <label
-                                    htmlFor="photo-upload"
-                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
-                                >
-                                    <Upload size={20} className="text-gray-400" />
-                                    <span className="text-sm text-slate-400">
-                                        Subir fotos (múltiples archivos)
-                                    </span>
-                                </label>
+                                <div className="flex gap-2">
+                                    <label
+                                        htmlFor="photo-upload"
+                                        className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    >
+                                        <Upload size={20} className="text-gray-400" />
+                                        <span className="text-sm text-slate-400">Galería</span>
+                                    </label>
+                                    <label
+                                        htmlFor="photo-camera"
+                                        className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    >
+                                        <Camera size={20} className="text-gray-400" />
+                                        <span className="text-sm text-slate-400">Cámara</span>
+                                    </label>
+                                </div>
                             </div>
 
                             {/* Photo Preview */}
@@ -3929,7 +3944,15 @@ export default function Inventory() {
                             </label>
 
                             {/* Photo Upload */}
-                            <div className="mb-3">
+                            <div className="mb-3 space-y-2">
+                                <input
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
+                                    multiple
+                                    onChange={(e) => handleFileUpload(e.target.files, true)}
+                                    className="hidden"
+                                    id="photo-upload-edit"
+                                />
                                 <input
                                     type="file"
                                     accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
@@ -3937,17 +3960,24 @@ export default function Inventory() {
                                     capture="environment"
                                     onChange={(e) => handleFileUpload(e.target.files, true)}
                                     className="hidden"
-                                    id="photo-upload-edit"
+                                    id="photo-camera-edit"
                                 />
-                                <label
-                                    htmlFor="photo-upload-edit"
-                                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
-                                >
-                                    <Upload size={20} className="text-gray-400" />
-                                    <span className="text-sm text-slate-400">
-                                        Subir fotos (múltiples archivos)
-                                    </span>
-                                </label>
+                                <div className="flex gap-2">
+                                    <label
+                                        htmlFor="photo-upload-edit"
+                                        className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    >
+                                        <Upload size={20} className="text-gray-400" />
+                                        <span className="text-sm text-slate-400">Galería</span>
+                                    </label>
+                                    <label
+                                        htmlFor="photo-camera-edit"
+                                        className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                    >
+                                        <Camera size={20} className="text-gray-400" />
+                                        <span className="text-sm text-slate-400">Cámara</span>
+                                    </label>
+                                </div>
                             </div>
 
                             {/* Photo Preview */}
