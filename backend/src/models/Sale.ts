@@ -11,6 +11,7 @@ export interface SaleItem {
   costPrice?: number // Precio de costo (por unidad)
   profit?: number // Ganancia total por este item (unitPrice - costPrice) * quantity
   photos?: string[] // Fotos del item en el momento de la venta
+  primaryPhotoIndex?: number // Primary photo index for the item
 }
 
 export interface ISale extends Document {
@@ -70,10 +71,16 @@ const SaleItemSchema = new Schema<SaleItem>({
   },
   profit: {
     type: Number,
-    required: false,
-    min: 0
+    required: false
+    // Removed min: 0 to allow negative profits (losses)
   },
-  photos: [{ type: String }] // Fotos del item en el momento de la venta
+  photos: [{ type: String }], // Fotos del item en el momento de la venta
+  primaryPhotoIndex: {
+    type: Number,
+    required: false,
+    default: 0,
+    min: 0
+  }
 })
 
 const SaleSchema = new Schema<ISale>({

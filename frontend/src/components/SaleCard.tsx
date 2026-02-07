@@ -118,6 +118,47 @@ export default function SaleCard({
                         </div>
                     )}
 
+                    {/* Item Thumbnails */}
+                    {sale.items && sale.items.length > 0 && (
+                        <div className={`${isDark ? 'bg-slate-900/40 border-slate-700/50' : 'bg-gray-100 border-gray-300'} rounded-lg p-3 border space-y-2`}>
+                            <p className={`text-xs font-medium uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Piezas ({sale.items.length})</p>
+                            <div className="flex flex-wrap gap-2">
+                                {sale.items.map((item: any, index: number) => (
+                                    <div
+                                        key={index}
+                                        className="relative group"
+                                        title={`${item.carId || item.carName || 'Sin nombre'}`}
+                                    >
+                                        {/* Image thumbnail */}
+                                        {item.photos && item.photos.length > 0 ? (
+                                            <img
+                                                src={item.photos[item.primaryPhotoIndex || 0].includes('weserv')
+                                                    ? item.photos[item.primaryPhotoIndex || 0]
+                                                    : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[item.primaryPhotoIndex || 0])}&w=80&h=60&fit=contain`
+                                                }
+                                                alt={item.carId || 'Item'}
+                                                className="w-16 h-12 object-cover rounded border border-slate-600 hover:border-primary-400 transition-colors"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x60?text=No+Image'
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="w-16 h-12 bg-slate-700 rounded border border-slate-600 flex items-center justify-center">
+                                                <span className="text-xs text-slate-400">Sin foto</span>
+                                            </div>
+                                        )}
+                                        {/* Quantity badge */}
+                                        {item.quantity > 1 && (
+                                            <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                                {item.quantity}
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Notes */}
                     {sale.notes && (
                         <div className={`${isDark ? 'bg-blue-900/30 border-blue-700/50' : 'bg-blue-100 border-blue-300'} rounded-lg p-3 border`}>

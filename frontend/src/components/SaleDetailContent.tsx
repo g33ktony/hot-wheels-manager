@@ -6,6 +6,17 @@ interface SaleDetailContentProps {
     onOpenImageModal?: (photos: string[]) => void
 }
 
+const proxifyImageUrl = (url: string) => {
+    if (!url) return '/placeholder.png'
+    // Si la URL ya es un placeholder, devolverla sin cambios
+    if (url.includes('placeholder')) return url
+    // Si es una URL de Cloudinary, proxificarla
+    if (url.includes('cloudinary') || url.includes('http')) {
+        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&q=75`
+    }
+    return url
+}
+
 export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
     sale,
     theme = 'light',
@@ -15,8 +26,8 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
 
     // const borderColor = isDark ? 'border-slate-600' : 'border-gray-300'
     const textPrimary = isDark ? 'text-white' : 'text-gray-900'
-    const textSecondary = isDark ? 'text-slate-200' : 'text-gray-700'
-    const textMuted = isDark ? 'text-slate-400' : 'text-gray-500'
+    const textSecondary = isDark ? 'text-slate-100' : 'text-gray-700'
+    const textMuted = isDark ? 'text-slate-300' : 'text-gray-600'
     const badgeBg = isDark ? 'bg-emerald-500/20' : 'bg-green-100'
     const badgeText = isDark ? 'text-emerald-300' : 'text-green-800'
     const cardBg = isDark ? 'bg-slate-800' : 'bg-white'
@@ -133,9 +144,12 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                                                     onClick={() => onOpenImageModal && onOpenImageModal(photos)}
                                                 >
                                                     <img
-                                                        src={photo}
+                                                        src={proxifyImageUrl(photo)}
                                                         alt={`${item.carName} - Foto ${photoIdx + 1}`}
                                                         className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.src = '/placeholder.png'
+                                                        }}
                                                     />
                                                 </div>
                                             ))}

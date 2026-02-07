@@ -44,6 +44,7 @@ export interface DeliveryItem {
   unitPrice: number;
   // Enriched fields (from inventory)
   photos?: string[]; // Photos from inventory
+  primaryPhotoIndex?: number; // Primary photo index from inventory
   costPrice?: number; // Purchase price from inventory
   // Pre-sale fields
   isPresaleItem?: boolean; // true if this item comes from a pre-sale
@@ -78,6 +79,21 @@ const DeliveryItemSchema = new Schema<DeliveryItem>({
   unitPrice: {
     type: Number,
     required: true,
+    min: 0
+  },
+  // Enriched fields (from inventory) - now persisted in schema
+  photos: {
+    type: [String],
+    default: []
+  },
+  primaryPhotoIndex: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  costPrice: {
+    type: Number,
+    default: 0,
     min: 0
   },
   // Pre-sale fields

@@ -256,10 +256,16 @@ export const createDelivery = async (req: Request, res: Response) => {
           const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
           if (inventoryItem) {
             itemExists = true;
-            // Enrich item with photos from inventory
+            // Enrich item with photos and additional metadata from inventory
             enrichedItems[i] = {
               ...item,
-              photos: inventoryItem.photos || []
+              carId: inventoryItem.carId, // Ensure correct carId
+              carName: inventoryItem.carName || `${inventoryItem.brand} - ${inventoryItem.color || 'Unknown'}`, // Use real carName
+              brand: inventoryItem.brand,
+              color: inventoryItem.color,
+              photos: inventoryItem.photos || [],
+              primaryPhotoIndex: inventoryItem.primaryPhotoIndex || 0,
+              costPrice: inventoryItem.purchasePrice || 0 // Save cost price from inventory
             };
             // Validate available quantity for real inventory items (quantity - reservedQuantity)
             const availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0);
@@ -398,12 +404,14 @@ export const updateDelivery = async (req: Request, res: Response) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         let enrichedItem = { ...item };
-        
+
         // If item doesn't have photos, try to get them from inventory
         if ((!enrichedItem.photos || enrichedItem.photos.length === 0) && item.inventoryItemId && !item.inventoryItemId.startsWith('presale_')) {
           const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
           if (inventoryItem) {
             enrichedItem.photos = inventoryItem.photos || [];
+            enrichedItem.primaryPhotoIndex = inventoryItem.primaryPhotoIndex || 0;
+            enrichedItem.costPrice = inventoryItem.purchasePrice || 0;
           }
         }
         enrichedItems.push(enrichedItem);
@@ -705,26 +713,38 @@ const createSalesFromDelivery = async (delivery: any) => {
       
       // Check if item exists in inventory or is from catalog
       let shouldRemoveFromInventory = false;
-      
+      let photos = item.photos || []; // Default to item photos from delivery
+      let primaryPhotoIndex = item.primaryPhotoIndex || 0; // Default to delivery item value
+      let costPrice = item.costPrice || 0; // Default to delivery item value
+
       if (item.inventoryItemId) {
         // Check if it's a real inventory item (not presale)
         const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
         if (inventoryItem) {
           shouldRemoveFromInventory = true;
+          // Get photos from inventory only if not already in delivery item (fallback for old deliveries)
+          if (!photos || photos.length === 0) {
+            photos = inventoryItem.photos || [];
+            primaryPhotoIndex = inventoryItem.primaryPhotoIndex || 0;
+          }
+          // Get costPrice from inventory only if not already in delivery item (fallback for old deliveries)
+          if (costPrice === 0) {
+            costPrice = inventoryItem.purchasePrice || 0;
+          }
           // First release the reservation, then remove from inventory completely
           await InventoryItemModel.findByIdAndUpdate(
             item.inventoryItemId,
-            { 
-              $inc: { 
+            {
+              $inc: {
                 reservedQuantity: -item.quantity,
-                quantity: -item.quantity 
+                quantity: -item.quantity
               }
             }
           );
         }
       }
       // For catalog items (hotWheelsCarId), don't modify any inventory
-      
+
       // Add item to sale items
       saleItems.push({
         inventoryItemId: item.inventoryItemId || null, // Only set for real inventory items
@@ -733,9 +753,10 @@ const createSalesFromDelivery = async (delivery: any) => {
         carName: item.carName,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        costPrice: item.costPrice || 0,
-        profit: item.profit || 0,
-        photos: item.photos || [] // Include photos from delivery item
+        costPrice: costPrice,
+        profit: item.profit || (item.unitPrice - costPrice) * item.quantity,
+        photos: photos, // Include photos from delivery item or inventory
+        primaryPhotoIndex: primaryPhotoIndex // Include primary photo index
       });
     }
     

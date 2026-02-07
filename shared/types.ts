@@ -248,6 +248,7 @@ export interface SaleItem {
   costPrice?: number; // Precio de costo (por unidad)
   profit?: number; // Ganancia total por este item
   photos?: string[]; // Fotos del item en el momento de la venta
+  primaryPhotoIndex?: number; // Primary photo index for the item
 }
 
 export interface BuyerInfo {
@@ -298,6 +299,9 @@ export interface DeliveryItem {
   carName: string;
   quantity: number;
   unitPrice: number;
+  photos?: string[]; // Photos from inventory
+  primaryPhotoIndex?: number; // Primary photo index from inventory
+  costPrice?: number; // Purchase price from inventory
 }
 
 export interface MarketPrice {
