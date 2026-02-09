@@ -16,6 +16,8 @@ import Deliveries from './pages/Deliveries'
 import CloudinaryDebug from './pages/CloudinaryDebug'
 import Search from './pages/Search'
 import ThemeSettings from './pages/ThemeSettings'
+import CatalogBrowser from './pages/public/CatalogBrowser'
+import Leads from './pages/Leads'
 
 // POS y Gemini Vision integrados
 import Customers from './pages/Customers'
@@ -36,7 +38,9 @@ function App() {
             <SearchProvider>
                 <ThemeProvider>
                     <Routes>
-                        {/* Ruta pública */}
+                        {/* Public routes - no authentication required */}
+                        <Route path="/" element={<Navigate to="/browse" replace />} />
+                        <Route path="/browse" element={<CatalogBrowser />} />
                         <Route path="/login" element={<Login />} />
 
                         {/* Rutas protegidas */}
@@ -47,7 +51,6 @@ function App() {
                                     <PrivateRoute>
                                         <Layout>
                                             <Routes>
-                                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                                 <Route path="/dashboard" element={<Dashboard />} />
                                                 <Route path="/search" element={<Search />} />
                                                 <Route path="/inventory" element={<Inventory />} />
@@ -65,6 +68,7 @@ function App() {
                                                 <Route path="/customers" element={<Customers />} />
                                                 <Route path="/customers/:customerId" element={<CustomerProfile />} />
                                                 <Route path="/suppliers" element={<Suppliers />} />
+                                                <Route path="/leads" element={<Leads />} />
                                                 <Route path="/boxes" element={<Boxes />} />
                                                 <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
                                                 <Route path="/theme-settings" element={<ThemeSettings />} />

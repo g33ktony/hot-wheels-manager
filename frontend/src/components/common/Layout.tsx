@@ -16,7 +16,8 @@ import {
     Search as SearchIcon,
     Sun,
     Moon,
-    Settings
+    Settings,
+    Mail
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -24,6 +25,8 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useBoxes } from '@/hooks/useBoxes'
 import { useAppSelector } from '@/hooks/redux'
+import FloatingActionButton from './FloatingActionButton'
+import DeliveryCartModal from '../DeliveryCartModal'
 
 interface LayoutProps {
     children: ReactNode
@@ -31,9 +34,14 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+        const saved = localStorage.getItem('sidebarCollapsed')
+        return saved === 'true'
+    })
     const [touchStart, setTouchStart] = useState<number | null>(null)
     const [touchEnd, setTouchEnd] = useState<number | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
+    const [showDeliveryCartModal, setShowDeliveryCartModal] = useState(false)
     const sidebarRef = useRef<HTMLDivElement>(null)
     const location = useLocation()
     const navigate = useNavigate()
@@ -42,7 +50,31 @@ export default function Layout({ children }: LayoutProps) {
     const { data: pendingItemsStats } = usePendingItemsStats()
     const { data: boxes } = useBoxes()
     const cartItems = useAppSelector(state => state.cart.items)
+    const deliveryCartItems = useAppSelector(state => state.deliveryCart.items)
     const cartItemCount = cartItems.length
+    const deliveryCartCount = deliveryCartItems.length
+
+    // Persist sidebar collapsed state
+    useEffect(() => {
+        localStorage.setItem('sidebarCollapsed', sidebarCollapsed.toString())
+    }, [sidebarCollapsed])
+
+    // Toggle sidebar collapse
+    const toggleSidebarCollapse = () => {
+        setSidebarCollapsed(!sidebarCollapsed)
+    }
+
+    // Handle navigation item click
+    const handleNavClick = () => {
+        // En mobile, cerrar el sidebar
+        if (window.innerWidth < 1024) {
+            setSidebarOpen(false)
+        }
+        // En desktop siempre colapsar
+        if (window.innerWidth >= 1024) {
+            setSidebarCollapsed(true)
+        }
+    }
 
     // Minimum swipe distance (in px)
     const minSwipeDistance = 50
@@ -59,7 +91,7 @@ export default function Layout({ children }: LayoutProps) {
             setSearchQuery('')
         }
     }
-    
+
     // Sincronizar cambios de búsqueda con localStorage para que Search page los vea
     useEffect(() => {
         localStorage.setItem('globalSearchQuery', searchQuery)
@@ -94,6 +126,7 @@ export default function Layout({ children }: LayoutProps) {
         }] : []),
         { name: 'Entregas', href: '/deliveries', icon: Truck },
         { name: 'Clientes', href: '/customers', icon: Users },
+        { name: 'Leads', href: '/leads', icon: Mail },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
         { name: 'Tema', href: '/theme-settings', icon: Settings },
     ]
@@ -156,14 +189,34 @@ export default function Layout({ children }: LayoutProps) {
             <div
                 ref={sidebarRef}
                 className={`
-        fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r backdrop-blur
+        fixed inset-y-0 left-0 z-50 shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r backdrop-blur
+        ${sidebarCollapsed && window.innerWidth >= 1024 ? 'lg:w-16' : 'w-64'}
         ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
             >
                 {/* Fixed Sidebar Header */}
                 <div className={`flex items-center justify-between h-16 px-4 border-b flex-shrink-0 z-10 backdrop-blur ${mode === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-gray-50/80 border-gray-200'}`}>
-                    <h1 className={`text-lg lg:text-xl font-bold select-none ${mode === 'dark' ? 'text-white' : 'text-gray-900'}`}>🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
+                    {/* Logo/Title - ocultar texto cuando está colapsado en desktop */}
+                    <h1 className={`text-lg lg:text-xl font-bold select-none transition-all ${mode === 'dark' ? 'text-white' : 'text-gray-900'} ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
+                        🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}
+                    </h1>
+                    {/* Solo emoji cuando colapsado */}
+                    {sidebarCollapsed && (
+                        <div className="hidden lg:block text-2xl">🏎️</div>
+                    )}
+
+                    {/* Botón toggle collapse (solo desktop) */}
+                    <button
+                        className={`hidden lg:block p-2 rounded-lg transition-colors ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
+                        onClick={toggleSidebarCollapse}
+                        aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+                        title={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+                    >
+                        <Menu size={20} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
+                    </button>
+
+                    {/* Botón cerrar (solo mobile) */}
                     <button
                         className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                         onClick={() => setSidebarOpen(false)}
@@ -187,8 +240,9 @@ export default function Layout({ children }: LayoutProps) {
                                     key={item.name}
                                     to={item.href}
                                     className={`
-                  flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200
+                  flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200
                   min-h-[44px] touch-manipulation relative select-none
+                  ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'px-4'}
                   ${isActive
                                             ? item.highlight
                                                 ? (mode === 'dark' ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30' : 'bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200')
@@ -202,13 +256,15 @@ export default function Layout({ children }: LayoutProps) {
                                         WebkitTapHighlightColor: 'transparent',
                                         WebkitTouchCallout: 'none',
                                     }}
-                                    onClick={() => setSidebarOpen(false)}
+                                    onClick={handleNavClick}
+                                    title={sidebarCollapsed ? item.name : undefined}
                                 >
-                                    <item.icon size={22} className="mr-3 flex-shrink-0" />
-                                    <span className="flex-1">{item.name}</span>
+                                    <item.icon size={22} className={`flex-shrink-0 ${!sidebarCollapsed ? 'mr-3' : ''}`} />
+                                    <span className={`flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.name}</span>
                                     {item.badge && item.badge > 0 && (
                                         <span className={`
                     px-2 py-0.5 text-xs font-semibold rounded-full
+                    ${sidebarCollapsed ? 'lg:absolute lg:top-1 lg:right-1' : ''}
                     ${isActive
                                                 ? 'bg-emerald-500 text-white'
                                                 : 'bg-orange-500 text-white'
@@ -304,6 +360,36 @@ export default function Layout({ children }: LayoutProps) {
                     </div>
                 </main>
             </div>
+
+            {/* Floating Action Buttons */}
+            {/* FAB for Delivery Cart - show when not on deliveries page */}
+            {deliveryCartCount > 0 && location.pathname !== '/deliveries' && (
+                <FloatingActionButton
+                    icon={<Truck size={24} />}
+                    badge={deliveryCartCount}
+                    onClick={() => setShowDeliveryCartModal(true)}
+                    variant="delivery"
+                    ariaLabel="Abrir carrito de entrega"
+                    className={cartItemCount > 0 && location.pathname !== '/pos' ? 'fixed bottom-24 right-6 z-50' : undefined}
+                />
+            )}
+
+            {/* FAB for POS Cart - show when not on POS page */}
+            {cartItemCount > 0 && location.pathname !== '/pos' && (
+                <FloatingActionButton
+                    icon={<ShoppingCart size={24} />}
+                    badge={cartItemCount}
+                    onClick={() => navigate('/pos')}
+                    variant="pos"
+                    ariaLabel="Ir a punto de venta"
+                />
+            )}
+
+            {/* Delivery Cart Modal */}
+            <DeliveryCartModal
+                isOpen={showDeliveryCartModal}
+                onClose={() => setShowDeliveryCartModal(false)}
+            />
         </div>
     )
 }

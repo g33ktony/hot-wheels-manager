@@ -28,9 +28,12 @@ import presaleItemsRoutes from './routes/presaleItemsRoutes' // Fixed: Route ord
 import presalePaymentsRoutes from './routes/presalePaymentsRoutes'
 import paymentPlansRoutes from './routes/paymentPlans'
 import searchRoutes from './routes/searchRoutes'
+import publicRoutes from './routes/publicRoutes'
+import leadsRoutes from './routes/leadsRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
+import { publicCatalogLimiter, leadCreationLimiter } from './middleware/rateLimiter'
 import errorHandler from './middleware/errorHandler'
 import notFoundHandler from './middleware/notFoundHandler'
 import { performanceLogger, responseSizeLogger } from './middleware/performance'
@@ -140,6 +143,12 @@ app.get('/api/search/predictive', async (req, res) => {
 // Rutas de autenticación (públicas, sin protección)
 app.use('/api/auth', authRoutes)
 
+// Public catalog routes (sin autenticación, con rate limiting)
+app.use('/api/public', publicCatalogLimiter, publicRoutes)
+
+// Apply stricter rate limiting to lead creation specifically
+app.post('/api/public/leads', leadCreationLimiter)
+
 // Rutas protegidas (requieren autenticación)
 app.use('/api/hotwheels', authMiddleware, hotWheelsRoutes)
 app.use('/api/inventory', authMiddleware, inventoryRoutes)
@@ -159,6 +168,7 @@ app.use('/api/presale/items', authMiddleware, presaleItemsRoutes)
 app.use('/api/presale/payments', authMiddleware, presalePaymentsRoutes)
 app.use('/api/search', authMiddleware, searchRoutes)
 app.use('/api/payment-plans', authMiddleware, paymentPlansRoutes)
+app.use('/api/leads', authMiddleware, leadsRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)

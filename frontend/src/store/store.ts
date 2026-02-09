@@ -4,6 +4,7 @@ import filtersReducer from './slices/filtersSlice'
 import authReducer from './slices/authSlice'
 import inventoryReducer from './slices/inventorySlice'
 import cartReducer from './slices/cartSlice'
+import deliveryCartReducer from './slices/deliveryCartSlice'
 import selectionReducer from './slices/selectionSlice'
 import itemsCacheReducer from './slices/itemsCacheSlice'
 
@@ -14,6 +15,7 @@ export const store = configureStore({
         auth: authReducer,
         inventory: inventoryReducer,
         cart: cartReducer,
+        deliveryCart: deliveryCartReducer,
         selection: selectionReducer,
         itemsCache: itemsCacheReducer,
     },

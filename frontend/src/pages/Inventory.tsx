@@ -13,6 +13,7 @@ import { inventoryService } from '@/services/inventory'
 import { useAppSelector, useAppDispatch } from '@/hooks/redux'
 import { setInventoryItems } from '@/store/slices/inventorySlice'
 import { addMultipleToCart } from '@/store/slices/cartSlice'
+import { addMultipleToDeliveryCart } from '@/store/slices/deliveryCartSlice'
 import { setSelectionMode, toggleItemSelection, selectAllItems, clearSelection } from '@/store/slices/selectionSlice'
 import { cacheItems, updateCachedItem } from '@/store/slices/itemsCacheSlice'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
@@ -1230,24 +1231,29 @@ export default function Inventory() {
 
         const itemsToDeliver = getSelectedItems()
 
-        // Convert inventory items to delivery items format
-        const deliveryItems = itemsToDeliver.map(item => ({
+        // Convert inventory items to delivery cart items format
+        const deliveryCartItems = itemsToDeliver.map(item => ({
             inventoryItemId: item._id,
             carId: item.carId,
             carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
-            quantity: 1, // Default quantity, user can change it in modal
-            unitPrice: item.actualPrice || item.suggestedPrice || 0
+            quantity: 1,
+            unitPrice: item.actualPrice || item.suggestedPrice || 0,
+            photos: item.photos,
+            primaryPhotoIndex: item.primaryPhotoIndex,
+            maxAvailable: item.quantity - (item.reservedQuantity || 0),
+            brand: item.brand,
+            color: item.color
         }))
 
-        // Pre-populate newDelivery with selected items
-        setNewDelivery(prev => ({
-            ...prev,
-            items: deliveryItems,
-            totalAmount: deliveryItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0)
-        }))
+        // Add items to delivery cart
+        dispatch(addMultipleToDeliveryCart(deliveryCartItems))
 
-        // Open delivery creation modal
-        setShowCreateDeliveryModal(true)
+        // Clear selection and exit selection mode
+        dispatch(clearSelection())
+        dispatch(setSelectionMode(false))
+
+        // Show success message
+        toast.success(`${deliveryCartItems.length} items agregados al carrito de entrega`)
     }
 
     const handleCreateDelivery = async () => {
@@ -2337,15 +2343,65 @@ export default function Inventory() {
 
                                             {/* Actions */}
                                             {!isSelectionMode && (
-                                                <div className="flex space-x-2 pt-2">
+                                                <div className="grid grid-cols-2 gap-2 pt-2">
                                                     <Button
                                                         size="sm"
                                                         variant="primary"
-                                                        className="flex-1"
+                                                        className="col-span-2"
                                                         onClick={() => navigate(`/inventory/${item._id}`)}
                                                     >
                                                         <Info size={16} className="mr-1" />
                                                         Detalle
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="primary"
+                                                        onClick={() => {
+                                                            if (item._id && isAvailable) {
+                                                                dispatch(addMultipleToDeliveryCart([{
+                                                                    inventoryItemId: item._id,
+                                                                    carId: item.carId,
+                                                                    carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
+                                                                    quantity: 1,
+                                                                    unitPrice: item.actualPrice || item.suggestedPrice || 0,
+                                                                    photos: item.photos,
+                                                                    primaryPhotoIndex: item.primaryPhotoIndex,
+                                                                    maxAvailable: item.quantity - (item.reservedQuantity || 0),
+                                                                    brand: item.brand,
+                                                                    color: item.color
+                                                                }]))
+                                                                toast.success('Agregado al carrito de entrega')
+                                                            }
+                                                        }}
+                                                        disabled={!isAvailable}
+                                                        title="Agregar a entrega"
+                                                    >
+                                                        <Truck size={16} />
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="primary"
+                                                        onClick={() => {
+                                                            if (item._id && isAvailable) {
+                                                                dispatch(addMultipleToCart([{
+                                                                    inventoryItemId: item._id,
+                                                                    carId: item.carId,
+                                                                    carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
+                                                                    quantity: 1,
+                                                                    unitPrice: item.actualPrice || item.suggestedPrice || 0,
+                                                                    photos: item.photos,
+                                                                    primaryPhotoIndex: item.primaryPhotoIndex,
+                                                                    maxAvailable: item.quantity - (item.reservedQuantity || 0),
+                                                                    brand: item.brand,
+                                                                    color: item.color
+                                                                }]))
+                                                                toast.success('Agregado al carrito POS')
+                                                            }
+                                                        }}
+                                                        disabled={!isAvailable}
+                                                        title="Agregar a POS"
+                                                    >
+                                                        <ShoppingCart size={16} />
                                                     </Button>
                                                     <Button
                                                         size="sm"

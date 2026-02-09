@@ -264,7 +264,7 @@ export default function Dashboard() {
 
                 <div
                     className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 border-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105 rounded-lg"
-                    onClick={() => navigate('/sales-statistics')}
+                    onClick={() => navigate('/search?stockFilter=without')}
                 >
                     <div className="flex items-center justify-between">
                         <div>
@@ -748,8 +748,8 @@ export default function Dashboard() {
                 delivery={selectedUnpaidDelivery}
                 isOpen={!!selectedUnpaidDelivery}
                 onClose={() => setSelectedUnpaidDelivery(null)}
-                onMarkAsCompleted={() => {}} // Already completed, so no marking needed
-                onRegisterPayment={() => {}} // Payment registration handled elsewhere
+                onMarkAsCompleted={() => { }} // Already completed, so no marking needed
+                onRegisterPayment={() => { }} // Payment registration handled elsewhere
                 readonly={false}
             />
         </div>

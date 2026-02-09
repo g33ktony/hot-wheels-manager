@@ -1,0 +1,255 @@
+import { useState } from 'react'
+import { X, MessageCircle, Maximize2, Bell } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
+import { CatalogItem } from '@/services/public'
+import Modal from '@/components/common/Modal'
+import Button from '@/components/common/Button'
+import ImageModal from '@/components/ImageModal'
+import LeadCaptureModal from './LeadCaptureModal'
+
+interface CatalogItemDetailModalProps {
+  item: CatalogItem
+  isOpen: boolean
+  onClose: () => void
+}
+
+export default function CatalogItemDetailModal({
+  item,
+  isOpen,
+  onClose
+}: CatalogItemDetailModalProps) {
+  const { mode } = useTheme()
+  const isDark = mode === 'dark'
+
+  const [showImageViewer, setShowImageViewer] = useState(false)
+  const [showNotifyModal, setShowNotifyModal] = useState(false)
+
+  // Get Facebook Messenger URL
+  const getMessengerLink = () => {
+    const fbPageId = import.meta.env.VITE_FACEBOOK_PAGE_ID || 'YOUR_PAGE_ID'
+    const message = encodeURIComponent(
+      `Hola! Estoy interesado en: ${item.carModel}\n` +
+      `Serie: ${item.series}\n` +
+      `Año: ${item.year}\n` +
+      `Link: ${window.location.href}`
+    )
+    return `https://m.me/${fbPageId}?text=${message}`
+  }
+
+  const handleContactClick = () => {
+    window.open(getMessengerLink(), '_blank')
+  }
+
+  const handleNotifyClick = () => {
+    setShowNotifyModal(true)
+  }
+
+  return (
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Detalles del Modelo"
+        maxWidth="2xl"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Image Section */}
+          <div>
+            <div
+              className="relative bg-slate-700 rounded-lg overflow-hidden cursor-pointer group"
+              onClick={() => setShowImageViewer(true)}
+            >
+              {item.photo_url ? (
+                <>
+                  <img
+                    src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(item.photo_url)}&w=600&h=400&fit=contain`}
+                    alt={item.carModel}
+                    className="w-full h-80 object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image'
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
+                    <Maximize2
+                      size={48}
+                      className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="h-80 flex items-center justify-center">
+                  <div className="text-9xl">🏎️</div>
+                </div>
+              )}
+
+              {/* Availability Badge */}
+              {item.availability.available && (
+                <div className="absolute top-4 right-4 px-4 py-2 bg-green-500 text-white text-sm font-bold rounded-full shadow-lg">
+                  ✓ Disponible
+                </div>
+              )}
+            </div>
+
+            <p className={`text-xs text-center mt-2 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+              Click en la imagen para ver en pantalla completa
+            </p>
+          </div>
+
+          {/* Details Section */}
+          <div className="space-y-4">
+            {/* Model Name */}
+            <div>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {item.carModel}
+              </h2>
+            </div>
+
+            {/* Details Grid */}
+            <div className="space-y-3">
+              <DetailRow label="Serie" value={item.series} isDark={isDark} />
+              <DetailRow label="Año" value={item.year} isDark={isDark} />
+              {item.color && <DetailRow label="Color" value={item.color} isDark={isDark} />}
+              {item.car_make && <DetailRow label="Fabricante" value={item.car_make} isDark={isDark} />}
+              {item.tampo && <DetailRow label="Tampo" value={item.tampo} isDark={isDark} />}
+              {item.wheel_type && <DetailRow label="Ruedas" value={item.wheel_type} isDark={isDark} />}
+              <DetailRow label="Toy #" value={item.toy_num} isDark={isDark} />
+              <DetailRow label="Col #" value={item.col_num} isDark={isDark} />
+            </div>
+
+            {/* Availability & Pricing */}
+            {item.availability.available ? (
+              <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-300'
+                }`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`font-semibold ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+                    ✓ Disponible para entrega
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {/* Your Price */}
+                  {item.availability.price && (
+                    <div>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        Nuestro precio:
+                      </p>
+                      <p className="text-3xl font-bold text-green-600">
+                        ${item.availability.price.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* eBay Price Comparison (if available) */}
+                  {item.availability.ebayPrice && (
+                    <div className="pt-2 border-t border-green-200 dark:border-green-800">
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        Precio promedio eBay:
+                      </p>
+                      <p className={`text-lg line-through ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                        ${item.availability.ebayPrice.toFixed(2)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Stock info */}
+                  {item.availability.quantity && (
+                    <p className={`text-xs ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+                      {item.availability.quantity} unidad(es) disponible(s)
+                    </p>
+                  )}
+
+                  <p className="text-sm font-semibold text-blue-600">
+                    🚚 Entrega inmediata
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-slate-100 border-slate-300'
+                }`}>
+                <p className={`font-semibold mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  No disponible actualmente
+                </p>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Podemos notificarte cuando este modelo esté disponible
+                </p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-3 pt-4">
+              {item.availability.available ? (
+                <>
+                  {/* Contact via Messenger */}
+                  <Button
+                    variant="primary"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    onClick={handleContactClick}
+                    icon={<MessageCircle size={20} />}
+                  >
+                    Contactar por Messenger
+                  </Button>
+
+                  <p className={`text-xs text-center ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                    Te responderemos con información sobre envío y pago
+                  </p>
+                </>
+              ) : (
+                <>
+                  {/* Notify when available */}
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    onClick={handleNotifyClick}
+                    icon={<Bell size={20} />}
+                  >
+                    Notificarme cuando esté disponible
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Image Viewer Modal */}
+      {item.photo_url && (
+        <ImageModal
+          isOpen={showImageViewer}
+          images={[item.photo_url]}
+          initialIndex={0}
+          onClose={() => setShowImageViewer(false)}
+          title={item.carModel}
+        />
+      )}
+
+      {/* Notify Me Modal */}
+      <LeadCaptureModal
+        isOpen={showNotifyModal}
+        onClose={() => setShowNotifyModal(false)}
+        onSuccess={() => {
+          setShowNotifyModal(false)
+          onClose()
+        }}
+        interestedInItem={{
+          catalogId: item._id,
+          carModel: `${item.carModel} ${item.series} (${item.year})`,
+          requestType: 'notify'
+        }}
+      />
+    </>
+  )
+}
+
+// Helper component for detail rows
+function DetailRow({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
+  return (
+    <div className="flex justify-between">
+      <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+        {label}:
+      </span>
+      <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-900'}`}>
+        {value}
+      </span>
+    </div>
+  )
+}

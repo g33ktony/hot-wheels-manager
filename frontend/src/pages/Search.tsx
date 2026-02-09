@@ -5,12 +5,13 @@ import { api } from '@/services/api'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
     Search as SearchIcon, ShoppingCart, Package, Truck, User, AlertCircle, ChevronRight, ChevronDown,
-    Plus, TrendingUp, MapPin, Phone, Mail, X, Edit, Save
+    Plus, TrendingUp, MapPin, Phone, Mail, X, Edit, Save, Trash2
 } from 'lucide-react'
 import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/redux'
 import { addToCart } from '@/store/slices/cartSlice'
+import { addToDeliveryCart } from '@/store/slices/deliveryCartSlice'
 import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 import CustomerEditForm from '@/components/CustomerEditForm'
@@ -194,6 +195,36 @@ export default function Search() {
         }
     }, [dispatch])
 
+    const handleAddToDeliveryCart = useCallback(async (itemId: string, quantity: number = 1) => {
+        if (quantity <= 0) {
+            toast.error('Cantidad debe ser mayor a 0')
+            return
+        }
+        try {
+            // Obtener detalles del item
+            const response = await api.get(`/inventory/${itemId}`)
+            const item = response.data.data
+
+            // Agregar al carrito de entrega usando Redux
+            dispatch(addToDeliveryCart({
+                inventoryItemId: item._id,
+                carId: item.carId,
+                carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
+                quantity,
+                unitPrice: item.actualPrice || item.suggestedPrice || 0,
+                photos: item.photos,
+                primaryPhotoIndex: item.primaryPhotoIndex,
+                maxAvailable: item.quantity - (item.reservedQuantity || 0),
+                brand: item.brand,
+                color: item.color
+            }))
+            toast.success(`✅ ${quantity} ${quantity === 1 ? 'unidad' : 'unidades'} de ${item.carName} agregadas al carrito de entrega`)
+        } catch (error) {
+            toast.error('Error al agregar al carrito de entrega')
+            console.error(error)
+        }
+    }, [dispatch])
+
     const handleAddToInventory = useCallback(async (itemId: string) => {
         try {
             // Para artículos sin stock, abrimos modal para agregar cantidad
@@ -202,17 +233,20 @@ export default function Search() {
 
             if (item.stock === 0 || item.stock === undefined) {
                 // Reutilizar endpoint de reactivación
-                const newStock = prompt('¿Cuántas unidades agregar al stock?')
-                if (!newStock || isNaN(parseInt(newStock))) {
-                    toast.error('Cantidad inválida')
+                const newStock = prompt('¿Cuántas unidades agregar al stock?', '1')
+                if (!newStock) return // Usuario canceló
+
+                const qty = parseInt(newStock.trim())
+                if (isNaN(qty) || qty < 1) {
+                    toast.error('Cantidad inválida. Debe ser al menos 1.')
                     return
                 }
 
                 await api.put(`/inventory/${itemId}`, {
-                    stock: parseInt(newStock)
+                    stock: qty
                 })
 
-                toast.success(`Stock actualizado: +${newStock} unidades`)
+                toast.success(`Stock actualizado: +${qty} unidades`)
             } else {
                 toast.success(`Este artículo ya tiene ${item.stock} unidades en stock`)
             }
@@ -221,6 +255,32 @@ export default function Search() {
             console.error(error)
         }
     }, [])
+
+    const handlePermanentDelete = useCallback(async (itemId: string, itemName: string) => {
+        // Show confirmation dialog
+        const confirmed = window.confirm(
+            `⚠️ ADVERTENCIA: Eliminación Permanente\n\n` +
+            `Esta acción eliminará completamente este item de la base de datos.\n\n` +
+            `Nombre: ${itemName}\n` +
+            `Cantidad actual: 0\n\n` +
+            `Si tienes ventas históricas con este item, perderán la referencia.\n\n` +
+            `¿Estás completamente seguro?`
+        )
+
+        if (!confirmed) return
+
+        try {
+            await api.delete(`/inventory/${itemId}/permanent`)
+            toast.success('Item eliminado permanentemente')
+
+            // Trigger a refetch by updating the query
+            setQuery(query + ' ') // Force re-search
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.error || 'Error al eliminar item'
+            toast.error(errorMessage)
+            console.error(error)
+        }
+    }, [query])
 
     const handleResultClick = async (result: SearchResultItem) => {
         // Para catálogo, abrir modal del catálogo en modo detalle
@@ -591,7 +651,20 @@ export default function Search() {
                                                         disabled={!result.inStock}
                                                         className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1 flex items-center gap-1"
                                                     >
-                                                        <ShoppingCart className="w-4 h-4" /> Carrito
+                                                        <ShoppingCart className="w-4 h-4" /> POS
+                                                    </Button>
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            handleAddToDeliveryCart(
+                                                                result._id,
+                                                                addToCartQuantity[result._id] || 1
+                                                            )
+                                                        }}
+                                                        disabled={!result.inStock}
+                                                        className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-3 py-1 flex items-center gap-1"
+                                                    >
+                                                        <Truck className="w-4 h-4" /> Entrega
                                                     </Button>
                                                     <Button
                                                         onClick={(e) => {
@@ -603,6 +676,17 @@ export default function Search() {
                                                     >
                                                         <Plus className="w-4 h-4" /> Stock
                                                     </Button>
+                                                    {!result.inStock && (
+                                                        <Button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handlePermanentDelete(result._id, result.title)
+                                                            }}
+                                                            className="bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1 flex items-center gap-1"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                                 <ChevronRight className="w-5 h-5 text-slate-500" />
                                             </div>

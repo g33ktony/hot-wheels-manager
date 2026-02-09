@@ -5,6 +5,7 @@ import {
   addInventoryItem,
   updateInventoryItem,
   deleteInventoryItem,
+  deleteInventoryItemPermanent,
   getSeriesItems,
   checkSeriesAvailability,
   getMissingSeriesPieces,
@@ -28,8 +29,11 @@ router.post('/', addInventoryItem)
 // PUT /api/inventory/:id - Update inventory item
 router.put('/:id', updateInventoryItem)
 
-// DELETE /api/inventory/:id - Delete inventory item
+// DELETE /api/inventory/:id - Delete inventory item (soft delete - sets quantity to 0)
 router.delete('/:id', deleteInventoryItem)
+
+// DELETE /api/inventory/:id/permanent - Permanently delete inventory item (hard delete)
+router.delete('/:id/permanent', deleteInventoryItemPermanent)
 
 // ========== SERIES ROUTES ==========
 

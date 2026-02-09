@@ -518,6 +518,48 @@ export const deleteInventoryItem = async (req: Request, res: Response): Promise<
   }
 };
 
+// Permanent deletion (hard delete) of inventory item
+export const deleteInventoryItemPermanent = async (req: Request, res: Response): Promise<void> => {
+  try {
+    invalidateInventoryCache()
+    const { id } = req.params;
+
+    // First, check if the item exists and validate it can be deleted
+    const item = await InventoryItemModel.findById(id);
+
+    if (!item) {
+      res.status(404).json({
+        success: false,
+        error: 'Item no encontrado'
+      });
+      return;
+    }
+
+    // Validate that item has no active reservations
+    if (item.reservedQuantity && item.reservedQuantity > 0) {
+      res.status(400).json({
+        success: false,
+        error: 'No se puede eliminar: tiene reservas activas en entregas'
+      });
+      return;
+    }
+
+    // Hard delete from database
+    await InventoryItemModel.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: 'Item eliminado permanentemente'
+    });
+  } catch (error) {
+    console.error('Error deleting inventory item permanently:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al eliminar item permanentemente'
+    });
+  }
+};
+
 // Search Hot Wheels catalog
 export const searchHotWheelsCatalog = async (req: Request, res: Response): Promise<void> => {
   try {
