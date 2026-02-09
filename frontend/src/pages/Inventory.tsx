@@ -1232,18 +1232,21 @@ export default function Inventory() {
         const itemsToDeliver = getSelectedItems()
 
         // Convert inventory items to delivery cart items format
-        const deliveryCartItems = itemsToDeliver.map(item => ({
-            inventoryItemId: item._id,
-            carId: item.carId,
-            carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
-            quantity: 1,
-            unitPrice: item.actualPrice || item.suggestedPrice || 0,
-            photos: item.photos,
-            primaryPhotoIndex: item.primaryPhotoIndex,
-            maxAvailable: item.quantity - (item.reservedQuantity || 0),
-            brand: item.brand,
-            color: item.color
-        }))
+        // Filter out items without _id
+        const deliveryCartItems = itemsToDeliver
+            .filter(item => item._id !== undefined)
+            .map(item => ({
+                inventoryItemId: item._id!,
+                carId: item.carId,
+                carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
+                quantity: 1,
+                unitPrice: item.actualPrice || item.suggestedPrice || 0,
+                photos: item.photos,
+                primaryPhotoIndex: item.primaryPhotoIndex,
+                maxAvailable: item.quantity - (item.reservedQuantity || 0),
+                brand: item.brand,
+                color: item.color
+            }))
 
         // Add items to delivery cart
         dispatch(addMultipleToDeliveryCart(deliveryCartItems))
@@ -2383,18 +2386,7 @@ export default function Inventory() {
                                                         variant="primary"
                                                         onClick={() => {
                                                             if (item._id && isAvailable) {
-                                                                dispatch(addMultipleToCart([{
-                                                                    inventoryItemId: item._id,
-                                                                    carId: item.carId,
-                                                                    carName: item.carName || `${item.brand} - ${item.color || 'Unknown'}`,
-                                                                    quantity: 1,
-                                                                    unitPrice: item.actualPrice || item.suggestedPrice || 0,
-                                                                    photos: item.photos,
-                                                                    primaryPhotoIndex: item.primaryPhotoIndex,
-                                                                    maxAvailable: item.quantity - (item.reservedQuantity || 0),
-                                                                    brand: item.brand,
-                                                                    color: item.color
-                                                                }]))
+                                                                dispatch(addMultipleToCart([item]))
                                                                 toast.success('Agregado al carrito POS')
                                                             }
                                                         }}

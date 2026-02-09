@@ -58,11 +58,11 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     // Get toy_nums to check inventory
     const toyNums = catalogItems.map(item => item.toy_num)
 
-    // Fetch inventory data for catalog items
+    // Fetch inventory data for catalog items (including items without stock)
     const catalogInventoryItems = await InventoryItemModel
       .find({
-        carId: { $in: toyNums },
-        quantity: { $gt: 0 } // Only items with stock
+        carId: { $in: toyNums }
+        // Show all items, not just those with stock
       })
       .select('carId quantity reservedQuantity actualPrice suggestedPrice')
       .lean()
@@ -71,13 +71,11 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     const inventoryMap = new Map()
     catalogInventoryItems.forEach(item => {
       const available = item.quantity - (item.reservedQuantity || 0)
-      if (available > 0) {
-        inventoryMap.set(item.carId, {
-          available: true,
-          price: item.actualPrice || item.suggestedPrice,
-          quantity: available
-        })
-      }
+      inventoryMap.set(item.carId, {
+        available: available > 0,
+        price: item.actualPrice || item.suggestedPrice,
+        quantity: Math.max(0, available)
+      })
     })
 
     // Enrich catalog items with inventory data
@@ -113,7 +111,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
 
     // ALSO search custom inventory items (not in catalog)
     const inventorySearchFilter: any = {
-      quantity: { $gt: 0 } // Only items with stock
+      // Show all items, not just those with stock
     }
 
     // Apply same search filters for inventory
@@ -157,12 +155,10 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
         wheel_type: null,
         car_make: item.brand || 'Desconocido',
         segment: null,
-        availability: available > 0 ? {
-          available: true,
+        availability: {
+          available: available > 0,
           price: item.actualPrice || item.suggestedPrice,
-          quantity: available
-        } : {
-          available: false
+          quantity: Math.max(0, available)
         }
       }
     })

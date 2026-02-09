@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, MessageCircle, Maximize2, Bell } from 'lucide-react'
+import { MessageCircle, Maximize2, Bell } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { CatalogItem } from '@/services/public'
 import Modal from '@/components/common/Modal'

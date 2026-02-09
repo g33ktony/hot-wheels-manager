@@ -30,6 +30,7 @@ import PreSaleEditPage from './pages/PreSaleEditPage'
 import POS from './pages/POS'
 import GeminiTest from './pages/GeminiTest'
 import { DeliveryAnalytics } from './pages/DeliveryAnalytics'
+import StoreSettings from './pages/StoreSettings'
 
 // Test: Deployment optimization - only frontend changes
 function App() {
@@ -72,6 +73,7 @@ function App() {
                                                 <Route path="/boxes" element={<Boxes />} />
                                                 <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
                                                 <Route path="/theme-settings" element={<ThemeSettings />} />
+                                                <Route path="/store-settings" element={<StoreSettings />} />
                                                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                             </Routes>
                                         </Layout>

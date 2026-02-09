@@ -42,7 +42,9 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 onClick={toggleTheme}
                 icon={isDark ? <Sun size={18} /> : <Moon size={18} />}
                 title={isDark ? 'Modo claro' : 'Modo oscuro'}
-              />
+              >
+                <span className="sr-only">{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
+              </Button>
 
               {/* Admin Login */}
               <Button

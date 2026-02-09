@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { publicService } from '@/services/public'
 import Modal from '@/components/common/Modal'

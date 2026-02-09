@@ -30,6 +30,7 @@ import paymentPlansRoutes from './routes/paymentPlans'
 import searchRoutes from './routes/searchRoutes'
 import publicRoutes from './routes/publicRoutes'
 import leadsRoutes from './routes/leadsRoutes'
+import storeSettingsRoutes from './routes/storeSettingsRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -169,6 +170,7 @@ app.use('/api/presale/payments', authMiddleware, presalePaymentsRoutes)
 app.use('/api/search', authMiddleware, searchRoutes)
 app.use('/api/payment-plans', authMiddleware, paymentPlansRoutes)
 app.use('/api/leads', authMiddleware, leadsRoutes)
+app.use('/api/store-settings', authMiddleware, storeSettingsRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)

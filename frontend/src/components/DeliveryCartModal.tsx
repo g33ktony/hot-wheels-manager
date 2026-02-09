@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
@@ -9,7 +9,7 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { customersService } from '@/services/customers'
 import { deliveriesService } from '@/services/deliveries'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTheme } from '@/contexts/ThemeContext'
 
@@ -220,7 +220,7 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                         </div>
                     ) : (
                         <div className="space-y-3 max-h-96 overflow-y-auto">
-                            {deliveryCartItems.map((item, index) => (
+                            {deliveryCartItems.map((item) => (
                                 <div
                                     key={item.inventoryItemId}
                                     className={`
