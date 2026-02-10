@@ -245,7 +245,7 @@ export default function CatalogBrowser() {
                     <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
                       {suggestion.photo_url ? (
                         <img
-                          src={`https://images.weserv.nl/?url=${encodeURIComponent(suggestion.photo_url)}&w=48&h=48&fit=cover`}
+                          src={`https://images.weserv.nl/?url=${suggestion.photo_url}&w=48&h=48&fit=cover`}
                           alt={suggestion.carModel}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -381,7 +381,7 @@ export default function CatalogBrowser() {
                 <div className="relative h-48 bg-slate-700 flex items-center justify-center">
                   {item.photo_url ? (
                     <img
-                      src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(item.photo_url)}&w=300&h=200&fit=contain`}
+                      src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${item.photo_url}&w=300&h=200&fit=contain`}
                       alt={item.carModel}
                       className="w-full h-full object-cover"
                       onError={(e) => {

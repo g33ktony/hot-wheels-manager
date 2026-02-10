@@ -62,7 +62,7 @@ export default function CatalogItemDetailModal({
               {item.photo_url ? (
                 <>
                   <img
-                    src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(item.photo_url)}&w=600&h=400&fit=contain`}
+                    src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${item.photo_url}&w=600&h=400&fit=contain`}
                     alt={item.carModel}
                     className="w-full h-80 object-cover"
                     onError={(e) => {
@@ -133,7 +133,7 @@ export default function CatalogItemDetailModal({
                       <div className="w-16 h-16 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
                         {car.photo_url ? (
                           <img
-                            src={car.photo_url.includes('weserv') ? car.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(car.photo_url)}&w=64&h=64&fit=contain`}
+                            src={car.photo_url.includes('weserv') ? car.photo_url : `https://images.weserv.nl/?url=${car.photo_url}&w=64&h=64&fit=contain`}
                             alt={car.casting_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {

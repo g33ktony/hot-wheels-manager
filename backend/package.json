@@ -23,7 +23,12 @@
     "fix:dates": "tsx src/scripts/fixDateMigration.ts --fix",
     "fandom-scraper": "tsx src/scripts/fandom-scraper.ts",
     "update-pack-photos": "tsx src/scripts/update-pack-photos.ts",
-    "update-pack-items-photos": "tsx src/scripts/update-pack-items-photos.ts"
+    "update-pack-items-photos": "tsx src/scripts/update-pack-items-photos.ts",
+    "clean-photo-urls": "tsx src/scripts/clean-photo-urls.ts",
+    "decode-photo-urls": "tsx src/scripts/decode-photo-urls.ts",
+    "reencode-photo-urls": "tsx src/scripts/reencode-photo-urls.ts",
+    "fix-incomplete-urls": "tsx src/scripts/fix-incomplete-urls.ts",
+    "fix-incomplete-urls-v2": "tsx src/scripts/fix-incomplete-urls-v2.ts"
   },
   "keywords": [
     "hot-wheels",

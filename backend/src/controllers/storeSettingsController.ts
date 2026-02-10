@@ -36,7 +36,7 @@ export const getStoreSettings = async (req: Request, res: Response) => {
 
 export const updateStoreSettings = async (req: Request, res: Response) => {
   try {
-    const { storeName, logo, description, customMessages, colors, contact } = req.body
+    const { storeName, logo, description, customMessages, colors, contact, publicCatalog } = req.body
 
     // Validaciones básicas
     if (storeName && typeof storeName !== 'string') {
@@ -49,7 +49,7 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
 
     // Obtener o crear settings
     let settings = await StoreSettingsModel.findOne({})
-    
+
     if (!settings) {
       settings = await StoreSettingsModel.create({
         storeName: storeName || 'Mi Tienda de Hot Wheels',
@@ -63,32 +63,40 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
           custom: []
         },
         colors,
-        contact
+        contact,
+        publicCatalog
       })
     } else {
       // Actualizar
       if (storeName) settings.storeName = storeName
       if (logo !== undefined) settings.logo = logo
       if (description !== undefined) settings.description = description
-      
+
       if (customMessages) {
         settings.customMessages = {
           ...settings.customMessages,
           ...customMessages
         }
       }
-      
+
       if (colors) {
         settings.colors = {
           ...settings.colors,
           ...colors
         }
       }
-      
+
       if (contact) {
         settings.contact = {
           ...settings.contact,
           ...contact
+        }
+      }
+
+      if (publicCatalog) {
+        settings.publicCatalog = {
+          ...settings.publicCatalog,
+          ...publicCatalog
         }
       }
 
