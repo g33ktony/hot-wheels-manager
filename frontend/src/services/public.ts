@@ -37,6 +37,14 @@ export interface CatalogItem {
     quantity?: number
     ebayPrice?: number
   }
+  pack_contents?: Array<{
+    casting_name: string
+    body_color?: string
+    tampo?: string
+    wheel_type?: string
+    notes?: string
+    photo_url?: string
+  }>
 }
 
 export interface LeadData {

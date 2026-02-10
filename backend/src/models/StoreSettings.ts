@@ -21,6 +21,9 @@ export interface IStoreSettings extends Document {
     email?: string
     address?: string
   }
+  publicCatalog?: {
+    showCustomInventory?: boolean  // Control para mostrar/ocultar inventario personalizado en búsqueda pública
+  }
   createdAt: Date
   updatedAt: Date
 }
@@ -86,6 +89,12 @@ const storeSettingsSchema = new Schema<IStoreSettings>({
     address: {
       type: String,
       default: null
+    }
+  },
+  publicCatalog: {
+    showCustomInventory: {
+      type: Boolean,
+      default: false  // Por defecto, NO mostrar inventario personalizado en búsqueda pública
     }
   }
 }, {

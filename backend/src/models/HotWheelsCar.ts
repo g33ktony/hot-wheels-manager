@@ -15,14 +15,22 @@ export interface IHotWheelsCar extends Document {
   car_make?: string;
   segment?: string;
   country?: string;
+  pack_contents?: Array<{
+    casting_name: string;
+    body_color?: string;
+    tampo?: string;
+    wheel_type?: string;
+    notes?: string;
+    photo_url?: string;
+  }>;
 }
 
 const hotWheelsCarSchema = new Schema<IHotWheelsCar>({
   toy_num: { type: String, required: true, unique: true },
-  col_num: { type: String, required: true },
+  col_num: { type: String, default: '' }, // Optional for classic models
   carModel: { type: String, required: true },
   series: { type: String, required: true },
-  series_num: { type: String, required: true },
+  series_num: { type: String, default: '' }, // Optional for classic models
   photo_url: { type: String },
   year: { type: String, required: true },
   // Campos opcionales adicionales
@@ -32,6 +40,18 @@ const hotWheelsCarSchema = new Schema<IHotWheelsCar>({
   car_make: { type: String },
   segment: { type: String },
   country: { type: String },
+  // Contenido del pack (para multi-packs)
+  pack_contents: {
+    type: [{
+      casting_name: { type: String },
+      body_color: { type: String },
+      tampo: { type: String },
+      wheel_type: { type: String },
+      notes: { type: String },
+      photo_url: { type: String }
+    }],
+    default: undefined
+  }
 }, {
   timestamps: true,
 })

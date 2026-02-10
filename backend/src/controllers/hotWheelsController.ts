@@ -52,42 +52,73 @@ const calculateSimilarity = (str1: string, str2: string): number => {
 }
 
 // Función para buscar con fuzzy matching en todos los campos
-const fuzzyMatch = (car: any, searchTerm: string, threshold = 0.45): { match: boolean; score: number } => {
+// Mejoras v2: threshold dinámico y priorización de campos
+const fuzzyMatch = (car: any, searchTerm: string, baseThreshold = 0.45): { match: boolean; score: number } => {
   const searchLower = searchTerm.toLowerCase().trim()
-  
-  // Campos a buscar
-  const fields = [
-    String(car.model || ''),
-    String(car.series || ''),
-    String(car.year || ''),
-    String(car.toy_num || ''),
-    String(car.col_num || ''),
-    String(car.series_num || '')
+
+  if (!searchLower) {
+    return { match: false, score: 0 }
+  }
+
+  // Threshold dinámico: búsquedas más cortas necesitan mayor precisión
+  const dynamicThreshold = searchLower.length <= 4
+    ? Math.max(baseThreshold + 0.25, 0.7) // Búsquedas cortas: threshold alto
+    : baseThreshold
+
+  // Campos con pesos diferentes (priorizar model/car_make)
+  const fieldsWithWeights = [
+    { field: String(car.model || ''), weight: 1.0, name: 'model' },            // Máxima prioridad
+    { field: String(car.series || ''), weight: 0.8, name: 'series' },          // Alta prioridad
+    { field: String(car.car_make || ''), weight: 0.9, name: 'car_make' },      // Alta prioridad
+    { field: String(car.year || ''), weight: 0.6, name: 'year' },              // Media prioridad
+    { field: String(car.toy_num || ''), weight: 0.5, name: 'toy_num' },        // Baja prioridad
+    { field: String(car.col_num || ''), weight: 0.4, name: 'col_num' },        // Baja prioridad
+    { field: String(car.series_num || ''), weight: 0.4, name: 'series_num' }   // Baja prioridad
   ]
-  
+
   let maxScore = 0
-  
-  for (const field of fields) {
+  let bestFieldName = ''
+
+  for (const { field, weight, name } of fieldsWithWeights) {
     const fieldLower = field.toLowerCase()
-    
+
+    if (!fieldLower) continue
+
+    let fieldScore = 0
+
     // Coincidencia exacta = máxima puntuación
     if (fieldLower === searchLower) {
       return { match: true, score: 1.0 }
     }
-    
+
     // Contiene el término = alta puntuación
     if (fieldLower.includes(searchLower)) {
-      maxScore = Math.max(maxScore, 0.9)
-      continue
+      fieldScore = 0.95 // Score muy alto para términos contenidos
+    } else {
+      // Calcular similitud
+      const similarity = calculateSimilarity(fieldLower, searchLower)
+      fieldScore = similarity
     }
-    
-    // Calcular similitud
-    const similarity = calculateSimilarity(fieldLower, searchLower)
-    maxScore = Math.max(maxScore, similarity)
+
+    // Aplicar peso del campo
+    const weightedScore = fieldScore * weight
+
+    if (weightedScore > maxScore) {
+      maxScore = weightedScore
+      bestFieldName = name
+    }
   }
-  
+
+  // Boost adicional si la mejor coincidencia es en model o car_make
+  if (bestFieldName === 'model' || bestFieldName === 'car_make') {
+    maxScore = Math.min(maxScore * 1.1, 1.0)
+  }
+
+  // Para términos contenidos (score 0.95), siempre hacer match
+  const effectiveThreshold = maxScore >= 0.9 ? 0.45 : dynamicThreshold
+
   return {
-    match: maxScore >= threshold,
+    match: maxScore >= effectiveThreshold,
     score: maxScore
   }
 }

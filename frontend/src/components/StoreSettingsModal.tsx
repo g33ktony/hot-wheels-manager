@@ -376,6 +376,39 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Public Catalog Settings */}
+                            <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-gray-50'}`}>
+                                <h3 className={`font-semibold mb-4 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    🌍 Configuración del Catálogo Público
+                                </h3>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={settings.publicCatalog?.showCustomInventory ?? false}
+                                        onChange={(e) => setSettings({
+                                            ...settings,
+                                            publicCatalog: {
+                                                ...settings.publicCatalog,
+                                                showCustomInventory: e.target.checked
+                                            }
+                                        })}
+                                        className={`mt-1 w-5 h-5 rounded border transition-colors ${
+                                            isDark
+                                                ? 'bg-slate-600 border-slate-500 checked:bg-emerald-600'
+                                                : 'border-gray-300 checked:bg-emerald-500'
+                                        }`}
+                                    />
+                                    <div className="flex-1">
+                                        <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                            Mostrar inventario personalizado en búsqueda pública
+                                        </span>
+                                        <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                                            Si está desactivado, solo se mostrará el catálogo oficial de Hot Wheels en la búsqueda pública. Actívalo cuando quieras que tus clientes vean tus autos personalizados.
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
                         </>
                     )}
                 </div>

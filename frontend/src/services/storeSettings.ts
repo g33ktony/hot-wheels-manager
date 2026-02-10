@@ -22,6 +22,9 @@ export interface StoreSettings {
     email?: string
     address?: string
   }
+  publicCatalog?: {
+    showCustomInventory?: boolean
+  }
   createdAt?: string
   updatedAt?: string
 }

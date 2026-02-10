@@ -33,21 +33,29 @@ const seedDatabase = async () => {
 
     // Validate and transform data
     console.log(`📦 Preparando ${hotwheelsData.length} registros para carga...`)
-    
+
+    // Transform data: JSON uses "model" but MongoDB schema uses "carModel"
+    const transformedData = hotwheelsData.map((item: any) => ({
+      ...item,
+      carModel: item.model, // Map "model" to "carModel"
+      // Remove old "model" field to avoid confusion
+      model: undefined
+    }))
+
     let successCount = 0
     let errorCount = 0
     const batchSize = 100
 
-    for (let i = 0; i < hotwheelsData.length; i += batchSize) {
-      const batch = hotwheelsData.slice(i, i + batchSize)
-      
+    for (let i = 0; i < transformedData.length; i += batchSize) {
+      const batch = transformedData.slice(i, i + batchSize)
+
       try {
         await HotWheelsCarModel.insertMany(batch, { ordered: false })
         successCount += batch.length
-        console.log(`✅ Procesados: ${Math.min(i + batchSize, hotwheelsData.length)}/${hotwheelsData.length}`)
+        console.log(`✅ Procesados: ${Math.min(i + batchSize, transformedData.length)}/${transformedData.length}`)
       } catch (error: any) {
         console.warn(`⚠️  Error en lote ${i}-${i + batchSize}:`, error.message)
-        
+
         // Try individual inserts for this batch
         for (const item of batch) {
           try {

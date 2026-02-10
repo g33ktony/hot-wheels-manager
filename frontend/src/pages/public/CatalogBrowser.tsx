@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -14,11 +14,12 @@ export default function CatalogBrowser() {
   const { mode } = useTheme()
   const isDark = mode === 'dark'
   const [searchParams, setSearchParams] = useSearchParams()
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
 
   // State
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '')
-  const [seriesFilter, setSeriesFilter] = useState(searchParams.get('series') || '')
   const [results, setResults] = useState<CatalogItem[]>([])
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -28,6 +29,11 @@ export default function CatalogBrowser() {
   const [leadCaptured, setLeadCaptured] = useState(false)
   const [pendingItemForLead, setPendingItemForLead] = useState<CatalogItem | null>(null)
 
+  // Autocomplete state
+  const [suggestions, setSuggestions] = useState<CatalogItem[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+
   // Check if lead already captured
   useEffect(() => {
     const captured = localStorage.getItem('leadCaptured')
@@ -36,6 +42,64 @@ export default function CatalogBrowser() {
     }
   }, [])
 
+  // Fetch suggestions (debounced)
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchTerm.length < 2) {
+        setSuggestions([])
+        setShowSuggestions(false)
+        return
+      }
+
+      setLoadingSuggestions(true)
+      try {
+        const response = await publicService.searchCatalog({
+          q: searchTerm,
+          page: 1,
+          limit: 8 // Just get top 8 suggestions
+        })
+        setSuggestions(response.data)
+        setShowSuggestions(true)
+      } catch (error) {
+        console.error('Error fetching suggestions:', error)
+        setSuggestions([])
+      } finally {
+        setLoadingSuggestions(false)
+      }
+    }
+
+    const timeoutId = setTimeout(fetchSuggestions, 300) // Debounce 300ms
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm])
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Handle suggestion click
+  const handleSuggestionClick = (suggestion: CatalogItem) => {
+    setSearchTerm(suggestion.carModel)
+    setShowSuggestions(false)
+    setPage(1)
+    // Trigger search with selected model
+    setTimeout(() => {
+      handleSearch()
+    }, 100)
+  }
+
   // Search function
   const handleSearch = async () => {
     setLoading(true)
@@ -43,7 +107,6 @@ export default function CatalogBrowser() {
       const response = await publicService.searchCatalog({
         q: searchTerm,
         year: yearFilter,
-        series: seriesFilter,
         page,
         limit: 20
       })
@@ -55,7 +118,6 @@ export default function CatalogBrowser() {
       const newParams: Record<string, string> = {}
       if (searchTerm) newParams.q = searchTerm
       if (yearFilter) newParams.year = yearFilter
-      if (seriesFilter) newParams.series = seriesFilter
       setSearchParams(newParams)
     } catch (error) {
       console.error('Error searching catalog:', error)
@@ -65,10 +127,10 @@ export default function CatalogBrowser() {
     }
   }
 
-  // Search on mount and when page changes
+  // Search on mount and when filters change
   useEffect(() => {
     handleSearch()
-  }, [page])
+  }, [page, yearFilter])
 
   // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
@@ -120,8 +182,9 @@ export default function CatalogBrowser() {
     }
   }
 
-  // Available years (2000-2024)
-  const years = Array.from({ length: 25 }, (_, i) => (2024 - i).toString())
+  // Available years (current year down to 1968)
+  const currentYear = new Date().getFullYear()
+  const years = Array.from({ length: currentYear - 1967 }, (_, i) => (currentYear - i).toString())
 
   return (
     <PublicLayout>
@@ -139,13 +202,19 @@ export default function CatalogBrowser() {
       <div className={`max-w-4xl mx-auto mb-8 p-6 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-white'
         } shadow-md`}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Search Input */}
+          {/* Search Input with Autocomplete */}
           <div className="relative">
             <Input
+              ref={searchInputRef}
               type="text"
               placeholder="Buscar por modelo, serie o fabricante..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => {
+                if (suggestions.length > 0) {
+                  setShowSuggestions(true)
+                }
+              }}
               className="pl-10"
             />
             <SearchIcon
@@ -153,32 +222,119 @@ export default function CatalogBrowser() {
                 }`}
               size={20}
             />
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div
+                ref={suggestionsRef}
+                className={`absolute z-10 w-full mt-1 rounded-lg shadow-lg border max-h-96 overflow-y-auto ${isDark
+                    ? 'bg-slate-800 border-slate-700'
+                    : 'bg-white border-slate-200'
+                  }`}
+              >
+                {suggestions.map((suggestion) => (
+                  <div
+                    key={suggestion._id}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 border-b last:border-b-0 ${isDark
+                        ? 'border-slate-700 hover:bg-slate-700'
+                        : 'border-slate-100 hover:bg-slate-50'
+                      }`}
+                  >
+                    {/* Small thumbnail */}
+                    <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
+                      {suggestion.photo_url ? (
+                        <img
+                          src={`https://images.weserv.nl/?url=${encodeURIComponent(suggestion.photo_url)}&w=48&h=48&fit=cover`}
+                          alt={suggestion.carModel}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none'
+                          }}
+                        />
+                      ) : (
+                        <span className="text-xl">🏎️</span>
+                      )}
+                    </div>
+
+                    {/* Model info */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {suggestion.carModel}
+                      </p>
+                      <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        {suggestion.series} • {suggestion.year}
+                      </p>
+                    </div>
+
+                    {/* Availability badge */}
+                    {suggestion.availability?.available && (
+                      <div className="flex-shrink-0 px-2 py-1 bg-green-500 text-white text-xs rounded">
+                        Disponible
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Loading indicator */}
+            {loadingSuggestions && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Loader2 className={`animate-spin ${isDark ? 'text-slate-400' : 'text-slate-500'}`} size={18} />
+              </div>
+            )}
           </div>
 
-          {/* Filters */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <select
-              value={yearFilter}
-              onChange={(e) => setYearFilter(e.target.value)}
-              className={`px-4 py-2 rounded-lg border ${isDark
-                  ? 'bg-slate-700 border-slate-600 text-white'
-                  : 'bg-white border-slate-300 text-slate-900'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500`}
-            >
-              <option value="">Todos los años</option>
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+          {/* Year Filter - Button Grid */}
+          <div>
+            <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+              Filtrar por año
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {/* All Years Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setYearFilter('')
+                  setPage(1)
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  yearFilter === ''
+                    ? isDark
+                      ? 'bg-primary-600 text-white shadow-lg'
+                      : 'bg-primary-500 text-white shadow-lg'
+                    : isDark
+                    ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                Todos
+              </button>
 
-            <Input
-              type="text"
-              placeholder="Filtrar por serie..."
-              value={seriesFilter}
-              onChange={(e) => setSeriesFilter(e.target.value)}
-            />
+              {/* Year Buttons */}
+              {years.map((year) => (
+                <button
+                  key={year}
+                  type="button"
+                  onClick={() => {
+                    setYearFilter(year)
+                    setPage(1)
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    yearFilter === year
+                      ? isDark
+                        ? 'bg-primary-600 text-white shadow-lg'
+                        : 'bg-primary-500 text-white shadow-lg'
+                      : isDark
+                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Search Button */}

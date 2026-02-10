@@ -116,6 +116,53 @@ export default function CatalogItemDetailModal({
               <DetailRow label="Col #" value={item.col_num} isDark={isDark} />
             </div>
 
+            {/* Pack Contents - Show if this is a multi-pack */}
+            {item.pack_contents && item.pack_contents.length > 0 && (
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+                <h3 className={`font-semibold mb-3 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                  📦 Contenido del Pack ({item.pack_contents.length} autos)
+                </h3>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {item.pack_contents.map((car, index) => (
+                    <div
+                      key={index}
+                      className={`p-3 rounded border flex gap-3 ${isDark ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-200'
+                        }`}
+                    >
+                      {/* Car Photo */}
+                      <div className="w-16 h-16 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
+                        {car.photo_url ? (
+                          <img
+                            src={car.photo_url.includes('weserv') ? car.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(car.photo_url)}&w=64&h=64&fit=contain`}
+                            alt={car.casting_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image'
+                            }}
+                          />
+                        ) : (
+                          <span className="text-2xl">🏎️</span>
+                        )}
+                      </div>
+
+                      {/* Car Details */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          {car.casting_name}
+                        </p>
+                        <div className={`text-xs space-y-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                          {car.body_color && <p>Color: {car.body_color}</p>}
+                          {car.tampo && <p>Tampo: {car.tampo}</p>}
+                          {car.wheel_type && <p>Ruedas: {car.wheel_type}</p>}
+                          {car.notes && <p className="text-xs italic">{car.notes}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Availability & Pricing */}
             {item.availability.available ? (
               <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-300'

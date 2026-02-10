@@ -20,7 +20,10 @@
     "migrate:recreate-deliveries": "tsx src/scripts/recreateCompletedDeliveries.ts",
     "migrate:sales-snapshot": "tsx src/scripts/migrateSalesSnapshot.ts",
     "fix:dates:preview": "tsx src/scripts/fixDateMigration.ts --preview",
-    "fix:dates": "tsx src/scripts/fixDateMigration.ts --fix"
+    "fix:dates": "tsx src/scripts/fixDateMigration.ts --fix",
+    "fandom-scraper": "tsx src/scripts/fandom-scraper.ts",
+    "update-pack-photos": "tsx src/scripts/update-pack-photos.ts",
+    "update-pack-items-photos": "tsx src/scripts/update-pack-items-photos.ts"
   },
   "keywords": [
     "hot-wheels",
@@ -32,8 +35,10 @@
   "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@types/cheerio": "^0.22.35",
     "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.2.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
