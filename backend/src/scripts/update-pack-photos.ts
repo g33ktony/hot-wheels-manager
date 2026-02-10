@@ -93,7 +93,7 @@ async function updatePackPhotos() {
 
     // Find all packs without photo_url
     const packsWithoutPhotos = await HotWheelsCarModel.find({
-      pack_contents: { $exists: true, $ne: null, $ne: [] },
+      pack_contents: { $exists: true, $nin: [null, []] },
       $or: [
         { photo_url: { $exists: false } },
         { photo_url: null },

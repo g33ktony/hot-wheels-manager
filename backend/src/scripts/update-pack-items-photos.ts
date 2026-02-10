@@ -142,7 +142,7 @@ async function updatePackItemsPhotos() {
 
     // Find all packs with pack_contents
     const packs = await HotWheelsCarModel.find({
-      pack_contents: { $exists: true, $ne: null, $ne: [] }
+      pack_contents: { $exists: true, $nin: [null, []] }
     }).select('_id carModel toy_num pack_contents').lean()
 
     console.log(`📦 Encontrados ${packs.length} packs con contenido\n`)
