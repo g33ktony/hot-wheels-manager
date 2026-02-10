@@ -344,6 +344,28 @@ async function parsePage(pageId: number, title: string): Promise<ParsedVehicle[]
 }
 
 /**
+ * Detecta si un vehículo es una serie premium
+ */
+function isPremiumSeries(series: string): boolean {
+  if (!series) return false
+  const premiumKeywords = [
+    'elite',
+    'rlc',
+    'red line club',
+    'hwc',
+    'hot wheels collector',
+    'premium',
+    'collector edition',
+    'treasure hunt',
+    'super treasure hunt',
+    'collector series',
+    'exclusive'
+  ]
+  const lowerSeries = series.toLowerCase()
+  return premiumKeywords.some(keyword => lowerSeries.includes(keyword))
+}
+
+/**
  * Valida que un vehículo tenga datos mínimos requeridos
  */
 function validateVehicle(vehicle: ParsedVehicle): boolean {
@@ -367,15 +389,23 @@ async function scrapeFandom() {
     await mongoose.connect(mongoURI)
     console.log('✅ Conectado a MongoDB\n')
 
-    // Categories to scrape - ONLY RECENT YEARS (2020-2025)
+    // Categories to scrape - EXTENDED YEARS WITH FOCUS ON PREMIUM SERIES
     const categories = [
-      // Recent years only
-      ...Array.from({ length: 6 }, (_, i) => `${2020 + i} Hot Wheels`)
+      // Extended range to capture premium series (2015-2025)
+      ...Array.from({ length: 11 }, (_, i) => `${2015 + i} Hot Wheels`),
+      // Premium series specific categories
+      'Elite 64 - 1 by Mattel Series',
+      'Premium Series',
+      'Collector Edition',
+      'Treasure Hunt',
+      'Super Treasure Hunt'
     ]
 
     let totalVehicles = 0
     let successCount = 0
+    let skipCount = 0
     let errorCount = 0
+    let premiumCount = 0
 
     for (const category of categories) {
       console.log(`\n${'='.repeat(60)}`)
@@ -411,9 +441,15 @@ async function scrapeFandom() {
                 await HotWheelsCarModel.create(vehicle)
                 successCount++
                 totalVehicles++
+
+                // Track premium series
+                if (isPremiumSeries(vehicle.series)) {
+                  premiumCount++
+                }
               } catch (error: any) {
                 if (error.code === 11000) {
                   // Duplicate - skip silently
+                  skipCount++
                   continue
                 }
                 errorCount++
@@ -423,7 +459,7 @@ async function scrapeFandom() {
           }
         }
       } else {
-        // No subcategories - process members directly (for classic years)
+        // No subcategories - process members directly (for premium categories)
         const members = await getCategoryMembers(category)
         await sleep(DELAY_MS)
 
@@ -443,9 +479,15 @@ async function scrapeFandom() {
               await HotWheelsCarModel.create(vehicle)
               successCount++
               totalVehicles++
+
+              // Track premium series
+              if (isPremiumSeries(vehicle.series)) {
+                premiumCount++
+              }
             } catch (error: any) {
               if (error.code === 11000) {
                 // Duplicate - skip silently
+                skipCount++
                 continue
               }
               errorCount++
@@ -457,6 +499,7 @@ async function scrapeFandom() {
 
       console.log(`\n📊 Progreso categoría "${category}":`)
       console.log(`   ✓ Exitosos: ${successCount}`)
+      console.log(`   ⏭️  Duplicados: ${skipCount}`)
       console.log(`   ✗ Errores: ${errorCount}`)
     }
 
@@ -465,8 +508,42 @@ async function scrapeFandom() {
     console.log('='.repeat(60))
     console.log(`📊 Total vehículos procesados: ${totalVehicles}`)
     console.log(`✅ Guardados exitosamente: ${successCount}`)
+    console.log(`⏭️  Duplicados saltados: ${skipCount}`)
     console.log(`❌ Errores: ${errorCount}`)
+    console.log(`🏆 Series premium importadas: ${premiumCount}`)
     console.log(`📦 Total en BD: ${await HotWheelsCarModel.countDocuments()}`)
+
+    // Show breakdown of premium series found
+    console.log(`\n${'='.repeat(60)}`)
+    console.log('Series Premium Encontradas:')
+    console.log('='.repeat(60))
+
+    const premiumSeriesBreakdown = await HotWheelsCarModel.collection.aggregate([
+      {
+        $match: {
+          series: {
+            $regex: /elite|rlc|red line club|hwc|premium|collector edition|treasure hunt|exclusive/i
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$series',
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]).toArray()
+
+    if (premiumSeriesBreakdown.length > 0) {
+      for (const s of premiumSeriesBreakdown) {
+        console.log(`  • ${s._id}: ${s.count} autos`)
+      }
+    } else {
+      console.log(`  ℹ️  No se encontraron series premium en el scraping.`)
+    }
 
   } catch (error) {
     console.error('❌ Error durante el scraping:', error)
