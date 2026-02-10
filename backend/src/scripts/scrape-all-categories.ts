@@ -327,6 +327,17 @@ function isPremiumSeries(series: string): boolean {
 }
 
 /**
+ * Detecta si es mainline (categoría más común/estándar)
+ */
+function isMainline(series: string): boolean {
+  if (!series) return false
+  const lowerSeries = series.toLowerCase()
+  return lowerSeries.includes('mainline') ||
+         lowerSeries.match(/^\d{4}\s+Hot Wheels/) ||
+         lowerSeries.match(/^Hot Wheels \d{4}/)
+}
+
+/**
  * Scraper principal - todos los categorías
  */
 async function scrapeAllCategories() {
@@ -353,6 +364,7 @@ async function scrapeAllCategories() {
     let skipCount = 0
     let errorCount = 0
     let premiumCount = 0
+    let mainlineCount = 0
     let processedCategories = 0
     let emptyCategories = 0
     const seriesCounts: Record<string, number> = {}
@@ -397,6 +409,9 @@ async function scrapeAllCategories() {
             if (isPremiumSeries(vehicle.series)) {
               premiumCount++
             }
+            if (isMainline(vehicle.series)) {
+              mainlineCount++
+            }
           } catch (error: any) {
             if (error.code === 11000) {
               skipCount++
@@ -416,7 +431,8 @@ async function scrapeAllCategories() {
     console.log(`   ✅ Guardados exitosamente: ${successCount}`)
     console.log(`   ⏭️  Duplicados saltados: ${skipCount}`)
     console.log(`   ❌ Errores: ${errorCount}`)
-    console.log(`   🏆 Series premium: ${premiumCount}`)
+    console.log(`   📍 Mainline: ${mainlineCount}`)
+    console.log(`   🏆 Premium: ${premiumCount}`)
     console.log(`   📦 Total en BD: ${await HotWheelsCarModel.countDocuments()}`)
     console.log(`\n📁 Categorías:`)
     console.log(`   Total encontradas: ${allCategories.length}`)
@@ -434,8 +450,10 @@ async function scrapeAllCategories() {
       .slice(0, 30)
 
     sortedSeries.forEach((s, i) => {
-      const isPremium = isPremiumSeries(s[0]) ? ' 🏆' : ''
-      console.log(`${(i + 1).toString().padStart(2)}. ${s[0]}: ${s[1]} autos${isPremium}`)
+      let badge = ''
+      if (isMainline(s[0])) badge = ' 📍'
+      else if (isPremiumSeries(s[0])) badge = ' 🏆'
+      console.log(`${(i + 1).toString().padStart(2)}. ${s[0]}: ${s[1]} autos${badge}`)
     })
 
   } catch (error) {
