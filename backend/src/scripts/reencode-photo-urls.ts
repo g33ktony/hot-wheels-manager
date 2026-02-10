@@ -24,8 +24,7 @@ async function reencodePhotoUrls() {
   const carsWithSpecialChars = await HotWheelsCarModel.find({
     photo_url: {
       $exists: true,
-      $ne: null,
-      $ne: '',
+      $nin: [null, ''],
       $regex: /['()]/  // Find URLs with apostrophes or parentheses
     }
   }).lean()

@@ -30,7 +30,7 @@ async function cleanPhotoUrls() {
 
   // Get all cars with photo_url
   const cars = await HotWheelsCarModel.find({
-    photo_url: { $exists: true, $ne: null, $ne: '' }
+    photo_url: { $exists: true, $nin: [null, ''] }
   }).lean()
 
   console.log(`📦 Encontrados ${cars.length} autos con foto_url\n`)

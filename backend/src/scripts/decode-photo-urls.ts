@@ -21,7 +21,7 @@ async function decodePhotoUrls() {
 
   // Find all cars with encoded characters in photo_url
   const carsWithEncodedUrls = await HotWheelsCarModel.find({
-    photo_url: { $exists: true, $ne: null, $ne: '', $regex: /%[0-9A-F]{2}/i }
+    photo_url: { $exists: true, $nin: [null, ''], $regex: /%[0-9A-F]{2}/i }
   }).lean()
 
   console.log(`📦 Encontrados ${carsWithEncodedUrls.length} autos con URLs codificadas\n`)

@@ -66,8 +66,7 @@ async function fixIncompleteUrls() {
   const carsWithIncompleteUrls = await HotWheelsCarModel.find({
     photo_url: {
       $exists: true,
-      $ne: null,
-      $ne: '',
+      $nin: [null, ''],
       $regex: /^https:\/\/static\.wikia\.nocookie\.net\/hotwheels\/images\/[^\/]+\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$/i
     }
   }).select('_id carModel toy_num photo_url').lean()

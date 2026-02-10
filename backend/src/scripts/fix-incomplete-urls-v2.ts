@@ -72,8 +72,7 @@ async function fixIncompleteUrlsImproved() {
   const carsWithIncompleteUrls = await HotWheelsCarModel.find({
     photo_url: {
       $exists: true,
-      $ne: null,
-      $ne: '',
+      $nin: [null, ''],
       $regex: /^https:\/\/static\.wikia\.nocookie\.net\/hotwheels\/images\/[^\/]+\.(jpg|jpeg|png|gif|webp|JPG|JPEG|PNG|GIF|WEBP)$/i
     }
   }).select('_id carModel toy_num photo_url').lean()
@@ -95,7 +94,7 @@ async function fixIncompleteUrlsImproved() {
     const car = carsWithIncompleteUrls[i]
 
     // Extract filename from incomplete URL
-    const filename = extractFilename(car.photo_url)
+    const filename = car.photo_url ? extractFilename(car.photo_url) : null
 
     if (!filename) {
       console.log(`[${i + 1}/${carsWithIncompleteUrls.length}] ${car.carModel} - ⏭️  URL malformada, saltando`)
