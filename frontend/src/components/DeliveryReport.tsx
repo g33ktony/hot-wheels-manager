@@ -332,7 +332,8 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             <table className="w-full" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '50%' }}>Artículo</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '12%' }}>Foto</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '38%' }}>Artículo</th>
                   <th className="px-4 py-3 text-center text-sm font-bold" style={{ width: '15%' }}>Cant.</th>
                   <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Precio Unit.</th>
                   <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Total</th>
@@ -341,6 +342,22 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
               <tbody className="divide-y divide-gray-200 bg-white">
                 {delivery.items.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-center">
+                      {item.photos && item.photos.length > 0 ? (
+                        <img
+                          src={item.photos[item.primaryPhotoIndex || 0]}
+                          alt={item.carName}
+                          className="w-12 h-12 object-cover rounded border border-gray-300"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none'
+                          }}
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded border border-gray-300 flex items-center justify-center text-xs text-gray-500">
+                          Sin foto
+                        </div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900" style={{ wordBreak: 'break-word' }}>{item.carName}</td>
                     <td className="px-4 py-3 text-center text-sm text-gray-900">
                       <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold">
@@ -354,7 +371,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
               </tbody>
               <tfoot className="bg-gradient-to-r from-green-50 to-green-100">
                 <tr>
-                  <td colSpan={3} className="px-4 py-4 text-right text-base font-bold text-gray-900">Total a Pagar:</td>
+                  <td colSpan={4} className="px-4 py-4 text-right text-base font-bold text-gray-900">Total a Pagar:</td>
                   <td className="px-4 py-4 text-right">
                     <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg">
                       <span className="text-xl font-bold">{formatCurrency(delivery.totalAmount)}</span>
