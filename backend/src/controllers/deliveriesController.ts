@@ -260,9 +260,10 @@ export const createDelivery = async (req: Request, res: Response) => {
             enrichedItems[i] = {
               ...item,
               carId: inventoryItem.carId, // Ensure correct carId
-              carName: inventoryItem.carName || `${inventoryItem.brand} - ${inventoryItem.color || 'Unknown'}`, // Use real carName
+              carName: inventoryItem.carName || `${inventoryItem.brand} - ${inventoryItem.series || inventoryItem.color || 'Unknown'}`, // Use real carName, prefer series over color
               brand: inventoryItem.brand,
               color: inventoryItem.color,
+              series: inventoryItem.series,
               photos: inventoryItem.photos || [],
               primaryPhotoIndex: inventoryItem.primaryPhotoIndex || 0,
               costPrice: inventoryItem.purchasePrice || 0 // Save cost price from inventory
