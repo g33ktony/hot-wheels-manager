@@ -332,9 +332,9 @@ function isPremiumSeries(series: string): boolean {
 function isMainline(series: string): boolean {
   if (!series) return false
   const lowerSeries = series.toLowerCase()
-  return lowerSeries.includes('mainline') ||
+  return !!(lowerSeries.includes('mainline') ||
          lowerSeries.match(/^\d{4}\s+Hot Wheels/) ||
-         lowerSeries.match(/^Hot Wheels \d{4}/)
+         lowerSeries.match(/^Hot Wheels \d{4}/))
 }
 
 /**
@@ -371,7 +371,8 @@ async function scrapeAllCategories() {
 
     console.log(`\n${'='.repeat(60)}`)
     console.log('Iniciando procesamiento de categorías...')
-    console.log('='.repeat(60))\n`)
+    console.log('='.repeat(60))
+    console.log('')
 
     // Process each category
     for (let i = 0; i < relevantCategories.length; i++) {
