@@ -266,19 +266,33 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Status Badge */}
       <div className="mb-6">
-        <div className={`inline-flex items-center justify-center h-9 px-6 rounded-full text-sm font-semibold leading-none ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
+        <div className={`inline-flex items-center px-6 rounded-full text-sm font-semibold ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
           delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' :
             delivery.status === 'prepared' ? 'bg-blue-100 text-blue-800' :
               'bg-yellow-100 text-yellow-800'
-          }`}>
+          }`}
+          style={{
+            height: '32px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: '1',
+            padding: '0 24px'
+          }}>
           Estado: {statusToSpanish(delivery.status as any)}
         </div>
       </div>
 
       {/* Customer Info */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
-          <div className="w-1 h-7 bg-blue-600 rounded"></div>
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1" style={{
+          height: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          lineHeight: '1.75',
+          gap: '8px'
+        }}>
+          <div className="w-1 bg-blue-600 rounded" style={{ height: '28px' }}></div>
           Cliente
         </h3>
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
@@ -296,8 +310,14 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Delivery Details */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
-          <div className="w-1 h-7 bg-blue-600 rounded"></div>
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1" style={{
+          height: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          lineHeight: '1.75',
+          gap: '8px'
+        }}>
+          <div className="bg-blue-600 rounded" style={{ width: '4px', height: '28px' }}></div>
           Detalles de Entrega
         </h3>
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
@@ -323,8 +343,14 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Items Table */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
-          <div className="w-1 h-7 bg-blue-600 rounded"></div>
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1" style={{
+          height: '28px',
+          display: 'flex',
+          alignItems: 'center',
+          lineHeight: '1.75',
+          gap: '8px'
+        }}>
+          <div className="bg-blue-600 rounded" style={{ width: '4px', height: '28px' }}></div>
           Artículos
         </h3>
         <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -386,8 +412,14 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {delivery.payments && delivery.payments.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
-            <div className="w-1 h-7 bg-blue-600 rounded"></div>
+          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1" style={{
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            lineHeight: '1.75',
+            gap: '8px'
+          }}>
+            <div className="bg-blue-600 rounded" style={{ width: '4px', height: '28px' }}></div>
             Información de Pago
           </h3>
           <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border border-green-200">
