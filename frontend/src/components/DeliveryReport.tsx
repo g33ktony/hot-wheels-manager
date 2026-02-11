@@ -266,7 +266,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Status Badge */}
       <div className="mb-6">
-        <div className={`inline-flex items-center h-10 px-6 rounded-full text-sm font-semibold ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
+        <div className={`inline-flex items-center justify-center h-9 px-6 rounded-full text-sm font-semibold leading-none ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
           delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' :
             delivery.status === 'prepared' ? 'bg-blue-100 text-blue-800' :
               'bg-yellow-100 text-yellow-800'
@@ -277,7 +277,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Customer Info */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 h-7">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
           <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Cliente
         </h3>
@@ -296,7 +296,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Delivery Details */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 h-7">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
           <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Detalles de Entrega
         </h3>
@@ -323,7 +323,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Items Table */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 h-7">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
           <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Artículos
         </h3>
@@ -386,7 +386,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {delivery.payments && delivery.payments.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 h-7">
+          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-1 h-7 leading-7">
             <div className="w-1 h-7 bg-blue-600 rounded"></div>
             Información de Pago
           </h3>
