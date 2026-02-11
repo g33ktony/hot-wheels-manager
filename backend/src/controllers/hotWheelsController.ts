@@ -4,6 +4,7 @@ import { ApiResponse } from '@shared/types'
 import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
+import { searchCache, getDistinctSeries, getDistinctYears, getCacheStats, refreshCache } from '../services/hotWheelsCacheService'
 
 /**
  * Función para calcular similitud entre dos strings usando bigramas
@@ -123,97 +124,21 @@ const fuzzyMatch = (car: any, searchTerm: string, baseThreshold = 0.45): { match
   }
 }
 
-// Buscar en el archivo JSON directamente
+// Buscar en el archivo JSON directamente (usando cache en memoria)
 export const searchHotWheelsJSON = async (req: Request, res: Response) => {
   try {
     const { search = '', limit = 100, page = 1, year, series } = req.query
 
-    // Build search filter for MongoDB
-    const searchFilter: any = {}
-
-    // Year filter
-    if (year) {
-      searchFilter.year = year.toString()
-    }
-
-    // Series filter
-    if (series) {
-      searchFilter.series = { $regex: series, $options: 'i' }
-    }
-
-    // Pagination
     const pageNum = parseInt(page as string) || 1
     const limitNum = Math.min(parseInt(limit as string) || 100, 500)
-    const skip = (pageNum - 1) * limitNum
 
-    const searchTerm = search ? search.toString().trim() : ''
-    let cars = []
-    let total = 0
-
-    if (searchTerm) {
-      // Get items that match via regex (fast initial filter)
-      const preFilter: any = {
-        ...searchFilter,
-        $or: [
-          { carModel: { $regex: searchTerm, $options: 'i' } },
-          { series: { $regex: searchTerm, $options: 'i' } },
-          { car_make: { $regex: searchTerm, $options: 'i' } },
-          { toy_num: { $regex: searchTerm, $options: 'i' } }
-        ]
-      }
-
-      const matchedItems = await HotWheelsCarModel
-        .find(preFilter)
-        .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment')
-        .lean()
-
-      // Apply fuzzy matching if we have results
-      if (matchedItems.length > 0) {
-        const scoredResults = matchedItems
-          .map(item => {
-            const { match, score } = fuzzyMatch(item, searchTerm, 0.45)
-            return { item, match, score }
-          })
-          .filter(result => result.match)
-          .sort((a, b) => b.score - a.score)
-
-        cars = scoredResults
-          .slice(skip, skip + limitNum)
-          .map(result => result.item)
-        total = scoredResults.length
-      } else {
-        // No regex matches - try fuzzy on larger dataset
-        const allItems = await HotWheelsCarModel
-          .find(searchFilter)
-          .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment')
-          .limit(5000)
-          .lean()
-
-        const fuzzyResults = allItems
-          .map(item => {
-            const { match, score } = fuzzyMatch(item, searchTerm, 0.45)
-            return { item, match, score }
-          })
-          .filter(result => result.match)
-          .sort((a, b) => b.score - a.score)
-
-        cars = fuzzyResults
-          .slice(skip, skip + limitNum)
-          .map(result => result.item)
-        total = fuzzyResults.length
-      }
-    } else {
-      // No search term - get all items with filters
-      cars = await HotWheelsCarModel
-        .find(searchFilter)
-        .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment')
-        .sort({ year: -1, carModel: 1 })
-        .skip(skip)
-        .limit(limitNum)
-        .lean()
-
-      total = await HotWheelsCarModel.countDocuments(searchFilter)
-    }
+    const result = searchCache({
+      search: search ? search.toString().trim() : '',
+      year: year ? year.toString() : undefined,
+      series: series ? series.toString() : undefined,
+      page: pageNum,
+      limit: limitNum,
+    })
 
     const response: ApiResponse<{
       cars: any[]
@@ -226,12 +151,12 @@ export const searchHotWheelsJSON = async (req: Request, res: Response) => {
     }> = {
       success: true,
       data: {
-        cars,
+        cars: result.cars,
         pagination: {
           page: pageNum,
           limit: limitNum,
-          total,
-          pages: Math.ceil(total / limitNum)
+          total: result.total,
+          pages: Math.ceil(result.total / limitNum)
         }
       }
     }
@@ -344,11 +269,11 @@ export const getHotWheelsCar = async (req: Request, res: Response) => {
 
 export const getSeries = async (req: Request, res: Response) => {
   try {
-    const series = await HotWheelsCarModel.distinct('series')
+    const series = getDistinctSeries()
     
     const response: ApiResponse<string[]> = {
       success: true,
-      data: series.sort(),
+      data: series,
     }
     
     res.status(200).json(response)
@@ -363,11 +288,11 @@ export const getSeries = async (req: Request, res: Response) => {
 
 export const getYears = async (req: Request, res: Response) => {
   try {
-    const years = await HotWheelsCarModel.distinct('year')
+    const years = getDistinctYears()
     
     const response: ApiResponse<string[]> = {
       success: true,
-      data: years.sort().reverse(),
+      data: years,
     }
     
     res.status(200).json(response)
@@ -446,6 +371,9 @@ export const loadDatabase = async (req: Request, res: Response) => {
       },
       message: `Successfully loaded ${loadedCount} cars from ${carsData.length} total records`,
     }
+    
+    // Refresh the in-memory cache after loading new data
+    refreshCache()
     
     res.status(200).json(response)
   } catch (error: any) {

@@ -4,6 +4,7 @@ import { InventoryItemModel } from '../models/InventoryItem'
 import { StoreSettingsModel } from '../models/StoreSettings'
 import Lead from '../models/Lead'
 import axios from 'axios'
+import { searchCache, fuzzyMatchCar, getAllCars } from '../services/hotWheelsCacheService'
 
 /**
  * Función para calcular similitud entre dos strings usando bigramas
@@ -150,92 +151,25 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     const limitNum = Math.min(parseInt(limit as string), 50) // Max 50 items
     const skip = (pageNum - 1) * limitNum
 
-    // Build search filter for catalog
-    const catalogSearchFilter: any = {}
-
-    // Year filter
-    if (year) {
-      catalogSearchFilter.year = year.toString()
-    }
-
-    // Series filter (still use regex for series)
-    if (series) {
-      catalogSearchFilter.series = { $regex: series, $options: 'i' }
-    }
-
-    // Get catalog items
-    // If there's a search query, get more items to apply fuzzy matching
+    // Get catalog items from local JSON cache instead of MongoDB from local JSON cache instead of MongoDB
     const searchTerm = query ? query.toString().trim() : ''
-    let catalogItems = []
+    let catalogItems: any[] = []
     let catalogTotal = 0
 
-    if (searchTerm) {
-      // Get items that match via regex (fast initial filter)
-      const preFilter: any = {
-        ...catalogSearchFilter,
-        $or: [
-          { carModel: { $regex: searchTerm, $options: 'i' } },
-          { series: { $regex: searchTerm, $options: 'i' } },
-          { car_make: { $regex: searchTerm, $options: 'i' } },
-          { toy_num: { $regex: searchTerm, $options: 'i' } }
-        ]
-      }
+    // Use local JSON cache for catalog search
+    const cacheResult = searchCache({
+      search: searchTerm,
+      year: year ? year.toString() : undefined,
+      series: series ? series.toString() : undefined,
+      page: 1,
+      limit: 10000, // Get all matching for this request, paginate later with enriched data
+    })
 
-      const matchedItems = await HotWheelsCarModel
-        .find(preFilter)
-        .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment pack_contents')
-        .limit(1000) // Increased to get more potential matches
-        .lean()
-
-      // Debug: check if pack_contents is in query result
-      const packsFound = matchedItems.filter((i: any) => i.pack_contents && i.pack_contents.length > 0)
-      if (packsFound.length > 0) {
-        console.log(`DEBUG: Query found ${packsFound.length} items with pack_contents`)
-        console.log(`DEBUG: First pack:`, JSON.stringify(packsFound[0].pack_contents?.[0], null, 2))
-      }
-
-      // ALWAYS score and sort results when there's a search term
-      if (matchedItems.length > 0) {
-        const scoredResults = matchedItems
-          .map(item => {
-            const { score } = fuzzyMatch(item, searchTerm, 0.45)
-            return { item, score }
-          })
-          .filter(result => result.score >= 0.45) // Only keep items above threshold
-          .sort((a, b) => b.score - a.score) // Sort by best match FIRST
-
-        catalogItems = scoredResults.map(result => result.item)
-      } else {
-        // No regex matches - try fuzzy on larger dataset
-        const allItems = await HotWheelsCarModel
-          .find(catalogSearchFilter)
-          .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment pack_contents')
-          .limit(5000)
-          .lean()
-
-        const fuzzyResults = allItems
-          .map(item => {
-            const { match, score } = fuzzyMatch(item, searchTerm, 0.45)
-            return { item, match, score }
-          })
-          .filter(result => result.match)
-          .sort((a, b) => b.score - a.score)
-          .map(result => result.item)
-
-        catalogItems = fuzzyResults
-      }
-
-      catalogTotal = catalogItems.length
-    } else {
-      // No search term - get all items with filters
-      catalogItems = await HotWheelsCarModel
-        .find(catalogSearchFilter)
-        .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment pack_contents')
-        .sort({ year: -1, carModel: 1 })
-        .lean()
-
-      catalogTotal = await HotWheelsCarModel.countDocuments(catalogSearchFilter)
-    }
+    catalogItems = cacheResult.cars.map((car, idx) => ({
+      ...car,
+      _id: `cache-${car.toy_num || idx}`,
+    }))
+    catalogTotal = cacheResult.total
 
     // Get toy_nums to check inventory
     const toyNums = catalogItems.map(item => item.toy_num)
@@ -260,13 +194,11 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
       })
     })
 
-    // Enrich pack contents with photos from catalog
-    // Get all unique casting names from all packs
+    // Enrich pack contents with photos from cache (no MongoDB query)
     const allCastingNames = new Set<string>()
     catalogItems.forEach(item => {
       if (item.pack_contents && item.pack_contents.length > 0) {
-        item.pack_contents.forEach(car => {
-          // Add both original name and cleaned name (without leading apostrophes)
+        item.pack_contents.forEach((car: any) => {
           allCastingNames.add(car.casting_name.trim())
           const cleanName = car.casting_name.replace(/^'+/, '').trim()
           if (cleanName !== car.casting_name.trim()) {
@@ -276,30 +208,21 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
       }
     })
 
-    // Fetch photos for all casting names in one query
+    // Fetch photos for casting names from cache instead of MongoDB
     const castingPhotos = new Map<string, string>()
     if (allCastingNames.size > 0) {
-      const castingNameArray = Array.from(allCastingNames)
-
-      // Build regex query for case-insensitive matching
-      // Use startsWith pattern to handle variations (e.g., "'12 Corvette Z06" matches "'12 Corvette Z06" or "'12 Corvette Z06 (2012)")
-      const regexQueries = castingNameArray.map(name => ({
-        carModel: { $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, $options: 'i' }
-      }))
-
-      const carsWithPhotos = await HotWheelsCarModel.find({
-        $or: regexQueries
-      }).select('carModel photo_url').lean()
-
-      carsWithPhotos.forEach(car => {
-        if (car.photo_url) {
-          // Map both exact name and cleaned name (without leading apostrophes)
-          const exactKey = car.carModel.toLowerCase()
-          const cleanedKey = car.carModel.replace(/^'+/, '').toLowerCase()
-          castingPhotos.set(exactKey, car.photo_url)
-          castingPhotos.set(cleanedKey, car.photo_url)
+      const allCachedCars = getAllCars()
+      for (const car of allCachedCars) {
+        if (car.photo_url && (car.carModel || car.model)) {
+          const name = car.carModel || car.model || ''
+          const exactKey = name.toLowerCase()
+          const cleanedKey = name.replace(/^'+/, '').toLowerCase()
+          if (allCastingNames.has(name.trim()) || allCastingNames.has(name.replace(/^'+/, '').trim())) {
+            castingPhotos.set(exactKey, car.photo_url)
+            castingPhotos.set(cleanedKey, car.photo_url)
+          }
         }
-      })
+      }
     }
 
     // Enrich catalog items with inventory data
@@ -309,7 +232,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
       // Enrich pack_contents with photos if available
       let enrichedPackContents = item.pack_contents
       if (item.pack_contents && item.pack_contents.length > 0) {
-        enrichedPackContents = item.pack_contents.map(car => {
+        enrichedPackContents = item.pack_contents.map((car: any) => {
           const cleanName = car.casting_name.replace(/^'+/, '').trim()
           // Try both with and without apostrophes
           const photo = castingPhotos.get(cleanName.toLowerCase()) ||
