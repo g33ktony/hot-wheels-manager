@@ -278,7 +278,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       {/* Customer Info */}
       <div className="mb-6">
         <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
-          <div className="w-1 h-6 bg-blue-600 rounded"></div>
+          <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Cliente
         </h3>
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200 text-center">
@@ -297,7 +297,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       {/* Delivery Details */}
       <div className="mb-6">
         <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
-          <div className="w-1 h-6 bg-blue-600 rounded"></div>
+          <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Detalles de Entrega
         </h3>
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
@@ -324,7 +324,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       {/* Items Table */}
       <div className="mb-6">
         <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
-          <div className="w-1 h-6 bg-blue-600 rounded"></div>
+          <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Artículos
         </h3>
         <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -386,8 +386,8 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {delivery.payments && delivery.payments.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-            <div className="w-1 h-6 bg-blue-600 rounded"></div>
+          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
+            <div className="w-1 h-7 bg-blue-600 rounded"></div>
             Información de Pago
           </h3>
           <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border border-green-200">
