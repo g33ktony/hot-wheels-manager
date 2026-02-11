@@ -260,7 +260,7 @@ export const createDelivery = async (req: Request, res: Response) => {
             enrichedItems[i] = {
               ...item,
               carId: inventoryItem.carId, // Ensure correct carId
-              carName: inventoryItem.carName || `${inventoryItem.brand} - ${inventoryItem.series || inventoryItem.color || 'Unknown'}`, // Use real carName, prefer series over color
+              carName: inventoryItem.carName || inventoryItem.carId || `${inventoryItem.brand} - Unknown`, // Use carId as fallback
               brand: inventoryItem.brand,
               color: inventoryItem.color,
               series: inventoryItem.series,
