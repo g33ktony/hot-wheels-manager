@@ -277,13 +277,13 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Customer Info */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
           <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Cliente
         </h3>
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200 text-center">
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
           <p className="text-xl font-bold text-gray-900 mb-2">{delivery.customer?.name}</p>
-          <div className="flex flex-col gap-2 text-sm justify-center items-center">
+          <div className="flex flex-col gap-2 text-sm">
             {delivery.customer?.phone && (
               <p className="text-gray-700">📱 {delivery.customer.phone}</p>
             )}
@@ -296,25 +296,25 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Delivery Details */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
           <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Detalles de Entrega
         </h3>
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
-          <div className="flex flex-wrap gap-4 mb-4 justify-center">
-            <div className="bg-white p-3 rounded-lg text-center flex-1" style={{ minWidth: '200px' }}>
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
               <p className="text-xs text-gray-600 mb-1">📅 Fecha programada</p>
               <p className="font-bold text-gray-900">{formatDate(delivery.scheduledDate)}</p>
             </div>
             {delivery.scheduledTime && (
-              <div className="bg-white p-3 rounded-lg text-center flex-1" style={{ minWidth: '200px' }}>
+              <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
                 <p className="text-xs text-gray-600 mb-1">🕐 Hora</p>
                 <p className="font-bold text-gray-900">{formatTime(delivery.scheduledTime)}</p>
               </div>
             )}
           </div>
 
-          <div className="bg-white p-3 rounded-lg text-center">
+          <div className="bg-white p-3 rounded-lg">
             <p className="text-xs text-gray-600 mb-1">📍 Ubicación</p>
             <p className="font-semibold text-gray-900">{delivery.location}</p>
           </div>
@@ -323,7 +323,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {/* Items Table */}
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
           <div className="w-1 h-7 bg-blue-600 rounded"></div>
           Artículos
         </h3>
@@ -386,7 +386,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
       {delivery.payments && delivery.payments.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2 justify-center">
+          <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
             <div className="w-1 h-7 bg-blue-600 rounded"></div>
             Información de Pago
           </h3>
