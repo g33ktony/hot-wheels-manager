@@ -371,8 +371,8 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
               </tbody>
               <tfoot className="bg-gradient-to-r from-green-50 to-green-100">
                 <tr>
-                  <td colSpan={4} className="px-4 py-4 text-right text-base font-bold text-gray-900">Total a Pagar:</td>
-                  <td className="px-4 py-4 text-right">
+                  <td colSpan={4} className="px-4 py-4 text-left text-base font-bold text-gray-900">Total a Pagar:</td>
+                  <td className="px-4 py-4 text-left">
                     <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg">
                       <span className="text-xl font-bold">{formatCurrency(delivery.totalAmount)}</span>
                     </div>
