@@ -358,17 +358,17 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             <table className="w-full" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '12%' }}>Foto</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '38%' }}>Artículo</th>
-                  <th className="px-4 py-3 text-center text-sm font-bold" style={{ width: '15%' }}>Cant.</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Precio Unit.</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Total</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '12%', verticalAlign: 'middle' }}>Foto</th>
+                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '38%', verticalAlign: 'middle' }}>Artículo</th>
+                  <th className="px-4 py-3 text-center text-sm font-bold" style={{ width: '15%', verticalAlign: 'middle' }}>Cant.</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%', verticalAlign: 'middle' }}>Precio Unit.</th>
+                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%', verticalAlign: 'middle' }}>Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {delivery.items.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-3 text-center" style={{ verticalAlign: 'middle' }}>
                       {item.photos && item.photos.length > 0 ? (
                         <img
                           src={item.photos[item.primaryPhotoIndex || 0]}
@@ -384,22 +384,22 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900" style={{ wordBreak: 'break-word' }}>{item.carName}</td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-900">
-                      <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900" style={{ wordBreak: 'break-word', verticalAlign: 'middle' }}>{item.carName}</td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-900" style={{ verticalAlign: 'middle' }}>
+                      <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold" style={{ lineHeight: '1', verticalAlign: 'middle' }}>
                         {item.quantity}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-gray-900" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(item.unitPrice * item.quantity)}</td>
+                    <td className="px-4 py-3 text-right text-sm text-gray-900" style={{ whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{formatCurrency(item.unitPrice)}</td>
+                    <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900" style={{ whiteSpace: 'nowrap', verticalAlign: 'middle' }}>{formatCurrency(item.unitPrice * item.quantity)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="bg-gradient-to-r from-green-50 to-green-100">
                 <tr>
-                  <td colSpan={4} className="px-4 py-4 text-left text-base font-bold text-gray-900">Total a Pagar:</td>
-                  <td className="px-4 py-4 text-left">
-                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg">
+                  <td colSpan={4} className="px-4 py-4 text-left text-base font-bold text-gray-900" style={{ verticalAlign: 'middle' }}>Total a Pagar:</td>
+                  <td className="px-4 py-4 text-left" style={{ verticalAlign: 'middle' }}>
+                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg" style={{ lineHeight: '1', display: 'inline-block' }}>
                       <span className="text-xl font-bold">{formatCurrency(delivery.totalAmount)}</span>
                     </div>
                   </td>
