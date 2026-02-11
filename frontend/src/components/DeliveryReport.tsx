@@ -358,17 +358,17 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             <table className="w-full" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '12%' }}>Foto</th>
-                  <th className="px-4 py-3 text-left text-sm font-bold" style={{ width: '38%' }}>Artículo</th>
-                  <th className="px-4 py-3 text-center text-sm font-bold" style={{ width: '15%' }}>Cant.</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Precio Unit.</th>
-                  <th className="px-4 py-3 text-right text-sm font-bold" style={{ width: '17.5%' }}>Total</th>
+                  <th className="px-4 text-left text-sm font-bold" style={{ width: '12%', height: '44px', display: 'flex', alignItems: 'center', padding: '12px 16px' }}>Foto</th>
+                  <th className="px-4 text-left text-sm font-bold" style={{ width: '38%', height: '44px', display: 'flex', alignItems: 'center', padding: '12px 16px' }}>Artículo</th>
+                  <th className="px-4 text-center text-sm font-bold" style={{ width: '15%', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px' }}>Cant.</th>
+                  <th className="px-4 text-right text-sm font-bold" style={{ width: '17.5%', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '12px 16px' }}>Precio Unit.</th>
+                  <th className="px-4 text-right text-sm font-bold" style={{ width: '17.5%', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '12px 16px' }}>Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {delivery.items.map((item, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 text-center" style={{ width: '12%', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 16px' }}>
                       {item.photos && item.photos.length > 0 ? (
                         <img
                           src={item.photos[item.primaryPhotoIndex || 0]}
@@ -384,22 +384,36 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900" style={{ wordBreak: 'break-word' }}>{item.carName}</td>
-                    <td className="px-4 py-3 text-center text-sm text-gray-900">
-                      <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold">
+                    <td className="px-4 text-sm font-medium text-gray-900" style={{ width: '38%', height: '60px', display: 'flex', alignItems: 'center', wordBreak: 'break-word', padding: '12px 16px' }}>{item.carName}</td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-900" style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '40px'
+                    }}>
+                      <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '32px',
+                        height: '32px',
+                        lineHeight: '1',
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                      }}>
                         {item.quantity}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-gray-900" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(item.unitPrice * item.quantity)}</td>
+                    <td className="px-4 text-right text-sm text-gray-900" style={{ width: '17.5%', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', padding: '12px 16px' }}>{formatCurrency(item.unitPrice)}</td>
+                    <td className="px-4 text-right text-sm font-semibold text-gray-900" style={{ width: '17.5%', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', padding: '12px 16px' }}>{formatCurrency(item.unitPrice * item.quantity)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="bg-gradient-to-r from-green-50 to-green-100">
                 <tr>
-                  <td colSpan={4} className="px-4 py-4 text-left text-base font-bold text-gray-900">Total a Pagar:</td>
-                  <td className="px-4 py-4 text-left">
-                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg">
+                  <td colSpan={4} className="px-4 text-left text-base font-bold text-gray-900" style={{ height: '60px', display: 'flex', alignItems: 'center', padding: '12px 16px' }}>Total a Pagar:</td>
+                  <td className="px-4 text-left" style={{ height: '60px', display: 'flex', alignItems: 'center', padding: '12px 16px' }}>
+                    <div className="inline-block bg-green-600 text-white px-4 rounded-lg" style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: '1' }}>
                       <span className="text-xl font-bold">{formatCurrency(delivery.totalAmount)}</span>
                     </div>
                   </td>
