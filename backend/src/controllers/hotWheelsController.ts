@@ -126,43 +126,94 @@ const fuzzyMatch = (car: any, searchTerm: string, baseThreshold = 0.45): { match
 // Buscar en el archivo JSON directamente
 export const searchHotWheelsJSON = async (req: Request, res: Response) => {
   try {
-    const { search = '', limit = 100, page = 1 } = req.query
-    const dbPath = path.join(__dirname, '../../data/hotwheels_database.json')
+    const { search = '', limit = 100, page = 1, year, series } = req.query
 
-    if (!fs.existsSync(dbPath)) {
-      return res.status(404).json({
-        success: false,
-        error: 'Base de datos no encontrada'
-      })
+    // Build search filter for MongoDB
+    const searchFilter: any = {}
+
+    // Year filter
+    if (year) {
+      searchFilter.year = year.toString()
     }
 
-    const fileContent = fs.readFileSync(dbPath, 'utf-8')
-    const allCars = JSON.parse(fileContent)
-
-    let filtered = allCars
-
-    // Buscar en todos los campos con fuzzy matching
-    // Busca en: model, series, year, toy_num, col_num, series_num
-    // Threshold: 0.45 (45% de similitud mínima para considerar una coincidencia)
-    // Los resultados se ordenan por score de mayor a menor
-    if (search && search !== '') {
-      const searchResults = allCars
-        .map((car: any) => {
-          const { match, score } = fuzzyMatch(car, search as string)
-          return { car, match, score }
-        })
-        .filter((result: any) => result.match)
-        .sort((a: any, b: any) => b.score - a.score) // Ordenar por mejor coincidencia
-        .map((result: any) => result.car)
-      
-      filtered = searchResults
+    // Series filter
+    if (series) {
+      searchFilter.series = { $regex: series, $options: 'i' }
     }
 
-    // Aplicar paginación
+    // Pagination
     const pageNum = parseInt(page as string) || 1
-    const limitNum = parseInt(limit as string) || 100
+    const limitNum = Math.min(parseInt(limit as string) || 100, 500)
     const skip = (pageNum - 1) * limitNum
-    const paginatedCars = filtered.slice(skip, skip + limitNum)
+
+    const searchTerm = search ? search.toString().trim() : ''
+    let cars = []
+    let total = 0
+
+    if (searchTerm) {
+      // Get items that match via regex (fast initial filter)
+      const preFilter: any = {
+        ...searchFilter,
+        $or: [
+          { carModel: { $regex: searchTerm, $options: 'i' } },
+          { series: { $regex: searchTerm, $options: 'i' } },
+          { car_make: { $regex: searchTerm, $options: 'i' } },
+          { toy_num: { $regex: searchTerm, $options: 'i' } }
+        ]
+      }
+
+      const matchedItems = await HotWheelsCarModel
+        .find(preFilter)
+        .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment')
+        .lean()
+
+      // Apply fuzzy matching if we have results
+      if (matchedItems.length > 0) {
+        const scoredResults = matchedItems
+          .map(item => {
+            const { match, score } = fuzzyMatch(item, searchTerm, 0.45)
+            return { item, match, score }
+          })
+          .filter(result => result.match)
+          .sort((a, b) => b.score - a.score)
+
+        cars = scoredResults
+          .slice(skip, skip + limitNum)
+          .map(result => result.item)
+        total = scoredResults.length
+      } else {
+        // No regex matches - try fuzzy on larger dataset
+        const allItems = await HotWheelsCarModel
+          .find(searchFilter)
+          .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment')
+          .limit(5000)
+          .lean()
+
+        const fuzzyResults = allItems
+          .map(item => {
+            const { match, score } = fuzzyMatch(item, searchTerm, 0.45)
+            return { item, match, score }
+          })
+          .filter(result => result.match)
+          .sort((a, b) => b.score - a.score)
+
+        cars = fuzzyResults
+          .slice(skip, skip + limitNum)
+          .map(result => result.item)
+        total = fuzzyResults.length
+      }
+    } else {
+      // No search term - get all items with filters
+      cars = await HotWheelsCarModel
+        .find(searchFilter)
+        .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment')
+        .sort({ year: -1, carModel: 1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean()
+
+      total = await HotWheelsCarModel.countDocuments(searchFilter)
+    }
 
     const response: ApiResponse<{
       cars: any[]
@@ -175,12 +226,12 @@ export const searchHotWheelsJSON = async (req: Request, res: Response) => {
     }> = {
       success: true,
       data: {
-        cars: paginatedCars,
+        cars,
         pagination: {
           page: pageNum,
           limit: limitNum,
-          total: filtered.length,
-          pages: Math.ceil(filtered.length / limitNum)
+          total,
+          pages: Math.ceil(total / limitNum)
         }
       }
     }

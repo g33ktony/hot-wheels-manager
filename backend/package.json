@@ -22,6 +22,7 @@
     "fix:dates:preview": "tsx src/scripts/fixDateMigration.ts --preview",
     "fix:dates": "tsx src/scripts/fixDateMigration.ts --fix",
     "fandom-scraper": "tsx src/scripts/fandom-scraper.ts",
+    "complete-scraper": "tsx src/scripts/complete-scraper.ts",
     "update-pack-photos": "tsx src/scripts/update-pack-photos.ts",
     "update-pack-items-photos": "tsx src/scripts/update-pack-items-photos.ts",
     "clean-photo-urls": "tsx src/scripts/clean-photo-urls.ts",
