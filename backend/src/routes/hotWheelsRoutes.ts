@@ -7,7 +7,8 @@ import {
   getYears,
   loadDatabase,
   downloadDatabase,
-  proxyImage
+  proxyImage,
+  exportMongoToJSON
 } from '../controllers/hotWheelsController'
 import { updateHotWheelsCatalog, getUpdateStatus } from '../controllers/hotWheelsUpdateController'
 
@@ -37,6 +38,9 @@ router.get('/years', getYears)
 
 // POST /api/hotwheels/load-database - Load database from JSON file
 router.post('/load-database', loadDatabase)
+
+// POST /api/hotwheels/export-to-json - Export MongoDB to local JSON and refresh cache
+router.post('/export-to-json', exportMongoToJSON)
 
 // GET /api/hotwheels - Get all Hot Wheels cars with pagination and filters
 router.get('/', getHotWheelsCars)

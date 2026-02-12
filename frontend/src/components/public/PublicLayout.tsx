@@ -23,14 +23,9 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             {/* Logo/Brand */}
             <div className="flex items-center space-x-3">
               <div className="text-3xl">🏎️</div>
-              <div>
-                <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Hot Wheels Catalog
-                </h1>
-                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Explora miles de modelos
-                </p>
-              </div>
+              <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Explora Hot Wheels
+              </h1>
             </div>
 
             {/* Navigation */}

@@ -4,7 +4,7 @@ import { ApiResponse } from '@shared/types'
 import fs from 'fs'
 import path from 'path'
 import axios from 'axios'
-import { searchCache, getDistinctSeries, getDistinctYears, getCacheStats, refreshCache } from '../services/hotWheelsCacheService'
+import { searchCache, getDistinctSeries, getDistinctYears, getCacheStats, refreshCache, saveCarsToJSON } from '../services/hotWheelsCacheService'
 
 /**
  * Función para calcular similitud entre dos strings usando bigramas
@@ -405,6 +405,61 @@ export const downloadDatabase = async (req: Request, res: Response) => {
     res.setHeader('Content-Disposition', `attachment; filename="hotwheels_database_${new Date().toISOString().split('T')[0]}.json"`)
     res.send(fileContent)
   } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    })
+  }
+}
+
+/**
+ * Export all MongoDB HotWheelsCar documents to the local JSON file
+ * and refresh the in-memory cache
+ */
+export const exportMongoToJSON = async (req: Request, res: Response) => {
+  try {
+    console.log('📤 Exportando MongoDB a JSON...')
+    
+    const allCars = await HotWheelsCarModel.find({})
+      .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment country pack_contents')
+      .lean()
+    
+    console.log(`   Encontrados ${allCars.length} vehículos en MongoDB`)
+    
+    // Map to normalized format
+    const normalized = allCars.map(car => ({
+      toy_num: car.toy_num || '',
+      col_num: car.col_num || '',
+      carModel: car.carModel || '',
+      model: car.carModel || '', // Keep backward compatibility
+      series: car.series || '',
+      series_num: car.series_num || '',
+      photo_url: car.photo_url || '',
+      year: (car.year || '').toString(),
+      color: car.color || '',
+      tampo: car.tampo || '',
+      wheel_type: car.wheel_type || '',
+      car_make: car.car_make || '',
+      segment: car.segment || '',
+      country: car.country || '',
+      pack_contents: car.pack_contents || undefined,
+    }))
+    
+    // Save to JSON and refresh cache
+    saveCarsToJSON(normalized)
+    
+    const stats = getCacheStats()
+    
+    res.json({
+      success: true,
+      message: `Exportados ${normalized.length} vehículos de MongoDB a JSON`,
+      data: {
+        exported: normalized.length,
+        cacheCount: stats.count,
+      }
+    })
+  } catch (error: any) {
+    console.error('Error exportando MongoDB a JSON:', error)
     res.status(500).json({
       success: false,
       error: error.message

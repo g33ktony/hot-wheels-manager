@@ -24,6 +24,7 @@ export default function CatalogBrowser() {
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
   const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null)
   const [showLeadModal, setShowLeadModal] = useState(false)
   const [leadCaptured, setLeadCaptured] = useState(false)
@@ -113,6 +114,7 @@ export default function CatalogBrowser() {
 
       setResults(response.data)
       setTotalPages(response.pagination.pages)
+      setTotalItems(response.pagination.total || 0)
 
       // Update URL params
       const newParams: Record<string, string> = {}
@@ -190,11 +192,11 @@ export default function CatalogBrowser() {
     <PublicLayout>
       {/* Hero Section */}
       <div className="text-center mb-8">
-        <h1 className={`text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+        <h1 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
           Explora Hot Wheels
         </h1>
-        <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-          Miles de modelos disponibles para coleccionistas
+        <p className={`text-lg font-medium ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
+          {totalItems.toLocaleString()} modelos en catálogo
         </p>
       </div>
 
@@ -228,8 +230,8 @@ export default function CatalogBrowser() {
               <div
                 ref={suggestionsRef}
                 className={`absolute z-10 w-full mt-1 rounded-lg shadow-lg border max-h-96 overflow-y-auto ${isDark
-                    ? 'bg-slate-800 border-slate-700'
-                    : 'bg-white border-slate-200'
+                  ? 'bg-slate-800 border-slate-700'
+                  : 'bg-white border-slate-200'
                   }`}
               >
                 {suggestions.map((suggestion) => (
@@ -237,8 +239,8 @@ export default function CatalogBrowser() {
                     key={suggestion._id}
                     onClick={() => handleSuggestionClick(suggestion)}
                     className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 border-b last:border-b-0 ${isDark
-                        ? 'border-slate-700 hover:bg-slate-700'
-                        : 'border-slate-100 hover:bg-slate-50'
+                      ? 'border-slate-700 hover:bg-slate-700'
+                      : 'border-slate-100 hover:bg-slate-50'
                       }`}
                   >
                     {/* Small thumbnail */}
@@ -299,15 +301,14 @@ export default function CatalogBrowser() {
                   setYearFilter('')
                   setPage(1)
                 }}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  yearFilter === ''
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${yearFilter === ''
                     ? isDark
                       ? 'bg-primary-600 text-white shadow-lg'
                       : 'bg-primary-500 text-white shadow-lg'
                     : isDark
-                    ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                }`}
+                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                  }`}
               >
                 Todos
               </button>
@@ -321,15 +322,14 @@ export default function CatalogBrowser() {
                     setYearFilter(year)
                     setPage(1)
                   }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    yearFilter === year
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${yearFilter === year
                       ? isDark
                         ? 'bg-primary-600 text-white shadow-lg'
                         : 'bg-primary-500 text-white shadow-lg'
                       : isDark
-                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                  }`}
+                        ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                    }`}
                 >
                   {year}
                 </button>
@@ -372,8 +372,8 @@ export default function CatalogBrowser() {
                 key={item._id}
                 onClick={() => handleItemClick(item)}
                 className={`rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${isDark
-                    ? 'bg-slate-800 hover:bg-slate-750 hover:shadow-xl'
-                    : 'bg-white hover:shadow-lg'
+                  ? 'bg-slate-800 hover:bg-slate-750 hover:shadow-xl'
+                  : 'bg-white hover:shadow-lg'
                   } shadow-md border ${isDark ? 'border-slate-700' : 'border-slate-200'
                   }`}
               >
