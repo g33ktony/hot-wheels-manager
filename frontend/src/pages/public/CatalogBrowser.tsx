@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2, ArrowUpNarrowWide, ArrowDownNarrowWide, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { publicService, CatalogItem } from '@/services/public'
 import PublicLayout from '@/components/public/PublicLayout'
@@ -20,11 +20,15 @@ export default function CatalogBrowser() {
   // State
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [results, setResults] = useState<CatalogItem[]>([])
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
+  const [availableYears, setAvailableYears] = useState<string[]>([])
+  const [showYears, setShowYears] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
   const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null)
   const [showLeadModal, setShowLeadModal] = useState(false)
   const [leadCaptured, setLeadCaptured] = useState(false)
@@ -103,11 +107,14 @@ export default function CatalogBrowser() {
 
   // Search function
   const handleSearch = async () => {
+    if (!searchTerm.trim() && !yearFilter) return // Don't search without criteria
+    setHasSearched(true)
     setLoading(true)
     try {
       const response = await publicService.searchCatalog({
         q: searchTerm,
         year: yearFilter,
+        sort: sortOrder,
         page,
         limit: 20
       })
@@ -115,6 +122,9 @@ export default function CatalogBrowser() {
       setResults(response.data)
       setTotalPages(response.pagination.pages)
       setTotalItems(response.pagination.total || 0)
+      if (response.availableYears) {
+        setAvailableYears(response.availableYears)
+      }
 
       // Update URL params
       const newParams: Record<string, string> = {}
@@ -129,10 +139,18 @@ export default function CatalogBrowser() {
     }
   }
 
-  // Search on mount and when filters change
+  // Search when filters change (only if user has already searched)
   useEffect(() => {
-    handleSearch()
-  }, [page, yearFilter])
+    if (hasSearched) handleSearch()
+  }, [page, yearFilter, sortOrder])
+
+  // Auto-search if URL has query params on mount
+  useEffect(() => {
+    if (searchParams.get('q') || searchParams.get('year')) {
+      setHasSearched(true)
+      handleSearch()
+    }
+  }, [])
 
   // Handle form submit
   const handleSubmit = (e: React.FormEvent) => {
@@ -183,10 +201,6 @@ export default function CatalogBrowser() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
-
-  // Available years (current year down to 1968)
-  const currentYear = new Date().getFullYear()
-  const years = Array.from({ length: currentYear - 1967 }, (_, i) => (currentYear - i).toString())
 
   return (
     <PublicLayout>
@@ -288,20 +302,15 @@ export default function CatalogBrowser() {
             )}
           </div>
 
-          {/* Year Filter - Button Grid */}
-          <div>
-            <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              Filtrar por año
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {/* All Years Button */}
+          {/* Sort Order + Year Filter */}
+          <div className="flex flex-col gap-4">
+            {/* Sort Buttons */}
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Orden:</span>
               <button
                 type="button"
-                onClick={() => {
-                  setYearFilter('')
-                  setPage(1)
-                }}
-                className={`px-4 py-2 rounded-lg font-medium transition-all ${yearFilter === ''
+                onClick={() => { setSortOrder('desc'); setPage(1) }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'desc'
                     ? isDark
                       ? 'bg-primary-600 text-white shadow-lg'
                       : 'bg-primary-500 text-white shadow-lg'
@@ -310,31 +319,93 @@ export default function CatalogBrowser() {
                       : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                   }`}
               >
-                Todos
+                <ArrowDownNarrowWide size={16} />
+                Más recientes
               </button>
+              <button
+                type="button"
+                onClick={() => { setSortOrder('asc'); setPage(1) }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'asc'
+                    ? isDark
+                      ? 'bg-primary-600 text-white shadow-lg'
+                      : 'bg-primary-500 text-white shadow-lg'
+                    : isDark
+                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                  }`}
+              >
+                <ArrowUpNarrowWide size={16} />
+                Más antiguos
+              </button>
+            </div>
 
-              {/* Year Buttons */}
-              {years.map((year) => (
+            {/* Collapsible Year Filter - only show when there are results */}
+            {availableYears.length > 0 && (
+              <div>
                 <button
-                  key={year}
                   type="button"
-                  onClick={() => {
-                    setYearFilter(year)
-                    setPage(1)
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${yearFilter === year
-                      ? isDark
-                        ? 'bg-primary-600 text-white shadow-lg'
-                        : 'bg-primary-500 text-white shadow-lg'
-                      : isDark
-                        ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                        : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                  onClick={() => setShowYears(!showYears)}
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
                     }`}
                 >
-                  {year}
+                  {showYears ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  Filtrar por año
+                  {yearFilter && (
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${isDark ? 'bg-primary-600 text-white' : 'bg-primary-500 text-white'}`}>
+                      {yearFilter}
+                    </span>
+                  )}
+                  <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    ({availableYears.length} años)
+                  </span>
                 </button>
-              ))}
-            </div>
+
+                {showYears && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {/* All Years Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setYearFilter('')
+                        setPage(1)
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === ''
+                          ? isDark
+                            ? 'bg-primary-600 text-white shadow-lg'
+                            : 'bg-primary-500 text-white shadow-lg'
+                          : isDark
+                            ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                        }`}
+                    >
+                      Todos
+                    </button>
+
+                    {/* Only relevant year buttons, ordered according to sort */}
+                    {(sortOrder === 'desc' ? availableYears : [...availableYears].reverse()).map((year) => (
+                      <button
+                        key={year}
+                        type="button"
+                        onClick={() => {
+                          setYearFilter(year)
+                          setPage(1)
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === year
+                            ? isDark
+                              ? 'bg-primary-600 text-white shadow-lg'
+                              : 'bg-primary-500 text-white shadow-lg'
+                            : isDark
+                              ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                              : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                          }`}
+                      >
+                        {year}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Search Button */}
@@ -360,7 +431,17 @@ export default function CatalogBrowser() {
       </div>
 
       {/* Results Grid */}
-      {loading ? (
+      {!hasSearched ? (
+        <div className="text-center py-16">
+          <div className="text-7xl mb-6">🏎️</div>
+          <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            ¿Qué modelo buscas?
+          </h3>
+          <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            Escribe un nombre, serie o fabricante para comenzar
+          </p>
+        </div>
+      ) : loading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className={`animate-spin ${isDark ? 'text-slate-400' : 'text-slate-600'}`} size={48} />
         </div>

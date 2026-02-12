@@ -143,6 +143,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
       q: query = '',
       year,
       series,
+      sort: sortOrder = 'desc',
       page = 1,
       limit = 20
     } = req.query
@@ -150,13 +151,27 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     const pageNum = parseInt(page as string)
     const limitNum = Math.min(parseInt(limit as string), 50) // Max 50 items
     const skip = (pageNum - 1) * limitNum
+    const sortDir = (sortOrder as string) === 'asc' ? 'asc' : 'desc'
 
-    // Get catalog items from local JSON cache instead of MongoDB from local JSON cache instead of MongoDB
+    // Get catalog items from local JSON cache
     const searchTerm = query ? query.toString().trim() : ''
     let catalogItems: any[] = []
     let catalogTotal = 0
 
-    // Use local JSON cache for catalog search
+    // First: get ALL matching results WITHOUT year filter to discover available years
+    const allMatchingResult = searchCache({
+      search: searchTerm,
+      series: series ? series.toString() : undefined,
+      page: 1,
+      limit: 50000,
+    })
+    const availableYearsSet = new Set<string>()
+    for (const car of allMatchingResult.cars) {
+      if (car.year) availableYearsSet.add(car.year)
+    }
+    const availableYears = Array.from(availableYearsSet).sort((a, b) => parseInt(b) - parseInt(a))
+
+    // Use local JSON cache for catalog search (with year filter applied)
     const cacheResult = searchCache({
       search: searchTerm,
       year: year ? year.toString() : undefined,
@@ -377,18 +392,20 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     const allItems = [...enrichedCatalogItems, ...enrichedCustomItems]
     const total = catalogTotal + customOnlyItems.length
 
-    // Sort combined results only if NO search term (preserve score-based ordering when searching)
-    if (!searchTerm) {
-      allItems.sort((a, b) => {
-        // Available items first
-        if (a.availability.available && !b.availability.available) return -1
-        if (!a.availability.available && b.availability.available) return 1
-        // Then alphabetically (handle undefined/null carModel)
-        const aModel = a.carModel || ''
-        const bModel = b.carModel || ''
-        return aModel.localeCompare(bModel)
-      })
-    }
+    // Sort by year (asc/desc), then available first, then alphabetically
+    allItems.sort((a, b) => {
+      // Primary sort: year
+      const yA = parseInt(a.year) || 0
+      const yB = parseInt(b.year) || 0
+      if (yA !== yB) return sortDir === 'desc' ? yB - yA : yA - yB
+      // Secondary: available items first
+      if (a.availability.available && !b.availability.available) return -1
+      if (!a.availability.available && b.availability.available) return 1
+      // Tertiary: alphabetically
+      const aModel = a.carModel || ''
+      const bModel = b.carModel || ''
+      return aModel.localeCompare(bModel)
+    })
 
     // Apply pagination to combined results
     const paginatedItems = allItems.slice(skip, skip + limitNum)
@@ -396,6 +413,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     res.json({
       success: true,
       data: paginatedItems,
+      availableYears,
       pagination: {
         page: parseInt(page as string),
         limit: limitNum,

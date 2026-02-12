@@ -13,6 +13,7 @@ export interface CatalogSearchFilters {
   q?: string
   year?: string
   series?: string
+  sort?: 'asc' | 'desc'
   page?: number
   limit?: number
 }
