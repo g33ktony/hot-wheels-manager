@@ -138,8 +138,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                     <button
                         onClick={onClose}
                         className={`p-2 rounded-lg transition-colors ${isDark
-                                ? 'hover:bg-slate-700 text-slate-400'
-                                : 'hover:bg-gray-200 text-gray-600'
+                            ? 'hover:bg-slate-700 text-slate-400'
+                            : 'hover:bg-gray-200 text-gray-600'
                             }`}
                     >
                         <X className="w-5 h-5" />
@@ -169,10 +169,10 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                     type="text"
                                     value={settings.storeName || ''}
                                     onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
-                                    placeholder="Mi Tienda de Hot Wheels"
+                                    placeholder="Mi Tienda de Autos a Escala"
                                     className={`w-full px-4 py-2 rounded-lg border transition-colors ${isDark
-                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500'
-                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-emerald-500'
+                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500'
+                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-emerald-500'
                                         } focus:outline-none`}
                                 />
                             </div>
@@ -196,8 +196,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                     <div className="flex-1">
                                         <label
                                             className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${isDark
-                                                    ? 'border-slate-600 bg-slate-700 hover:bg-slate-600'
-                                                    : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                                                ? 'border-slate-600 bg-slate-700 hover:bg-slate-600'
+                                                : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
                                                 }`}
                                         >
                                             <div className="flex flex-col items-center justify-center pt-4 pb-4">
@@ -232,8 +232,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                     placeholder="Describe brevemente tu tienda..."
                                     rows={3}
                                     className={`w-full px-4 py-2 rounded-lg border transition-colors ${isDark
-                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500'
-                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-emerald-500'
+                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500'
+                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-emerald-500'
                                         } focus:outline-none`}
                                 />
                             </div>
@@ -268,8 +268,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                                     }
                                                 })}
                                                 className={`w-full px-3 py-1 rounded text-sm border transition-colors ${isDark
-                                                        ? 'bg-slate-600 border-slate-500 text-white focus:border-emerald-500'
-                                                        : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
+                                                    ? 'bg-slate-600 border-slate-500 text-white focus:border-emerald-500'
+                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
                                                     } focus:outline-none`}
                                             />
                                         </div>
@@ -288,8 +288,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                         <div
                                             key={idx}
                                             className={`flex items-center justify-between p-3 rounded-lg border ${isDark
-                                                    ? 'bg-slate-700 border-slate-600'
-                                                    : 'bg-gray-50 border-gray-200'
+                                                ? 'bg-slate-700 border-slate-600'
+                                                : 'bg-gray-50 border-gray-200'
                                                 }`}
                                         >
                                             <p className={isDark ? 'text-slate-200' : 'text-gray-700'}>
@@ -298,8 +298,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                             <button
                                                 onClick={() => handleDeleteCustomMessage(idx)}
                                                 className={`p-1 rounded transition-colors ${isDark
-                                                        ? 'hover:bg-red-600/20 text-red-400'
-                                                        : 'hover:bg-red-50 text-red-600'
+                                                    ? 'hover:bg-red-600/20 text-red-400'
+                                                    : 'hover:bg-red-50 text-red-600'
                                                     }`}
                                             >
                                                 <Trash2 className="w-4 h-4" />
@@ -321,15 +321,15 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                         }}
                                         placeholder="Nueva frase personalizada..."
                                         className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${isDark
-                                                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500'
-                                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-emerald-500'
+                                            ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500'
+                                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:border-emerald-500'
                                             } focus:outline-none`}
                                     />
                                     <button
                                         onClick={handleAddCustomMessage}
                                         className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${isDark
-                                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                            : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                                             }`}
                                     >
                                         <Plus className="w-4 h-4" />
@@ -368,8 +368,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                                 })}
                                                 placeholder={label}
                                                 className={`w-full px-3 py-1 rounded text-sm border transition-colors ${isDark
-                                                        ? 'bg-slate-600 border-slate-500 text-white focus:border-emerald-500'
-                                                        : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
+                                                    ? 'bg-slate-600 border-slate-500 text-white focus:border-emerald-500'
+                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-emerald-500'
                                                     } focus:outline-none`}
                                             />
                                         </div>
@@ -393,18 +393,17 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                                                 showCustomInventory: e.target.checked
                                             }
                                         })}
-                                        className={`mt-1 w-5 h-5 rounded border transition-colors ${
-                                            isDark
+                                        className={`mt-1 w-5 h-5 rounded border transition-colors ${isDark
                                                 ? 'bg-slate-600 border-slate-500 checked:bg-emerald-600'
                                                 : 'border-gray-300 checked:bg-emerald-500'
-                                        }`}
+                                            }`}
                                     />
                                     <div className="flex-1">
                                         <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                             Mostrar inventario personalizado en búsqueda pública
                                         </span>
                                         <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                                            Si está desactivado, solo se mostrará el catálogo oficial de Hot Wheels en la búsqueda pública. Actívalo cuando quieras que tus clientes vean tus autos personalizados.
+                                            Si está desactivado, solo se mostrará el catálogo oficial de autos a escala en la búsqueda pública. Actívalo cuando quieras que tus clientes vean tus autos personalizados.
                                         </p>
                                     </div>
                                 </label>
@@ -419,8 +418,8 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                     <button
                         onClick={onClose}
                         className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${isDark
-                                ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                                : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                            ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                            : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
                             }`}
                     >
                         Cancelar
@@ -429,10 +428,10 @@ export const StoreSettingsModal: React.FC<StoreSettingsModalProps> = ({
                         onClick={handleSave}
                         disabled={isSaving}
                         className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isSaving
-                                ? 'opacity-50 cursor-not-allowed'
-                                : isDark
-                                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                            ? 'opacity-50 cursor-not-allowed'
+                            : isDark
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                             }`}
                     >
                         {isSaving ? (

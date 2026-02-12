@@ -114,7 +114,7 @@ const PreSaleDashboard: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Panel de Pre-Ventas</h1>
-                            <p className={`mt-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Gestiona y monitorea tus compras pre-venta de Hot Wheels</p>
+                            <p className={`mt-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Gestiona y monitorea tus compras pre-venta de autos a escala</p>
                         </div>
                         <button
                             onClick={handleRefresh}
@@ -186,7 +186,7 @@ const PreSaleDashboard: React.FC = () => {
                                     filters.supplierId ||
                                     filters.searchTerm
                                     ? 'No se encontraron pre-ventas que coincidan con los filtros aplicados.'
-                                    : 'Comienza a registrar pre-ventas de Hot Wheels.'}
+                                    : 'Comienza a registrar pre-ventas de autos a escala.'}
                             </p>
                         </div>
                     ) : (

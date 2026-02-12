@@ -7,6 +7,7 @@ import { clearDeliveryCart, removeFromDeliveryCart, updateDeliveryCartQuantity, 
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import { DEFAULT_PLACEHOLDER } from '@/utils/placeholderLogo'
 import { customersService } from '@/services/customers'
 import { deliveriesService } from '@/services/deliveries'
 import { Trash2 } from 'lucide-react'
@@ -236,12 +237,12 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                                                 alt={item.carName}
                                                 className="w-16 h-12 object-cover rounded"
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x48?text=No+Image'
+                                                    (e.target as HTMLImageElement).src = DEFAULT_PLACEHOLDER
                                                 }}
                                             />
                                         ) : (
-                                            <div className="w-16 h-12 bg-slate-700 rounded flex items-center justify-center">
-                                                <span className="text-xs text-slate-400">Sin foto</span>
+                                            <div className="w-16 h-12 bg-slate-700 rounded flex items-center justify-center overflow-hidden">
+                                                <img src={DEFAULT_PLACEHOLDER} alt="Auto a Escala" className="w-full h-full object-contain p-0.5" />
                                             </div>
                                         )}
 

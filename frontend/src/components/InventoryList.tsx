@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { Edit, Trash2 } from 'lucide-react'
 import type { InventoryItem } from '@shared/types'
+import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 
 interface InventoryListProps {
   items: InventoryItem[]
@@ -134,8 +135,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({
                   alt={carName}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      'https://via.placeholder.com/300x200?text=No+Image'
+                    (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
                   }}
                   onClick={() => onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
                 />
@@ -147,7 +147,7 @@ export const InventoryList: React.FC<InventoryListProps> = ({
               </div>
             ) : (
               <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400">Sin imagen</span>
+                <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-6" />
               </div>
             )}
 

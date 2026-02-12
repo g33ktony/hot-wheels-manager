@@ -25,7 +25,9 @@ export interface CatalogItem {
   carModel: string
   series: string
   series_num: string
+  sub_series?: string
   photo_url?: string
+  photo_url_carded?: string
   year: string
   color?: string
   tampo?: string

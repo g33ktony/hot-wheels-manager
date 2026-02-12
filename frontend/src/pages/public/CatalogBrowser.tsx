@@ -8,6 +8,7 @@ import CatalogItemDetailModal from '@/components/public/CatalogItemDetailModal'
 import LeadCaptureModal from '@/components/public/LeadCaptureModal'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import toast from 'react-hot-toast'
 
 export default function CatalogBrowser() {
@@ -207,11 +208,13 @@ export default function CatalogBrowser() {
       {/* Hero Section */}
       <div className="text-center mb-8">
         <h1 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          Explora Hot Wheels
+          Explora Autos a Escala
         </h1>
-        <p className={`text-lg font-medium ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
-          {totalItems.toLocaleString()} modelos en catálogo
-        </p>
+        {totalItems > 0 && (
+          <p className={`text-lg font-medium ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
+            {totalItems.toLocaleString()} modelos en catálogo
+          </p>
+        )}
       </div>
 
       {/* Search Section */}
@@ -269,7 +272,7 @@ export default function CatalogBrowser() {
                           }}
                         />
                       ) : (
-                        <span className="text-xl">🏎️</span>
+                        <img src={getPlaceholderLogo(suggestion.series)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
                       )}
                     </div>
 
@@ -311,12 +314,12 @@ export default function CatalogBrowser() {
                 type="button"
                 onClick={() => { setSortOrder('desc'); setPage(1) }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'desc'
-                    ? isDark
-                      ? 'bg-primary-600 text-white shadow-lg'
-                      : 'bg-primary-500 text-white shadow-lg'
-                    : isDark
-                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                  ? isDark
+                    ? 'bg-primary-600 text-white shadow-lg'
+                    : 'bg-primary-500 text-white shadow-lg'
+                  : isDark
+                    ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                   }`}
               >
                 <ArrowDownNarrowWide size={16} />
@@ -326,12 +329,12 @@ export default function CatalogBrowser() {
                 type="button"
                 onClick={() => { setSortOrder('asc'); setPage(1) }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'asc'
-                    ? isDark
-                      ? 'bg-primary-600 text-white shadow-lg'
-                      : 'bg-primary-500 text-white shadow-lg'
-                    : isDark
-                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                      : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                  ? isDark
+                    ? 'bg-primary-600 text-white shadow-lg'
+                    : 'bg-primary-500 text-white shadow-lg'
+                  : isDark
+                    ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                   }`}
               >
                 <ArrowUpNarrowWide size={16} />
@@ -370,12 +373,12 @@ export default function CatalogBrowser() {
                         setPage(1)
                       }}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === ''
-                          ? isDark
-                            ? 'bg-primary-600 text-white shadow-lg'
-                            : 'bg-primary-500 text-white shadow-lg'
-                          : isDark
-                            ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                        ? isDark
+                          ? 'bg-primary-600 text-white shadow-lg'
+                          : 'bg-primary-500 text-white shadow-lg'
+                        : isDark
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                         }`}
                     >
                       Todos
@@ -391,12 +394,12 @@ export default function CatalogBrowser() {
                           setPage(1)
                         }}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === year
-                            ? isDark
-                              ? 'bg-primary-600 text-white shadow-lg'
-                              : 'bg-primary-500 text-white shadow-lg'
-                            : isDark
-                              ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                              : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                          ? isDark
+                            ? 'bg-primary-600 text-white shadow-lg'
+                            : 'bg-primary-500 text-white shadow-lg'
+                          : isDark
+                            ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                           }`}
                       >
                         {year}
@@ -433,7 +436,7 @@ export default function CatalogBrowser() {
       {/* Results Grid */}
       {!hasSearched ? (
         <div className="text-center py-16">
-          <div className="text-7xl mb-6">🏎️</div>
+          <img src="/hot-wheels-placeholder.png" alt="Auto a Escala" className="w-48 h-32 mx-auto mb-6 opacity-60" />
           <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             ¿Qué modelo buscas?
           </h3>
@@ -466,13 +469,11 @@ export default function CatalogBrowser() {
                       alt={item.carModel}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image'
+                        (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
                       }}
                     />
                   ) : (
-                    <div className={`text-6xl ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-                      🏎️
-                    </div>
+                    <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
                   )}
 
                   {/* Availability Badge */}

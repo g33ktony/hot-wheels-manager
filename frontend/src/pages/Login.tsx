@@ -116,7 +116,7 @@ const Login: React.FC = () => {
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Gestiona tu colección de Hot Wheels</p>
+          <p>Gestiona tu colección de autos a escala</p>
         </div>
       </div>
     </div>

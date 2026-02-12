@@ -81,7 +81,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                 value={searchTerm}
                 onChange={handleInputChange}
                 onFocus={() => searchTerm.length > 0 && setShowSuggestions(true)}
-                placeholder={placeholder || 'Buscar Hot Wheels...'}
+                placeholder={placeholder || 'Buscar auto a escala...'}
                 required={required}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                 style={{
@@ -154,7 +154,7 @@ export default function AutocompleteCarId({ value, onChange, onSelect, placehold
                     }}
                 >
                     <div className="text-sm text-gray-500 text-center select-none">
-                        No se encontraron Hot Wheels con "{searchTerm}"
+                        No se encontraron autos a escala con "{searchTerm}"
                     </div>
                 </div>
             )}

@@ -1,4 +1,5 @@
 import React from 'react'
+import { DEFAULT_PLACEHOLDER } from '@/utils/placeholderLogo'
 
 interface SaleDetailContentProps {
     sale: any
@@ -7,7 +8,7 @@ interface SaleDetailContentProps {
 }
 
 const proxifyImageUrl = (url: string) => {
-    if (!url) return '/placeholder.png'
+    if (!url) return DEFAULT_PLACEHOLDER
     // Si la URL ya es un placeholder, devolverla sin cambios
     if (url.includes('placeholder')) return url
     // Si es una URL de Cloudinary, proxificarla
@@ -148,7 +149,7 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                                                         alt={`${item.carName} - Foto ${photoIdx + 1}`}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
-                                                            e.currentTarget.src = '/placeholder.png'
+                                                            e.currentTarget.src = DEFAULT_PLACEHOLDER
                                                         }}
                                                     />
                                                 </div>

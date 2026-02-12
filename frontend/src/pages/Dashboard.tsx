@@ -13,6 +13,7 @@ import Modal from '@/components/common/Modal'
 import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 import { Package, Truck, TrendingUp, DollarSign, AlertTriangle, Calendar, Clock, MapPin, AlertCircle, ShoppingBag, CalendarCheck, Archive, Percent, RefreshCw, Search, X, Download } from 'lucide-react'
 import PreSaleAlertSection from '@/components/Dashboard/PreSaleAlertSection'
+import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import toast from 'react-hot-toast'
 
 export default function Dashboard() {
@@ -194,7 +195,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between gap-4">
                 <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-white">Dashboard</h1>
-                    <p className="text-sm lg:text-base text-slate-400">Resumen general de tu negocio de Hot Wheels</p>
+                    <p className="text-sm lg:text-base text-slate-400">Resumen general de tu negocio de autos a escala</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                     <Button
@@ -484,7 +485,7 @@ export default function Dashboard() {
                         updateCatalogMutation.reset()
                     }
                 }}
-                title="Actualizar Catálogo de Hot Wheels"
+                title="Actualizar Catálogo de Autos a Escala"
                 maxWidth="md"
                 footer={
                     <div className="flex gap-3">
@@ -521,7 +522,7 @@ export default function Dashboard() {
                                 <p className="text-sm text-white">
                                     <span className="font-semibold">📥 Descargar datos actualizados</span>
                                     <br className="mt-2" />
-                                    Esto descargará el catálogo completo de Hot Wheels desde la Wiki de Fandom (1995 - {new Date().getFullYear()}) y actualizará la base de datos local.
+                                    Esto descargará el catálogo completo de autos a escala desde la Wiki de Fandom (1995 - {new Date().getFullYear()}) y actualizará la base de datos local.
                                 </p>
                             </div>
 
@@ -567,7 +568,7 @@ export default function Dashboard() {
                             <p className="text-white">
                                 <span className="font-semibold">✅ Actualización completada</span>
                                 <br className="mt-2" />
-                                El catálogo de Hot Wheels ha sido actualizado exitosamente.
+                                El catálogo de autos a escala ha sido actualizado exitosamente.
                             </p>
                         </div>
                     )}
@@ -591,7 +592,7 @@ export default function Dashboard() {
                     setShowSearchModal(false)
                     setSearchQuery('')
                 }}
-                title="Buscar en Hot Wheels"
+                title="Buscar en Autos a Escala"
                 footer={
                     <div className="flex gap-2">
                         <Button
@@ -678,20 +679,21 @@ export default function Dashboard() {
                                                             model: item.model,
                                                             url: item.photo_url
                                                         });
-                                                        // Fallback a emoji
+                                                        // Fallback a placeholder
                                                         (e.currentTarget as HTMLImageElement).style.display = 'none';
                                                         const parent = (e.currentTarget as HTMLImageElement).parentElement;
                                                         if (parent && !parent.querySelector('[data-fallback]')) {
-                                                            const fallback = document.createElement('div');
+                                                            const fallback = document.createElement('img');
                                                             fallback.setAttribute('data-fallback', 'true');
-                                                            fallback.className = 'flex items-center justify-center text-6xl';
-                                                            fallback.textContent = '🚗';
+                                                            fallback.src = getPlaceholderLogo(item.series);
+                                                            fallback.alt = 'Auto a Escala';
+                                                            fallback.className = 'w-full h-full object-contain p-2';
                                                             parent.appendChild(fallback);
                                                         }
                                                     }}
                                                 />
                                             ) : (
-                                                <div className="flex items-center justify-center text-6xl">🚗</div>
+                                                <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
                                             )}
                                         </div>
                                         {/* Datos */}

@@ -1396,7 +1396,7 @@ export default function ItemDetail() {
                     <div className="space-y-4">
                         <div>
                             <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
-                                Código/ID del Hot Wheels
+                                Código/ID del auto a escala
                             </label>
                             <input
                                 type="text"

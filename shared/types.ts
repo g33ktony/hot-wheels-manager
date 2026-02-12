@@ -6,7 +6,9 @@ export interface HotWheelsCar {
   model: string;
   series: string;
   series_num: string;
+  sub_series?: string;
   photo_url?: string;
+  photo_url_carded?: string;
   year: string;
   // Campos adicionales que se pueden agregar
   color?: string;

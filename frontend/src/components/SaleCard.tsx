@@ -1,6 +1,7 @@
 import { Eye, Trash2 } from 'lucide-react'
 import Button from '@/components/common/Button'
 import { useTheme } from '@/contexts/ThemeContext'
+import { DEFAULT_PLACEHOLDER } from '@/utils/placeholderLogo'
 
 interface SaleCardProps {
     sale: any
@@ -139,12 +140,12 @@ export default function SaleCard({
                                                 alt={item.carId || 'Item'}
                                                 className="w-16 h-12 object-cover rounded border border-slate-600 hover:border-primary-400 transition-colors"
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x60?text=No+Image'
+                                                    (e.target as HTMLImageElement).src = DEFAULT_PLACEHOLDER
                                                 }}
                                             />
                                         ) : (
-                                            <div className="w-16 h-12 bg-slate-700 rounded border border-slate-600 flex items-center justify-center">
-                                                <span className="text-xs text-slate-400">Sin foto</span>
+                                            <div className="w-16 h-12 bg-slate-700 rounded border border-slate-600 flex items-center justify-center overflow-hidden">
+                                                <img src={DEFAULT_PLACEHOLDER} alt="Auto a Escala" className="w-full h-full object-contain p-0.5" />
                                             </div>
                                         )}
                                         {/* Quantity badge */}

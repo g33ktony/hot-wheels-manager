@@ -17,7 +17,7 @@ const GeminiTest: React.FC = () => {
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">🤖 Prueba Gemini Vision AI</h1>
           <p className="text-slate-400">
-            Sube una foto de un Hot Wheels para identificarlo automáticamente
+            Sube una foto de un auto a escala para identificarlo automáticamente
           </p>
         </div>
 
@@ -26,7 +26,7 @@ const GeminiTest: React.FC = () => {
             <h2 className="text-xl font-semibold mb-2">Cómo usar:</h2>
             <ol className="list-decimal list-inside space-y-2 text-gray-700">
               <li>Haz clic en "Analizar con IA" abajo</li>
-              <li>Sube una foto clara del Hot Wheels</li>
+              <li>Sube una foto clara del auto a escala</li>
               <li>Espera el análisis de Gemini Flash</li>
               <li>Revisa los resultados y coincidencias</li>
               <li>Selecciona el match correcto si hay opciones</li>
@@ -34,7 +34,7 @@ const GeminiTest: React.FC = () => {
           </div>
 
           <div className="border-t pt-6">
-            <CarImageAnalyzer 
+            <CarImageAnalyzer
               onSelectMatch={handleSelectMatch}
               onAnalysisComplete={handleAnalysisComplete}
             />

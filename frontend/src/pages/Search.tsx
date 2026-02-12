@@ -8,6 +8,7 @@ import {
     Plus, TrendingUp, MapPin, Phone, Mail, X, Edit, Save, Trash2
 } from 'lucide-react'
 import Button from '@/components/common/Button'
+import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import toast from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/redux'
 import { addToCart } from '@/store/slices/cartSlice'
@@ -963,8 +964,8 @@ export default function Search() {
                                     <button
                                         onClick={() => setCatalogYearFilter(null)}
                                         className={`px-3 py-1 text-sm rounded-full transition-colors ${catalogYearFilter === null
-                                                ? `${isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-600 text-white'}`
-                                                : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`
+                                            ? `${isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-600 text-white'}`
+                                            : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`
                                             }`}
                                     >
                                         Todos
@@ -974,8 +975,8 @@ export default function Search() {
                                             key={year}
                                             onClick={() => setCatalogYearFilter(year)}
                                             className={`px-3 py-1 text-sm rounded-full transition-colors font-medium ${catalogYearFilter === year
-                                                    ? `${isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-600 text-white'}`
-                                                    : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`
+                                                ? `${isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-600 text-white'}`
+                                                : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`
                                                 }`}
                                         >
                                             {year}
@@ -1005,20 +1006,21 @@ export default function Search() {
                                                         onLoad={() => console.log('✅ Imagen catálogo cargada:', result.title)}
                                                         onError={(e) => {
                                                             console.warn('❌ Error cargando imagen del proxy:', result.title, result.metadata?.photoUrl);
-                                                            // Fallback a emoji
+                                                            // Fallback a placeholder
                                                             (e.currentTarget as HTMLImageElement).style.display = 'none';
                                                             const parent = (e.currentTarget as HTMLImageElement).parentElement;
                                                             if (parent && !parent.querySelector('[data-fallback]')) {
-                                                                const fallback = document.createElement('div');
+                                                                const fallback = document.createElement('img');
                                                                 fallback.setAttribute('data-fallback', 'true');
-                                                                fallback.className = 'absolute inset-0 flex items-center justify-center text-2xl';
-                                                                fallback.textContent = '🚗';
+                                                                fallback.src = getPlaceholderLogo(result.metadata?.series);
+                                                                fallback.alt = 'Auto a Escala';
+                                                                fallback.className = 'absolute inset-0 w-full h-full object-contain p-1';
                                                                 parent.appendChild(fallback);
                                                             }
                                                         }}
                                                     />
                                                 ) : (
-                                                    <div className="text-2xl">🚗</div>
+                                                    <img src={getPlaceholderLogo(result.metadata?.series)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
                                                 )}
                                             </div>
                                             <div className="flex-1">

@@ -32,6 +32,7 @@ interface TableData {
   rows: string[][]
   columnMap: Record<string, number>
   sectionYear: string | null  // Año extraído del encabezado de sección
+  sectionName: string | null  // Nombre completo de la sección (e.g. "Mix 4")
 }
 
 type ScrapeTask = {
@@ -50,12 +51,14 @@ function parseTables(wikitext: string): TableData[] {
   let currentTable: string[] | null = null
   let tableStack = 0
   let lastSectionYear: string | null = null
+  let lastSectionName: string | null = null
 
   for (const line of lines) {
-    // Detectar encabezados de sección == ... == para extraer el año
+    // Detectar encabezados de sección == ... == para extraer el año y nombre
     const sectionMatch = line.match(/^={2,}\s*(.+?)\s*={2,}$/)
     if (sectionMatch) {
-      const sectionText = sectionMatch[1]
+      const sectionText = sectionMatch[1].trim()
+      lastSectionName = sectionText
       // Buscar años como "2017", "2024" en el texto del encabezado
       const yearMatch = sectionText.match(/((?:19|20)\d{2})/)
       if (yearMatch) {
@@ -75,6 +78,7 @@ function parseTables(wikitext: string): TableData[] {
       if (tableStack === 0 && currentTable) {
         const tableData = processSingleTable(currentTable)
         tableData.sectionYear = lastSectionYear
+        tableData.sectionName = lastSectionName
         tables.push(tableData)
         currentTable = null
       }
@@ -260,12 +264,12 @@ function processSingleTable(tableLines: string[]): TableData {
   }
 
   const columnMap = mapColumns(headers)
-  return { headers, rows, columnMap, sectionYear: null }
+  return { headers, rows, columnMap, sectionYear: null, sectionName: null }
 }
 
 function cleanWikitext(text: string): string {
   return text
-    .replace(/\[\[(?:File|Image):[^\]]+\]\]/gi, '') // Eliminar imágenes/archivos [[File:...|...]]
+    .replace(/\[\[(?:File|Image):([^\]|]+)(?:\|[^\]]+)?\]\]/gi, 'wiki-file:$1') // Preservar nombres de archivo como marcador
     .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2') // Enlaces [[Link|Display]] -> Display
     .replace(/\[\[([^\]]+)\]\]/g, '$1') // Enlaces simples [[Link]] -> Link
     .replace(/\{\{[^}]*\}\}/g, '') // Eliminar plantillas {{...}}
@@ -314,12 +318,23 @@ function mapColumns(headers: string[]): Record<string, number> {
       map.country = i
     } else if (/notes/i.test(header)) {
       map.notes = i
-    } else if (/photo|image/i.test(header)) {
+    } else if (/photo\s*loose/i.test(header)) {
       map.photo = i
+    } else if (/photo\s*carded/i.test(header)) {
+      map.photo_carded = i
+    } else if (/photo|image/i.test(header)) {
+      if (map.photo === undefined) map.photo = i
     }
   }
   
   return map
+}
+
+/**
+ * Strips wiki-file: markers from text fields (they should only be in photo columns)
+ */
+function stripFileMarkers(text: string): string {
+  return text.replace(/wiki-file:\S+/gi, '').trim()
 }
 
 /**
@@ -342,21 +357,25 @@ function extractVehiclesFromTable(
     
     // Extrae datos usando el mapeo de columnas
     const vehicle: any = {
-      carModel: cleanWikitext(row[table.columnMap.name] || ''),
-      toy_num: cleanWikitext(row[table.columnMap.toy_num] || row[table.columnMap.number] || ''),
-      year: cleanWikitext(row[table.columnMap.year] || '') || table.sectionYear || year || '',
-      color: cleanWikitext(row[table.columnMap.color] || ''),
+      carModel: stripFileMarkers(row[table.columnMap.name] || ''),
+      toy_num: stripFileMarkers(row[table.columnMap.toy_num] || row[table.columnMap.number] || ''),
+      year: stripFileMarkers(row[table.columnMap.year] || '') || table.sectionYear || year || '',
+      color: stripFileMarkers(row[table.columnMap.color] || ''),
       series: series,
-      col_num: cleanWikitext(row[table.columnMap.number] || ''),
-      series_num: cleanWikitext(row[table.columnMap.number] || ''),
-      tampo: cleanWikitext(row[table.columnMap.tampo] || ''),
-      wheel_type: cleanWikitext(row[table.columnMap.wheels] || ''),
-      base_color: cleanWikitext(row[table.columnMap.base] || ''),
-      window_color: cleanWikitext(row[table.columnMap.window] || ''),
-      interior_color: cleanWikitext(row[table.columnMap.interior] || ''),
-      country: cleanWikitext(row[table.columnMap.country] || ''),
-      notes: cleanWikitext(row[table.columnMap.notes] || ''),
-      photo_url: extractPhotoUrl(row[table.columnMap.photo] || '')
+      sub_series: table.sectionName || '',
+      col_num: stripFileMarkers(row[table.columnMap.number] || ''),
+      series_num: stripFileMarkers(row[table.columnMap.number] || ''),
+      tampo: stripFileMarkers(row[table.columnMap.tampo] || ''),
+      wheel_type: stripFileMarkers(row[table.columnMap.wheels] || ''),
+      base_color: stripFileMarkers(row[table.columnMap.base] || ''),
+      window_color: stripFileMarkers(row[table.columnMap.window] || ''),
+      interior_color: stripFileMarkers(row[table.columnMap.interior] || ''),
+      country: stripFileMarkers(row[table.columnMap.country] || ''),
+      notes: stripFileMarkers(row[table.columnMap.notes] || ''),
+      photo_url: extractPhotoUrl(row[table.columnMap.photo] || ''),
+      photo_url_carded: table.columnMap.photo_carded !== undefined 
+        ? extractPhotoUrl(row[table.columnMap.photo_carded] || '') 
+        : undefined
     }
     
     // If no name column exists, use pageTitle as the car name (individual car pages)
@@ -398,13 +417,19 @@ function extractVehiclesFromTable(
 function extractPhotoUrl(photoCell: string): string | undefined {
   if (!photoCell) return undefined
   
-  // Busca patrones de imagen en wikitext
+  // Check for wiki-file: marker left by cleanWikitext
+  const markerMatch = photoCell.match(/wiki-file:([^\s]+)/i)
+  if (markerMatch) {
+    const imageName = markerMatch[1].trim().replace(/ /g, '_')
+    return `wiki-file:${imageName}`
+  }
+  
+  // Fallback: busca patrones de imagen en wikitext raw
   const imageMatch = photoCell.match(/\[\[File:([^\]|]+)(\|[^\]]+)?\]\]/) || 
                     photoCell.match(/\[\[Image:([^\]|]+)(\|[^\]]+)?\]\]/)
   
   if (imageMatch) {
     const imageName = imageMatch[1].trim().replace(/ /g, '_')
-    // Almacenar referencia para resolución posterior con backfill-images.ts
     return `wiki-file:${imageName}`
   }
   

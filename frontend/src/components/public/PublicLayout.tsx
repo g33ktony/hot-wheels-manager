@@ -24,7 +24,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             <div className="flex items-center space-x-3">
               <div className="text-3xl">🏎️</div>
               <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Explora Hot Wheels
+                Explora Autos a Escala
               </h1>
             </div>
 
@@ -66,7 +66,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center text-sm">
             <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'} mb-2 sm:mb-0`}>
-              © 2024 Hot Wheels Manager. Todos los derechos reservados.
+              © 2026 evstoremx. Todos los derechos reservados.
             </p>
             <div className={`flex space-x-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
               <a href="#" className="hover:text-primary-600">Contacto</a>

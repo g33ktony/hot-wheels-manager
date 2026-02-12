@@ -205,6 +205,46 @@ async function backfillImages() {
     }
   }
 
+  // Phase 1b: Fix photo_url_carded wiki-file references
+  console.log('\n📌 Phase 1b: Fix photo_url_carded wiki-file references...')
+  
+  const queryCarded: any = { photo_url_carded: { $regex: /^wiki-file:/ } }
+  const carsWithCardedRef = await HotWheelsCarModel.find(queryCarded)
+    .limit(LIMIT || 0)
+    .lean()
+  
+  console.log(`  Found ${carsWithCardedRef.length} cars with carded photo references to resolve`)
+
+  if (carsWithCardedRef.length > 0) {
+    const cardedFilenameMap = new Map<string, string[]>()
+    for (const car of carsWithCardedRef) {
+      const filename = extractFilenameFromUrl(car.photo_url_carded!)
+      if (filename) {
+        if (!cardedFilenameMap.has(filename)) cardedFilenameMap.set(filename, [])
+        cardedFilenameMap.get(filename)!.push(car._id.toString())
+      }
+    }
+
+    const uniqueCardedFilenames = Array.from(cardedFilenameMap.keys())
+    console.log(`  Resolving ${uniqueCardedFilenames.length} unique carded filenames...`)
+    
+    const resolvedCardedUrls = await resolveFileUrls(uniqueCardedFilenames)
+    console.log(`  Resolved ${resolvedCardedUrls.size} of ${uniqueCardedFilenames.length} filenames`)
+
+    let fixedCarded = 0
+    for (const [filename, realUrl] of resolvedCardedUrls) {
+      const carIds = cardedFilenameMap.get(filename) || []
+      if (!DRY_RUN) {
+        await HotWheelsCarModel.updateMany(
+          { _id: { $in: carIds } },
+          { $set: { photo_url_carded: realUrl } }
+        )
+      }
+      fixedCarded += carIds.length
+    }
+    console.log(`  ✅ Fixed ${fixedCarded} carded photo URLs`)
+  }
+
   // Phase 2: Try to get images for cars that have NO photo_url at all
   console.log('\n📌 Phase 2: Find images for cars without photo_url...')
   

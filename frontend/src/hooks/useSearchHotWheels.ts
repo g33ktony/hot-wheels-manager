@@ -48,7 +48,7 @@ export const useSearchHotWheels = () => {
       }))
       setResults(transformedCars)
     } catch (err: any) {
-      setError(err.message || 'Error al cargar Hot Wheels')
+      setError(err.message || 'Error al cargar autos a escala')
       setResults([])
     } finally {
       setIsLoading(false)
@@ -81,7 +81,7 @@ export const useSearchHotWheels = () => {
       }))
       setResults(transformedCars)
     } catch (err: any) {
-      setError(err.message || 'Error al buscar en Hot Wheels')
+      setError(err.message || 'Error al buscar en autos a escala')
       setResults([])
     } finally {
       setIsLoading(false)

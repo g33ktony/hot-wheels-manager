@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { MessageCircle, Maximize2, Bell } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { MessageCircle, Maximize2, Bell, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { CatalogItem } from '@/services/public'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import ImageModal from '@/components/ImageModal'
+import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import LeadCaptureModal from './LeadCaptureModal'
 
 interface CatalogItemDetailModalProps {
@@ -23,6 +24,24 @@ export default function CatalogItemDetailModal({
 
   const [showImageViewer, setShowImageViewer] = useState(false)
   const [showNotifyModal, setShowNotifyModal] = useState(false)
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
+
+  // Build array of available photos
+  const photos = useMemo(() => {
+    const list: { url: string; label: string }[] = []
+    if (item.photo_url) {
+      list.push({ url: item.photo_url, label: item.photo_url_carded ? 'Loose' : '' })
+    }
+    if (item.photo_url_carded) {
+      list.push({ url: item.photo_url_carded, label: 'Carded' })
+    }
+    return list
+  }, [item.photo_url, item.photo_url_carded])
+
+  const hasMultiplePhotos = photos.length > 1
+
+  const proxyUrl = (url: string) =>
+    url.includes('weserv') ? url : `https://images.weserv.nl/?url=${url}&w=600&h=400&fit=contain`
 
   // Get Facebook Messenger URL
   const getMessengerLink = () => {
@@ -53,20 +72,20 @@ export default function CatalogItemDetailModal({
         maxWidth="2xl"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Image Section */}
+          {/* Image Section with Carousel */}
           <div>
             <div
               className="relative bg-slate-700 rounded-lg overflow-hidden cursor-pointer group"
               onClick={() => setShowImageViewer(true)}
             >
-              {item.photo_url ? (
+              {photos.length > 0 ? (
                 <>
                   <img
-                    src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${item.photo_url}&w=600&h=400&fit=contain`}
+                    src={proxyUrl(photos[currentPhotoIndex].url)}
                     alt={item.carModel}
                     className="w-full h-80 object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image'
+                      (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
                     }}
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
@@ -75,10 +94,53 @@ export default function CatalogItemDetailModal({
                       className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
                     />
                   </div>
+
+                  {/* Navigation Arrows */}
+                  {hasMultiplePhotos && (
+                    <>
+                      <button
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition-all opacity-80 hover:opacity-100 z-10"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1))
+                        }}
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 transition-all opacity-80 hover:opacity-100 z-10"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1))
+                        }}
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+
+                      {/* Photo label badge */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                        {photos.map((photo, idx) => (
+                          <button
+                            key={idx}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${idx === currentPhotoIndex
+                                ? 'bg-white text-slate-900 shadow-lg'
+                                : 'bg-black/50 text-white hover:bg-black/70'
+                              }`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setCurrentPhotoIndex(idx)
+                            }}
+                          >
+                            {photo.label || `${idx + 1}/${photos.length}`}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (
                 <div className="h-80 flex items-center justify-center">
-                  <div className="text-9xl">🏎️</div>
+                  <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-8" />
                 </div>
               )}
 
@@ -107,6 +169,7 @@ export default function CatalogItemDetailModal({
             {/* Details Grid */}
             <div className="space-y-3">
               <DetailRow label="Serie" value={item.series} isDark={isDark} />
+              {item.sub_series && <DetailRow label="Sub-serie" value={item.sub_series} isDark={isDark} />}
               <DetailRow label="Año" value={item.year} isDark={isDark} />
               {item.color && <DetailRow label="Color" value={item.color} isDark={isDark} />}
               {item.car_make && <DetailRow label="Fabricante" value={item.car_make} isDark={isDark} />}
@@ -137,11 +200,11 @@ export default function CatalogItemDetailModal({
                             alt={car.casting_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image'
+                              (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
                             }}
                           />
                         ) : (
-                          <span className="text-2xl">🏎️</span>
+                          <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
                         )}
                       </div>
 
@@ -259,11 +322,11 @@ export default function CatalogItemDetailModal({
       </Modal>
 
       {/* Image Viewer Modal */}
-      {item.photo_url && (
+      {photos.length > 0 && (
         <ImageModal
           isOpen={showImageViewer}
-          images={[item.photo_url]}
-          initialIndex={0}
+          images={photos.map(p => p.url)}
+          initialIndex={currentPhotoIndex}
           onClose={() => setShowImageViewer(false)}
           title={item.carModel}
         />

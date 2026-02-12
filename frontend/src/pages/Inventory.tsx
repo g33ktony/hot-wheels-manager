@@ -18,6 +18,7 @@ import { setSelectionMode, toggleItemSelection, selectAllItems, clearSelection }
 import { cacheItems, updateCachedItem } from '@/store/slices/itemsCacheSlice'
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
+import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import { LazyImage } from '@/components/LazyImage'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -1669,7 +1670,7 @@ export default function Inventory() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Inventario</h1>
-                    <p className="text-slate-400">Gestiona tus piezas de Hot Wheels</p>
+                    <p className="text-slate-400">Gestiona tus piezas de autos a escala</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     {isSelectionMode ? (
@@ -2186,11 +2187,11 @@ export default function Inventory() {
                                                     <>
                                                         <LazyImage
                                                             src={item.photos[item.primaryPhotoIndex || 0].includes('weserv') ? item.photos[item.primaryPhotoIndex || 0] : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[item.primaryPhotoIndex || 0])}&w=300&h=200&fit=contain`}
-                                                            alt="Hot Wheels"
+                                                            alt="Auto a Escala"
                                                             className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'
                                                                 }`}
                                                             onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x200?text=No+Image'
+                                                                (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
                                                             }}
                                                             onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && handleImageClick(item.photos, item.primaryPhotoIndex || 0)}
                                                         />
@@ -2908,7 +2909,7 @@ export default function Inventory() {
                                 {showCatalogResults && catalogSearchResults.length > 0 && (
                                     <div className="absolute z-10 w-full mt-1 bg-emerald-900 border border-emerald-600 rounded-lg shadow-lg max-h-64 overflow-y-auto top-full">
                                         <div className="sticky top-0 p-2 bg-emerald-800/50 border-b border-emerald-600 text-xs text-emerald-200 font-semibold">
-                                            📚 Catálogo Hot Wheels ({catalogSearchResults.length} resultado{catalogSearchResults.length !== 1 ? 's' : ''})
+                                            📚 Catálogo Autos a Escala ({catalogSearchResults.length} resultado{catalogSearchResults.length !== 1 ? 's' : ''})
                                         </div>
                                         {catalogSearchResults.map((item: any, idx: number) => {
                                             // Check if item is part of a series for visual indicator
@@ -2931,21 +2932,22 @@ export default function Inventory() {
                                                                     className="w-full h-full object-contain"
                                                                     crossOrigin="anonymous"
                                                                     onError={(e) => {
-                                                                        // Fallback a emoji si falla
+                                                                        // Fallback a placeholder si falla
                                                                         (e.currentTarget as HTMLImageElement).style.display = 'none';
                                                                         const parent = (e.currentTarget as HTMLImageElement).parentElement;
                                                                         if (parent && !parent.querySelector('[data-fallback]')) {
-                                                                            const fallback = document.createElement('div');
+                                                                            const fallback = document.createElement('img');
                                                                             fallback.setAttribute('data-fallback', 'true');
-                                                                            fallback.className = 'flex items-center justify-center text-emerald-300 text-sm font-bold';
-                                                                            fallback.textContent = '🚗';
+                                                                            fallback.src = getPlaceholderLogo(item.series);
+                                                                            fallback.alt = 'Auto a Escala';
+                                                                            fallback.className = 'w-full h-full object-contain p-1';
                                                                             parent.appendChild(fallback);
                                                                         }
                                                                     }}
                                                                     onLoad={() => console.log('✅ Catalog image loaded:', item.model)}
                                                                 />
                                                             ) : (
-                                                                <div className="text-emerald-300 text-sm">🚗</div>
+                                                                <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
                                                             )}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -3010,7 +3012,7 @@ export default function Inventory() {
                                 )}
                                 {newItem.isBox && (
                                     <p className="text-xs text-gray-500 mt-2">
-                                        Se agregarán {newItem.quantity} piezas del mismo Hot Wheels
+                                        Se agregarán {newItem.quantity} piezas del mismo auto a escala
                                     </p>
                                 )}
                             </div>
@@ -3526,7 +3528,7 @@ export default function Inventory() {
                                     {!newItem.isMultipleCars && newItem.carId && (
                                         <>
                                             <div className="flex justify-between">
-                                                <span>Hot Wheels:</span>
+                                                <span>Auto a Escala:</span>
                                                 <span className="font-medium">{newItem.carId}</span>
                                             </div>
                                             <div className="flex justify-between">
@@ -3617,7 +3619,7 @@ export default function Inventory() {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Código/ID del Hot Wheels
+                                Código/ID del auto a escala
                             </label>
                             <input
                                 type="text"
@@ -4176,7 +4178,7 @@ export default function Inventory() {
                         >
                             <img
                                 src={selectedImage}
-                                alt="Hot Wheels - Vista Completa"
+                                alt="Auto a Escala - Vista Completa"
                                 className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
                             />
                         </div>

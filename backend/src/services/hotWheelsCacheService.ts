@@ -13,7 +13,9 @@ export interface CachedHotWheelsCar {
   model?: string // alias used in older JSON format
   series: string
   series_num: string
+  sub_series?: string
   photo_url?: string
+  photo_url_carded?: string
   year: string
   color?: string
   tampo?: string

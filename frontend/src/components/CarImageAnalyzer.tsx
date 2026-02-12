@@ -30,7 +30,7 @@ interface CarImageAnalyzerProps {
   onAnalysisComplete?: (analysis: AIAnalysisResult) => void;
 }
 
-const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({ 
+const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({
   onSelectMatch,
   onAnalysisComplete
 }) => {
@@ -78,7 +78,7 @@ const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           image: imageData,
           mimeType: imageData.match(/data:(image\/\w+);/)?.[1] || 'image/jpeg'
         })
@@ -86,20 +86,20 @@ const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({
 
       if (!response.ok) {
         const error = await response.json();
-        
+
         // Mensaje específico si falta la API key
         if (response.status === 503 || error.message?.includes('no disponible')) {
           throw new Error('⚠️ El servicio de IA no está configurado. Falta configurar GEMINI_API_KEY en Railway.');
         }
-        
+
         throw new Error(error.message || 'Error al analizar la imagen');
       }
 
       const result = await response.json();
-      
+
       setAnalysis(result.data.analysis);
       setMatches(result.data.matches);
-      
+
       if (onAnalysisComplete) {
         onAnalysisComplete(result.data.analysis);
       }
@@ -147,7 +147,7 @@ const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-bold">🤖 Identificar Hot Wheels con IA</h2>
+          <h2 className="text-xl font-bold">🤖 Identificar Auto a Escala con IA</h2>
           <button
             onClick={() => setIsOpen(false)}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -171,7 +171,7 @@ const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({
               <div className="text-center">
                 <Upload size={48} className="mx-auto mb-4 text-gray-400" />
                 <p className="text-lg font-medium mb-2">
-                  Sube una foto del Hot Wheels
+                  Sube una foto del auto a escala
                 </p>
                 <p className="text-sm text-gray-600 mb-4">
                   Para mejores resultados, toma fotos claras de:
@@ -202,7 +202,7 @@ const CarImageAnalyzer: React.FC<CarImageAnalyzerProps> = ({
                 />
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg mb-2">Análisis de IA</h3>
-                  
+
                   {analyzing && (
                     <div className="flex items-center gap-2 text-purple-600">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>

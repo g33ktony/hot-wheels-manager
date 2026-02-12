@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import html2canvas from 'html2canvas'
 import { Download, Share2, FileText } from 'lucide-react'
 import Button from '@/components/common/Button'
+import { DEFAULT_PLACEHOLDER } from '@/utils/placeholderLogo'
 import type { Delivery } from '@shared/types'
 
 interface DeliveryReportProps {
@@ -379,8 +380,8 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
                           }}
                         />
                       ) : (
-                        <div className="w-12 h-12 bg-gray-200 rounded border border-gray-300 flex items-center justify-center text-xs text-gray-500 mx-auto">
-                          Sin foto
+                        <div className="w-12 h-12 bg-gray-200 rounded border border-gray-300 flex items-center justify-center mx-auto overflow-hidden">
+                          <img src={DEFAULT_PLACEHOLDER} alt="Auto a Escala" className="w-full h-full object-contain p-0.5" />
                         </div>
                       )}
                     </td>

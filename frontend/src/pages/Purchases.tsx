@@ -683,7 +683,7 @@ export default function Purchases() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Compras</h1>
-                    <p className="text-sm text-slate-400">Gestiona tus compras de Hot Wheels</p>
+                    <p className="text-sm text-slate-400">Gestiona tus compras de autos a escala</p>
                 </div>
                 <Button
                     icon={<Plus size={20} />}
@@ -2516,7 +2516,7 @@ export default function Purchases() {
                                                         type="text"
                                                         value={piece.carId}
                                                         onChange={(e) => handleSeriesPieceChange(index, 'carId', e.target.value)}
-                                                        placeholder="ID del Hot Wheels"
+                                                        placeholder="ID del auto a escala"
                                                         required
                                                     />
                                                 </div>

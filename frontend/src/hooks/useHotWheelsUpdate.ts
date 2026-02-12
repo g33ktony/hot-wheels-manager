@@ -9,7 +9,7 @@ export const useUpdateHotWheelsCatalog = () => {
     },
     {
       onSuccess: () => {
-        console.log('✅ Catálogo de Hot Wheels actualizado exitosamente');
+        console.log('✅ Catálogo de autos a escala actualizado exitosamente');
       },
       onError: (error: any) => {
         console.error('❌ Error actualizando catálogo:', error.message);

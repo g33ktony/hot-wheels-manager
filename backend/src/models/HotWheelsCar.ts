@@ -7,7 +7,9 @@ export interface IHotWheelsCar extends Document {
   carModel: string;
   series: string;
   series_num: string;
+  sub_series?: string;
   photo_url?: string;
+  photo_url_carded?: string;
   year: string;
   color?: string;
   tampo?: string;
@@ -22,6 +24,7 @@ export interface IHotWheelsCar extends Document {
     wheel_type?: string;
     notes?: string;
     photo_url?: string;
+    photo_url_carded?: string;
   }>;
 }
 
@@ -31,7 +34,9 @@ const hotWheelsCarSchema = new Schema<IHotWheelsCar>({
   carModel: { type: String, required: true },
   series: { type: String, default: '' },
   series_num: { type: String, default: '' },
+  sub_series: { type: String, default: '' },
   photo_url: { type: String },
+  photo_url_carded: { type: String },
   year: { type: String, default: '' },
   // Campos opcionales adicionales
   color: { type: String },

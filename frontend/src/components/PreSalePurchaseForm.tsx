@@ -259,7 +259,7 @@ export default function PreSalePurchaseForm({
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 <Info className="inline-block w-4 h-4 mr-1" />
-                                Hot Wheels Car
+                                Auto a Escala
                             </label>
                             <AutocompleteCarId
                                 value={formData.carId}

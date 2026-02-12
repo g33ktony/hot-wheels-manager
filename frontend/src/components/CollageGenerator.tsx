@@ -443,7 +443,7 @@ export default function CollageGenerator({
             if (navigator.share && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     files: [file],
-                    title: 'Collage de Hot Wheels'
+                    title: 'Collage de Autos a Escala'
                 })
             } else {
                 // Fallback: download
@@ -698,8 +698,8 @@ export default function CollageGenerator({
                                         key={num}
                                         onClick={() => setItemsPerCollage(num)}
                                         className={`py-3 px-4 rounded-lg font-medium transition-all ${itemsPerCollage === num
-                                                ? 'bg-purple-600 text-white shadow-lg scale-105'
-                                                : 'bg-white text-gray-700 border border-purple-200 hover:bg-purple-50'
+                                            ? 'bg-purple-600 text-white shadow-lg scale-105'
+                                            : 'bg-white text-gray-700 border border-purple-200 hover:bg-purple-50'
                                             }`}
                                     >
                                         <div className="text-base">
@@ -752,10 +752,10 @@ export default function CollageGenerator({
                                     onDrop={(e) => handleDrop(e, index)}
                                     onDragEnd={handleDragEnd}
                                     className={`bg-white border-2 rounded-lg overflow-hidden relative group cursor-move transition-all ${draggedIndex === index
-                                            ? 'opacity-50 border-gray-400'
-                                            : dragOverIndex === index
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                        ? 'opacity-50 border-gray-400'
+                                        : dragOverIndex === index
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     {/* Indicador de posición */}
