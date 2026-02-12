@@ -14,35 +14,41 @@ async function syncJSONToMongoDB(): Promise<{ synced: number; errors: number }> 
 
   console.log(`🔄 Sincronizando ${allCars.length} vehículos del JSON a MongoDB...`);
 
-  const batchSize = 100;
+  const batchSize = 500;
   for (let i = 0; i < allCars.length; i += batchSize) {
     const batch = allCars.slice(i, i + batchSize);
     const bulkOps = batch
-      .filter(car => car.toy_num) // Only cars with toy_num can be upserted
-      .map(car => ({
-        updateOne: {
-          filter: { toy_num: car.toy_num },
-          update: {
-            $set: {
-              toy_num: car.toy_num,
-              col_num: car.col_num || '',
-              carModel: car.carModel || car.model || '',
-              series: car.series || '',
-              series_num: car.series_num || '',
-              photo_url: car.photo_url || '',
-              year: (car.year || '').toString(),
-              color: car.color || '',
-              tampo: car.tampo || '',
-              wheel_type: car.wheel_type || '',
-              car_make: car.car_make || '',
-              segment: car.segment || '',
-              country: car.country || '',
+      .filter(car => car.carModel) // Need at least a name
+      .map(car => {
+        const filterKey = car.toy_num
+          ? { toy_num: car.toy_num }
+          : { carModel: car.carModel, year: (car.year || '').toString(), series: car.series || '' };
+
+        return {
+          updateOne: {
+            filter: filterKey,
+            update: {
+              $set: {
+                toy_num: car.toy_num || '',
+                col_num: car.col_num || '',
+                carModel: car.carModel || '',
+                series: car.series || '',
+                series_num: car.series_num || '',
+                photo_url: car.photo_url || '',
+                year: (car.year || '').toString(),
+                color: car.color || '',
+                tampo: car.tampo || '',
+                wheel_type: car.wheel_type || '',
+                car_make: car.car_make || '',
+                segment: car.segment || '',
+                country: car.country || '',
+              },
+              $setOnInsert: { createdAt: new Date() },
             },
-            $setOnInsert: { createdAt: new Date() },
+            upsert: true,
           },
-          upsert: true,
-        },
-      }));
+        };
+      });
 
     if (bulkOps.length === 0) continue;
 

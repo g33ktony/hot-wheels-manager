@@ -253,7 +253,7 @@ async function backfillImages() {
   // Final stats
   totalCars = await HotWheelsCarModel.countDocuments()
   const carsWithUrlNow = await HotWheelsCarModel.countDocuments({
-    photo_url: { $exists: true, $ne: null, $ne: '' }
+    photo_url: { $exists: true, $nin: [null, ''] }
   })
 
   console.log('\n======================================')

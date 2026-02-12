@@ -14,7 +14,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const FANDOM_API = 'https://hotwheels.fandom.com/api.php'
-const DELAY_MS = 800 // Rate limiting (aumentado para ser más cauteloso)
+const DELAY_MS = 200 // Rate limiting
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -92,16 +92,45 @@ function processSingleTable(tableLines: string[]): TableData {
   let rows: string[][] = []
   let currentRow: string[] = []
   let firstRowSeparatorSeen = false
+  let rowspanTracker: Array<{ col: number; value: string; remaining: number }> = []
   
   for (let i = 0; i < tableLines.length; i++) {
     const line = tableLines[i].trim()
     
     if (line.startsWith('|-') || line.startsWith('|}') || line.startsWith('{|')) {
       if (currentRow.length > 0) {
-        if (headers.length === 0 && tableLines[i-1]?.trim().startsWith('!')) {
-           headers = [...currentRow]
+        // Apply any active rowspans: insert spanned values into their columns
+        if (rowspanTracker.length > 0 && headers.length > 0) {
+          const expectedCols = headers.length
+          // Expand currentRow to full width by inserting spanned cells
+          const fullRow: string[] = []
+          let dataIdx = 0
+          for (let col = 0; col < expectedCols; col++) {
+            const span = rowspanTracker.find(s => s.col === col && s.remaining > 0)
+            if (span) {
+              fullRow.push(span.value)
+            } else {
+              fullRow.push(currentRow[dataIdx] ?? '')
+              dataIdx++
+            }
+          }
+          // Decrement rowspan counters
+          for (const span of rowspanTracker) {
+            if (span.remaining > 0) span.remaining--
+          }
+          rowspanTracker = rowspanTracker.filter(s => s.remaining > 0)
+          
+          if (headers.length === 0 && tableLines[i-1]?.trim().startsWith('!')) {
+            headers = [...fullRow]
+          } else {
+            rows.push(fullRow)
+          }
         } else {
-           rows.push(currentRow)
+          if (headers.length === 0 && tableLines[i-1]?.trim().startsWith('!')) {
+            headers = [...currentRow]
+          } else {
+            rows.push(currentRow)
+          }
         }
         currentRow = []
       }
@@ -153,6 +182,10 @@ function processSingleTable(tableLines: string[]): TableData {
       const content = line.substring(1)
       const parts = content.split('||')
       for (let part of parts) {
+        // Extract rowspan before cleaning 
+        const rowspanMatch = part.match(/rowspan\s*=\s*"?(\d+)"?/i)
+        const rowspan = rowspanMatch ? parseInt(rowspanMatch[1]) : 1
+        
         // Limpiar atributos style="..." pero NO romper wiki links con pipes
         const stripped = part.replace(/\[\[[^\]]*\]\]/g, '___WIKILINK___')
         if (stripped.includes('|') && !stripped.startsWith('___WIKILINK___')) {
@@ -161,7 +194,36 @@ function processSingleTable(tableLines: string[]): TableData {
             part = part.substring(pipeIdx + 1)
           }
         }
-        currentRow.push(cleanWikitext(part))
+        const cellValue = cleanWikitext(part)
+        
+        // Calculate real column index accounting for active rowspans
+        let realCol = currentRow.length
+        if (headers.length > 0) {
+          // Count how many spanned columns precede this cell
+          let dataIdx = currentRow.length
+          realCol = 0
+          let counted = 0
+          while (counted < dataIdx && realCol < headers.length) {
+            const span = rowspanTracker.find(s => s.col === realCol && s.remaining > 0)
+            if (span) {
+              realCol++
+            } else {
+              counted++
+              if (counted < dataIdx) realCol++
+            }
+          }
+          // Skip over any remaining spanned columns
+          while (rowspanTracker.find(s => s.col === realCol && s.remaining > 0)) {
+            realCol++
+          }
+        }
+        
+        currentRow.push(cellValue)
+        
+        // Track rowspan for this column
+        if (rowspan > 1) {
+          rowspanTracker.push({ col: realCol, value: cellValue, remaining: rowspan - 1 })
+        }
       }
     }
     // Multiline cell continuation: bare text that belongs to previous cell
@@ -302,6 +364,24 @@ function extractVehiclesFromTable(
       vehicle.carModel = pageTitle.replace(/\s*\(.*\)\s*$/, '').trim()
     }
     
+    // Validate & normalize year: must be a 4-digit year (1968-2030)
+    if (vehicle.year) {
+      const yearMatch = String(vehicle.year).match(/((?:19|20)\d{2})/)
+      if (yearMatch) {
+        vehicle.year = yearMatch[1]
+      } else {
+        vehicle.year = year || '' // fallback to page-level year
+      }
+    }
+    
+    // Validate toy_num: should look like a part number, not random text
+    if (vehicle.toy_num && !/^[A-Z0-9][-A-Z0-9\/]{1,20}$/i.test(vehicle.toy_num)) {
+      // Keep it only if it has digits (likely a real part number)
+      if (!/\d/.test(vehicle.toy_num)) {
+        vehicle.toy_num = ''
+      }
+    }
+    
     // Valida que tenga datos mínimos - name required, number optional
     if (vehicle.carModel) {
       vehicles.push(vehicle)
@@ -373,6 +453,63 @@ async function scrapePage(pageTitle: string, category: string, year: string | nu
     console.error(`Error scraping ${pageTitle}:`, error)
     return []
   }
+}
+
+/**
+ * Batch scrape: fetch up to 50 pages at once using MediaWiki multi-title query
+ */
+async function scrapePagesBatch(tasks: Array<{ category: string; year: string | null }>): Promise<Map<string, any[]>> {
+  const results = new Map<string, any[]>()
+  const titles = tasks.map(t => t.category).join('|')
+  
+  const params = new URLSearchParams({
+    action: 'query',
+    titles,
+    prop: 'revisions',
+    rvprop: 'content',
+    format: 'json',
+    formatversion: '2'
+  })
+
+  try {
+    const response = await axios.get(`${FANDOM_API}?${params}`)
+    const pages = response.data.query?.pages || []
+    
+    for (const page of pages) {
+      if (!page || page.missing || !page.revisions || !page.revisions[0]?.content) {
+        results.set(page.title, [])
+        continue
+      }
+      
+      const wikitext = page.revisions[0].content
+      const task = tasks.find(t => t.category === page.title)
+      let year = task?.year || null
+      
+      if (!year) {
+        const titleYearMatch = page.title.match(/((?:19|20)\d{2})/)
+        if (titleYearMatch) year = titleYearMatch[1]
+      }
+      
+      let vehicles: any[] = []
+      if (wikitext.includes('{|')) {
+        const tables = parseTables(wikitext)
+        for (const table of tables) {
+          const tableVehicles = extractVehiclesFromTable(table, page.title, page.title, year)
+          vehicles.push(...tableVehicles)
+        }
+      }
+      
+      results.set(page.title, vehicles)
+    }
+  } catch (error) {
+    console.error(`Error batch scraping:`, error)
+    // Fallback: return empty for all
+    for (const task of tasks) {
+      if (!results.has(task.category)) results.set(task.category, [])
+    }
+  }
+  
+  return results
 }
 
 /**
@@ -468,6 +605,24 @@ async function scrapeIntelligent(saveToMongo = true) {
     }
 
     // ============================================================
+    // Resume support: skip already-processed pages
+    // ============================================================
+    const progressPath = path.join(__dirname, '../../data/scrape-progress.json')
+    let processedPages = new Set<string>()
+    if (fs.existsSync(progressPath)) {
+      const progress = JSON.parse(fs.readFileSync(progressPath, 'utf-8'))
+      processedPages = new Set(progress.processedPages || [])
+      console.log(`📌 Resumiendo: ${processedPages.size} páginas ya procesadas, se omitirán`)
+    }
+
+    const saveProgress = () => {
+      fs.writeFileSync(progressPath, JSON.stringify({
+        processedPages: Array.from(processedPages),
+        lastSaved: new Date().toISOString()
+      }))
+    }
+
+    // ============================================================
     // Cargar lista de series desde el archivo descubierto
     // ============================================================
     const discoveredPath = path.join(__dirname, '../../data/filtered-series.json')
@@ -492,67 +647,89 @@ async function scrapeIntelligent(saveToMongo = true) {
       pushCategory(series, null)
     }
 
+    // Filter out already-processed pages
+    const remainingTasks = taskList.filter(t => !processedPages.has(t.category))
     console.log(`📋 Cargadas ${discovered.mainlineLists?.length || 0} mainline lists + ${discovered.seriesPages?.length || 0} series pages`)
+    console.log(`📋 Páginas restantes: ${remainingTasks.length} / ${taskList.length}`)
 
     console.log(`${'='.repeat(70)}`)
-    console.log(`PROCESANDO ${taskList.length} PÁGINAS DE SERIES`)
+    console.log(`PROCESANDO ${remainingTasks.length} PÁGINAS DE SERIES (lotes de 50)`)
     console.log(`${'='.repeat(70)}\n`)
 
-    for (const item of taskList) {
-      if (stats.categories % 20 === 0) {
-        console.log(`... Revisando lote de páginas (${stats.categories}/${taskList.length})`)
-      }
-      
-      // Scrape directamente la página de la serie
-      console.log(`  📄 Scrapeando página: ${item.category}`)
-      stats.categories++
-      
-      const vehicles = await scrapePage(item.category, item.category, item.year)
-      await sleep(600)
+    let pendingVehicles: any[] = []
+    const BATCH_SIZE = 10  // MediaWiki limits content-heavy multi-page requests
 
-      let pageAdded = 0
-      for (const vehicle of vehicles) {
-        allScrapedVehicles.push(vehicle)
-        if (saveToMongo) {
-          try {
-            await HotWheelsCarModel.create(vehicle)
+    // Process in batches of 50 pages
+    for (let i = 0; i < remainingTasks.length; i += BATCH_SIZE) {
+      const batch = remainingTasks.slice(i, i + BATCH_SIZE)
+      const batchNum = Math.floor(i / BATCH_SIZE) + 1
+      const totalBatches = Math.ceil(remainingTasks.length / BATCH_SIZE)
+      console.log(`... Lote ${batchNum}/${totalBatches} (páginas ${i + 1}-${Math.min(i + BATCH_SIZE, remainingTasks.length)} de ${remainingTasks.length})`)
+      
+      const batchResults = await scrapePagesBatch(batch)
+      await sleep(200) // Brief pause between batches
+
+      for (const item of batch) {
+        const vehicles = batchResults.get(item.category) || []
+        stats.categories++
+
+        let pageAdded = 0
+        for (const vehicle of vehicles) {
+          allScrapedVehicles.push(vehicle)
+          pendingVehicles.push(vehicle)
+          if (saveToMongo) {
+            try {
+              await HotWheelsCarModel.create(vehicle)
+              stats.success++
+              stats.total++
+              pageAdded++
+            } catch (error: any) {
+              if (error.code === 11000) {
+                stats.duplicates++
+              } else {
+                stats.errors++
+              }
+            }
+          } else {
             stats.success++
             stats.total++
             pageAdded++
-          } catch (error: any) {
-            if (error.code === 11000) {
-              stats.duplicates++
-            } else {
-              stats.errors++
-              console.log(`    ❌ Error guardando vehículo: ${error.message}`)
-              console.log(`       Datos: ${JSON.stringify(vehicle).substring(0, 200)}...`)
-            }
           }
-        } else {
-          stats.success++
-          stats.total++
-          pageAdded++
         }
+        if (pageAdded > 0) {
+          console.log(`  📄 ${item.category} → ${pageAdded} nuevos`)
+        }
+        stats.pages++
+        processedPages.add(item.category)
       }
-      console.log(`    ✅ ${pageAdded} vehículos nuevos de ${item.category}`)
-      stats.pages++
+
+      // Incremental save every 5 batches (250 pages)
+      if (batchNum % 5 === 0) {
+        if (pendingVehicles.length > 0) {
+          const batchNew = mergeCarsIntoJSON(pendingVehicles)
+          console.log(`  💾 Guardado incremental: ${batchNew} nuevos en JSON (${stats.categories}/${remainingTasks.length} páginas)`)
+          pendingVehicles = []
+        }
+        saveProgress()
+      }
     }
+
+    // Save remaining
+    if (pendingVehicles.length > 0) {
+      mergeCarsIntoJSON(pendingVehicles)
+    }
+    saveProgress()
 
     console.log('\n' + '='.repeat(70))
     console.log('🎉 ¡Scraping Inteligente Completado!')
     console.log('='.repeat(70))
     console.log(`\n📊 ESTADÍSTICAS:`)
-    console.log(`   ✅ Vehículos guardados: ${stats.success}`)
+    console.log(`   ✅ Vehículos guardados en Mongo: ${stats.success}`)
     console.log(`   ⏭️  Duplicados: ${stats.duplicates}`)
-    console.log(`   ❌ Errores: ${stats.errors}`)
+    console.log(`   ❌ Errores Mongo: ${stats.errors}`)
     console.log(`   📄 Total páginas procesadas: ${stats.pages}`)
     console.log(`   📂 Total series procesadas: ${stats.categories}`)
-
-    // Save/merge all scraped vehicles into local JSON
-    if (allScrapedVehicles.length > 0) {
-      const newCount = mergeCarsIntoJSON(allScrapedVehicles)
-      console.log(`   💾 JSON actualizado: ${newCount} entradas nuevas agregadas`)
-    }
+    console.log(`   🚗 Total vehículos encontrados: ${allScrapedVehicles.length}`)
 
     if (saveToMongo) {
       console.log(`   📦 Total en BD: ${await HotWheelsCarModel.countDocuments()}\n`)
@@ -572,7 +749,8 @@ async function scrapeIntelligent(saveToMongo = true) {
 }
 
 if (require.main === module) {
-  scrapeIntelligent()
+  // Skip MongoDB during scraping — sync after via updateCatalog
+  scrapeIntelligent(false)
 }
 
 export default scrapeIntelligent

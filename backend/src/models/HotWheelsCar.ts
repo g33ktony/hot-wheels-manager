@@ -26,13 +26,13 @@ export interface IHotWheelsCar extends Document {
 }
 
 const hotWheelsCarSchema = new Schema<IHotWheelsCar>({
-  toy_num: { type: String, required: true, unique: true },
-  col_num: { type: String, default: '' }, // Optional for classic models
+  toy_num: { type: String, default: '' },
+  col_num: { type: String, default: '' },
   carModel: { type: String, required: true },
-  series: { type: String, required: true },
-  series_num: { type: String, default: '' }, // Optional for classic models
+  series: { type: String, default: '' },
+  series_num: { type: String, default: '' },
   photo_url: { type: String },
-  year: { type: String, required: true },
+  year: { type: String, default: '' },
   // Campos opcionales adicionales
   color: { type: String },
   tampo: { type: String },
@@ -62,5 +62,9 @@ hotWheelsCarSchema.index({ series: 1 })
 hotWheelsCarSchema.index({ year: 1 })
 // toy_num ya tiene unique: true, no necesita índice adicional
 hotWheelsCarSchema.index({ col_num: 1 })
+// Partial unique on toy_num: unique when non-empty, allows multiple empty/null
+hotWheelsCarSchema.index({ toy_num: 1 }, { unique: true, partialFilterExpression: { toy_num: { $type: 'string', $gt: '' } } })
+// Compound index for cars without toy_num (dedup by name+year+series)
+hotWheelsCarSchema.index({ carModel: 1, year: 1, series: 1 })
 
 export const HotWheelsCarModel = model<IHotWheelsCar>('HotWheelsCar', hotWheelsCarSchema)

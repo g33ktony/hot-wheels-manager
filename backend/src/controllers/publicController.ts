@@ -167,7 +167,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     })
     const availableYearsSet = new Set<string>()
     for (const car of allMatchingResult.cars) {
-      if (car.year) availableYearsSet.add(car.year)
+      if (car.year && /^(19|20)\d{2}$/.test(car.year)) availableYearsSet.add(car.year)
     }
     const availableYears = Array.from(availableYearsSet).sort((a, b) => parseInt(b) - parseInt(a))
 

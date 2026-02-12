@@ -197,7 +197,7 @@ async function cleanup() {
   // ===== FINAL STATS =====
   const total = await HotWheelsCarModel.countDocuments()
   const withPhoto = await HotWheelsCarModel.countDocuments({
-    photo_url: { $exists: true, $ne: null, $ne: '' }
+    photo_url: { $exists: true, $nin: [null, ''] }
   })
   const noPhoto = total - withPhoto
 
