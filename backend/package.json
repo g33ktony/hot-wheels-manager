@@ -31,7 +31,10 @@
     "decode-photo-urls": "tsx src/scripts/decode-photo-urls.ts",
     "reencode-photo-urls": "tsx src/scripts/reencode-photo-urls.ts",
     "fix-incomplete-urls": "tsx src/scripts/fix-incomplete-urls.ts",
-    "fix-incomplete-urls-v2": "tsx src/scripts/fix-incomplete-urls-v2.ts"
+    "fix-incomplete-urls-v2": "tsx src/scripts/fix-incomplete-urls-v2.ts",
+    "sync-to-mongo": "tsx src/scripts/sync-to-mongo.ts",
+    "backfill-images": "tsx src/scripts/backfill-images.ts",
+    "classify-segments": "tsx src/scripts/classify-segments.ts"
   },
   "keywords": [
     "hot-wheels",
