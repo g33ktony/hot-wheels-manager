@@ -34,6 +34,9 @@
     "fix-incomplete-urls-v2": "tsx src/scripts/fix-incomplete-urls-v2.ts",
     "sync-to-mongo": "tsx src/scripts/sync-to-mongo.ts",
     "backfill-images": "tsx src/scripts/backfill-images.ts",
+    "export-photos-json": "tsx src/scripts/export-photos-to-json.ts",
+    "fix-truncated-photos": "tsx src/scripts/fix-truncated-photos.ts",
+    "fix-shared-photos": "tsx src/scripts/fix-shared-photos.ts",
     "classify-segments": "tsx src/scripts/classify-segments.ts"
   },
   "keywords": [

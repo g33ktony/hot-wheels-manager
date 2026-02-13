@@ -27,14 +27,15 @@ export default function CatalogItemDetailModal({
   const [showNotifyModal, setShowNotifyModal] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
-  // Build array of available photos
+  // Build array of available photos (only valid URLs)
   const photos = useMemo(() => {
+    const isValidUrl = (url?: string) => url && url.startsWith('https://') && !url.includes('wiki-file:')
     const list: { url: string; label: string }[] = []
-    if (item.photo_url) {
-      list.push({ url: item.photo_url, label: item.photo_url_carded ? 'Loose' : '' })
+    if (isValidUrl(item.photo_url)) {
+      list.push({ url: item.photo_url!, label: item.photo_url_carded ? 'Loose' : '' })
     }
-    if (item.photo_url_carded) {
-      list.push({ url: item.photo_url_carded, label: 'Carded' })
+    if (isValidUrl(item.photo_url_carded)) {
+      list.push({ url: item.photo_url_carded!, label: 'Carded' })
     }
     return list
   }, [item.photo_url, item.photo_url_carded])
@@ -42,7 +43,7 @@ export default function CatalogItemDetailModal({
   const hasMultiplePhotos = photos.length > 1
 
   const proxyUrl = (url: string) =>
-    url.includes('weserv') ? url : `https://images.weserv.nl/?url=${url}&w=600&h=400&fit=contain`
+    url.includes('weserv') ? url : `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=400&fit=contain`
 
   // Get Facebook Messenger URL
   const getMessengerLink = () => {
@@ -198,9 +199,9 @@ export default function CatalogItemDetailModal({
                     >
                       {/* Car Photo */}
                       <div className="w-16 h-16 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
-                        {car.photo_url ? (
+                        {car.photo_url && car.photo_url.startsWith('https://') ? (
                           <img
-                            src={car.photo_url.includes('weserv') ? car.photo_url : `https://images.weserv.nl/?url=${car.photo_url}&w=64&h=64&fit=contain`}
+                            src={car.photo_url.includes('weserv') ? car.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(car.photo_url)}&w=64&h=64&fit=contain`}
                             alt={car.casting_name}
                             className="w-full h-full object-cover"
                             onError={(e) => {

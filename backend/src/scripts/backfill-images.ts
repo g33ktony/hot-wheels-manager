@@ -121,16 +121,21 @@ async function getPageImages(pageTitles: string[]): Promise<Map<string, string>>
  * Extract filename from our stored references.
  * Handles both:
  *  - wiki-file:FILENAME (new format)
- *  - https://static.wikia.nocookie.net/hotwheels/images/FILENAME (old broken format)
+ *  - https://static.wikia.nocookie.net/hotwheels/images/a/b2/Filename.jpg/revision/... (old broken format)
  */
 function extractFilenameFromUrl(url: string): string | null {
   // New format: wiki-file:FILENAME
   if (url.startsWith('wiki-file:')) {
     return url.replace('wiki-file:', '')
   }
-  // Old broken format
-  const match = url.match(/\/images\/(.+)$/)
-  return match ? match[1] : null
+  // Old static.wikia format: /images/X/XX/FILENAME.ext/revision/...
+  // The filename is between the hash dirs and /revision (or end of string)
+  const match = url.match(/\/images\/[a-f0-9]\/[a-f0-9]{2}\/([^\/]+?)(?:\/revision|$)/i)
+  if (match) return decodeURIComponent(match[1])
+  
+  // Fallback: just grab whatever is after /images/ hash dirs
+  const fallback = url.match(/\/images\/[a-f0-9]\/[a-f0-9]{2}\/([^\/]+)/i)
+  return fallback ? decodeURIComponent(fallback[1]) : null
 }
 
 async function backfillImages() {
@@ -202,6 +207,10 @@ async function backfillImages() {
     console.log(`  ✅ Fixed ${fixedFromFilename} cars from filename resolution`)
     if (failedToResolve > 0) {
       console.log(`  ⚠️  ${failedToResolve} filenames could not be resolved`)
+      // Log sample of failed filenames for debugging
+      const failedFilenames = uniqueFilenames.filter(f => !resolvedUrls.has(f))
+      console.log(`  📋 Sample failed filenames (first 20):`)
+      failedFilenames.slice(0, 20).forEach(f => console.log(`     - "${f}"`))
     }
   }
 

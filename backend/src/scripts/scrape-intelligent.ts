@@ -269,7 +269,9 @@ function processSingleTable(tableLines: string[]): TableData {
 
 function cleanWikitext(text: string): string {
   return text
-    .replace(/\[\[(?:File|Image):([^\]|]+)(?:\|[^\]]+)?\]\]/gi, 'wiki-file:$1') // Preservar nombres de archivo como marcador
+    .replace(/\[\[(?:File|Image):([^\]|]+)(?:\|[^\]]+)?\]\]/gi, (_m, name: string) => 
+      'wiki-file:' + name.trim().replace(/ /g, '_') // Preservar nombres de archivo como marcador (espacios→underscores)
+    )
     .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2') // Enlaces [[Link|Display]] -> Display
     .replace(/\[\[([^\]]+)\]\]/g, '$1') // Enlaces simples [[Link]] -> Link
     .replace(/\{\{[^}]*\}\}/g, '') // Eliminar plantillas {{...}}

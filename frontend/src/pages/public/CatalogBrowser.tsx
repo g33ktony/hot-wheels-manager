@@ -96,28 +96,19 @@ export default function CatalogBrowser() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Handle suggestion click
-  const handleSuggestionClick = (suggestion: CatalogItem) => {
-    setSearchTerm(suggestion.carModel)
-    setShowSuggestions(false)
-    setPage(1)
-    // Trigger search with selected model
-    setTimeout(() => {
-      handleSearch()
-    }, 100)
-  }
-
-  // Search function
-  const handleSearch = async () => {
-    if (!searchTerm.trim() && !yearFilter) return // Don't search without criteria
+  // Search function — accepts overrides to avoid stale closure issues
+  const handleSearch = async (overrides?: { search?: string; pageNum?: number }) => {
+    const q = overrides?.search ?? searchTerm
+    const p = overrides?.pageNum ?? page
+    if (!q.trim() && !yearFilter) return // Don't search without criteria
     setHasSearched(true)
     setLoading(true)
     try {
       const response = await publicService.searchCatalog({
-        q: searchTerm,
+        q,
         year: yearFilter,
         sort: sortOrder,
-        page,
+        page: p,
         limit: 20
       })
 
@@ -130,7 +121,7 @@ export default function CatalogBrowser() {
 
       // Update URL params
       const newParams: Record<string, string> = {}
-      if (searchTerm) newParams.q = searchTerm
+      if (q) newParams.q = q
       if (yearFilter) newParams.year = yearFilter
       setSearchParams(newParams)
     } catch (error) {
@@ -139,6 +130,15 @@ export default function CatalogBrowser() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Handle suggestion click
+  const handleSuggestionClick = (suggestion: CatalogItem) => {
+    setSearchTerm(suggestion.carModel)
+    setShowSuggestions(false)
+    setPage(1)
+    // Search immediately with the known values (avoids stale closure)
+    handleSearch({ search: suggestion.carModel, pageNum: 1 })
   }
 
   // Search when filters change (only if user has already searched)
@@ -158,7 +158,7 @@ export default function CatalogBrowser() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setPage(1) // Reset to page 1 on new search
-    handleSearch()
+    handleSearch({ pageNum: 1 })
   }
 
   // Handle item click
@@ -263,9 +263,9 @@ export default function CatalogBrowser() {
                   >
                     {/* Small thumbnail */}
                     <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
-                      {suggestion.photo_url ? (
+                      {suggestion.photo_url && suggestion.photo_url.startsWith('https://') ? (
                         <img
-                          src={`https://images.weserv.nl/?url=${suggestion.photo_url}&w=48&h=48&fit=cover`}
+                          src={`https://images.weserv.nl/?url=${encodeURIComponent(suggestion.photo_url)}&w=48&h=48&fit=cover`}
                           alt={suggestion.carModel}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -465,9 +465,9 @@ export default function CatalogBrowser() {
               >
                 {/* Image */}
                 <div className="relative h-48 bg-slate-700 flex items-center justify-center">
-                  {item.photo_url ? (
+                  {item.photo_url && item.photo_url.startsWith('https://') ? (
                     <img
-                      src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${item.photo_url}&w=300&h=200&fit=contain`}
+                      src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(item.photo_url)}&w=300&h=200&fit=contain`}
                       alt={item.carModel}
                       className="w-full h-full object-cover"
                       onError={(e) => {
