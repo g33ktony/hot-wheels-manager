@@ -9,6 +9,7 @@ import LeadCaptureModal from '@/components/public/LeadCaptureModal'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { getPlaceholderLogo } from '@/utils/placeholderLogo'
+import SegmentBadge from '@/components/public/SegmentBadge'
 import toast from 'react-hot-toast'
 
 export default function CatalogBrowser() {
@@ -281,8 +282,9 @@ export default function CatalogBrowser() {
                       <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {suggestion.carModel}
                       </p>
-                      <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                        {suggestion.series} • {suggestion.year}
+                      <p className={`text-sm truncate flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <SegmentBadge segment={suggestion.segment} />
+                        <span className="truncate">{suggestion.series} • {suggestion.year}</span>
                       </p>
                     </div>
 
@@ -475,6 +477,11 @@ export default function CatalogBrowser() {
                   ) : (
                     <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
                   )}
+
+                  {/* Segment Badge */}
+                  <div className="absolute top-2 left-2">
+                    <SegmentBadge segment={item.segment} />
+                  </div>
 
                   {/* Availability Badge */}
                   {item.availability.available && (

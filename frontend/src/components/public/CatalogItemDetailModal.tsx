@@ -6,6 +6,7 @@ import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import ImageModal from '@/components/ImageModal'
 import { getPlaceholderLogo } from '@/utils/placeholderLogo'
+import SegmentBadge from './SegmentBadge'
 import LeadCaptureModal from './LeadCaptureModal'
 
 interface CatalogItemDetailModalProps {
@@ -123,8 +124,8 @@ export default function CatalogItemDetailModal({
                           <button
                             key={idx}
                             className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${idx === currentPhotoIndex
-                                ? 'bg-white text-slate-900 shadow-lg'
-                                : 'bg-black/50 text-white hover:bg-black/70'
+                              ? 'bg-white text-slate-900 shadow-lg'
+                              : 'bg-black/50 text-white hover:bg-black/70'
                               }`}
                             onClick={(e) => {
                               e.stopPropagation()
@@ -161,6 +162,9 @@ export default function CatalogItemDetailModal({
           <div className="space-y-4">
             {/* Model Name */}
             <div>
+              <div className="flex items-center gap-2 mb-1">
+                <SegmentBadge segment={item.segment} size="md" />
+              </div>
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {item.carModel}
               </h2>
