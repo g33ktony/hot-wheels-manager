@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { SaleModel } from '../models/Sale';
 import { InventoryItemModel } from '../models/InventoryItem';
-import { getStartOfDayUTC, getTodayString, getDayRangeUTC } from '../utils/dateUtils';
+import { getStartOfDayUTC, getTodayString, getDayRangeUTC, getDayRangeLocal, dateToLocalString } from '../utils/dateUtils';
 import { DeliveryModel } from '../models/Delivery';
 
 // Get all sales
@@ -619,10 +619,10 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       pieceType
     } = req.query;
 
-    // Construir rango de fechas
+    // Construir rango de fechas (usando timezone local México)
     let dateRange: any = {
-      $gte: getDayRangeUTC(startDate as string).startDate,
-      $lt: getDayRangeUTC(startDate as string).endDate
+      $gte: getDayRangeLocal(startDate as string).startDate,
+      $lte: getDayRangeLocal(startDate as string).endDate
     };
     
     if (period === 'month') {
@@ -631,17 +631,16 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       const lastDay = new Date(parseInt(year), parseInt(month), 0)
         .toISOString()
         .split('T')[0];
-      const lastDayRange = getDayRangeUTC(lastDay);
       dateRange = {
-        $gte: getDayRangeUTC(firstDay).startDate,
-        $lt: new Date(lastDayRange.endDate.getTime() + 1000)
+        $gte: getDayRangeLocal(firstDay).startDate,
+        $lte: getDayRangeLocal(lastDay).endDate
       };
     } else if (period === 'custom' && endDate) {
-      const startRange = getDayRangeUTC(startDate as string);
-      const endRange = getDayRangeUTC(endDate as string);
+      const startRange = getDayRangeLocal(startDate as string);
+      const endRange = getDayRangeLocal(endDate as string);
       dateRange = {
         $gte: startRange.startDate,
-        $lt: endRange.endDate
+        $lte: endRange.endDate
       };
     }
 
@@ -729,7 +728,7 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
         saleFilteredAmount += salePrice * quantity;
       }
 
-      const saleDate = sale.saleDate.toISOString().split('T')[0];
+      const saleDate = dateToLocalString(sale.saleDate);
       
       // Acumular totales (solo items que coinciden)
       totalSaleAmount += saleFilteredAmount;

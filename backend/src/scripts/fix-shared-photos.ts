@@ -28,7 +28,8 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 const JSON_PATH = path.resolve(__dirname, '../../data/hotwheels_database.json')
 const FANDOM_API = 'https://hotwheels.fandom.com/api.php'
 const BATCH_SIZE = 50
-const DELAY_MS = 200
+const DELAY_MS = 300
+const MAX_RETRIES = 3
 
 const args = process.argv.slice(2)
 const DRY_RUN = args.includes('--dry-run')
@@ -51,27 +52,37 @@ async function resolveFileUrls(filenames: string[]): Promise<Map<string, string>
     const batch = filenames.slice(i, i + BATCH_SIZE)
     const titles = batch.map(f => `File:${f}`).join('|')
 
-    try {
-      const params = new URLSearchParams({
-        action: 'query',
-        titles,
-        prop: 'imageinfo',
-        iiprop: 'url',
-        format: 'json',
-        formatversion: '2'
-      })
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const params = new URLSearchParams({
+          action: 'query',
+          titles,
+          prop: 'imageinfo',
+          iiprop: 'url',
+          format: 'json',
+          formatversion: '2'
+        })
 
-      const response = await axios.get(`${FANDOM_API}?${params}`)
-      const pages = response.data.query?.pages || []
+        const response = await axios.get(`${FANDOM_API}?${params}`, { timeout: 15000 })
+        const pages = response.data.query?.pages || []
 
-      for (const page of pages) {
-        if (page.imageinfo && page.imageinfo[0]?.url) {
-          const filename = page.title.replace(/^File:/, '')
-          result.set(filename, page.imageinfo[0].url)
+        for (const page of pages) {
+          if (page.imageinfo && page.imageinfo[0]?.url) {
+            const filename = page.title.replace(/^File:/, '')
+            // Store both space and underscore versions for reliable lookup
+            result.set(filename, page.imageinfo[0].url)
+            result.set(filename.replace(/ /g, '_'), page.imageinfo[0].url)
+          }
+        }
+        break // success
+      } catch (error: any) {
+        if (attempt < MAX_RETRIES) {
+          console.error(`  Error batch ${i} (attempt ${attempt}/${MAX_RETRIES}): ${error.message}, retrying...`)
+          await sleep(DELAY_MS * attempt * 2)
+        } else {
+          console.error(`  Error batch ${i} (GIVING UP after ${MAX_RETRIES} attempts): ${error.message}`)
         }
       }
-    } catch (error: any) {
-      console.error(`  Error batch ${i}: ${error.message}`)
     }
 
     if (i + BATCH_SIZE < filenames.length) {
@@ -93,26 +104,37 @@ async function fetchPageWikitext(pageTitles: string[]): Promise<Map<string, stri
     const batch = pageTitles.slice(i, i + BATCH_SIZE)
     const titles = batch.join('|')
 
-    try {
-      const params = new URLSearchParams({
-        action: 'query',
-        titles,
-        prop: 'revisions',
-        rvprop: 'content',
-        format: 'json',
-        formatversion: '2'
-      })
+    const params = new URLSearchParams({
+      action: 'query',
+      titles,
+      prop: 'revisions',
+      rvprop: 'content',
+      format: 'json',
+      formatversion: '2'
+    })
 
-      const response = await axios.get(`${FANDOM_API}?${params}`)
-      const pages = response.data.query?.pages || []
+    let fetched = false
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const response = await axios.get(`${FANDOM_API}?${params}`, { timeout: 15000 })
+        const pages = response.data.query?.pages || []
 
-      for (const page of pages) {
-        if (page.revisions && page.revisions[0]?.content) {
-          result.set(page.title, page.revisions[0].content)
+        for (const page of pages) {
+          if (page.revisions && page.revisions[0]?.content) {
+            result.set(page.title, page.revisions[0].content)
+          }
+        }
+        fetched = true
+        break
+      } catch (error: any) {
+        if (attempt < MAX_RETRIES) {
+          console.error(`  Error wikitext batch ${i} (attempt ${attempt}/${MAX_RETRIES}): ${error.message}, retrying...`)
+          await sleep(DELAY_MS * attempt * 2)
+        } else {
+          console.error(`  Error wikitext batch ${i} (GIVING UP): ${error.message}`)
+          console.error(`    Failed titles: ${batch.join(', ')}`)
         }
       }
-    } catch (error: any) {
-      console.error(`  Error fetching wikitext batch ${i}: ${error.message}`)
     }
 
     if (i + BATCH_SIZE < pageTitles.length) {
@@ -385,7 +407,7 @@ async function fixSharedPhotos() {
   }
 
   // Find models where multiple variants share the same photo
-  const modelsToFix: Array<{ model: string; indices: number[]; sharedUrl: string }> = []
+  const modelsToFix: Array<{ model: string; indices: number[]; sharedUrls: Set<string> }> = []
 
   for (const [model, indices] of modelGroups) {
     if (indices.length < MIN_DUPES) continue
@@ -399,12 +421,16 @@ async function fixSharedPhotos() {
       }
     }
 
-    // If any URL is shared by MIN_DUPES+ variants, this needs fixing
+    // Collect ALL URLs shared by MIN_DUPES+ variants
+    const sharedUrls = new Set<string>()
     for (const [url, count] of urlCounts) {
       if (count >= MIN_DUPES) {
-        modelsToFix.push({ model, indices, sharedUrl: url })
-        break
+        sharedUrls.add(url)
       }
+    }
+    
+    if (sharedUrls.size > 0) {
+      modelsToFix.push({ model, indices, sharedUrls })
     }
   }
 
@@ -431,6 +457,18 @@ async function fixSharedPhotos() {
   
   const wikitextMap = await fetchPageWikitext(pageNamesToFetch)
   console.log(`  Got wikitext for ${wikitextMap.size} pages`)
+  
+  // Log pages that were requested but not fetched
+  const missingPages = pageNamesToFetch.filter(p => !wikitextMap.has(p))
+  if (missingPages.length > 0) {
+    console.log(`  ⚠️  Missing wikitext for ${missingPages.length} pages:`)
+    for (const p of missingPages.slice(0, 10)) {
+      console.log(`     - ${p}`)
+    }
+    if (missingPages.length > 10) {
+      console.log(`     ... and ${missingPages.length - 10} more`)
+    }
+  }
 
   // ====== Step 3: Parse tables and extract per-row photos ======
   console.log('\n📌 Step 3: Parsing tables for per-variant photos...')
@@ -438,23 +476,35 @@ async function fixSharedPhotos() {
   const allFilenames = new Set<string>()
   let matchedRows = 0
   let unmatchedRows = 0
+  let noWikitext = 0
+  let noTableRows = 0
+  let noSharedEntries = 0
   const updates: Array<{ jsonIdx: number; filename: string }> = []
 
-  for (const { model, indices, sharedUrl } of modelsToFix) {
+  for (const { model, indices, sharedUrls } of modelsToFix) {
     const wikitext = wikitextMap.get(model)
-    if (!wikitext) continue
+    if (!wikitext) {
+      noWikitext++
+      continue
+    }
 
     // Parse table to get per-row photos
     const tableRows = parseTablePhotos(wikitext)
-    if (tableRows.length === 0) continue
+    if (tableRows.length === 0) {
+      noTableRows++
+      continue
+    }
 
-    // Get ONLY entries that currently have the shared (duplicate) photo.
+    // Get ONLY entries that currently have ANY shared (duplicate) photo.
     // Entries that already have a unique/correct photo should not be touched.
     const entriesWithSharedPhoto = indices
-      .filter(idx => jsonData[idx].photo_url === sharedUrl)
+      .filter(idx => sharedUrls.has(jsonData[idx].photo_url || ''))
       .map(idx => ({ ...jsonData[idx], _jsonIdx: idx }))
 
-    if (entriesWithSharedPhoto.length === 0) continue
+    if (entriesWithSharedPhoto.length === 0) {
+      noSharedEntries++
+      continue
+    }
 
     // Track which entries have been matched (avoid double-matching)
     const matchedEntries = new Set<number>()
@@ -483,6 +533,9 @@ async function fixSharedPhotos() {
 
   console.log(`  Matched ${matchedRows} table rows to JSON entries`)
   console.log(`  Unmatched rows: ${unmatchedRows}`)
+  console.log(`  No wikitext fetched: ${noWikitext}`)
+  console.log(`  No table rows parsed: ${noTableRows}`)
+  console.log(`  No shared entries remaining: ${noSharedEntries}`)
   console.log(`  Unique filenames to resolve: ${allFilenames.size}`)
 
   // ====== Step 4: Resolve filenames to real URLs ======

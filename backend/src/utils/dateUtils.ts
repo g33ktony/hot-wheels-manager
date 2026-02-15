@@ -77,12 +77,11 @@ export function getEndOfDayUTC(date: Date): Date {
 }
 
 /**
- * Get today's date in YYYY-MM-DD format in local timezone
+ * Get today's date in YYYY-MM-DD format in app timezone (Mexico City)
  * @returns Today's date string
  */
 export function getTodayString(): string {
-  const today = new Date();
-  return dateToString(today);
+  return dateToLocalString(new Date());
 }
 
 /**
@@ -107,4 +106,35 @@ export function getDayRangeUTC(dateString: string) {
     startDate: getStartOfDayUTC(date),
     endDate: getEndOfDayUTC(date)
   };
+}
+
+// Timezone for all date operations (Mexico City, UTC-6)
+const APP_TIMEZONE = 'America/Mexico_City';
+
+/**
+ * Convert a UTC date to YYYY-MM-DD string in the app's timezone (Mexico City)
+ * This is critical for grouping sales by day correctly regardless of server timezone
+ * @param date - Date object (stored in UTC)
+ * @returns Date string in YYYY-MM-DD format in Mexico City timezone
+ */
+export function dateToLocalString(date: Date): string {
+  // en-CA locale gives YYYY-MM-DD format natively
+  return date.toLocaleDateString('en-CA', { timeZone: APP_TIMEZONE });
+}
+
+/**
+ * Get start and end of a day in Mexico City timezone, converted to UTC
+ * Useful for MongoDB date range queries that respect local timezone
+ * Mexico City is permanently UTC-6 (DST was abolished in 2022)
+ * @param dateString - Date in YYYY-MM-DD format (local date)
+ * @returns Object with startDate and endDate as UTC Date objects
+ */
+export function getDayRangeLocal(dateString: string) {
+  const [year, month, day] = dateString.split('-').map(Number);
+  
+  // Midnight Mexico City (UTC-6) = 06:00 UTC
+  const startDate = new Date(Date.UTC(year, month - 1, day, 6, 0, 0, 0));
+  const endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000 - 1);
+  
+  return { startDate, endDate };
 }

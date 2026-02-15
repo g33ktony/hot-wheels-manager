@@ -7,7 +7,7 @@ import { DeliveryModel } from '../models/Delivery';
 import Purchase from '../models/Purchase';
 import { RecentActivity } from '../shared/types';
 import { dashboardCache, CACHE_KEYS } from '../services/cacheService';
-import { getStartOfDayUTC, getEndOfDayUTC, getTodayString, getDayRangeUTC } from '../utils/dateUtils';
+import { getStartOfDayUTC, getEndOfDayUTC, getTodayString, getDayRangeUTC, getDayRangeLocal } from '../utils/dateUtils';
 
 // Helper function to get recent activity data
 async function getRecentActivityData(totalCatalogCars: number, totalSales: number): Promise<RecentActivity[]> {
@@ -195,7 +195,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Calculate daily revenue from all sources
     console.log('💸 Calculating daily revenue...');
-    const { startDate: startOfToday, endDate: endOfToday } = getDayRangeUTC(getTodayString());
+    const { startDate: startOfToday, endDate: endOfToday } = getDayRangeLocal(getTodayString());
 
     // Daily sales from completed sales (POS)
     const dailySalesData = await SaleModel.find({
@@ -293,7 +293,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
       { $group: { _id: null, total: { $sum: '$items.quantity' } } }
     ]);
     // Get today's deliveries
-    const { startDate: startOfDay, endDate: endOfDay } = getDayRangeUTC(getTodayString());
+    const { startDate: startOfDay, endDate: endOfDay } = getDayRangeLocal(getTodayString());
 
     const todaysDeliveries = await DeliveryModel.find({
       scheduledDate: { $gte: startOfDay, $lte: endOfDay },
