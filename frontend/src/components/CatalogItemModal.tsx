@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { X, ChevronLeft, Plus } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import Button from './common/Button'
+import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import toast from 'react-hot-toast'
 import api from '@/services/api'
 
@@ -33,33 +34,33 @@ interface CatalogItemModalProps {
 // Función para determinar el tipo de pieza basada en la serie
 const getCatalogPieceType = (series: string): { type: string; label: string; emoji: string } => {
     const seriesLower = series.toLowerCase()
-    
+
     // RLC (Racing & Legends Collection)
     if (seriesLower.includes('rlc') || seriesLower.includes('racing') || seriesLower.includes('legends')) {
         return { type: 'rlc', label: 'RLC', emoji: '🏆' }
     }
-    
+
     // Premium (Porsche, Ferrari, BMW, Lamborghini, etc.)
-    if (seriesLower.includes('premium') || seriesLower.includes('porsche') || seriesLower.includes('ferrari') || 
+    if (seriesLower.includes('premium') || seriesLower.includes('porsche') || seriesLower.includes('ferrari') ||
         seriesLower.includes('lamborghini') || seriesLower.includes('bugatti') || seriesLower.includes('mclaren')) {
         return { type: 'premium', label: 'Premium', emoji: '⭐' }
     }
-    
+
     // Elite / Special editions
     if (seriesLower.includes('elite') || seriesLower.includes('special') || seriesLower.includes('limited')) {
         return { type: 'elite', label: 'Elite', emoji: '✨' }
     }
-    
+
     // Treasure Hunt
     if (seriesLower.includes('treasure hunt')) {
         return { type: 'treasure_hunt', label: 'Treasure Hunt', emoji: '💎' }
     }
-    
+
     // Super Treasure Hunt
     if (seriesLower.includes('super treasure hunt')) {
         return { type: 'super_treasure_hunt', label: 'Super Treasure Hunt', emoji: '💎💎' }
     }
-    
+
     // Default: Basic
     return { type: 'basic', label: 'Básico', emoji: '🚗' }
 }
@@ -70,6 +71,7 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
     const [showImageZoom, setShowImageZoom] = useState(false)
     const [currentMode, setCurrentMode] = useState<'detail' | 'add'>(initialMode)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [imageError, setImageError] = useState(false)
 
     // Form refs
     const quantityRef = useRef<HTMLInputElement>(null)
@@ -77,7 +79,7 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
     const costRef = useRef<HTMLInputElement>(null)
 
     if (!item || !isOpen) return null
-    
+
     const pieceTypeInfo = getCatalogPieceType(item.metadata.series)
 
     const handleSwitchToAdd = () => {
@@ -194,13 +196,14 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
                                         className={`relative rounded-lg overflow-hidden cursor-pointer group aspect-square flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}
                                         onClick={() => setShowImageZoom(true)}
                                     >
-                                        {item.metadata.photoUrl ? (
+                                        {item.metadata.photoUrl && !imageError ? (
                                             <>
                                                 <img
                                                     src={`https://images.weserv.nl/?url=${encodeURIComponent(item.metadata.photoUrl)}&w=600&h=600&fit=contain`}
                                                     alt={item.metadata.model}
                                                     className="w-full h-full object-contain group-hover:opacity-75 transition-opacity"
                                                     crossOrigin="anonymous"
+                                                    onError={() => setImageError(true)}
                                                 />
                                                 <div className={`absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity`}>
                                                     <div className="flex flex-col items-center gap-2">
@@ -214,7 +217,10 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
                                                 </div>
                                             </>
                                         ) : (
-                                            <div className={`text-4xl ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>📷</div>
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                <img src={getPlaceholderLogo(item.metadata.series)} alt="placeholder" className="w-24 h-24 object-contain opacity-60" />
+                                                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Sin imagen disponible</p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -352,7 +358,7 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
             </div>
 
             {/* Image Zoom Modal */}
-            {showImageZoom && item.metadata.photoUrl && (
+            {showImageZoom && item.metadata.photoUrl && !imageError && (
                 <div
                     className="fixed inset-0 bg-black/95 z-[60] flex items-center justify-center p-4 backdrop-blur-sm"
                     onClick={() => setShowImageZoom(false)}
@@ -374,6 +380,10 @@ export default function CatalogItemModal({ isOpen, item, onClose, initialMode = 
                             className="w-full h-full object-contain"
                             crossOrigin="anonymous"
                             onClick={(e) => e.stopPropagation()}
+                            onError={() => {
+                                setImageError(true)
+                                setShowImageZoom(false)
+                            }}
                         />
                     </div>
                 </div>

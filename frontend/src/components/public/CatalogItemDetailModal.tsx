@@ -330,7 +330,7 @@ export default function CatalogItemDetailModal({
       {photos.length > 0 && (
         <ImageModal
           isOpen={showImageViewer}
-          images={photos.map(p => p.url)}
+          images={photos.map(p => `https://images.weserv.nl/?url=${encodeURIComponent(p.url)}&w=1200&h=1200&fit=contain`)}
           initialIndex={currentPhotoIndex}
           onClose={() => setShowImageViewer(false)}
           title={item.carModel}

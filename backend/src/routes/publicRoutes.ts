@@ -5,6 +5,7 @@ import {
   createLead,
   trackItemView
 } from '../controllers/publicController'
+import { createDataReport } from '../controllers/dataReportController'
 
 const router = Router()
 
@@ -19,5 +20,8 @@ router.post('/leads', createLead)
 
 // POST /api/public/track-view - Track item view (optional analytics)
 router.post('/track-view', trackItemView)
+
+// POST /api/public/reports - Submit a data report (no auth)
+router.post('/reports', createDataReport)
 
 export default router

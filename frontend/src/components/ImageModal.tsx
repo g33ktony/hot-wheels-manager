@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ImageModalProps {
@@ -17,6 +17,13 @@ export default function ImageModal({
   title
 }: ImageModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  // Sync currentIndex when initialIndex or isOpen changes
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentIndex(initialIndex);
+    }
+  }, [initialIndex, isOpen]);
 
   if (!isOpen || images.length === 0) return null;
 

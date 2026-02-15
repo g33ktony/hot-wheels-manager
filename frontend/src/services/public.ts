@@ -101,5 +101,20 @@ export const publicService = {
       { catalogId, carModel }
     )
     return response.data
+  },
+
+  /**
+   * Submit a data report for a catalog item (no auth required)
+   */
+  submitDataReport: async (data: {
+    catalogItemId: string
+    carModel: string
+    series: string
+    year: string
+    reportType: string
+    note: string
+  }) => {
+    const response = await publicApi.post('/public/reports', data)
+    return response.data
   }
 }

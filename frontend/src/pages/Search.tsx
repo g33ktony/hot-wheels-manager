@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import Button from '@/components/common/Button'
 import { getPlaceholderLogo } from '@/utils/placeholderLogo'
+import ImageModal from '@/components/ImageModal'
 import toast from 'react-hot-toast'
 import { useAppDispatch } from '@/hooks/redux'
 import { addToCart } from '@/store/slices/cartSlice'
@@ -621,13 +622,20 @@ export default function Search() {
                                             onClick={() => handleResultClick(result)}
                                         >
                                             {/* Imagen del item */}
-                                            {result.metadata?.photos && result.metadata.photos.length > 0 && (
+                                            {result.metadata?.photos && result.metadata.photos.length > 0 ? (
                                                 <img
                                                     src={result.metadata.photos[result.metadata.primaryPhotoIndex || 0]}
                                                     alt={result.title}
                                                     className="w-16 h-16 object-cover rounded mr-4 flex-shrink-0"
                                                     crossOrigin="anonymous"
+                                                    onError={(e) => {
+                                                        (e.currentTarget as HTMLImageElement).src = getPlaceholderLogo(result.metadata?.brand);
+                                                    }}
                                                 />
+                                            ) : (
+                                                <div className={`w-16 h-16 rounded mr-4 flex-shrink-0 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                                                    <img src={getPlaceholderLogo(result.metadata?.brand)} alt="placeholder" className="w-10 h-10 object-contain opacity-50" />
+                                                </div>
                                             )}
                                             <div className="flex-1">
                                                 <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{result.title}</h3>
@@ -1131,6 +1139,8 @@ function GenericDetailModal({
     const [editingCustomer, setEditingCustomer] = useState<any>(null)
     const [isEditingInventory, setIsEditingInventory] = useState(false)
     const [editingInventory, setEditingInventory] = useState<any>(null)
+    const [imageModalOpen, setImageModalOpen] = useState(false)
+    const [imageModalIndex, setImageModalIndex] = useState(0)
 
     const { data: inventoryData } = useQuery(
         ['inventory-detail', id],
@@ -1258,13 +1268,32 @@ function GenericDetailModal({
                                     </div>
                                     {inventoryData.photos && inventoryData.photos.length > 0 && (
                                         <div className="bg-slate-700/50 rounded-lg p-4">
-                                            <p className="text-xs text-slate-400 mb-2">Fotos ({inventoryData.photos.length})</p>
+                                            <p className="text-xs text-slate-400 mb-2">Fotos ({inventoryData.photos.length}) - Click para ampliar</p>
                                             <div className="grid grid-cols-3 gap-2">
-                                                {inventoryData.photos.slice(0, 3).map((photo: any, idx: number) => (
-                                                    <img key={idx} src={photo} alt={`Foto ${idx}`} className="w-full h-20 object-cover rounded-lg" />
+                                                {inventoryData.photos.map((photo: any, idx: number) => (
+                                                    <img
+                                                        key={idx}
+                                                        src={photo}
+                                                        alt={`Foto ${idx}`}
+                                                        className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity ring-1 ring-slate-600 hover:ring-blue-500"
+                                                        onClick={() => {
+                                                            setImageModalIndex(idx)
+                                                            setImageModalOpen(true)
+                                                        }}
+                                                    />
                                                 ))}
                                             </div>
                                         </div>
+                                    )}
+                                    {/* Image zoom modal */}
+                                    {inventoryData?.photos && (
+                                        <ImageModal
+                                            isOpen={imageModalOpen}
+                                            images={inventoryData.photos}
+                                            initialIndex={imageModalIndex}
+                                            onClose={() => setImageModalOpen(false)}
+                                            title={inventoryData.carName || inventoryData.carId}
+                                        />
                                     )}
                                 </div>
                             ) : (
