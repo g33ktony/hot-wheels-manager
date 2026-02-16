@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2, ArrowUpNarrowWide, ArrowDownNarrowWide, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { publicService, CatalogItem } from '@/services/public'
 import PublicLayout from '@/components/public/PublicLayout'
 import CatalogItemDetailModal from '@/components/public/CatalogItemDetailModal'
@@ -14,8 +15,24 @@ import toast from 'react-hot-toast'
 
 export default function CatalogBrowser() {
   const { mode } = useTheme()
-  const isDark = mode === 'dark'
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
+  const isDark = mode === 'dark'
+
+  // Redirigir si el usuario ya tiene sesión activa (solo si viene desde la raíz o login)
+  useEffect(() => {
+    // Solo redirigir si no hay un parámetro específico o si queremos forzar dashboard al entrar a /
+    // Para permitir ver el catálogo siendo admin, podríamos chequear una query param o simplemente dejarlo pasar si viene de sidebar
+    const fromSidebar = searchParams.get('adminView') === 'true'
+    
+    // Si es admin y entra a la ruta pública normal, mandarlo al dashboard
+    if (user && !fromSidebar && (location.pathname === '/browse' || location.pathname === '/')) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, navigate, searchParams, location.pathname])
+
   const searchInputRef = useRef<HTMLInputElement>(null)
   const suggestionsRef = useRef<HTMLDivElement>(null)
 

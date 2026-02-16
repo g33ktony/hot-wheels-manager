@@ -704,12 +704,29 @@ async function getCategoryPages(category: string): Promise<string[]> {
 /**
  * Scraper principal inteligente
  */
-async function scrapeIntelligent(saveToMongo = true) {
+async function scrapeIntelligent(saveToMongo = true, onProgress?: (progress: { 
+  step: string, 
+  percent: number, 
+  current: number, 
+  total: number,
+  message: string 
+}) => void) {
   // Collect all scraped vehicles for JSON export
   const allScrapedVehicles: any[] = []
 
   try {
     console.log('🚀 Iniciando Scraper INTELIGENTE de Fandom...\n')
+    
+    if (onProgress) {
+      onProgress({ 
+        step: 'initializing', 
+        percent: 0, 
+        current: 0, 
+        total: 100, 
+        message: 'Inicializando scraper...' 
+      })
+    }
+
     console.log('📊 Detectará dinámicamente la estructura de columnas en cada tabla\n')
 
     if (saveToMongo) {
@@ -799,6 +816,16 @@ async function scrapeIntelligent(saveToMongo = true) {
       const totalBatches = Math.ceil(remainingTasks.length / BATCH_SIZE)
       console.log(`... Lote ${batchNum}/${totalBatches} (páginas ${i + 1}-${Math.min(i + BATCH_SIZE, remainingTasks.length)} de ${remainingTasks.length})`)
       
+      if (onProgress) {
+        onProgress({
+          step: 'scraping',
+          percent: Math.min(90, Math.round(((i + BATCH_SIZE) / remainingTasks.length) * 100 * 0.7)), // Scraping is 70% of total
+          current: i + batch.length,
+          total: remainingTasks.length,
+          message: `Escaneando páginas de Fandom (${i + 1}/${remainingTasks.length})...`
+        })
+      }
+
       const batchResults = await scrapePagesBatch(batch)
       await sleep(200) // Brief pause between batches
 

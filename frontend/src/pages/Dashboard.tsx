@@ -498,18 +498,29 @@ export default function Dashboard() {
                                     updateCatalogMutation.reset()
                                 }
                             }}
-                            disabled={updateCatalogMutation.isLoading}
+                            disabled={updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating}
                         >
-                            {updateCatalogMutation.isSuccess ? 'Cerrar' : 'Cancelar'}
+                            {updateCatalogMutation.isSuccess || updateStatus?.progress?.step === 'completed' ? 'Cerrar' : 'Cancelar'}
                         </Button>
-                        {!updateCatalogMutation.isSuccess && (
+                        {!updateCatalogMutation.isSuccess && updateStatus?.progress?.step !== 'completed' && (
                             <Button
-                                className="flex-1 flex items-center justify-center gap-2"
+                                className="flex-1 flex items-center justify-center gap-2 relative overflow-hidden"
                                 onClick={() => updateCatalogMutation.mutate()}
-                                disabled={updateCatalogMutation.isLoading}
+                                disabled={updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating}
                             >
-                                <RefreshCw size={16} className={updateCatalogMutation.isLoading ? 'animate-spin' : ''} />
-                                {updateCatalogMutation.isLoading ? 'Descargando...' : 'Actualizar Ahora'}
+                                {/* Progress Filling Effect */}
+                                {(updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating) && (
+                                    <div
+                                        className="absolute left-0 top-0 bottom-0 bg-emerald-600/30 transition-all duration-500 ease-out"
+                                        style={{ width: `${updateStatus?.progress?.percent || 0}%` }}
+                                    />
+                                )}
+                                <RefreshCw size={16} className={updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating ? 'animate-spin z-10' : ''} />
+                                <span className="z-10">
+                                    {updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating
+                                        ? `Descargando (${updateStatus?.progress?.percent || 0}%)`
+                                        : 'Actualizar Ahora'}
+                                </span>
                             </Button>
                         )}
                     </div>
@@ -551,34 +562,63 @@ export default function Dashboard() {
                         </>
                     )}
 
-                    {updateCatalogMutation.isLoading && (
+                    {(updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating) && (
                         <div className="flex items-center justify-center py-8">
-                            <div className="text-center space-y-3">
-                                <div className="animate-spin">
-                                    <RefreshCw size={32} className="text-emerald-400" />
+                            <div className="text-center space-y-4 w-full px-4">
+                                <div className="flex justify-center mb-2">
+                                    <div className="relative">
+                                        <RefreshCw size={48} className="text-emerald-400 animate-spin" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-[10px] font-bold text-white">
+                                                {updateStatus?.progress?.percent || 0}%
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-white font-medium">Descargando catálogo...</p>
-                                <p className="text-sm text-slate-400">No cierres esta ventana</p>
+
+                                <div className="space-y-2">
+                                    <p className="text-white font-medium">{updateStatus?.progress?.message || 'Descargando catálogo...'}</p>
+
+                                    {/* Real Progress Bar */}
+                                    <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden border border-slate-600">
+                                        <div
+                                            className="bg-emerald-500 h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                            style={{ width: `${updateStatus?.progress?.percent || 0}%` }}
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-between text-[10px] text-slate-400 uppercase tracking-wider">
+                                        <span>Procesando Items</span>
+                                        <span>{updateStatus?.progress?.percent || 0}%</span>
+                                    </div>
+                                </div>
+
+                                <p className="text-sm text-slate-400">No cierres esta ventana para monitorear el progreso</p>
                             </div>
                         </div>
                     )}
 
-                    {updateCatalogMutation.isSuccess && (
-                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
-                            <p className="text-white">
-                                <span className="font-semibold">✅ Actualización completada</span>
+                    {(updateCatalogMutation.isSuccess || (updateStatus?.progress?.step === 'completed' && !updateStatus?.progress?.isUpdating)) && (
+                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 animate-in fade-in zoom-in duration-300">
+                            <p className="text-white text-center">
+                                <span className="text-3xl block mb-2">✅</span>
+                                <span className="font-semibold text-emerald-400 text-lg">Actualización completada</span>
                                 <br className="mt-2" />
-                                El catálogo de autos a escala ha sido actualizado exitosamente.
+                                <span className="text-sm text-slate-300">
+                                    El catálogo de autos a escala ha sido sincronizado exitosamente con MongoDB.
+                                </span>
                             </p>
                         </div>
                     )}
 
-                    {updateCatalogMutation.isError && (
+                    {(updateCatalogMutation.isError || updateStatus?.progress?.step === 'error') && (
                         <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
                             <p className="text-white">
-                                <span className="font-semibold">❌ Error en la actualización</span>
+                                <span className="font-semibold text-red-400">❌ Error en la actualización</span>
                                 <br className="mt-2" />
-                                {updateCatalogMutation.error?.message || 'No se pudo actualizar el catálogo'}
+                                <span className="text-sm">
+                                    {updateStatus?.progress?.lastError || updateCatalogMutation.error?.message || 'No se pudo actualizar el catálogo'}
+                                </span>
                             </p>
                         </div>
                     )}
@@ -717,8 +757,8 @@ export default function Dashboard() {
                     {isSearching && searchResults.length === 0 && (
                         <div className="flex items-center justify-center py-12">
                             <div className="text-center space-y-2">
-                                <div className="animate-spin inline-block">
-                                    <RefreshCw size={24} className="text-emerald-400" />
+                                <div className="flex justify-center">
+                                    <RefreshCw size={24} className="text-emerald-400 animate-spin" />
                                 </div>
                                 <p className="text-white font-medium">Cargando...</p>
                             </div>

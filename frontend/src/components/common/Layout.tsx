@@ -26,6 +26,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useBoxes } from '@/hooks/useBoxes'
+import { useLeadStatistics } from '@/hooks/useLeads'
+import { useDataReportsSummary } from '@/hooks/useDataReports'
 import { useAppSelector } from '@/hooks/redux'
 import FloatingActionButton from './FloatingActionButton'
 import DeliveryCartModal from '../DeliveryCartModal'
@@ -51,6 +53,8 @@ export default function Layout({ children }: LayoutProps) {
     const { toggleTheme, mode } = useTheme()
     const { data: pendingItemsStats } = usePendingItemsStats()
     const { data: boxes } = useBoxes()
+    const { data: leadStats } = useLeadStatistics()
+    const { data: reportsSummary } = useDataReportsSummary()
     const cartItems = useAppSelector(state => state.cart.items)
     const deliveryCartItems = useAppSelector(state => state.deliveryCart.items)
     const cartItemCount = cartItems.length
@@ -99,6 +103,10 @@ export default function Layout({ children }: LayoutProps) {
         localStorage.setItem('globalSearchQuery', searchQuery)
     }, [searchQuery])
 
+    // Badge counts
+    const newLeadsCount = leadStats?.statusBreakdown?.new || 0
+    const pendingReportsCount = reportsSummary?.pending || 0
+
     const navigationItems = [
         { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Inventario', href: '/inventory', icon: Package },
@@ -128,8 +136,9 @@ export default function Layout({ children }: LayoutProps) {
         }] : []),
         { name: 'Entregas', href: '/deliveries', icon: Truck },
         { name: 'Clientes', href: '/customers', icon: Users },
-        { name: 'Leads', href: '/leads', icon: Mail },
-        { name: 'Reportes de Datos', href: '/data-reports', icon: Flag },
+        { name: 'Leads', href: '/leads', icon: Mail, ...(newLeadsCount > 0 && { badge: newLeadsCount }) },
+        { name: 'Reportes de Datos', href: '/data-reports', icon: Flag, ...(pendingReportsCount > 0 && { badge: pendingReportsCount }) },
+        { name: 'Catálogo Público', href: '/browse?adminView=true', icon: SearchIcon },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
         { name: 'Configuración de Tienda', href: '/store-settings', icon: Store },
         { name: 'Tema', href: '/theme-settings', icon: Settings },
@@ -300,7 +309,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className={`h-16 border-b px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 lg:left-64 z-40 w-full lg:w-auto shadow-sm backdrop-blur ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}`}>
+                <div className={`h-16 border-b px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto shadow-sm backdrop-blur transition-all duration-300 ${sidebarCollapsed ? 'lg:left-16' : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}`}>
                     <button
                         className={`lg:hidden p-2 -ml-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                         onClick={() => setSidebarOpen(true)}

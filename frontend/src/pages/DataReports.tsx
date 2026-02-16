@@ -61,6 +61,7 @@ export default function DataReports() {
         {
             onSuccess: () => {
                 queryClient.invalidateQueries(['data-reports'])
+                queryClient.invalidateQueries(['data-reports-summary'])
                 toast.success('Reporte actualizado')
                 setSelectedReport(null)
             },
@@ -73,6 +74,7 @@ export default function DataReports() {
         {
             onSuccess: () => {
                 queryClient.invalidateQueries(['data-reports'])
+                queryClient.invalidateQueries(['data-reports-summary'])
                 toast.success('Reporte eliminado')
                 setDeleteConfirm(null)
             },
@@ -150,8 +152,8 @@ export default function DataReports() {
                         value={statusFilter}
                         onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
                         className={`px-3 py-2 rounded-lg border text-sm ${isDark
-                                ? 'bg-slate-700 border-slate-600 text-white'
-                                : 'bg-white border-slate-300 text-slate-900'
+                            ? 'bg-slate-700 border-slate-600 text-white'
+                            : 'bg-white border-slate-300 text-slate-900'
                             }`}
                     >
                         <option value="">Todos los estados</option>
@@ -163,8 +165,8 @@ export default function DataReports() {
                         value={typeFilter}
                         onChange={(e) => { setTypeFilter(e.target.value); setPage(1) }}
                         className={`px-3 py-2 rounded-lg border text-sm ${isDark
-                                ? 'bg-slate-700 border-slate-600 text-white'
-                                : 'bg-white border-slate-300 text-slate-900'
+                            ? 'bg-slate-700 border-slate-600 text-white'
+                            : 'bg-white border-slate-300 text-slate-900'
                             }`}
                     >
                         <option value="">Todos los tipos</option>
@@ -328,8 +330,8 @@ export default function DataReports() {
                                 value={selectedReport.status}
                                 onChange={(e) => setSelectedReport({ ...selectedReport, status: e.target.value as DataReport['status'] })}
                                 className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark
-                                        ? 'bg-slate-700 border-slate-600 text-white'
-                                        : 'bg-white border-slate-300 text-slate-900'
+                                    ? 'bg-slate-700 border-slate-600 text-white'
+                                    : 'bg-white border-slate-300 text-slate-900'
                                     }`}
                             >
                                 <option value="pending">Pendiente</option>
@@ -347,8 +349,8 @@ export default function DataReports() {
                                 rows={4}
                                 placeholder="Escribe notas sobre este reporte..."
                                 className={`w-full px-3 py-2 rounded-lg border text-sm resize-none ${isDark
-                                        ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
-                                        : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
+                                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
+                                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                             />
                         </div>
