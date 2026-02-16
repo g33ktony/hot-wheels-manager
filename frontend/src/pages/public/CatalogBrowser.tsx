@@ -26,7 +26,7 @@ export default function CatalogBrowser() {
     // Solo redirigir si no hay un parámetro específico o si queremos forzar dashboard al entrar a /
     // Para permitir ver el catálogo siendo admin, podríamos chequear una query param o simplemente dejarlo pasar si viene de sidebar
     const fromSidebar = searchParams.get('adminView') === 'true'
-    
+
     // Si es admin y entra a la ruta pública normal, mandarlo al dashboard
     if (user && !fromSidebar && (location.pathname === '/browse' || location.pathname === '/')) {
       navigate('/dashboard', { replace: true })
