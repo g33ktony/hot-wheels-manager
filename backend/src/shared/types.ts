@@ -10,6 +10,7 @@ export interface HotWheelsCar {
   photo_url?: string;
   photo_url_carded?: string;
   year: string;
+  brand?: string; // Hot Wheels, Mini GT, Kaido House, Pop Race, etc.
   // Campos adicionales que se pueden agregar
   color?: string;
   tampo?: string;

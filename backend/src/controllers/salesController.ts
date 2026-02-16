@@ -422,8 +422,12 @@ export const createPOSSale = async (req: Request, res: Response) => {
 
     console.log('🛒 POS Sale Request:', { items, paymentMethod, notes });
 
-    const saleItems = [];
-    const inventoryUpdates = [];
+    const saleItems: any[] = [];
+    const inventoryUpdates: Array<{
+      item: any;
+      quantityToReduce: number;
+      finalPrice: number;
+    }> = [];
     let totalAmount = 0;
 
     // 1. PRIMERA FASE: Validación de todos los items sin guardar cambios
@@ -451,8 +455,13 @@ export const createPOSSale = async (req: Request, res: Response) => {
 
       // Verificar que hay cantidad disponible
       // Llevamos cuenta de lo que ya "apartamos" en este loop para el mismo ID
-      const alreadyChecked = inventoryUpdates.find(u => u.item._id.toString() === inventoryItemId);
-      const currentAvailable = (inventoryItem.quantity || 0) - (inventoryItem.reservedQuantity || 0) - (alreadyChecked ? alreadyChecked.quantityToReduce : 0);
+      const alreadyChecked = inventoryUpdates.find(
+        (u) => (u.item._id as any)?.toString?.() === inventoryItemId
+      );
+      const currentAvailable =
+        (inventoryItem.quantity || 0) -
+        (inventoryItem.reservedQuantity || 0) -
+        (alreadyChecked ? alreadyChecked.quantityToReduce : 0);
       const parsedQuantity = parseInt(String(quantity), 10) || 1;
       
       if (currentAvailable < parsedQuantity) {
