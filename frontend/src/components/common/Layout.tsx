@@ -18,7 +18,8 @@ import {
     Moon,
     Settings,
     Mail,
-    Store
+    Store,
+    Flag
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -128,6 +129,7 @@ export default function Layout({ children }: LayoutProps) {
         { name: 'Entregas', href: '/deliveries', icon: Truck },
         { name: 'Clientes', href: '/customers', icon: Users },
         { name: 'Leads', href: '/leads', icon: Mail },
+        { name: 'Reportes de Datos', href: '/data-reports', icon: Flag },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
         { name: 'Configuración de Tienda', href: '/store-settings', icon: Store },
         { name: 'Tema', href: '/theme-settings', icon: Settings },

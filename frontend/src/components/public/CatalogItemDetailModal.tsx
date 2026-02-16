@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { MessageCircle, Maximize2, Bell, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MessageCircle, Maximize2, Bell, ChevronLeft, ChevronRight, Flag } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { CatalogItem } from '@/services/public'
 import Modal from '@/components/common/Modal'
@@ -8,6 +8,7 @@ import ImageModal from '@/components/ImageModal'
 import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import SegmentBadge from './SegmentBadge'
 import LeadCaptureModal from './LeadCaptureModal'
+import ReportDataModal from './ReportDataModal'
 
 interface CatalogItemDetailModalProps {
   item: CatalogItem
@@ -25,6 +26,7 @@ export default function CatalogItemDetailModal({
 
   const [showImageViewer, setShowImageViewer] = useState(false)
   const [showNotifyModal, setShowNotifyModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   // Build array of available photos (only valid URLs)
@@ -321,6 +323,18 @@ export default function CatalogItemDetailModal({
                   </Button>
                 </>
               )}
+
+              {/* Report data button - always visible */}
+              <button
+                onClick={() => setShowReportModal(true)}
+                className={`w-full flex items-center justify-center gap-2 text-xs py-2 rounded-lg transition-colors ${isDark
+                    ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-700/50'
+                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                  }`}
+              >
+                <Flag size={14} />
+                Reportar dato incorrecto
+              </button>
             </div>
           </div>
         </div>
@@ -349,6 +363,18 @@ export default function CatalogItemDetailModal({
           catalogId: item._id,
           carModel: `${item.carModel} ${item.series} (${item.year})`,
           requestType: 'notify'
+        }}
+      />
+
+      {/* Report Data Modal */}
+      <ReportDataModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        item={{
+          _id: item._id,
+          carModel: item.carModel,
+          series: item.series,
+          year: item.year
         }}
       />
     </>

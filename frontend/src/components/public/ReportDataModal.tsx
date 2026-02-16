@@ -3,7 +3,7 @@ import { AlertTriangle, Send, CheckCircle } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
-import { publicCatalogService } from '@/services/public'
+import { publicService } from '@/services/public'
 
 interface ReportDataModalProps {
     isOpen: boolean
@@ -43,7 +43,7 @@ export default function ReportDataModal({ isOpen, onClose, item }: ReportDataMod
         setError('')
 
         try {
-            await publicCatalogService.submitDataReport({
+            await publicService.submitDataReport({
                 catalogItemId: item._id,
                 carModel: item.carModel,
                 series: item.series,
@@ -105,12 +105,12 @@ export default function ReportDataModal({ isOpen, onClose, item }: ReportDataMod
                                     key={type.value}
                                     onClick={() => { setReportType(type.value); setError('') }}
                                     className={`flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all ${reportType === type.value
-                                            ? isDark
-                                                ? 'border-blue-500 bg-blue-900/30 text-white'
-                                                : 'border-blue-500 bg-blue-50 text-slate-900'
-                                            : isDark
-                                                ? 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
-                                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                        ? isDark
+                                            ? 'border-blue-500 bg-blue-900/30 text-white'
+                                            : 'border-blue-500 bg-blue-50 text-slate-900'
+                                        : isDark
+                                            ? 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                                         }`}
                                 >
                                     <span className="text-lg">{type.icon}</span>
@@ -132,8 +132,8 @@ export default function ReportDataModal({ isOpen, onClose, item }: ReportDataMod
                             rows={3}
                             placeholder="Describe el error que encontraste..."
                             className={`w-full px-3 py-2 rounded-lg border text-sm resize-none ${isDark
-                                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
-                                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
+                                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
+                                : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                                 } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                         />
                         <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
