@@ -119,17 +119,21 @@ export default function CatalogBrowser() {
   }, [])
 
   // Search function — accepts overrides to avoid stale closure issues
-  const handleSearch = async (overrides?: { search?: string; pageNum?: number }) => {
+  const handleSearch = async (overrides?: { search?: string; pageNum?: number; brands?: string[] }) => {
     const q = overrides?.search ?? searchTerm
     const p = overrides?.pageNum ?? page
-    if (!q.trim() && !yearFilter) return // Don't search without criteria
+    const brands = overrides?.brands ?? brandFilter
+
+    // Check if there's any search criteria
+    const hasBrandFilter = brands.length > 0 && !(brands.length === 1 && brands[0] === 'Hot Wheels')
+    if (!q.trim() && !yearFilter && !hasBrandFilter) return // Don't search without criteria
     setHasSearched(true)
     setLoading(true)
     try {
       const response = await publicService.searchCatalog({
         q,
         year: yearFilter,
-        brand: brandFilter.length > 0 ? brandFilter.join(',') : '',
+        brand: brands.length > 0 ? brands.join(',') : '',
         sort: sortOrder,
         page: p,
         limit: 20
@@ -466,8 +470,11 @@ export default function CatalogBrowser() {
                   <button
                     type="button"
                     onClick={() => {
-                      setBrandFilter(['Hot Wheels'])
+                      const finalBrands = ['Hot Wheels']
+                      setBrandFilter(finalBrands)
                       setPage(1)
+                      // Immediately search with new brands
+                      handleSearch({ brands: finalBrands, pageNum: 1 })
                     }}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.length === 1 && brandFilter[0] === 'Hot Wheels'
                       ? isDark
@@ -491,8 +498,11 @@ export default function CatalogBrowser() {
                           ? brandFilter.filter(b => b !== brand)
                           : [...brandFilter, brand]
                         // Ensure at least one brand is selected
-                        setBrandFilter(newBrands.length > 0 ? newBrands : ['Hot Wheels'])
+                        const finalBrands = newBrands.length > 0 ? newBrands : ['Hot Wheels']
+                        setBrandFilter(finalBrands)
                         setPage(1)
+                        // Immediately search with new brands
+                        handleSearch({ brands: finalBrands, pageNum: 1 })
                       }}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.includes(brand)
                         ? isDark

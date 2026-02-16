@@ -294,8 +294,11 @@ export function searchCache(options: {
     filtered = filtered.filter(c => c.year === year)
   }
   if (brand) {
-    const brandLower = brand.toLowerCase()
-    filtered = filtered.filter(c => (c.brand || 'hot wheels').toLowerCase() === brandLower)
+    // Support multiple brands separated by comma
+    const brandList = brand.split(',').map(b => b.trim().toLowerCase())
+    filtered = filtered.filter(c => 
+      brandList.includes((c.brand || 'hot wheels').toLowerCase())
+    )
   }
   if (series) {
     const seriesLower = series.toLowerCase()
