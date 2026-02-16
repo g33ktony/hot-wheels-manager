@@ -575,12 +575,6 @@ export const createPOSSale = async (req: Request, res: Response) => {
     });
   }
 };
-      // ALWAYS return error details for POS endpoint debugging
-      error: errorMessage,
-      details: errorDetails
-    });
-  }
-};
 
 /**
  * Obtener estadísticas detalladas de ventas con filtros
