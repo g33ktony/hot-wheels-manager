@@ -423,13 +423,12 @@ export const createPOSSale = async (req: Request, res: Response) => {
     console.log('🛒 POS Sale Request:', { items, paymentMethod, notes });
 
     const saleItems = [];
+    const inventoryUpdates = [];
     let totalAmount = 0;
 
-    // Procesar cada item
+    // 1. PRIMERA FASE: Validación de todos los items sin guardar cambios
     for (const item of items) {
       const { inventoryItemId, customPrice, quantity = 1 } = item;
-
-      console.log(`🔍 Processing item: inventoryItemId=${inventoryItemId}, customPrice=${customPrice}, quantity=${quantity}`);
 
       if (!inventoryItemId) {
         return res.status(400).json({
@@ -450,23 +449,17 @@ export const createPOSSale = async (req: Request, res: Response) => {
         });
       }
 
-      console.log(`📦 Found inventory item:`, {
-        id: inventoryItem._id,
-        quantity: inventoryItem.quantity,
-        reservedQuantity: inventoryItem.reservedQuantity,
-        suggestedPrice: inventoryItem.suggestedPrice,
-        actualPrice: inventoryItem.actualPrice
-      });
-
       // Verificar que hay cantidad disponible
-      const availableQty = (inventoryItem.quantity || 0) - (inventoryItem.reservedQuantity || 0);
+      // Llevamos cuenta de lo que ya "apartamos" en este loop para el mismo ID
+      const alreadyChecked = inventoryUpdates.find(u => u.item._id.toString() === inventoryItemId);
+      const currentAvailable = (inventoryItem.quantity || 0) - (inventoryItem.reservedQuantity || 0) - (alreadyChecked ? alreadyChecked.quantityToReduce : 0);
       const parsedQuantity = parseInt(String(quantity), 10) || 1;
       
-      if (availableQty < parsedQuantity) {
+      if (currentAvailable < parsedQuantity) {
         return res.status(400).json({
           success: false,
           data: null,
-          message: `El item de inventario solo tiene ${availableQty} unidades disponibles, se requieren ${parsedQuantity}`
+          message: `El item de inventario solo tiene ${currentAvailable} unidades disponibles, se requieren ${parsedQuantity}`
         });
       }
 
@@ -483,19 +476,16 @@ export const createPOSSale = async (req: Request, res: Response) => {
       }
       
       // Extraer carId y carName correctamente
-      // Manejar casos donde carId puede ser string o objeto
-      let carIdStr: string;
-      let carName: string;
+      let carIdStr: string = '';
+      let carName: string = '';
       
       try {
         if (typeof inventoryItem.carId === 'object' && inventoryItem.carId !== null) {
-          // carId está poblado como objeto
           carIdStr = (inventoryItem.carId as any)._id?.toString() || (inventoryItem.carId as any).toString() || '';
           carName = (inventoryItem.carId as any).name || carIdStr;
         } else if (inventoryItem.carId) {
-          // carId es un string
           carIdStr = inventoryItem.carId.toString();
-          carName = carIdStr; // Usar el ID como nombre si no hay metadata
+          carName = carIdStr;
         } else {
           throw new Error('Item no tiene carId válido');
         }
@@ -508,10 +498,7 @@ export const createPOSSale = async (req: Request, res: Response) => {
         });
       }
       
-      console.log(`📦 Item: carIdStr=${carIdStr}, carName=${carName}, price=${finalPrice}, quantity=${parsedQuantity}`);
-      
-      // Calculate cost and profit
-      // The cost is the purchase price stored in the inventory item
+      // Calcular costo y beneficio
       const costPrice = inventoryItem.purchasePrice || 0;
       const profitPerUnit = finalPrice - costPrice;
       const totalProfit = profitPerUnit * parsedQuantity;
@@ -522,60 +509,46 @@ export const createPOSSale = async (req: Request, res: Response) => {
         carName: carName,
         quantity: parsedQuantity,
         unitPrice: finalPrice,
-        originalPrice: itemPrice, // Guardar el precio original
+        originalPrice: itemPrice,
         costPrice: costPrice,
         profit: totalProfit,
-        photos: inventoryItem.photos || [] // Incluir fotos del inventario
+        photos: inventoryItem.photos || []
       });
 
       totalAmount += finalPrice * parsedQuantity;
 
-      // Reducir cantidad disponible
-      inventoryItem.quantity = (inventoryItem.quantity || 0) - parsedQuantity;
-      inventoryItem.actualPrice = finalPrice; // Actualizar con el precio final de venta
-      await inventoryItem.save();
+      // Registrar la actualización pendiente
+      if (alreadyChecked) {
+        alreadyChecked.quantityToReduce += parsedQuantity;
+      } else {
+        inventoryUpdates.push({
+          item: inventoryItem,
+          quantityToReduce: parsedQuantity,
+          finalPrice: finalPrice
+        });
+      }
+    }
 
-      console.log(`✅ Item de inventario actualizado, ${parsedQuantity} vendido(s) por $${finalPrice} c/u (Total: $${finalPrice * parsedQuantity})`);
+    // 2. SEGUNDA FASE: Una vez validado TODO, guardar cambios en la base de datos
+    for (const update of inventoryUpdates) {
+      update.item.quantity = (update.item.quantity || 0) - update.quantityToReduce;
+      update.item.actualPrice = update.finalPrice;
+      await update.item.save();
+      console.log(`✅ Item ${update.item._id} actualizado: -${update.quantityToReduce} unidades`);
     }
 
     // Crear la venta
-    if (!saleItems || saleItems.length === 0) {
-      return res.status(400).json({
-        success: false,
-        data: null,
-        message: 'No se procesaron items válidos para la venta'
-      });
-    }
-
-    if (totalAmount <= 0) {
-      return res.status(400).json({
-        success: false,
-        data: null,
-        message: 'El monto total debe ser mayor a 0'
-      });
-    }
-
     const sale = new SaleModel({
       items: saleItems,
       totalAmount,
       saleDate: new Date(),
       paymentMethod: paymentMethod || 'cash',
-      status: 'completed', // Ventas POS siempre son completadas inmediatamente
+      status: 'completed',
       saleType: 'pos',
       notes: notes || 'Venta en sitio (POS)'
     });
 
-    console.log('📝 Sale object created, attempting to save...');
-    console.log('🔍 Sale data:', {
-      itemsCount: saleItems.length,
-      totalAmount,
-      paymentMethod,
-      status: 'completed',
-      saleType: 'pos'
-    });
-
     const savedSale = await sale.save();
-
     console.log('✅ POS Sale created successfully:', savedSale._id);
 
     res.status(201).json({
@@ -597,7 +570,11 @@ export const createPOSSale = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Error al crear la venta POS',
+      message: 'Error al crear la venta POS. Intente de nuevo más tarde.',
+      error: errorMessage
+    });
+  }
+};
       // ALWAYS return error details for POS endpoint debugging
       error: errorMessage,
       details: errorDetails
