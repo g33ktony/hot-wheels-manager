@@ -39,6 +39,7 @@ export default function CatalogBrowser() {
   // State
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '')
+  const [brandFilter, setBrandFilter] = useState(searchParams.get('brand') || '')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [results, setResults] = useState<CatalogItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -124,6 +125,7 @@ export default function CatalogBrowser() {
       const response = await publicService.searchCatalog({
         q,
         year: yearFilter,
+        brand: brandFilter,
         sort: sortOrder,
         page: p,
         limit: 20
@@ -140,6 +142,7 @@ export default function CatalogBrowser() {
       const newParams: Record<string, string> = {}
       if (q) newParams.q = q
       if (yearFilter) newParams.year = yearFilter
+      if (brandFilter) newParams.brand = brandFilter
 
       // Preserve adminView if it exists to prevent redirecting admins to dashboard
       const isAdminView = searchParams.get('adminView') === 'true'
@@ -168,11 +171,11 @@ export default function CatalogBrowser() {
   // Search when filters change (only if user has already searched)
   useEffect(() => {
     if (hasSearched) handleSearch()
-  }, [page, yearFilter, sortOrder])
+  }, [page, yearFilter, brandFilter, sortOrder])
 
   // Auto-search if URL has query params on mount
   useEffect(() => {
-    if (searchParams.get('q') || searchParams.get('year')) {
+    if (searchParams.get('q') || searchParams.get('year') || searchParams.get('brand')) {
       setHasSearched(true)
       handleSearch()
     }
@@ -503,8 +506,13 @@ export default function CatalogBrowser() {
                   )}
 
                   {/* Segment Badge */}
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-2 left-2 flex flex-col gap-1">
                     <SegmentBadge segment={item.segment} />
+                    {item.brand && item.brand !== 'Hot Wheels' && (
+                      <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
+                        {item.brand}
+                      </span>
+                    )}
                   </div>
 
                   {/* Availability Badge */}

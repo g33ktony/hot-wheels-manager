@@ -17,6 +17,7 @@ export interface CachedHotWheelsCar {
   photo_url?: string
   photo_url_carded?: string
   year: string
+  brand?: string
   color?: string
   tampo?: string
   wheel_type?: string
@@ -57,6 +58,7 @@ function normalizeCar(car: any): CachedHotWheelsCar {
     series_num: car.series_num || '',
     photo_url: car.photo_url || '',
     year: (car.year || '').toString(),
+    brand: car.brand || 'Hot Wheels',
     color: car.color || '',
     tampo: car.tampo || '',
     wheel_type: car.wheel_type || '',
@@ -232,6 +234,7 @@ export function fuzzyMatchCar(car: CachedHotWheelsCar, searchTerm: string, baseT
     { field: car.carModel || car.model || '', weight: 1.0 },
     { field: car.series || '', weight: 0.8 },
     { field: car.car_make || '', weight: 0.9 },
+    { field: car.brand || '', weight: 0.9 },
     { field: car.year || '', weight: 0.6 },
     { field: car.toy_num || '', weight: 0.5 },
     { field: car.col_num || '', weight: 0.4 },
@@ -274,20 +277,25 @@ export function fuzzyMatchCar(car: CachedHotWheelsCar, searchTerm: string, baseT
 export function searchCache(options: {
   search?: string
   year?: string
+  brand?: string
   series?: string
   page?: number
   limit?: number
 }): { cars: CachedHotWheelsCar[]; total: number } {
   if (!isLoaded) loadCache()
 
-  const { search = '', year, series, page = 1, limit = 100 } = options
+  const { search = '', year, brand, series, page = 1, limit = 100 } = options
   const skip = (page - 1) * limit
   const searchTerm = search.trim()
 
-  // Pre-filter by year and series
+  // Pre-filter by year, brand and series
   let filtered = cachedData
   if (year) {
     filtered = filtered.filter(c => c.year === year)
+  }
+  if (brand) {
+    const brandLower = brand.toLowerCase()
+    filtered = filtered.filter(c => (c.brand || 'hot wheels').toLowerCase() === brandLower)
   }
   if (series) {
     const seriesLower = series.toLowerCase()

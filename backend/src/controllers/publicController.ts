@@ -142,6 +142,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     const {
       q: query = '',
       year,
+      brand,
       series,
       sort: sortOrder = 'desc',
       page = 1,
@@ -161,6 +162,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     // First: get ALL matching results WITHOUT year filter to discover available years
     const allMatchingResult = searchCache({
       search: searchTerm,
+      brand: brand ? brand.toString() : undefined,
       series: series ? series.toString() : undefined,
       page: 1,
       limit: 50000,
@@ -171,10 +173,11 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     }
     const availableYears = Array.from(availableYearsSet).sort((a, b) => parseInt(b) - parseInt(a))
 
-    // Use local JSON cache for catalog search (with year filter applied)
+    // Use local JSON cache for catalog search (with filters applied)
     const cacheResult = searchCache({
       search: searchTerm,
       year: year ? year.toString() : undefined,
+      brand: brand ? brand.toString() : undefined,
       series: series ? series.toString() : undefined,
       page: 1,
       limit: 10000, // Get all matching for this request, paginate later with enriched data
@@ -270,6 +273,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
         photo_url: item.photo_url,
         photo_url_carded: item.photo_url_carded,
         year: item.year,
+        brand: item.brand || 'Hot Wheels',
         color: item.color,
         tampo: item.tampo,
         wheel_type: item.wheel_type,
@@ -444,7 +448,7 @@ export const getCatalogItem = async (req: Request, res: Response): Promise<void>
     // Get catalog item
     const catalogItem = await HotWheelsCarModel
       .findById(id)
-      .select('toy_num col_num carModel series series_num photo_url year color tampo wheel_type car_make segment pack_contents')
+      .select('toy_num col_num carModel series series_num photo_url year brand color tampo wheel_type car_make segment pack_contents')
       .lean()
 
     if (!catalogItem) {

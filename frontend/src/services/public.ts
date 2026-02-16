@@ -12,6 +12,7 @@ const publicApi = axios.create({
 export interface CatalogSearchFilters {
   q?: string
   year?: string
+  brand?: string
   series?: string
   sort?: 'asc' | 'desc'
   page?: number
@@ -29,6 +30,7 @@ export interface CatalogItem {
   photo_url?: string
   photo_url_carded?: string
   year: string
+  brand: string
   color?: string
   tampo?: string
   wheel_type?: string
