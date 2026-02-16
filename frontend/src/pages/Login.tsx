@@ -54,7 +54,7 @@ const Login: React.FC = () => {
         {/* Título */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}
+            Iniciar Sesión
           </h1>
           <p className="text-slate-400">
             Ingresa tus credenciales para continuar

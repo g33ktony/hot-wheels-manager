@@ -140,6 +140,13 @@ export default function CatalogBrowser() {
       const newParams: Record<string, string> = {}
       if (q) newParams.q = q
       if (yearFilter) newParams.year = yearFilter
+
+      // Preserve adminView if it exists to prevent redirecting admins to dashboard
+      const isAdminView = searchParams.get('adminView') === 'true'
+      if (isAdminView) {
+        newParams.adminView = 'true'
+      }
+
       setSearchParams(newParams)
     } catch (error) {
       console.error('Error searching catalog:', error)
