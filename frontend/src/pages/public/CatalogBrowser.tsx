@@ -39,7 +39,9 @@ export default function CatalogBrowser() {
   // State
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [yearFilter, setYearFilter] = useState(searchParams.get('year') || '')
-  const [brandFilter, setBrandFilter] = useState(searchParams.get('brand') || '')
+  const [brandFilter, setBrandFilter] = useState<string[]>(
+    searchParams.get('brand') ? searchParams.get('brand')?.split(',') || [] : ['Hot Wheels']
+  )
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [results, setResults] = useState<CatalogItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -47,7 +49,9 @@ export default function CatalogBrowser() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [availableYears, setAvailableYears] = useState<string[]>([])
+  const [availableBrands, _setAvailableBrands] = useState<string[]>(['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House'])
   const [showYears, setShowYears] = useState(false)
+  const [showBrands, setShowBrands] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null)
   const [showLeadModal, setShowLeadModal] = useState(false)
@@ -125,7 +129,7 @@ export default function CatalogBrowser() {
       const response = await publicService.searchCatalog({
         q,
         year: yearFilter,
-        brand: brandFilter,
+        brand: brandFilter.length > 0 ? brandFilter.join(',') : '',
         sort: sortOrder,
         page: p,
         limit: 20
@@ -142,7 +146,7 @@ export default function CatalogBrowser() {
       const newParams: Record<string, string> = {}
       if (q) newParams.q = q
       if (yearFilter) newParams.year = yearFilter
-      if (brandFilter) newParams.brand = brandFilter
+      if (brandFilter.length > 0) newParams.brand = brandFilter.join(',')
 
       // Preserve adminView if it exists to prevent redirecting admins to dashboard
       const isAdminView = searchParams.get('adminView') === 'true'
@@ -171,7 +175,7 @@ export default function CatalogBrowser() {
   // Search when filters change (only if user has already searched)
   useEffect(() => {
     if (hasSearched) handleSearch()
-  }, [page, yearFilter, brandFilter, sortOrder])
+  }, [page, yearFilter, brandFilter.join(','), sortOrder])
 
   // Auto-search if URL has query params on mount
   useEffect(() => {
@@ -438,6 +442,73 @@ export default function CatalogBrowser() {
                 )}
               </div>
             )}
+
+            {/* Collapsible Brand Filter */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowBrands(!showBrands)}
+                className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
+                  }`}
+              >
+                {showBrands ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                Filtrar por marca
+                {brandFilter.length > 0 && (
+                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${isDark ? 'bg-primary-600 text-white' : 'bg-primary-500 text-white'}`}>
+                    {brandFilter.length}
+                  </span>
+                )}
+              </button>
+
+              {showBrands && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {/* All Brands Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBrandFilter(['Hot Wheels'])
+                      setPage(1)
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.length === 1 && brandFilter[0] === 'Hot Wheels'
+                      ? isDark
+                        ? 'bg-primary-600 text-white shadow-lg'
+                        : 'bg-primary-500 text-white shadow-lg'
+                      : isDark
+                        ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                      }`}
+                  >
+                    Solo Hot Wheels
+                  </button>
+
+                  {/* Brand buttons */}
+                  {availableBrands.map((brand) => (
+                    <button
+                      key={brand}
+                      type="button"
+                      onClick={() => {
+                        const newBrands = brandFilter.includes(brand)
+                          ? brandFilter.filter(b => b !== brand)
+                          : [...brandFilter, brand]
+                        // Ensure at least one brand is selected
+                        setBrandFilter(newBrands.length > 0 ? newBrands : ['Hot Wheels'])
+                        setPage(1)
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.includes(brand)
+                        ? isDark
+                          ? 'bg-primary-600 text-white shadow-lg'
+                          : 'bg-primary-500 text-white shadow-lg'
+                        : isDark
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                        }`}
+                    >
+                      {brand}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Search Button */}
