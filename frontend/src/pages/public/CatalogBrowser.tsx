@@ -470,13 +470,17 @@ export default function CatalogBrowser() {
                   <button
                     type="button"
                     onClick={() => {
-                      const finalBrands = ['Hot Wheels']
+                      const allBrandNames = ['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House', 'Tomica']
+                      // If "Todas" is selected, deselect it and select only Hot Wheels
+                      // If "Todas" is not selected, select all brands
+                      const isAllSelected = brandFilter.length === allBrandNames.length
+                      const finalBrands = isAllSelected ? ['Hot Wheels'] : allBrandNames
                       setBrandFilter(finalBrands)
                       setPage(1)
                       // Immediately search with new brands
                       handleSearch({ brands: finalBrands, pageNum: 1 })
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.length === 1 && brandFilter[0] === 'Hot Wheels'
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.length === 5
                       ? isDark
                         ? 'bg-primary-600 text-white shadow-lg'
                         : 'bg-primary-500 text-white shadow-lg'
@@ -485,7 +489,7 @@ export default function CatalogBrowser() {
                         : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
                       }`}
                   >
-                    Solo Hot Wheels
+                    Todas
                   </button>
 
                   {/* Brand buttons */}
