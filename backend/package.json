@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "dev:nodemon": "nodemon --exec tsx src/index.ts --ext ts --watch src",
-    "build": "mkdir -p src/shared && cp -r ../shared/* src/shared/ 2>/dev/null || true && npx tsc",
+    "build": "mkdir -p src/shared && cp -r ../shared/* src/shared/ 2>/dev/null || true && npx -p typescript tsc",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
@@ -83,6 +83,6 @@
     "mongodb-memory-server": "^10.2.1",
     "nodemon": "^3.1.11",
     "tsx": "^4.6.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.3"
   }
 }
