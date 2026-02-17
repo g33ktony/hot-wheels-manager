@@ -49,7 +49,7 @@ export default function CatalogBrowser() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [availableYears, setAvailableYears] = useState<string[]>([])
-  const [availableBrands, _setAvailableBrands] = useState<string[]>(['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House'])
+  const [availableBrands, _setAvailableBrands] = useState<string[]>(['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House', 'Tomica'])
   const [showYears, setShowYears] = useState(false)
   const [showBrands, setShowBrands] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)

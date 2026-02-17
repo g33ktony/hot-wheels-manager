@@ -37,7 +37,9 @@
     "export-photos-json": "tsx src/scripts/export-photos-to-json.ts",
     "fix-truncated-photos": "tsx src/scripts/fix-truncated-photos.ts",
     "fix-shared-photos": "tsx src/scripts/fix-shared-photos.ts",
-    "classify-segments": "tsx src/scripts/classify-segments.ts"
+    "classify-segments": "tsx src/scripts/classify-segments.ts",
+    "scrape:amazon": "tsx src/scripts/scrape-amazon-premium-brands.ts",
+    "scrape:premium": "tsx src/scripts/scrape-premium-brands.ts"
   },
   "keywords": [
     "hot-wheels",
