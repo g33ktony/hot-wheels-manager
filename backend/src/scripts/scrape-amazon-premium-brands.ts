@@ -147,12 +147,31 @@ async function scrapeAmazonJPBrand(brandSearchTerm: string, brandName: string, m
   }
 }
 
-async function main() {
+/**
+ * Main scraper function with progress callback support
+ */
+async function scrapeAmazonPremiumBrands(onProgress?: (progress: { percent: number; message: string; current: number; total: number }) => void) {
   try {
     const allCars: any[] = [];
+    let totalBrandsProcessed = 0;
+    const totalBrands = 4;
+
+    const updateProgress = (current: number, total: number, message: string) => {
+      if (onProgress) {
+        onProgress({
+          percent: Math.round((current / total) * 100),
+          message,
+          current,
+          total
+        });
+      }
+    };
+
+    updateProgress(0, 100, 'Iniciando scrape de marcas premium (Amazon.jp)...');
 
     // 1. Scrape Mini GT (try multiple search terms)
     console.log('\n📦 Processing Amazon.jp Brand Scrapes...\n');
+    updateProgress(0, 100, 'Scrapeando Mini GT...');
     
     let miniGTCars = await scrapeAmazonJPBrand('ミニGT 1/64', 'Mini GT', 25);
     if (miniGTCars.length < 200) {
@@ -163,9 +182,12 @@ async function main() {
     if (miniGTCars.length > 0) {
       allCars.push(...miniGTCars);
     }
+    totalBrandsProcessed++;
+    updateProgress(totalBrandsProcessed, totalBrands, `✅ Mini GT: ${miniGTCars.length} items`);
 
     // 2. Scrape Pop Race
     console.log('');
+    updateProgress(totalBrandsProcessed, totalBrands, 'Scrapeando Pop Race...');
     let popRaceCars = await scrapeAmazonJPBrand('Pop Race 1/64', 'Pop Race', 12);
     if (popRaceCars.length < 50) {
       const popRace2 = await scrapeAmazonJPBrand('ポップレーシング ダイキャスト', 'Pop Race', 8);
@@ -174,9 +196,12 @@ async function main() {
     if (popRaceCars.length > 0) {
       allCars.push(...popRaceCars);
     }
+    totalBrandsProcessed++;
+    updateProgress(totalBrandsProcessed, totalBrands, `✅ Pop Race: ${popRaceCars.length} items`);
 
     // 3. Scrape Kaido House
     console.log('');
+    updateProgress(totalBrandsProcessed, totalBrands, 'Scrapeando Kaido House...');
     let kaidoCars = await scrapeAmazonJPBrand('KAIDO HOUSE 1/64', 'Kaido House', 10);
     if (kaidoCars.length < 50) {
       const kaido2 = await scrapeAmazonJPBrand('開道ハウス ダイキャスト', 'Kaido House', 8);
@@ -185,9 +210,12 @@ async function main() {
     if (kaidoCars.length > 0) {
       allCars.push(...kaidoCars);
     }
+    totalBrandsProcessed++;
+    updateProgress(totalBrandsProcessed, totalBrands, `✅ Kaido House: ${kaidoCars.length} items`);
 
     // 4. Scrape Tomica (MAIN BRAND - should have tons)
     console.log('');
+    updateProgress(totalBrandsProcessed, totalBrands, 'Scrapeando Tomica...');
     let tomicaCars = await scrapeAmazonJPBrand('トミカ 1/64', 'Tomica', 30);
     if (tomicaCars.length < 300) {
       // Try English search
@@ -197,11 +225,14 @@ async function main() {
     if (tomicaCars.length > 0) {
       allCars.push(...tomicaCars);
     }
+    totalBrandsProcessed++;
+    updateProgress(totalBrandsProcessed, totalBrands, `✅ Tomica: ${tomicaCars.length} items`);
 
     // Remove any duplicates across all brands
     const allUniqueCars = Array.from(new Map(allCars.map(c => [c.toy_num, c])).values());
 
     if (allUniqueCars.length > 0) {
+      updateProgress(100, 100, `💾 Sincronizando ${allUniqueCars.length} items a catálogo...`);
       console.log(`\n💾 Merging ${allUniqueCars.length} total items from Amazon.jp into Catalog...`);
       const added = mergeCarsIntoJSON(allUniqueCars);
       console.log(`✅ Added ${added} new items to the catalog database.`);
@@ -222,15 +253,25 @@ async function main() {
         console.log(`✅ Synced ${mongoAdded} items to MongoDB.`);
         await mongoose.disconnect();
       }
+      
+      return { success: true, added, total: allUniqueCars.length };
     } else {
       console.warn('⚠️ No items found from Amazon.jp. The site structure may have changed.');
+      return { success: false, added: 0, total: 0 };
     }
   } catch (error) {
     console.error('CRITICAL ERROR:', error);
+    throw error;
   }
+}
+
+async function main() {
+  await scrapeAmazonPremiumBrands();
 }
 
 // Only run if called directly
 if (require.main === module) {
   main();
 }
+
+export default scrapeAmazonPremiumBrands;
