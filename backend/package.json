@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "dev:nodemon": "nodemon --exec tsx src/index.ts --ext ts --watch src",
-    "build": "mkdir -p src/shared && cp -r ../shared/* src/shared/ 2>/dev/null || true && tsc",
+    "build": "mkdir -p src/shared && cp -r ../shared/* src/shared/ 2>/dev/null || true && npx tsc",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
