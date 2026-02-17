@@ -1,3 +1,18 @@
+// Polyfill File API for Node.js 18 compatibility
+// undici requires this global to be available
+if (typeof global.File === 'undefined') {
+  global.File = class File extends Blob {
+    name: string
+    lastModified: number
+
+    constructor(parts: any[], filename: string, options?: any) {
+      super(parts, options)
+      this.name = filename
+      this.lastModified = options?.lastModified ?? Date.now()
+    }
+  } as any
+}
+
 import express from 'express'
 import mongoose from 'mongoose'
 import cors from 'cors'
