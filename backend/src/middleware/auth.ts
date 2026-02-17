@@ -47,6 +47,10 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
     // Agregar usuario al request
     req.user = decoded
+    // Also add to global properties for easier access in authorization middleware
+    req.userId = decoded.userId
+    req.userRole = decoded.role
+    req.userEmail = decoded.email
     next()
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {

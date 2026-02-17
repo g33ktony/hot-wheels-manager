@@ -2,6 +2,7 @@ import { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LogIn, Sun, Moon } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 import Button from '@/components/common/Button'
 
 interface PublicLayoutProps {
@@ -11,6 +12,7 @@ interface PublicLayoutProps {
 export default function PublicLayout({ children }: PublicLayoutProps) {
   const navigate = useNavigate()
   const { toggleTheme, mode } = useTheme()
+  const { user } = useAuth()
   const isDark = mode === 'dark'
 
   return (
@@ -41,14 +43,22 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 <span className="sr-only">{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
               </Button>
 
-              {/* Admin Login */}
+              {/* Admin Login / Dashboard */}
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => navigate('/login')}
+                onClick={() => {
+                  if (user) {
+                    // If already logged in, go to dashboard
+                    navigate('/dashboard')
+                  } else {
+                    // If not logged in, go to login
+                    navigate('/login')
+                  }
+                }}
                 icon={<LogIn size={18} />}
               >
-                <span className="hidden sm:inline">Admin</span>
+                <span className="hidden sm:inline">{user ? 'Home' : 'Admin'}</span>
               </Button>
             </div>
           </div>

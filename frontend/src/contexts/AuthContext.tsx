@@ -14,7 +14,7 @@ interface User {
   id: string
   email: string
   name: string
-  role: string
+  role: 'sys_admin' | 'admin' | 'editor' | 'analyst'
 }
 
 interface AuthContextType {

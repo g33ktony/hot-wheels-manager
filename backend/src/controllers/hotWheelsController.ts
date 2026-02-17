@@ -528,3 +528,93 @@ export const proxyImage = async (req: Request, res: Response) => {
     })
   }
 }
+
+/**
+ * Edit a Hot Wheels car in the catalog (Admin only)
+ * Can update: carModel, photo_url, year, series, color, brand, etc.
+ */
+export const editHotWheelsCar = async (req: Request, res: Response) => {
+  try {
+    const { toyNum } = req.params
+    const updateData = req.body
+
+    if (!toyNum) {
+      return res.status(400).json({
+        success: false,
+        message: 'toy_num is required'
+      })
+    }
+
+    // Find the car in MongoDB
+    const car = await HotWheelsCarModel.findOneAndUpdate(
+      { toy_num: toyNum },
+      {
+        $set: {
+          carModel: updateData.carModel || undefined,
+          photo_url: updateData.photo_url || undefined,
+          year: updateData.year || undefined,
+          series: updateData.series || undefined,
+          series_num: updateData.series_num || undefined,
+          color: updateData.color || undefined,
+          tampo: updateData.tampo || undefined,
+          wheel_type: updateData.wheel_type || undefined,
+          car_make: updateData.car_make || undefined,
+          segment: updateData.segment || undefined,
+          country: updateData.country || undefined,
+          brand: updateData.brand || undefined
+        }
+      },
+      { new: true, runValidators: true }
+    )
+
+    if (!car) {
+      return res.status(404).json({
+        success: false,
+        message: 'Car not found in MongoDB'
+      })
+    }
+
+    // Also update in the JSON cache file to keep in sync
+    const jsonPath = path.join(__dirname, '../../data/hotwheels_database.json')
+    if (fs.existsSync(jsonPath)) {
+      const fileData = fs.readFileSync(jsonPath, 'utf-8')
+      let jsonData = JSON.parse(fileData)
+      
+      // Find and update in JSON
+      const carIndex = jsonData.findIndex((c: any) => c.toy_num === toyNum)
+      if (carIndex >= 0) {
+        jsonData[carIndex] = {
+          ...jsonData[carIndex],
+          carModel: updateData.carModel || jsonData[carIndex].carModel,
+          photo_url: updateData.photo_url || jsonData[carIndex].photo_url,
+          year: updateData.year || jsonData[carIndex].year,
+          series: updateData.series || jsonData[carIndex].series,
+          series_num: updateData.series_num || jsonData[carIndex].series_num,
+          color: updateData.color || jsonData[carIndex].color,
+          tampo: updateData.tampo || jsonData[carIndex].tampo,
+          wheel_type: updateData.wheel_type || jsonData[carIndex].wheel_type,
+          car_make: updateData.car_make || jsonData[carIndex].car_make,
+          segment: updateData.segment || jsonData[carIndex].segment,
+          country: updateData.country || jsonData[carIndex].country,
+          brand: updateData.brand || jsonData[carIndex].brand
+        }
+        fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2))
+        
+        // Refresh cache
+        refreshCache()
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Car updated successfully',
+      car
+    })
+  } catch (error: any) {
+    console.error('Error editing car:', error)
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating car'
+    })
+  }
+}

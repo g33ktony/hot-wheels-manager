@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { inventoryService } from '@/services/inventory'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
@@ -24,19 +26,29 @@ import {
     ChevronLeft,
     ChevronRight,
     Upload,
-    Camera
+    Camera,
+    Pencil
 } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Modal from '@/components/common/Modal'
+import EditCatalogModal from '@/components/EditCatalogModal'
 import toast from 'react-hot-toast'
 
 export default function ItemDetail() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
     const { mode } = useTheme()
+    const { user } = useAuth()
+    const { hasPermission } = usePermissions()
     const isDark = mode === 'dark'
+    const canEditCatalog = hasPermission('catalog:edit')
     const { uploadImage } = useCloudinaryUpload()
+    
+    // Debug: Log admin status
+    useEffect(() => {
+        console.debug('ItemDetail - User:', { email: user?.email, role: user?.role, canEditCatalog })
+    }, [user?.role, canEditCatalog])
     const [item, setItem] = useState<InventoryItem | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [showShareModal, setShowShareModal] = useState(false)
@@ -44,6 +56,7 @@ export default function ItemDetail() {
     const [showGalleryModal, setShowGalleryModal] = useState(false)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
+    const [showEditCatalogModal, setShowEditCatalogModal] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
     const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
@@ -1165,6 +1178,16 @@ export default function ItemDetail() {
                             <Edit className="w-4 h-4" />
                             Editar Item
                         </Button>
+                        {canEditCatalog && item && (
+                            <Button
+                                className="w-full justify-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                variant="secondary"
+                                onClick={() => setShowEditCatalogModal(true)}
+                            >
+                                <Pencil className="w-4 h-4" />
+                                Editar Catálogo
+                            </Button>
+                        )}
                         <Button
                             variant="secondary"
                             className="w-full justify-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
@@ -2022,6 +2045,19 @@ export default function ItemDetail() {
                         )}
                     </div>
                 </div>
+            )}
+
+            {/* Edit Catalog Modal */}
+            {item && (
+                <EditCatalogModal
+                    isOpen={showEditCatalogModal}
+                    onClose={() => setShowEditCatalogModal(false)}
+                    item={item}
+                    onSuccess={() => {
+                        setShowEditCatalogModal(false)
+                        loadItem()
+                    }}
+                />
             )}
 
         </div>

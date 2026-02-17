@@ -8,9 +8,12 @@ import {
   loadDatabase,
   downloadDatabase,
   proxyImage,
-  exportMongoToJSON
+  exportMongoToJSON,
+  editHotWheelsCar
 } from '../controllers/hotWheelsController'
 import { updateHotWheelsCatalog, getUpdateStatus } from '../controllers/hotWheelsUpdateController'
+import { authMiddleware } from '../middleware/auth'
+import { requirePermission } from '../middleware/authorization'
 
 const router = Router()
 
@@ -41,6 +44,9 @@ router.post('/load-database', loadDatabase)
 
 // POST /api/hotwheels/export-to-json - Export MongoDB to local JSON and refresh cache
 router.post('/export-to-json', exportMongoToJSON)
+
+// PATCH /api/hotwheels/edit/:toy_num - Edit a car in the catalog (requires catalog:edit permission)
+router.patch('/edit/:toyNum', authMiddleware, requirePermission('catalog:edit'), editHotWheelsCar)
 
 // GET /api/hotwheels - Get all Hot Wheels cars with pagination and filters
 router.get('/', getHotWheelsCars)

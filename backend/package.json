@@ -16,6 +16,8 @@
     "migrate:add-fantasy": "tsx src/scripts/add-fantasy-field.ts",
     "reset-db": "tsx src/scripts/reset-database.ts",
     "create-admin": "tsx src/scripts/create-admin-interactive.ts",
+    "create-user": "tsx src/scripts/create-user-interactive.ts",
+    "migrate-user-roles": "tsx src/scripts/migrate-user-roles.ts",
     "check-users": "tsx src/scripts/check-users.ts",
     "migrate:recreate-deliveries": "tsx src/scripts/recreateCompletedDeliveries.ts",
     "migrate:sales-snapshot": "tsx src/scripts/migrateSalesSnapshot.ts",

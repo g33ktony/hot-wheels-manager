@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import { useTheme } from '../../contexts/ThemeContext'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useBoxes } from '@/hooks/useBoxes'
@@ -50,6 +51,7 @@ export default function Layout({ children }: LayoutProps) {
     const location = useLocation()
     const navigate = useNavigate()
     const { user, logout } = useAuth()
+    const { isSysAdmin, isAdmin } = usePermissions()
     const { toggleTheme, mode } = useTheme()
     const { data: pendingItemsStats } = usePendingItemsStats()
     const { data: boxes } = useBoxes()
@@ -358,8 +360,18 @@ export default function Layout({ children }: LayoutProps) {
                             )}
                         </button>
 
-                        <div className={`text-sm hidden sm:block select-none ${mode === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>
+                        <div className={`text-sm hidden sm:flex items-center gap-2 select-none ${mode === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>
                             {user?.name || 'Usuario'}
+                            {isSysAdmin() && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                    👑 SYS ADMIN
+                                </span>
+                            )}
+                            {isAdmin() && !isSysAdmin() && (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                    🔐 ADMIN
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
