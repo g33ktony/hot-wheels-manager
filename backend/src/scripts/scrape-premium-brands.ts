@@ -8,8 +8,8 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 dotenv.config();
 
 /**
- * Scraper for Mini GT and Other Premium Brands
- * This is a proof-of-concept that can be expanded.
+ * Scraper for Mini GT, Pop Race, Kaido House and Tomica
+ * Premium diecast brands integration
  */
 
 async function scrapeMiniGT() {

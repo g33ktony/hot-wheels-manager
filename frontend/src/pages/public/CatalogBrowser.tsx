@@ -49,7 +49,7 @@ export default function CatalogBrowser() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [availableYears, setAvailableYears] = useState<string[]>([])
-  const [availableBrands, _setAvailableBrands] = useState<string[]>(['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House', 'Kyosho'])
+  const [availableBrands, _setAvailableBrands] = useState<string[]>(['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House'])
   const [showYears, setShowYears] = useState(false)
   const [showBrands, setShowBrands] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
@@ -308,7 +308,7 @@ export default function CatalogBrowser() {
                           }}
                         />
                       ) : (
-                        <img src={getPlaceholderLogo(suggestion.series)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
+                        <img src={getPlaceholderLogo(suggestion.series, suggestion.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
                       )}
                     </div>
 
@@ -579,11 +579,11 @@ export default function CatalogBrowser() {
                       alt={item.carModel}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                        (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
                       }}
                     />
                   ) : (
-                    <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
+                    <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
                   )}
 
                   {/* Segment Badge */}

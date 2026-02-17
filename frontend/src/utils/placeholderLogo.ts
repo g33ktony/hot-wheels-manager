@@ -1,16 +1,34 @@
 /**
- * Returns the correct Hot Wheels placeholder logo based on the series name.
+ * Returns the correct placeholder logo based on the BRAND, not series.
+ * This ensures all cars from the same brand get their brand logo.
  * 
- * - Elite 64 series → Elite 64 badge
- * - Red Line Club (RLC) series → RLC badge
- * - Mainline / basic series → Black flame logo
- * - Everything else (STH, premium, etc.) → Gold flame logo (default)
+ * For premium brands (Mini GT, Pop Race, Kaido House, Tomica), shows brand logo
+ * For Hot Wheels, uses the original series-based logic
  */
-export function getPlaceholderLogo(series?: string): string {
-  if (!series) return '/hw-flame-black.png'
 
-  const s = series.toLowerCase()
+// SVG logos as data URIs
+const BRAND_LOGOS = {
+  'mini gt': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRkYzMzMzIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjQ4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5NSU5JIEdUPC90ZXh0Pgo8L3N2Zz4=',
+  'pop race': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRkZCODAwIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjM2IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iYmxhY2siIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5QT1AgUkFDRTwvdGV4dD4KPC9zdmc+',
+  'kaido house': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzMzMzIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI0ZGRDcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPktBSURPPC90ZXh0Pgo8L3N2Zz4=',
+  'tomica': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMDA3NEYxIi8+Cjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjQ0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5UT01JQ0E8L3RleHQ+Cjwvc3ZnPg==',
+}
 
+export function getPlaceholderLogo(seriesOrBrand?: string, brand?: string): string {
+  // New behavior: if brand is specified, use brand logo
+  if (brand) {
+    const brandLower = brand.toLowerCase()
+    if (brandLower === 'mini gt') return BRAND_LOGOS['mini gt']
+    if (brandLower === 'pop race') return BRAND_LOGOS['pop race']
+    if (brandLower === 'kaido house') return BRAND_LOGOS['kaido house']
+    if (brandLower === 'tomica') return BRAND_LOGOS['tomica']
+    // Hot Wheels falls through to series-based logic below
+  }
+
+  // Legacy: series-based logic for Hot Wheels only
+  if (!seriesOrBrand) return '/hw-flame-black.png'
+
+  const s = seriesOrBrand.toLowerCase()
   if (s.includes('elite 64') || s.includes('elite64')) {
     return '/hw-elite64.png'
   }
