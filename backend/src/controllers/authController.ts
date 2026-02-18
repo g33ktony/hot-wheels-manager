@@ -85,7 +85,8 @@ export const login = async (req: Request, res: Response) => {
       {
         userId: user._id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        storeId: user.storeId
       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
@@ -110,7 +111,8 @@ export const login = async (req: Request, res: Response) => {
           id: user._id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
+          storeId: user.storeId
         }
       }
     })

@@ -44,6 +44,7 @@ async function main() {
     const email = await question('📧 Email: ')
     const name = await question('👤 Full Name: ')
     const password = await question('🔐 Password: ')
+    const storeId = await question('🏪 Store ID (tienda a la que pertenece): ')
 
     // Show available roles
     console.log('\n📋 Available Roles:')
@@ -81,6 +82,7 @@ async function main() {
       name,
       password: hashedPassword,
       role,
+      storeId,
       permissions: []
     })
 

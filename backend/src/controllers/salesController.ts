@@ -1,14 +1,20 @@
 import { Request, Response } from 'express';
 import { SaleModel } from '../models/Sale';
 import { InventoryItemModel } from '../models/InventoryItem';
+import { CustomerModel } from '../models/Customer';
 import { getStartOfDayUTC, getTodayString, getDayRangeUTC, getDayRangeLocal, dateToLocalString } from '../utils/dateUtils';
 import { DeliveryModel } from '../models/Delivery';
+import { createStoreFilter } from '../utils/storeAccess';
 
 // Get all sales
 export const getSales = async (req: Request, res: Response) => {
   try {
     // Use aggregation pipeline to ensure customerId is a string
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
     const sales = await SaleModel.aggregate([
+      {
+        $match: storeFilter
+      },
       {
         $lookup: {
           from: 'customers',
@@ -97,6 +103,15 @@ export const getSaleById = async (req: Request, res: Response) => {
       });
     }
 
+    // Check ownership: user can only view their own store's sales
+    if (sale.storeId !== req.storeId && req.userRole !== 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Access denied'
+      });
+    }
+
     // Ensure all items have costPrice and profit
     const saleObj = sale.toObject();
     saleObj.items = saleObj.items.map((item: any) => {
@@ -171,6 +186,16 @@ export const createSale = async (req: Request, res: Response) => {
             message: `Pieza de inventario no encontrada: ${item.carName}`
           });
         }
+
+        // Check ownership: inventory item must belong to user's store
+        if (inventoryItem.storeId !== req.storeId) {
+          return res.status(403).json({
+            success: false,
+            data: null,
+            message: 'You can only sell items from your own store'
+          });
+        }
+
         if (inventoryItem.quantity < item.quantity) {
           return res.status(400).json({
             success: false,
@@ -205,6 +230,26 @@ export const createSale = async (req: Request, res: Response) => {
       }
     }
 
+    // Validate customerId if provided
+    if (customerId) {
+      const customer = await CustomerModel.findById(customerId);
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          data: null,
+          message: 'Cliente no encontrado'
+        });
+      }
+      // Check ownership: customer must belong to user's store
+      if (customer.storeId !== req.storeId) {
+        return res.status(403).json({
+          success: false,
+          data: null,
+          message: 'You can only sell to customers from your own store'
+        });
+      }
+    }
+
     // Create the sale
     const newSale = new SaleModel({
       customerId,
@@ -214,7 +259,8 @@ export const createSale = async (req: Request, res: Response) => {
       deliveryId,
       paymentMethod: paymentMethod || 'cash',
       status: status || 'pending',
-      notes: notes || ''
+      notes: notes || '',
+      storeId: req.storeId
     });
 
     const savedSale = await newSale.save();
@@ -311,6 +357,24 @@ export const updateSale = async (req: Request, res: Response) => {
     const { id } = req.params;
     const updateData = req.body;
 
+    const sale = await SaleModel.findById(id);
+    if (!sale) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Venta no encontrada'
+      });
+    }
+
+    // Check ownership: user can only edit their own store's sales
+    if (sale.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only edit sales from your own store'
+      });
+    }
+
     const updatedSale = await SaleModel.findByIdAndUpdate(
       id,
       updateData,
@@ -345,7 +409,7 @@ export const deleteSale = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const deletedSale = await SaleModel.findByIdAndDelete(id);
+    const deletedSale = await SaleModel.findById(id);
 
     if (!deletedSale) {
       return res.status(404).json({
@@ -354,6 +418,17 @@ export const deleteSale = async (req: Request, res: Response) => {
         message: 'Venta no encontrada'
       });
     }
+
+    // Check ownership: user can only delete their own store's sales
+    if (deletedSale.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only delete sales from your own store'
+      });
+    }
+
+    await SaleModel.findByIdAndDelete(id);
 
     // If sale is related to a delivery, delete the delivery too
     if (deletedSale.deliveryId) {

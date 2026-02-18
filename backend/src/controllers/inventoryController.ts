@@ -4,6 +4,7 @@ import { HotWheelsCarModel } from '../models/HotWheelsCar';
 import { IHotWheelsCar } from '../models/HotWheelsCar';
 import { calculateDefaultSeriesPrice } from '../utils/seriesHelpers';
 import { calculateSimilarity } from '../utils/searchUtils';
+import { createStoreFilter } from '../utils/storeAccess';
 
 const inventoryQueryCache = new Map<string, { data: any; expiresAt: number }>();
 const INVENTORY_CACHE_TTL_MS = 15 * 1000; // 15 seconds cache window
@@ -91,7 +92,9 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     }
 
     // Get all items matching non-search filters
-    let allItems = await InventoryItemModel.find(query)
+    // Apply store filter to ensure user only sees their store's data
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    let allItems = await InventoryItemModel.find({ ...query, ...storeFilter })
       .select('-__v -updatedAt')
       .populate({
         path: 'carId',
@@ -243,6 +246,15 @@ export const getInventoryItemById = async (req: Request, res: Response): Promise
       return;
     }
 
+    // Check if user can access this store's data
+    if (req.userRole !== 'sys_admin' && item.storeId !== req.storeId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied: You can only view items from your store'
+      });
+      return;
+    }
+
     res.json({
       success: true,
       data: item
@@ -312,8 +324,9 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       finalSeriesPrice = seriesPrice || seriesDefaultPrice
     }
 
-    // Check if this car is already in inventory
-    const searchQuery = carId ? { carId } : { carName };
+    // Check if this car is already in inventory (only in user's store)
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const searchQuery = { ...( carId ? { carId } : { carName }), ...storeFilter };
     const existingItem = await InventoryItemModel.findOne(searchQuery);
     
     if (existingItem) {
@@ -393,7 +406,9 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
           seriesPosition,
           seriesPrice: finalSeriesPrice,
           seriesDefaultPrice
-        })
+        }),
+        // Multi-tenancy: Always assign user's store
+        storeId: req.storeId
       });
 
       await inventoryItem.save();
@@ -418,6 +433,35 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
     invalidateInventoryCache()
     const { id } = req.params;
     const updates = req.body;
+
+    // Check ownership before allowing update
+    const item = await InventoryItemModel.findById(id);
+
+    if (!item) {
+      res.status(404).json({
+        success: false,
+        error: 'Inventory item not found'
+      });
+      return;
+    }
+
+    // Only allow editing own store items
+    if (item.storeId !== req.storeId) {
+      res.status(403).json({
+        success: false,
+        error: 'You can only edit items from your own store'
+      });
+      return;
+    }
+
+    // Prevent changing storeId
+    if (updates.storeId && updates.storeId !== req.storeId) {
+      res.status(400).json({
+        success: false,
+        error: 'Cannot change store assignment'
+      });
+      return;
+    }
 
     // Validate photos: reject base64 data (must be Cloudinary URLs)
     if (updates.photos && Array.isArray(updates.photos)) {
@@ -490,6 +534,26 @@ export const deleteInventoryItem = async (req: Request, res: Response): Promise<
     invalidateInventoryCache()
     const { id } = req.params;
 
+    // Check ownership before allowing delete
+    const item = await InventoryItemModel.findById(id);
+
+    if (!item) {
+      res.status(404).json({
+        success: false,
+        error: 'Inventory item not found'
+      });
+      return;
+    }
+
+    // Only allow deleting own store items
+    if (item.storeId !== req.storeId) {
+      res.status(403).json({
+        success: false,
+        error: 'You can only delete items from your own store'
+      });
+      return;
+    }
+
     const inventoryItem = await InventoryItemModel.findByIdAndUpdate(
       id,
       { quantity: 0, reservedQuantity: 0 },
@@ -531,6 +595,15 @@ export const deleteInventoryItemPermanent = async (req: Request, res: Response):
       res.status(404).json({
         success: false,
         error: 'Item no encontrado'
+      });
+      return;
+    }
+
+    // Check ownership before allowing permanent delete
+    if (item.storeId !== req.storeId) {
+      res.status(403).json({
+        success: false,
+        error: 'You can only delete items from your own store'
       });
       return;
     }

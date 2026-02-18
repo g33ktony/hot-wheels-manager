@@ -26,6 +26,7 @@ export interface ISale extends Document {
   status: 'pending' | 'completed' | 'cancelled'
   saleType: 'delivery' | 'pos' // delivery = venta con entrega, pos = venta en sitio
   notes: string
+  storeId: string
   createdAt: Date
   updatedAt: Date
 }
@@ -128,9 +129,19 @@ const SaleSchema = new Schema<ISale>({
   notes: {
     type: String,
     default: ''
+  },
+  // Multi-tenancy field
+  storeId: {
+    type: String,
+    required: true,
+    index: true
   }
 }, {
   timestamps: true
 })
+
+// Multi-tenancy indexes
+SaleSchema.index({ storeId: 1 })
+SaleSchema.index({ storeId: 1, saleDate: -1 })
 
 export const SaleModel = mongoose.model<ISale>('Sale', SaleSchema)

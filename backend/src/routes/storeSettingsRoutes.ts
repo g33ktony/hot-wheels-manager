@@ -3,6 +3,9 @@ import * as storeSettingsController from '../controllers/storeSettingsController
 
 const router = Router()
 
+// GET /api/store-settings/all - Get all stores (sys_admin only)
+router.get('/all', storeSettingsController.getAllStores)
+
 // GET /api/store-settings - Get store settings
 router.get('/', storeSettingsController.getStoreSettings)
 

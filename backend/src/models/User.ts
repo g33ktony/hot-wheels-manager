@@ -5,6 +5,7 @@ export interface IUser extends Document {
   password: string
   name: string
   role: 'sys_admin' | 'admin' | 'editor' | 'analyst'
+  storeId: string  // Cada usuario pertenece a una tienda
   createdAt: Date
   lastLogin?: Date
   permissions?: string[]
@@ -31,6 +32,11 @@ const userSchema = new Schema<IUser>({
     enum: ['sys_admin', 'admin', 'editor', 'analyst'],
     default: 'editor'
   },
+  storeId: {
+    type: String,
+    required: true,
+    index: true
+  },
   permissions: {
     type: [String],
     default: []
@@ -42,7 +48,8 @@ const userSchema = new Schema<IUser>({
   timestamps: true
 })
 
-// Índices
-userSchema.index({ email: 1 })
+// Índices para queries por tienda
+userSchema.index({ storeId: 1, role: 1 })
+userSchema.index({ storeId: 1, email: 1 })
 
 export const UserModel = model<IUser>('User', userSchema)

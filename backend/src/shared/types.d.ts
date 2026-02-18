@@ -51,6 +51,7 @@ export interface Purchase {
     notes?: string;
     isReceived: boolean;
     receivedDate?: Date;
+    storeId: string;
 }
 export interface PurchaseItem {
     carId: string;

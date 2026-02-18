@@ -27,6 +27,7 @@ export interface ILead extends Document {
   contactStatus: 'new' | 'contacted' | 'converted' | 'not_interested'
   notes?: string
   lastContactedAt?: Date
+  storeId: string
 }
 
 const leadSchema = new Schema<ILead>({
@@ -101,6 +102,12 @@ const leadSchema = new Schema<ILead>({
   },
   lastContactedAt: {
     type: Date
+  },
+  // Multi-tenancy field
+  storeId: {
+    type: String,
+    required: true,
+    index: true
   }
 }, {
   timestamps: true
@@ -112,6 +119,8 @@ leadSchema.index({ registeredAt: -1 })
 leadSchema.index({ estado: 1 })
 leadSchema.index({ contactStatus: 1 })
 leadSchema.index({ 'interestedInItem.catalogId': 1 })
+leadSchema.index({ storeId: 1 })
+leadSchema.index({ storeId: 1, contactStatus: 1 })
 
 const Lead = mongoose.model<ILead>('Lead', leadSchema)
 

@@ -1,14 +1,17 @@
 import { Request, Response } from 'express'
 import { StoreSettingsModel, IStoreSettings } from '../models/StoreSettings'
+import { createStoreFilter } from '../utils/storeAccess'
 
 export const getStoreSettings = async (req: Request, res: Response) => {
   try {
-    let settings = await StoreSettingsModel.findOne({})
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    let settings = await StoreSettingsModel.findOne({ ...storeFilter })
 
     // Si no existe, crear con valores por defecto
     if (!settings) {
       settings = await StoreSettingsModel.create({
         storeName: 'Mi Tienda de Hot Wheels',
+        storeId: req.storeId,
         customMessages: {
           welcome: '¡Bienvenido a nuestra tienda!',
           closing: '¡Gracias por su compra!',
@@ -48,11 +51,13 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
     }
 
     // Obtener o crear settings
-    let settings = await StoreSettingsModel.findOne({})
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    let settings = await StoreSettingsModel.findOne({ ...storeFilter })
 
     if (!settings) {
       settings = await StoreSettingsModel.create({
         storeName: storeName || 'Mi Tienda de Hot Wheels',
+        storeId: req.storeId,
         logo,
         description,
         customMessages: customMessages || {
@@ -67,6 +72,15 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
         publicCatalog
       })
     } else {
+      // Check ownership: user can only edit their own store's settings
+      if (settings.storeId !== req.storeId) {
+        return res.status(403).json({
+          success: false,
+          data: null,
+          message: 'You can only edit settings from your own store'
+        })
+      }
+
       // Actualizar
       if (storeName) settings.storeName = storeName
       if (logo !== undefined) settings.logo = logo
@@ -250,6 +264,34 @@ export const deleteCustomMessage = async (req: Request, res: Response) => {
       success: false,
       data: null,
       message: 'Error al eliminar mensaje: ' + error.message
+    })
+  }
+}
+
+export const getAllStores = async (req: Request, res: Response) => {
+  try {
+    // Only sys_admin can access all stores
+    if (req.userRole !== 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Only sys_admin can access all stores'
+      })
+    }
+
+    const stores = await StoreSettingsModel.find({}).select('storeId storeName location')
+
+    return res.status(200).json({
+      success: true,
+      data: stores,
+      message: 'All stores retrieved successfully'
+    })
+  } catch (error: any) {
+    console.error('Error getting all stores:', error)
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al obtener tiendas: ' + error.message
     })
   }
 }

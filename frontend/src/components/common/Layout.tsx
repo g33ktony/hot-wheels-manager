@@ -32,6 +32,7 @@ import { useDataReportsSummary } from '@/hooks/useDataReports'
 import { useAppSelector } from '@/hooks/redux'
 import FloatingActionButton from './FloatingActionButton'
 import DeliveryCartModal from '../DeliveryCartModal'
+import StoreSelector from '../StoreSelector'
 
 interface LayoutProps {
     children: ReactNode
@@ -342,6 +343,9 @@ export default function Layout({ children }: LayoutProps) {
                     </form>
 
                     <div className="flex items-center gap-2 sm:gap-4 flex-1 lg:flex-initial lg:justify-end">
+                        {/* Store Selector for sys_admin */}
+                        <StoreSelector />
+
                         {/* Theme toggle button */}
                         <button
                             onClick={toggleTheme}

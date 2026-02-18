@@ -6,10 +6,12 @@ import { SupplierModel } from '../models/Supplier'
 import { DeliveryModel } from '../models/Delivery'
 import { PendingItemModel } from '../models/PendingItem'
 import { SaleModel } from '../models/Sale'
+import { createStoreFilter } from '../utils/storeAccess'
 
 export const getPurchases = async (req: Request, res: Response) => {
   try {
-    const purchases = await Purchase.find()
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const purchases = await Purchase.find(storeFilter)
       .populate('supplierId')
       .sort({ purchaseDate: -1 })
 
@@ -180,6 +182,16 @@ export const createPurchase = async (req: Request, res: Response) => {
           message: 'Proveedor no encontrado'
         })
       }
+
+      // Check ownership: supplier must belong to user's store
+      if (supplier.storeId !== req.storeId) {
+        return res.status(403).json({
+          success: false,
+          data: null,
+          message: 'You can only purchase from suppliers in your own store'
+        })
+      }
+
       purchaseData.supplier = supplier
     }
 
@@ -193,6 +205,9 @@ export const createPurchase = async (req: Request, res: Response) => {
         0
       ) + (purchaseData.shippingCost || 0)
     }
+
+    // Add storeId to purchase
+    purchaseData.storeId = req.storeId
 
     const newPurchase = new Purchase(purchaseData)
     const savedPurchase = await newPurchase.save()
@@ -356,6 +371,15 @@ export const updatePurchase = async (req: Request, res: Response) => {
       })
     }
 
+    // Check ownership: user can only edit their own store's purchases
+    if (purchase.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only edit purchases from your own store'
+      })
+    }
+
     // Validate supplier exists if supplierId is provided
     if (updateData.supplierId) {
       const supplier = await SupplierModel.findById(updateData.supplierId)
@@ -364,6 +388,15 @@ export const updatePurchase = async (req: Request, res: Response) => {
           success: false,
           data: null,
           message: 'Proveedor no encontrado'
+        })
+      }
+
+      // Check ownership: supplier must belong to user's store
+      if (supplier.storeId !== req.storeId) {
+        return res.status(403).json({
+          success: false,
+          data: null,
+          message: 'You can only purchase from suppliers in your own store'
         })
       }
     }
@@ -423,6 +456,15 @@ export const deletePurchase = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Compra no encontrada'
+      })
+    }
+
+    // Check ownership: user can only delete their own store's purchases
+    if (purchase.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only delete purchases from your own store'
       })
     }
 

@@ -35,6 +35,7 @@ async function checkUsers() {
         console.log(`   Email: ${user.email}`);
         console.log(`   Nombre: ${user.name}`);
         console.log(`   Role: ${user.role}`);
+        console.log(`   Store ID: ${user.storeId || 'No asignada'}`);
         console.log(`   Creado: ${user.createdAt}`);
         console.log(`   Último login: ${user.lastLogin || 'Nunca'}`);
         console.log(`   Password hash (primeros 20 chars): ${user.password.substring(0, 20)}...`);

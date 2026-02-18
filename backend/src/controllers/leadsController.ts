@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import Lead, { ILead } from '../models/Lead'
+import { createStoreFilter } from '../utils/storeAccess'
 
 // Get all leads with filtering and pagination
 export const getLeads = async (req: Request, res: Response): Promise<void> => {
@@ -42,14 +43,15 @@ export const getLeads = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Get leads with pagination
-    const leads = await Lead.find(query)
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const leads = await Lead.find({ ...query, ...storeFilter })
       .sort({ registeredAt: -1 }) // Most recent first
       .skip(skip)
       .limit(limit)
       .lean()
 
     // Get total count for pagination
-    const total = await Lead.countDocuments(query)
+    const total = await Lead.countDocuments({ ...query, ...storeFilter })
 
     res.json({
       success: true,
@@ -153,6 +155,15 @@ export const getLeadById = async (req: Request, res: Response): Promise<void> =>
       return
     }
 
+    // Check ownership: sys_admin can view any store, others only own store
+    if (req.userRole !== 'sys_admin' && (lead as any).storeId !== req.storeId) {
+      res.status(403).json({
+        success: false,
+        message: 'Access denied'
+      })
+      return
+    }
+
     res.json({
       success: true,
       data: lead
@@ -172,6 +183,25 @@ export const updateLead = async (req: Request, res: Response): Promise<void> => 
     const { id } = req.params
     const { contactStatus, notes } = req.body
 
+    // Get the lead first to check ownership
+    const lead = await Lead.findById(id).lean()
+    if (!lead) {
+      res.status(404).json({
+        success: false,
+        message: 'Lead no encontrado'
+      })
+      return
+    }
+
+    // Check ownership: user can only edit their own store's leads
+    if ((lead as any).storeId !== req.storeId) {
+      res.status(403).json({
+        success: false,
+        message: 'You can only edit leads from your own store'
+      })
+      return
+    }
+
     const updateData: any = {}
 
     if (contactStatus) {
@@ -185,7 +215,7 @@ export const updateLead = async (req: Request, res: Response): Promise<void> => 
       updateData.notes = notes
     }
 
-    const lead = await Lead.findByIdAndUpdate(
+    const updatedLead = await Lead.findByIdAndUpdate(
       id,
       { $set: updateData },
       { new: true, runValidators: true }
@@ -201,7 +231,7 @@ export const updateLead = async (req: Request, res: Response): Promise<void> => 
 
     res.json({
       success: true,
-      data: lead,
+      data: updatedLead,
       message: 'Lead actualizado correctamente'
     })
   } catch (error) {
@@ -218,7 +248,7 @@ export const deleteLead = async (req: Request, res: Response): Promise<void> => 
   try {
     const { id } = req.params
 
-    const lead = await Lead.findByIdAndDelete(id)
+    const lead = await Lead.findById(id).lean()
 
     if (!lead) {
       res.status(404).json({
@@ -227,6 +257,17 @@ export const deleteLead = async (req: Request, res: Response): Promise<void> => 
       })
       return
     }
+
+    // Check ownership: user can only delete their own store's leads
+    if ((lead as any).storeId !== req.storeId) {
+      res.status(403).json({
+        success: false,
+        message: 'You can only delete leads from your own store'
+      })
+      return
+    }
+
+    await Lead.findByIdAndDelete(id)
 
     res.json({
       success: true,

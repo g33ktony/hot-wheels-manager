@@ -102,6 +102,7 @@ export interface Purchase {
   isPresale?: boolean;
   preSaleScheduledDate?: Date;
   preSaleStatus?: 'coming-soon' | 'purchased' | 'shipped' | 'received' | 'archived';
+  storeId: string;
 }
 
 export interface PurchaseItem {

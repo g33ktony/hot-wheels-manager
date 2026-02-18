@@ -107,6 +107,21 @@ export const usePermissions = () => {
     return permissions.every(p => userPerms.includes(p))
   }
 
+  // Store-based access control
+  const canAccessStore = (storeId: string): boolean => {
+    if (!user) return false
+    // sys_admin puede acceder a cualquier tienda (para lectura)
+    if (user.role === 'sys_admin') return true
+    // Otros roles solo su tienda
+    return user.storeId === storeId
+  }
+
+  const canEditStore = (storeId: string): boolean => {
+    if (!user) return false
+    // Solo se puede editar la propia tienda (ni sys_admin puede editar otras)
+    return user.storeId === storeId
+  }
+
   const isSysAdmin = () => user?.role === 'sys_admin'
   const isAdmin = () => user?.role === 'admin'
   const isEditor = () => user?.role === 'editor'
@@ -117,6 +132,8 @@ export const usePermissions = () => {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    canAccessStore,
+    canEditStore,
     isSysAdmin,
     isAdmin,
     isEditor,

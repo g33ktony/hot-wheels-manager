@@ -4,6 +4,7 @@ import { InventoryItem } from '@shared/types'
 // Extender la interfaz base con campos de Document
 export interface IInventoryItem extends Omit<InventoryItem, '_id'>, Document {
   lastUpdated: Date;
+  storeId: string;
 }
 
 const inventoryItemSchema = new Schema({
@@ -68,7 +69,9 @@ const inventoryItemSchema = new Schema({
   // Catálogo fields (for items added from catalog)
   series: { type: String }, // Series name from catalog
   year: { type: Number }, // Year from catalog
-  color: { type: String } // Color from catalog
+  color: { type: String }, // Color from catalog
+  // Multi-tenancy field
+  storeId: { type: String, required: true, index: true }
 }, {
   timestamps: true,
 })
@@ -94,6 +97,9 @@ inventoryItemSchema.index({
   pieceType: 1,
   dateAdded: -1 
 })
+
+// Multi-tenancy index
+inventoryItemSchema.index({ storeId: 1, condition: 1 })
 
 // Índice para búsqueda de texto (NUEVO - Performance Boost)
 inventoryItemSchema.index({ 

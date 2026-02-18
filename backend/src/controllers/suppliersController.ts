@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import { SupplierModel } from '../models/Supplier';
+import { createStoreFilter } from '../utils/storeAccess';
 
 // Get all suppliers
 export const getSuppliers = async (req: Request, res: Response) => {
   try {
-    const suppliers = await SupplierModel.find().sort({ name: 1 });
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const suppliers = await SupplierModel.find(storeFilter).sort({ name: 1 });
 
     res.json({
       success: true,
@@ -32,6 +34,15 @@ export const getSupplierById = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Proveedor no encontrado'
+      });
+    }
+
+    // Check ownership: sys_admin can view any store, others only own store
+    if (req.userRole !== 'sys_admin' && supplier.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Access denied'
       });
     }
 
@@ -64,9 +75,10 @@ export const createSupplier = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if supplier with same email already exists
+    // Check if supplier with same email already exists (only in user's store)
     if (email) {
-      const existingSupplier = await SupplierModel.findOne({ email });
+      const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+      const existingSupplier = await SupplierModel.findOne({ email, ...storeFilter });
       if (existingSupplier) {
         return res.status(400).json({
           success: false,
@@ -83,7 +95,8 @@ export const createSupplier = async (req: Request, res: Response) => {
       website,
       contactMethod: contactMethod || 'email',
       address,
-      notes
+      notes,
+      storeId: req.storeId
     });
 
     await supplier.save();
@@ -118,9 +131,19 @@ export const updateSupplier = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if email is being changed and if it already exists
+    // Check ownership: user can only edit their own store's suppliers
+    if (supplier.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only edit suppliers from your own store'
+      });
+    }
+
+    // Check if email is being changed and if it already exists (only in user's store)
     if (email && email !== supplier.email) {
-      const existingSupplier = await SupplierModel.findOne({ email });
+      const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+      const existingSupplier = await SupplierModel.findOne({ email, ...storeFilter });
       if (existingSupplier) {
         return res.status(400).json({
           success: false,
@@ -166,6 +189,15 @@ export const deleteSupplier = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Proveedor no encontrado'
+      });
+    }
+
+    // Check ownership: user can only delete their own store's suppliers
+    if (supplier.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only delete suppliers from your own store'
       });
     }
 

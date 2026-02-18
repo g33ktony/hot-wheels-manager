@@ -1,6 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose'
 import { Purchase, PurchaseItem } from '@shared/types'
 
+// Extend Purchase interface to include Document properties
+export interface IPurchase extends Omit<Purchase, '_id'>, Document {
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const PurchaseItemSchema = new Schema<PurchaseItem>({
   carId: { type: String, required: true },
   quantity: { type: Number, required: true, min: 1 },
@@ -34,7 +40,7 @@ const PurchaseItemSchema = new Schema<PurchaseItem>({
   notes: { type: String }
 }, { _id: false })
 
-const PurchaseSchema = new Schema<Purchase & Document>({
+const PurchaseSchema = new Schema<IPurchase>({
   items: [PurchaseItemSchema],
   supplierId: {
     type: Schema.Types.ObjectId,
@@ -67,6 +73,12 @@ const PurchaseSchema = new Schema<Purchase & Document>({
     type: String,
     enum: ['coming-soon', 'purchased', 'shipped', 'received', 'archived'],
     default: 'coming-soon'
+  },
+  // Multi-tenancy field
+  storeId: {
+    type: String,
+    required: true,
+    index: true
   }
 }, {
   timestamps: true,
@@ -78,6 +90,10 @@ PurchaseSchema.index({ supplierId: 1 })
 PurchaseSchema.index({ status: 1 })
 PurchaseSchema.index({ purchaseDate: -1 })
 PurchaseSchema.index({ 'items.carId': 1 })
+
+// Multi-tenancy indexes
+PurchaseSchema.index({ storeId: 1 })
+PurchaseSchema.index({ storeId: 1, purchaseDate: -1 })
 PurchaseSchema.index({ isPresale: 1 })
 PurchaseSchema.index({ preSaleStatus: 1 })
 
@@ -91,4 +107,5 @@ PurchaseSchema.pre('save', function(next) {
   next()
 })
 
-export default mongoose.model<Purchase & Document>('Purchase', PurchaseSchema)
+export default mongoose.model<IPurchase>('Purchase', PurchaseSchema)
+export const PurchaseModel = mongoose.model<IPurchase>('Purchase', PurchaseSchema)

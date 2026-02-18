@@ -23,6 +23,7 @@ export interface IDelivery extends Document {
   hasPresaleItems?: boolean; // true if delivery includes pre-sale items
   preSalePaymentPlanId?: string; // Reference to PreSalePaymentPlan if applicable
   preSaleStatus?: 'pending' | 'in-progress' | 'completed' | 'overdue' | 'paused' | 'cancelled';
+  storeId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -209,6 +210,12 @@ const DeliverySchema = new Schema<IDelivery>({
   preSaleStatus: {
     type: String,
     enum: ['pending', 'in-progress', 'completed', 'overdue', 'paused', 'cancelled']
+  },
+  // Multi-tenancy field
+  storeId: {
+    type: String,
+    required: true,
+    index: true
   }
 }, {
   timestamps: true,
@@ -222,5 +229,7 @@ DeliverySchema.index({ scheduledDate: -1 })
 DeliverySchema.index({ hasPresaleItems: 1 })
 DeliverySchema.index({ preSalePaymentPlanId: 1 })
 DeliverySchema.index({ preSaleStatus: 1 })
+DeliverySchema.index({ storeId: 1 })
+DeliverySchema.index({ storeId: 1, scheduledDate: -1 })
 
 export const DeliveryModel = mongoose.model<IDelivery>('Delivery', DeliverySchema)

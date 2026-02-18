@@ -24,6 +24,7 @@ export interface IStoreSettings extends Document {
   publicCatalog?: {
     showCustomInventory?: boolean  // Control para mostrar/ocultar inventario personalizado en búsqueda pública
   }
+  storeId: string
   createdAt: Date
   updatedAt: Date
 }
@@ -96,12 +97,20 @@ const storeSettingsSchema = new Schema<IStoreSettings>({
       type: Boolean,
       default: false  // Por defecto, NO mostrar inventario personalizado en búsqueda pública
     }
+  },
+  // Multi-tenancy field
+  storeId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
   }
 }, {
   timestamps: true
 })
 
-// Índice único para garantizar que solo exista una configuración
+// Índices para garantizar que solo exista una configuración por tienda
 storeSettingsSchema.index({ _id: 1 }, { unique: true })
+storeSettingsSchema.index({ storeId: 1 }, { unique: true })
 
 export const StoreSettingsModel = model<IStoreSettings>('StoreSettings', storeSettingsSchema)

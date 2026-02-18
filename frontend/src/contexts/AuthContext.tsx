@@ -15,6 +15,7 @@ interface User {
   email: string
   name: string
   role: 'sys_admin' | 'admin' | 'editor' | 'analyst'
+  storeId: string  // ID de la tienda a la que pertenece
 }
 
 interface AuthContextType {

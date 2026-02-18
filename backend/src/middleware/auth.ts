@@ -6,6 +6,7 @@ export interface AuthRequest extends Request {
     userId: string
     email: string
     role: string
+    storeId: string
   }
 }
 
@@ -43,6 +44,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
       userId: string
       email: string
       role: string
+      storeId: string
     }
 
     // Agregar usuario al request
@@ -51,6 +53,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
     req.userId = decoded.userId
     req.userRole = decoded.role
     req.userEmail = decoded.email
+    req.storeId = decoded.storeId
     next()
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {

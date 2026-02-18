@@ -10,6 +10,7 @@ export interface ISupplier extends Document {
   notes?: string;
   totalPurchases?: number;
   lastPurchaseDate?: Date;
+  storeId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +53,12 @@ const SupplierSchema = new Schema<ISupplier>({
   },
   lastPurchaseDate: {
     type: Date
+  },
+  // Multi-tenancy field
+  storeId: {
+    type: String,
+    required: true,
+    index: true
   }
 }, {
   timestamps: true,
@@ -62,5 +69,6 @@ const SupplierSchema = new Schema<ISupplier>({
 SupplierSchema.index({ name: 1 })
 SupplierSchema.index({ email: 1 })
 SupplierSchema.index({ phone: 1 })
+SupplierSchema.index({ storeId: 1 })
 
 export const SupplierModel = mongoose.model<ISupplier>('Supplier', SupplierSchema)

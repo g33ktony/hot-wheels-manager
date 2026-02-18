@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
 import { CustomerModel } from '../models/Customer';
+import { createStoreFilter } from '../utils/storeAccess';
 
 // Get all customers
 export const getCustomers = async (req: Request, res: Response) => {
   try {
-    const customers = await CustomerModel.find().sort({ name: 1 });
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const customers = await CustomerModel.find(storeFilter).sort({ name: 1 });
 
     res.json({
       success: true,
@@ -32,6 +34,15 @@ export const getCustomerById = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Cliente no encontrado'
+      });
+    }
+
+    // Check ownership: sys_admin can view any store, others only own store
+    if (req.userRole !== 'sys_admin' && customer.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Access denied'
       });
     }
 
@@ -64,9 +75,10 @@ export const createCustomer = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if customer with same email already exists
+    // Check if customer with same email already exists (only in user's store)
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
     if (email) {
-      const existingCustomer = await CustomerModel.findOne({ email });
+      const existingCustomer = await CustomerModel.findOne({ email, ...storeFilter });
       if (existingCustomer) {
         return res.status(400).json({
           success: false,
@@ -82,7 +94,8 @@ export const createCustomer = async (req: Request, res: Response) => {
       phone,
       contactMethod: contactMethod || 'email',
       address,
-      notes
+      notes,
+      storeId: req.storeId
     });
 
     await customer.save();
@@ -117,9 +130,19 @@ export const updateCustomer = async (req: Request, res: Response) => {
       });
     }
 
-    // Check if email is being changed and if it already exists
+    // Check ownership: user can only edit their own store
+    if (customer.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only edit customers from your own store'
+      });
+    }
+
+    // Check if email is being changed and if it already exists (only in user's store)
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
     if (email && email !== customer.email) {
-      const existingCustomer = await CustomerModel.findOne({ email });
+      const existingCustomer = await CustomerModel.findOne({ email, ...storeFilter });
       if (existingCustomer) {
         return res.status(400).json({
           success: false,
@@ -164,6 +187,15 @@ export const deleteCustomer = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Cliente no encontrado'
+      });
+    }
+
+    // Check ownership: user can only delete from their own store
+    if (customer.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only delete customers from your own store'
       });
     }
 

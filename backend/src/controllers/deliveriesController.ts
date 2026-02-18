@@ -5,6 +5,7 @@ import { InventoryItemModel } from '../models/InventoryItem';
 import { CustomerModel } from '../models/Customer';
 import { HotWheelsCarModel } from '../models/HotWheelsCar';
 import { getDayRangeUTC } from '../utils/dateUtils';
+import { createStoreFilter } from '../utils/storeAccess';
 
 // Get all deliveries
 export const getDeliveries = async (req: Request, res: Response) => {
@@ -53,7 +54,8 @@ export const getDeliveries = async (req: Request, res: Response) => {
     }
     
     // Simplified query - remove nested populate for better performance
-    const deliveries = await DeliveryModel.find(filter)
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const deliveries = await DeliveryModel.find({ ...filter, ...storeFilter })
       .populate('customerId', 'name email phone') // Only populate customer
       .populate('items.inventoryItemId', 'photos purchasePrice') // Populate photos for items
       .select('-__v') // Exclude version key
@@ -139,6 +141,15 @@ export const getDeliveryById = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Entrega no encontrada'
+      });
+    }
+
+    // Check ownership: sys_admin can view any store, others only own store
+    if (req.userRole !== 'sys_admin' && delivery.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Access denied'
       });
     }
 
@@ -236,6 +247,15 @@ export const createDelivery = async (req: Request, res: Response) => {
       });
     }
 
+    // Check ownership: customer must belong to user's store
+    if (customer.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only create deliveries for customers from your own store'
+      });
+    }
+
         // Validate items and calculate total
     let totalAmount = requestTotalAmount ?? 0;
     const enrichedItems = items ? [...items] : []; // Clone items array
@@ -255,6 +275,15 @@ export const createDelivery = async (req: Request, res: Response) => {
           // Check if it's a real inventory item
           const inventoryItem = await InventoryItemModel.findById(item.inventoryItemId);
           if (inventoryItem) {
+            // Check ownership: inventory item must belong to user's store
+            if (inventoryItem.storeId !== req.storeId) {
+              return res.status(403).json({
+                success: false,
+                data: null,
+                message: 'You can only include items from your own store in deliveries'
+              });
+            }
+
             itemExists = true;
             // Enrich item with photos and additional metadata from inventory
             enrichedItems[i] = {
@@ -348,7 +377,8 @@ export const createDelivery = async (req: Request, res: Response) => {
       totalAmount: resolvedTotalAmount,
       status: 'scheduled', // Changed from 'pending' to 'scheduled'
       notes,
-      hasPresaleItems
+      hasPresaleItems,
+      storeId: req.storeId
     });
 
     await delivery.save();
@@ -388,6 +418,15 @@ export const updateDelivery = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Entrega no encontrada'
+      });
+    }
+
+    // Check ownership: user can only edit their own store's deliveries
+    if (delivery.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only edit deliveries from your own store'
       });
     }
 
@@ -480,6 +519,15 @@ export const deleteDelivery = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Entrega no encontrada'
+      });
+    }
+
+    // Check ownership: user can only delete their own store's deliveries
+    if (delivery.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'You can only delete deliveries from your own store'
       });
     }
 

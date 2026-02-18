@@ -9,6 +9,7 @@ export interface ICustomer extends Document {
   notes?: string;
   totalPurchases?: number;
   lastPurchaseDate?: Date;
+  storeId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +48,12 @@ const CustomerSchema = new Schema<ICustomer>({
   },
   lastPurchaseDate: {
     type: Date
+  },
+  // Multi-tenancy field
+  storeId: {
+    type: String,
+    required: true,
+    index: true
   }
 }, {
   timestamps: true,
@@ -57,5 +64,7 @@ const CustomerSchema = new Schema<ICustomer>({
 CustomerSchema.index({ name: 1 })
 CustomerSchema.index({ email: 1 })
 CustomerSchema.index({ phone: 1 })
+CustomerSchema.index({ storeId: 1 })
+CustomerSchema.index({ storeId: 1, status: 1 })
 
 export const CustomerModel = mongoose.model<ICustomer>('Customer', CustomerSchema)
