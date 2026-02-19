@@ -25,6 +25,7 @@ import path from 'path'
 
 // Import routes
 import authRoutes from './routes/auth.routes'
+import usersRoutes from './routes/usersRoutes'
 import hotWheelsRoutes from './routes/hotWheelsRoutes'
 import inventoryRoutes from './routes/inventoryRoutes'
 import salesRoutes from './routes/salesRoutes'
@@ -167,6 +168,7 @@ app.use('/api/public', publicCatalogLimiter, publicRoutes)
 app.post('/api/public/leads', leadCreationLimiter)
 
 // Rutas protegidas (requieren autenticación)
+app.use('/api/users', authMiddleware, usersRoutes)
 app.use('/api/hotwheels', authMiddleware, hotWheelsRoutes)
 app.use('/api/inventory', authMiddleware, inventoryRoutes)
 app.use('/api/sales', authMiddleware, salesRoutes)

@@ -7,6 +7,8 @@ import PrivateRoute from './components/PrivateRoute'
 import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/common/Layout'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Users from './pages/Users'
 import Dashboard from './pages/Dashboard'
 import Inventory from './pages/Inventory'
 import ItemDetail from './pages/ItemDetail'
@@ -46,6 +48,7 @@ function App() {
                             <Route path="/" element={<Navigate to="/browse" replace />} />
                             <Route path="/browse" element={<CatalogBrowser />} />
                             <Route path="/login" element={<Login />} />
+                            <Route path="/signup" element={<Signup />} />
 
                             {/* Rutas protegidas */}
                             <Route
@@ -78,6 +81,7 @@ function App() {
                                                     <Route path="/cloudinary-debug" element={<CloudinaryDebug />} />
                                                     <Route path="/theme-settings" element={<ThemeSettings />} />
                                                     <Route path="/store-settings" element={<StoreSettings />} />
+                                                    <Route path="/admin/users" element={<Users />} />
                                                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                                 </Routes>
                                             </Layout>

@@ -114,6 +114,19 @@ const Login: React.FC = () => {
           </Button>
         </form>
 
+        {/* Link a registrarse */}
+        <div className="mt-6 text-center">
+          <p className="text-slate-400 mb-2">
+            ¿No tienes cuenta?
+          </p>
+          <button
+            onClick={() => navigate('/signup')}
+            className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+          >
+            Crear una cuenta aquí
+          </button>
+        </div>
+
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>Gestiona tu colección de autos a escala</p>

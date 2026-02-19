@@ -9,9 +9,15 @@ interface Store {
 }
 
 interface StoreContextType {
+    // The store user belongs to (for writing)
+    userStore: string | null
+    // The store user is currently viewing (for reading)
     selectedStore: string | null
-    stores: Store[]
+    // All available stores for sys_admin
+    availableStores: Store[]
+    // Set the store to view
     setSelectedStore: (storeId: string) => void
+    // Loading state
     loading: boolean
     error: string | null
 }
@@ -20,39 +26,52 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth()
+    const [userStore, setUserStore] = useState<string | null>(null)
     const [selectedStore, setSelectedStore] = useState<string | null>(null)
-    const [stores, setStores] = useState<Store[]>([])
+    const [availableStores, setAvailableStores] = useState<Store[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // Fetch available stores for sys_admin
+    // Initialize user's own store
     useEffect(() => {
         if (!user) {
-            setStores([])
+            setUserStore(null)
             setSelectedStore(null)
+            setAvailableStores([])
             return
         }
 
-        // If not sys_admin, just use their own store
+        // User's own store is always their storeId
+        setUserStore(user.storeId || null)
+
+        // If not sys_admin, viewing store = own store
         if (user.role !== 'sys_admin') {
-            if (user.storeId) {
-                setSelectedStore(user.storeId)
-                setStores([{
-                    _id: '',
-                    storeId: user.storeId,
-                    storeName: 'Mi Tienda'
-                }])
-            }
+            setSelectedStore(user.storeId || null)
+            setAvailableStores(user.storeId ? [{
+                _id: '',
+                storeId: user.storeId,
+                storeName: 'Mi Tienda'
+            }] : [])
             return
         }
 
-        // For sys_admin, fetch all stores
+        // For sys_admin, default to their own store
+        if (!selectedStore) {
+            setSelectedStore(user.storeId || null)
+        }
+    }, [user, selectedStore])
+
+    // Fetch all stores for sys_admin
+    useEffect(() => {
+        if (!user || user.role !== 'sys_admin') {
+            return
+        }
+
         const fetchStores = async () => {
             try {
                 setLoading(true)
                 setError(null)
 
-                // Get all stores from the database by fetching store settings
                 const response = await fetch('/api/store-settings/all', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -70,26 +89,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                     storeName: store.storeName || `Store ${store.storeId}`
                 }))
 
-                setStores(storeList)
-
-                // Set initial selected store to user's own store
-                if (user.storeId && !selectedStore) {
-                    setSelectedStore(user.storeId)
-                } else if (storeList.length > 0 && !selectedStore) {
-                    setSelectedStore(storeList[0].storeId)
-                }
+                setAvailableStores(storeList)
             } catch (err) {
                 console.error('Error fetching stores:', err)
                 setError(err instanceof Error ? err.message : 'Unknown error')
 
                 // Fallback: add user's own store
                 if (user.storeId) {
-                    setStores([{
+                    setAvailableStores([{
                         _id: '',
                         storeId: user.storeId,
                         storeName: 'Mi Tienda'
                     }])
-                    setSelectedStore(user.storeId)
                 }
             } finally {
                 setLoading(false)
@@ -107,7 +118,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }, [selectedStore])
 
     return (
-        <StoreContext.Provider value={{ selectedStore, stores, setSelectedStore, loading, error }}>
+        <StoreContext.Provider value={{
+            userStore,
+            selectedStore,
+            availableStores,
+            setSelectedStore,
+            loading,
+            error
+        }}>
             {children}
         </StoreContext.Provider>
     )
@@ -115,8 +133,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
 export function useStore() {
     const context = useContext(StoreContext)
-    if (!context) {
-        throw new Error('useStore must be used within a StoreProvider')
+    if (context === undefined) {
+        throw new Error('useStore must be used within StoreProvider')
     }
     return context
 }

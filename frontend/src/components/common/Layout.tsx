@@ -141,6 +141,13 @@ export default function Layout({ children }: LayoutProps) {
         { name: 'Clientes', href: '/customers', icon: Users },
         { name: 'Leads', href: '/leads', icon: Mail, ...(newLeadsCount > 0 && { badge: newLeadsCount }) },
         { name: 'Reportes de Datos', href: '/data-reports', icon: Flag, ...(pendingReportsCount > 0 && { badge: pendingReportsCount }) },
+        // Conditional: Only show for sys_admin
+        ...(isSysAdmin() ? [{
+            name: 'Gestión de Usuarios',
+            href: '/admin/users',
+            icon: Users,
+            highlight: true
+        }] : []),
         { name: 'Catálogo Público', href: '/browse?adminView=true', icon: SearchIcon },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
         { name: 'Configuración de Tienda', href: '/store-settings', icon: Store },

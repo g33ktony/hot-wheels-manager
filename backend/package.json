@@ -23,6 +23,7 @@
     "migrate-store-data": "tsx src/scripts/migrate-store-data.ts",
     "create-indexes": "tsx src/scripts/create-store-indexes.ts",
     "create-test-stores": "tsx src/scripts/create-test-stores.ts",
+    "reorganize-sysadmin-store": "tsx src/scripts/reorganize-sysadmin-store.ts",
     "migrate:recreate-deliveries": "tsx src/scripts/recreateCompletedDeliveries.ts",
     "migrate:sales-snapshot": "tsx src/scripts/migrateSalesSnapshot.ts",
     "fix:dates:preview": "tsx src/scripts/fixDateMigration.ts --preview",

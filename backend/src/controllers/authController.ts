@@ -61,7 +61,19 @@ export const login = async (req: Request, res: Response) => {
 
     console.log('✅ User found:', user.email)
     console.log('  - User ID:', user._id)
+    console.log('  - User status:', (user as any).status || 'not set')
     console.log('  - Password hash (first 20):', user.password.substring(0, 20))
+
+    // Verificar que usuario esté aprobado
+    if ((user as any).status && (user as any).status !== 'approved') {
+      console.log('❌ Login failed: User not approved. Status:', (user as any).status)
+      return res.status(403).json({
+        success: false,
+        message: (user as any).status === 'pending' 
+          ? 'Tu cuenta está pendiente de aprobación por el administrador'
+          : 'Tu cuenta ha sido rechazada'
+      })
+    }
 
     // Verificar contraseña
     console.log('  - Comparing passwords...')
@@ -244,6 +256,96 @@ export const changePassword = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Error changing password'
+    })
+  }
+}
+
+// Sign up - Registro público (usuario pendiente de aprobación)
+export const signup = async (req: Request, res: Response) => {
+  try {
+    const { email, password, name, phone, storeId } = req.body
+
+    // Validar campos
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, password y nombre son requeridos'
+      })
+    }
+
+    // Validar formato de email
+    const emailRegex = /^\S+@\S+\.\S+$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email inválido'
+      })
+    }
+
+    // Validar contraseña (mínimo 6 caracteres)
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'La contraseña debe tener al menos 6 caracteres'
+      })
+    }
+
+    // Verificar si el usuario ya existe
+    const existingUser = await UserModel.findOne({ email: email.toLowerCase().trim() })
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Este email ya está registrado'
+      })
+    }
+
+    // Hashear contraseña
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Crear nuevo usuario con estado 'pending'
+    // El storeId será generado si no se proporciona, o usar uno existente
+    const finalStoreId = storeId || email.split('@')[0] // email prefix como store ID
+    
+    const newUser = new UserModel({
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+      name: name.trim(),
+      phone: phone?.trim(),
+      storeId: finalStoreId,
+      role: 'admin', // Default role para nuevos usuarios
+      status: 'pending', // Requiere aprobación
+      createdAt: new Date()
+    })
+
+    const savedUser = await newUser.save()
+
+    res.status(201).json({
+      success: true,
+      message: 'Registro exitoso. Tu cuenta está pendiente de aprobación del administrador.',
+      data: {
+        user: {
+          id: savedUser._id,
+          email: savedUser.email,
+          name: savedUser.name,
+          storeId: savedUser.storeId,
+          status: savedUser.status
+        }
+      }
+    })
+  } catch (error: any) {
+    console.error('Signup error:', error)
+    
+    // Handle duplicate email error
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Este email ya está registrado'
+      })
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Error durante el registro'
     })
   }
 }
