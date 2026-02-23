@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { InventoryItemModel, IInventoryItem } from '../models/InventoryItem'
 import { ApiResponse } from '@shared/types'
+import { createStoreFilter } from '../utils/storeAccess'
 
 // Note: TypeScript tiene problemas reconociendo campos opcionales de mongoose para box fields
 // Los campos están definidos en el schema pero no en la interfaz inferida por Document
@@ -23,7 +24,9 @@ const asBox = (item: any): BoxItem => item as BoxItem
 // GET /api/boxes - Get all boxes (sealed or unpacking)
 export const getBoxes = async (req: Request, res: Response) => {
   try {
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
     const boxes = await InventoryItemModel.find({
+      ...storeFilter,
       isBox: true,
       boxStatus: { $in: ['sealed', 'unpacking'] }
     }).sort({ dateAdded: -1 }).lean() as unknown as BoxItem[]
@@ -57,8 +60,19 @@ export const getBoxById = async (req: Request, res: Response) => {
       })
     }
 
+    // Check ownership: user can only view their own store's boxes
+    if (box.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo puedes ver cajas de tu propia tienda'
+      })
+    }
+
     // Get registered pieces from this box
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
     const registeredPieces = await InventoryItemModel.find({
+      ...storeFilter,
       sourceBoxId: id
     }).sort({ dateAdded: -1 })
 
@@ -101,6 +115,15 @@ export const registerBoxPieces = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Caja no encontrada'
+      })
+    }
+
+    // Check ownership: user can only register pieces from their own store's boxes
+    if (box.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo puedes registrar piezas de cajas de tu propia tienda'
       })
     }
 

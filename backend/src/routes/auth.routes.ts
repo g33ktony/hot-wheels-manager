@@ -13,6 +13,6 @@ router.post('/signup', signup)
 router.get('/verify', verifyToken)
 
 // Cambiar contraseña
-router.post('/change-password', changePassword)
+router.patch('/change-password', changePassword)
 
 export default router

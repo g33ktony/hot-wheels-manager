@@ -10,12 +10,12 @@ import { dashboardCache, CACHE_KEYS } from '../services/cacheService';
 import { getStartOfDayUTC, getEndOfDayUTC, getTodayString, getDayRangeUTC, getDayRangeLocal } from '../utils/dateUtils';
 
 // Helper function to get recent activity data
-async function getRecentActivityData(totalCatalogCars: number, totalSales: number): Promise<RecentActivity[]> {
-  console.log('📋 Getting recent activity...');
+async function getRecentActivityData(totalCatalogCars: number, totalSales: number, storeId: string): Promise<RecentActivity[]> {
+  console.log('📋 Getting recent activity for store:', storeId);
   const recentActivity: RecentActivity[] = [];
 
   // Recent deliveries (completed)
-  const recentDeliveries = await DeliveryModel.find({ status: 'completed' })
+  const recentDeliveries = await DeliveryModel.find({ storeId, status: 'completed' })
     .populate('customerId')
     .sort({ updatedAt: -1 })
     .limit(3)
@@ -33,7 +33,7 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
   });
 
   // Recent purchases
-  const recentPurchases = await Purchase.find()
+  const recentPurchases = await Purchase.find({ storeId })
     .populate('supplierId')
     .sort({ purchaseDate: -1 })
     .limit(3)
@@ -51,7 +51,7 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
   });
 
   // Recent inventory additions
-  const recentInventory = await InventoryItemModel.find()
+  const recentInventory = await InventoryItemModel.find({ storeId })
     .sort({ dateAdded: -1 })
     .limit(2)
     .select('carId quantity dateAdded');
@@ -67,7 +67,7 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
   });
 
   // Recent sales (only direct sales, not from deliveries to avoid duplication)
-  const recentSales = await SaleModel.find({ deliveryId: { $exists: false } })
+  const recentSales = await SaleModel.find({ storeId, deliveryId: { $exists: false } })
     .sort({ saleDate: -1 })
     .limit(3)
     .select('totalAmount saleDate items');
@@ -103,7 +103,8 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
 // Get dashboard metrics
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<Response | void> => {
   try {
-    console.log('🔍 Fetching dashboard metrics...');
+    const storeId = (req as any).storeId; // Obtener storeId del usuario
+    console.log('🔍 Fetching dashboard metrics for store:', storeId);
     
     // Check cache first
     const cachedMetrics = dashboardCache.get(CACHE_KEYS.DASHBOARD_METRICS);
@@ -155,8 +156,9 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     
     // Get inventory stats
     console.log('📊 Getting inventory stats...');
-    const totalInventoryItems = await InventoryItemModel.countDocuments();
+    const totalInventoryItems = await InventoryItemModel.countDocuments({ storeId });
     const totalQuantity = await InventoryItemModel.aggregate([
+      { $match: { storeId } },
       { $group: { _id: null, total: { $sum: '$quantity' } } }
     ]);
     
@@ -170,6 +172,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     // Calculate total value estimate
     console.log('💰 Calculating inventory value...');
     const inventoryValue = await InventoryItemModel.aggregate([
+      { $match: { storeId } },
       { $group: { _id: null, total: { $sum: { $multiply: ['$quantity', '$suggestedPrice'] } } } }
     ]);
 
@@ -179,17 +182,19 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     firstDayOfMonth.setDate(1);
     const currentMonth = getStartOfDayUTC(firstDayOfMonth);
 
-    const totalSales = await SaleModel.countDocuments();
+    const totalSales = await SaleModel.countDocuments({ storeId });
     const monthlySales = await SaleModel.countDocuments({
+      storeId,
       saleDate: { $gte: currentMonth }
     });
 
     const totalRevenue = await SaleModel.aggregate([
+      { $match: { storeId } },
       { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
 
     const monthlyRevenue = await SaleModel.aggregate([
-      { $match: { saleDate: { $gte: currentMonth } } },
+      { $match: { storeId, saleDate: { $gte: currentMonth } } },
       { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
 
@@ -199,6 +204,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Daily sales from completed sales (POS)
     const dailySalesData = await SaleModel.find({
+      storeId,
       saleDate: { $gte: startOfToday, $lte: endOfToday },
       status: 'completed'
     }).populate({
@@ -220,6 +226,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Daily profit from delivery payments made today
     const dailyDeliveryPaymentsData = await DeliveryModel.find({
+      storeId,
       'paymentHistory.date': { $gte: startOfToday, $lte: endOfToday }
     }).populate({
       path: 'items.inventoryItemId',
@@ -242,13 +249,14 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     console.log('💵 Calculating profits...');
     
     // Get all sales with their items and populate inventory data
-    const allSales = await SaleModel.find({ status: 'completed' })
+    const allSales = await SaleModel.find({ storeId, status: 'completed' })
       .populate({
         path: 'items.inventoryItemId',
         select: 'purchasePrice'
       });
 
     const monthlySalesData = await SaleModel.find({
+      storeId,
       status: 'completed',
       saleDate: { $gte: currentMonth }
     }).populate({
@@ -279,16 +287,18 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     // Get delivery metrics
     console.log('� Getting delivery metrics...');
     const pendingDeliveries = await DeliveryModel.countDocuments({
+      storeId,
       status: { $in: ['scheduled', 'prepared'] }
     });
     // Get unpaid deliveries (pending or partial payment)
     const unpaidDeliveries = await DeliveryModel.countDocuments({
+      storeId,
       paymentStatus: { $in: ['pending', 'partial'] }
     });
 
     // Get items to prepare (scheduled deliveries that are not yet prepared)
     const itemsToPrepare = await DeliveryModel.aggregate([
-      { $match: { status: 'scheduled' } },
+      { $match: { storeId, status: 'scheduled' } },
       { $unwind: '$items' },
       { $group: { _id: null, total: { $sum: '$items.quantity' } } }
     ]);
@@ -296,6 +306,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const { startDate: startOfDay, endDate: endOfDay } = getDayRangeLocal(getTodayString());
 
     const todaysDeliveries = await DeliveryModel.find({
+      storeId,
       scheduledDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $in: ['scheduled', 'prepared'] }
     })
@@ -305,8 +316,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Get purchase metrics
     console.log('📦 Getting purchase metrics...');
-    const pendingPurchases = await Purchase.countDocuments({
-      status: { $in: ['pending', 'paid', 'shipped'] }
+    const pendingPurchases = await Purchase.countDocuments({      storeId,      status: { $in: ['pending', 'paid', 'shipped'] }
     });
 
     console.log('📋 Compiling dashboard data...');
@@ -339,7 +349,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
         totalAmount: delivery.totalAmount,
         itemCount: delivery.items?.length || 0
       })),
-      recentActivity: await getRecentActivityData(totalCatalogCars, totalSales)
+      recentActivity: await getRecentActivityData(totalCatalogCars, totalSales, storeId)
     };
 
     console.log('✅ Dashboard metrics fetched successfully');
@@ -364,8 +374,11 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 // Get recent activity
 export const getRecentActivity = async (req: Request, res: Response): Promise<void> => {
   try {
+    const storeId = (req as any).storeId; // Obtener storeId del usuario
+    console.log('🔍 Fetching recent activity for store:', storeId);
+    
     // Get recently added inventory items
-    const recentInventory = await InventoryItemModel.find()
+    const recentInventory = await InventoryItemModel.find({ storeId })
       .sort({ dateAdded: -1 })
       .limit(5)
       .select('carId quantity condition dateAdded');

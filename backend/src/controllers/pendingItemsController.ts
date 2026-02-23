@@ -2,13 +2,15 @@ import { Request, Response } from 'express'
 import { ApiResponse } from '@shared/types'
 import { PendingItemModel } from '../models/PendingItem'
 import Purchase from '../models/Purchase'
+import { createStoreFilter } from '../utils/storeAccess'
 
 // GET /api/pending-items - Get all pending items with filters
 export const getPendingItems = async (req: Request, res: Response) => {
   try {
     const { status, overdue } = req.query
     
-    const query: any = {}
+    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const query: any = { ...storeFilter }
     
     // Filter by status if provided
     if (status) {
@@ -55,7 +57,10 @@ export const getPendingItems = async (req: Request, res: Response) => {
 // POST /api/pending-items - Create new pending item
 export const createPendingItem = async (req: Request, res: Response) => {
   try {
-    const pendingItem = new PendingItemModel(req.body)
+    const pendingItem = new PendingItemModel({
+      ...req.body,
+      storeId: req.storeId
+    })
     await pendingItem.save()
     
     // Update purchase pending items count
@@ -84,12 +89,7 @@ export const updatePendingItem = async (req: Request, res: Response) => {
     const { id } = req.params
     const updates = req.body
     
-    const pendingItem = await PendingItemModel.findByIdAndUpdate(
-      id,
-      updates,
-      { new: true, runValidators: true }
-    )
-    
+    const pendingItem = await PendingItemModel.findById(id)
     if (!pendingItem) {
       return res.status(404).json({
         success: false,
@@ -97,10 +97,25 @@ export const updatePendingItem = async (req: Request, res: Response) => {
         message: 'Item pendiente no encontrado'
       })
     }
+
+    // Check ownership: user can only update their own store's pending items
+    if (pendingItem.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo puedes actualizar items pendientes de tu propia tienda'
+      })
+    }
+    
+    const updatedItem = await PendingItemModel.findByIdAndUpdate(
+      id,
+      updates,
+      { new: true, runValidators: true }
+    )
     
     res.json({
       success: true,
-      data: pendingItem,
+      data: updatedItem,
       message: 'Item pendiente actualizado exitosamente'
     })
   } catch (error: any) {
@@ -127,6 +142,15 @@ export const linkToPurchase = async (req: Request, res: Response) => {
         message: 'Item pendiente no encontrado'
       })
     }
+
+    // Check ownership: user can only link their own store's pending items
+    if (pendingItem.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo puedes vincular items pendientes de tu propia tienda'
+      })
+    }
     
     // Validate: Item can only be linked to one non-received purchase at a time
     if (pendingItem.linkedToPurchaseId) {
@@ -147,6 +171,15 @@ export const linkToPurchase = async (req: Request, res: Response) => {
         success: false,
         data: null,
         message: 'Compra no encontrada'
+      })
+    }
+
+    // Check ownership: purchase must belong to user's store
+    if (purchase.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo puedes vincular items a compras de tu propia tienda'
       })
     }
     
@@ -192,6 +225,15 @@ export const markAsRefunded = async (req: Request, res: Response) => {
         message: 'Item pendiente no encontrado'
       })
     }
+
+    // Check ownership: user can only mark their own store's pending items as refunded
+    if (pendingItem.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo puedes marcar items pendientes de tu propia tienda como reembolsados'
+      })
+    }
     
     // Update refund information
     pendingItem.status = 'refunded'
@@ -233,6 +275,15 @@ export const deletePendingItem = async (req: Request, res: Response) => {
         message: 'Item pendiente no encontrado'
       })
     }
+
+    // Check ownership: user can only delete their own store's pending items
+    if (pendingItem.storeId !== req.storeId) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo puedes eliminar items pendientes de tu propia tienda'
+      })
+    }
     
     const originalPurchaseId = pendingItem.originalPurchaseId
     
@@ -259,7 +310,10 @@ export const deletePendingItem = async (req: Request, res: Response) => {
 // GET /api/pending-items/stats - Get pending items statistics
 export const getPendingItemsStats = async (req: Request, res: Response) => {
   try {
-    const allItems = await PendingItemModel.find({})
+    const storeId = (req as any).storeId; // Obtener storeId del usuario
+    console.log('🔍 Fetching pending items stats for store:', storeId);
+    
+    const allItems = await PendingItemModel.find({ storeId })
     
     // Only count active pending items (exclude refunded and cancelled)
     const activePendingItems = allItems.filter(

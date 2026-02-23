@@ -22,6 +22,7 @@ interface SearchResult {
 export const globalSearch = async (req: Request, res: Response) => {
   try {
     const { query } = req.query;
+    const storeId = (req as any).storeId; // Obtener storeId del usuario autenticado
 
     if (!query || typeof query !== 'string' || query.trim().length < 2) {
       return res.json({
@@ -35,8 +36,9 @@ export const globalSearch = async (req: Request, res: Response) => {
     const searchRegex = { $regex: searchTerm, $options: 'i' };
     const results: SearchResult[] = [];
 
-    // 1. Buscar en VENTAS COMPLETADAS
+    // 1. Buscar en VENTAS COMPLETADAS (filtrada por storeId)
     const sales = await SaleModel.find({
+      storeId, // Agregar filtro de tienda
       status: 'completed',
       $or: [
         { 'customer.name': searchRegex },
@@ -96,8 +98,9 @@ export const globalSearch = async (req: Request, res: Response) => {
       }
     }
 
-    // 2. Buscar en ENTREGAS
+    // 2. Buscar en ENTREGAS (filtrada por storeId)
     const deliveries = await DeliveryModel.find({
+      storeId, // Agregar filtro de tienda
       status: { $in: ['scheduled', 'prepared', 'completed'] },
       $or: [
         { 'customer.name': searchRegex },
@@ -145,8 +148,9 @@ export const globalSearch = async (req: Request, res: Response) => {
       }
     }
 
-    // 3. Buscar en INVENTARIO
+    // 3. Buscar en INVENTARIO (filtrado por storeId)
     const inventoryItems = await InventoryItemModel.find({
+      storeId, // Agregar filtro de tienda
       $or: [
         { 'carName': searchRegex },
         { 'carId': searchRegex },
@@ -177,8 +181,9 @@ export const globalSearch = async (req: Request, res: Response) => {
       });
     }
 
-    // 4. Buscar en CLIENTES
+    // 4. Buscar en CLIENTES (filtrado por storeId)
     const customers = await CustomerModel.find({
+      storeId, // Agregar filtro de tienda
       $or: [
         { 'name': searchRegex },
         { 'email': searchRegex },
@@ -348,6 +353,7 @@ export const globalSearch = async (req: Request, res: Response) => {
 export const predictiveSearch = async (req: Request, res: Response) => {
   try {
     const { q } = req.query;
+    const storeId = (req as any).storeId; // Obtener storeId del usuario autenticado
     const limit = Math.min(parseInt((req.query.limit as string) || '10'), 10);
 
     if (!q || typeof q !== 'string' || q.trim().length < 3) {
@@ -364,6 +370,7 @@ export const predictiveSearch = async (req: Request, res: Response) => {
 
     // 1. Inventario
     const inventoryItems = await InventoryItemModel.find({
+      storeId, // Filtrar por tienda
       $or: [
         { 'carName': searchRegex },
         { 'carId': searchRegex },
@@ -387,6 +394,7 @@ export const predictiveSearch = async (req: Request, res: Response) => {
 
     // 2. Ventas
     const sales = await SaleModel.find({
+      storeId, // Filtrar por tienda
       status: 'completed',
       $or: [
         { 'customer.name': searchRegex },
@@ -411,6 +419,7 @@ export const predictiveSearch = async (req: Request, res: Response) => {
 
     // 3. Entregas
     const deliveries = await DeliveryModel.find({
+      storeId, // Filtrar por tienda
       status: { $in: ['scheduled', 'prepared', 'completed'] },
       $or: [
         { 'customer.name': searchRegex },
@@ -434,6 +443,7 @@ export const predictiveSearch = async (req: Request, res: Response) => {
 
     // 4. Clientes
     const customers = await CustomerModel.find({
+      storeId, // Filtrar por tienda
       $or: [
         { 'name': searchRegex },
         { 'email': searchRegex },

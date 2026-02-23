@@ -88,9 +88,11 @@ export const login = async (req: Request, res: Response) => {
       })
     }
 
-    // Actualizar último login
-    user.lastLogin = new Date()
-    await user.save()
+    // Actualizar último login (usar update en lugar de save para evitar problemas de validación)
+    await UserModel.updateOne(
+      { _id: user._id },
+      { $set: { lastLogin: new Date() } }
+    )
 
     // Generar token
     const token = jwt.sign(
@@ -244,8 +246,12 @@ export const changePassword = async (req: Request, res: Response) => {
 
     // Hashear nueva contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10)
-    user.password = hashedPassword
-    await user.save()
+    
+    // Usar updateOne para evitar problemas de validación
+    await UserModel.updateOne(
+      { _id: user._id },
+      { $set: { password: hashedPassword } }
+    )
 
     res.json({
       success: true,

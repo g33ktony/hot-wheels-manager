@@ -2,6 +2,7 @@ import { Schema, model, Document } from 'mongoose'
 
 export interface IPendingItem extends Document {
   originalPurchaseId: string
+  storeId: string
   
   // Detalles del item
   carId: string
@@ -37,6 +38,11 @@ const pendingItemSchema = new Schema<IPendingItem>({
     type: String,
     required: true,
     ref: 'Purchase'
+  },
+  storeId: {
+    type: String,
+    required: true,
+    index: true
   },
   
   // Detalles del item
@@ -126,6 +132,7 @@ const pendingItemSchema = new Schema<IPendingItem>({
 
 // Índices para búsquedas eficientes
 pendingItemSchema.index({ originalPurchaseId: 1 })
+pendingItemSchema.index({ storeId: 1 })
 pendingItemSchema.index({ status: 1 })
 pendingItemSchema.index({ linkedToPurchaseId: 1 })
 pendingItemSchema.index({ reportedDate: -1 })

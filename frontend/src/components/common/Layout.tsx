@@ -12,20 +12,19 @@ import {
     Building2,
     LogOut,
     PackageOpen,
-    AlertCircle,
     Search as SearchIcon,
     Sun,
     Moon,
     Settings,
     Mail,
     Store,
-    Flag
+    Flag,
+    Lock
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useTheme } from '../../contexts/ThemeContext'
-import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useBoxes } from '@/hooks/useBoxes'
 import { useLeadStatistics } from '@/hooks/useLeads'
 import { useDataReportsSummary } from '@/hooks/useDataReports'
@@ -54,7 +53,6 @@ export default function Layout({ children }: LayoutProps) {
     const { user, logout } = useAuth()
     const { isSysAdmin, isAdmin } = usePermissions()
     const { toggleTheme, mode } = useTheme()
-    const { data: pendingItemsStats } = usePendingItemsStats()
     const { data: boxes } = useBoxes()
     const { data: leadStats } = useLeadStatistics()
     const { data: reportsSummary } = useDataReportsSummary()
@@ -121,15 +119,17 @@ export default function Layout({ children }: LayoutProps) {
         },
         { name: 'Ventas', href: '/sales', icon: ShoppingCart },
         { name: 'Compras', href: '/purchases', icon: ShoppingBag },
-        { name: 'Pre-Ventas', href: '/presale', icon: Package },
+        // HIDDEN: Pre-Ventas (presale) - TODO: improve in the future
+        // { name: 'Pre-Ventas', href: '/presale', icon: Package },
         // Conditional: Only show if there are pending items
-        ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
-            name: 'Items Pendientes',
-            href: '/pending-items',
-            icon: AlertCircle,
-            badge: pendingItemsStats.totalCount,
-            highlight: true
-        }] : []),
+        // HIDDEN: Items Pendientes (pending items) - TODO: improve in the future
+        // ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
+        //     name: 'Items Pendientes',
+        //     href: '/pending-items',
+        //     icon: AlertCircle,
+        //     badge: pendingItemsStats.totalCount,
+        //     highlight: true
+        // }] : []),
         // Conditional: Only show if there are active boxes (sealed or unpacking)
         ...(activeBoxes.length > 0 ? [{
             name: 'Cajas',
@@ -139,15 +139,27 @@ export default function Layout({ children }: LayoutProps) {
         }] : []),
         { name: 'Entregas', href: '/deliveries', icon: Truck },
         { name: 'Clientes', href: '/customers', icon: Users },
-        { name: 'Leads', href: '/leads', icon: Mail, ...(newLeadsCount > 0 && { badge: newLeadsCount }) },
-        { name: 'Reportes de Datos', href: '/data-reports', icon: Flag, ...(pendingReportsCount > 0 && { badge: pendingReportsCount }) },
         // Conditional: Only show for sys_admin
-        ...(isSysAdmin() ? [{
-            name: 'Gestión de Usuarios',
-            href: '/admin/users',
-            icon: Users,
-            highlight: true
-        }] : []),
+        ...(isSysAdmin() ? [
+            {
+                name: 'Leads',
+                href: '/leads',
+                icon: Mail,
+                ...(newLeadsCount > 0 && { badge: newLeadsCount })
+            },
+            {
+                name: 'Reportes de Datos',
+                href: '/data-reports',
+                icon: Flag,
+                ...(pendingReportsCount > 0 && { badge: pendingReportsCount })
+            },
+            {
+                name: 'Gestión de Usuarios',
+                href: '/admin/users',
+                icon: Users,
+                highlight: true
+            }
+        ] : []),
         { name: 'Catálogo Público', href: '/browse?adminView=true', icon: SearchIcon },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
         { name: 'Configuración de Tienda', href: '/store-settings', icon: Store },
@@ -300,10 +312,24 @@ export default function Layout({ children }: LayoutProps) {
                             )
                         })}
 
+                        {/* Change Password button */}
+                        <Link
+                            to="/change-password"
+                            onClick={handleNavClick}
+                            className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 ${mode === 'dark' ? 'text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 active:bg-blue-500/20' : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100'}`}
+                            style={{
+                                WebkitTapHighlightColor: 'transparent',
+                                WebkitTouchCallout: 'none',
+                            }}
+                        >
+                            <Lock size={22} className="mr-3 flex-shrink-0" />
+                            <span className="flex-1 select-none">Cambiar contraseña</span>
+                        </Link>
+
                         {/* Logout button */}
                         <button
                             onClick={handleLogout}
-                            className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 ${mode === 'dark' ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20' : 'text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100'}`}
+                            className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation ${mode === 'dark' ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20' : 'text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100'}`}
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',

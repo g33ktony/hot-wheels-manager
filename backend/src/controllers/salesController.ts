@@ -528,6 +528,15 @@ export const createPOSSale = async (req: Request, res: Response) => {
         });
       }
 
+      // Check ownership: inventory item must belong to user's store
+      if (inventoryItem.storeId !== req.storeId) {
+        return res.status(403).json({
+          success: false,
+          data: null,
+          message: 'Solo puedes vender items de tu propia tienda'
+        });
+      }
+
       // Verificar que hay cantidad disponible
       // Llevamos cuenta de lo que ya "apartamos" en este loop para el mismo ID
       const alreadyChecked = inventoryUpdates.find(
@@ -629,7 +638,8 @@ export const createPOSSale = async (req: Request, res: Response) => {
       paymentMethod: paymentMethod || 'cash',
       status: 'completed',
       saleType: 'pos',
-      notes: notes || 'Venta en sitio (POS)'
+      notes: notes || 'Venta en sitio (POS)',
+      storeId: req.storeId
     });
 
     const savedSale = await sale.save();
