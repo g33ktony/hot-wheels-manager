@@ -5,10 +5,11 @@ import PreSaleItemCard from './PreSaleItemCard'
 import PreSaleFilters from './PreSaleFilters'
 import PreSaleStats from './PreSaleStats'
 import PreSaleDetailModal from './PreSaleDetailModal'
-import { Filter, RefreshCw } from 'lucide-react'
+import { Filter, RefreshCw, Archive, Clock } from 'lucide-react'
 
 // Updated: 2025-10-28 - Photo feature and route fixes deployed
 type FilterType = 'all' | 'pending' | 'in-progress' | 'completed'
+type ViewType = 'active' | 'archived'
 
 interface Filters {
     status: FilterType
@@ -22,6 +23,7 @@ const PreSaleDashboard: React.FC = () => {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
     const [showDetailModal, setShowDetailModal] = useState(false)
+    const [activeView, setActiveView] = useState<ViewType>('active')
     const [filters, setFilters] = useState<Filters>({
         status: 'all',
         carId: '',
@@ -41,10 +43,15 @@ const PreSaleDashboard: React.FC = () => {
 
     const preSales = preSalesData || []
 
+    // Separate active and archived items
+    const activeItems = preSales.filter((item: any) => item.status !== 'completed')
+    const archivedItems = preSales.filter((item: any) => item.status === 'completed')
+    const itemsToDisplay = activeView === 'active' ? activeItems : archivedItems
+
     // Apply filters
-    const filteredPreSales = preSales.filter((item: any) => {
-        // Status filter
-        if (filters.status !== 'all' && item.status !== filters.status) {
+    const filteredPreSales = itemsToDisplay.filter((item: any) => {
+        // Status filter (only use for active view)
+        if (activeView === 'active' && filters.status !== 'all' && item.status !== filters.status) {
             return false
         }
 
@@ -127,8 +134,36 @@ const PreSaleDashboard: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Tabs: Activos / Archivados */}
+                <div className="mb-8">
+                    <div className="flex gap-4 border-b" style={{ borderColor: isDark ? '#334155' : '#e5e7eb' }}>
+                        <button
+                            onClick={() => setActiveView('active')}
+                            className={`flex items-center gap-2 px-4 py-3 font-medium transition border-b-2 ${activeView === 'active'
+                                    ? `border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                                    : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+                                }`}
+                        >
+                            <Clock className="w-5 h-5" />
+                            Activos
+                            {activeItems.length > 0 && <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-blue-600 text-white">{activeItems.length}</span>}
+                        </button>
+                        <button
+                            onClick={() => setActiveView('archived')}
+                            className={`flex items-center gap-2 px-4 py-3 font-medium transition border-b-2 ${activeView === 'archived'
+                                    ? `border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                                    : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+                                }`}
+                        >
+                            <Archive className="w-5 h-5" />
+                            Archivados
+                            {archivedItems.length > 0 && <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-amber-600 text-white">{archivedItems.length}</span>}
+                        </button>
+                    </div>
+                </div>
+
                 {/* Stats */}
-                <PreSaleStats items={preSales} />
+                <PreSaleStats items={itemsToDisplay} />
 
                 {/* Filters Section */}
                 <div className={`rounded-lg shadow-md p-6 mb-6 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>

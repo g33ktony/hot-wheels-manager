@@ -119,8 +119,7 @@ export default function Layout({ children }: LayoutProps) {
         },
         { name: 'Ventas', href: '/sales', icon: ShoppingCart },
         { name: 'Compras', href: '/purchases', icon: ShoppingBag },
-        // HIDDEN: Pre-Ventas (presale) - TODO: improve in the future
-        // { name: 'Pre-Ventas', href: '/presale', icon: Package },
+        { name: 'Pre-Ventas', href: '/presale', icon: Package },
         // Conditional: Only show if there are pending items
         // HIDDEN: Items Pendientes (pending items) - TODO: improve in the future
         // ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
