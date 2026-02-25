@@ -5,12 +5,16 @@ import {
   approveUser,
   rejectUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  createUserInStore
 } from '../controllers/usersController'
 
 const router = express.Router()
 
 // All routes require authentication (applied in index.ts)
+
+// POST /api/users/create-in-store - Create user in store (admin or sys_admin)
+router.post('/create-in-store', createUserInStore)
 
 // GET /api/users - Get users (sys_admin sees all, admin sees their store)
 router.get('/', getUsers)

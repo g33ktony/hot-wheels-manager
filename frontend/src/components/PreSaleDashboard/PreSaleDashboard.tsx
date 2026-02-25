@@ -8,7 +8,7 @@ import PreSaleDetailModal from './PreSaleDetailModal'
 import { Filter, RefreshCw, Archive, Clock } from 'lucide-react'
 
 // Updated: 2025-10-28 - Photo feature and route fixes deployed
-type FilterType = 'all' | 'pending' | 'in-progress' | 'completed'
+type FilterType = 'all' | 'pending' | 'in-progress' | 'completed' | 'purchased' | 'shipped' | 'received' | 'delivered' | 'cancelled'
 type ViewType = 'active' | 'archived'
 
 interface Filters {
@@ -44,8 +44,14 @@ const PreSaleDashboard: React.FC = () => {
     const preSales = preSalesData || []
 
     // Separate active and archived items
-    const activeItems = preSales.filter((item: any) => item.status !== 'completed')
-    const archivedItems = preSales.filter((item: any) => item.status === 'completed')
+    // Activos: items que aún no están recibidos/entregados (no tienen status: 'received', 'delivered', 'completed', 'cancelled')
+    // Archivados: items que ya fueron recibidos/entregados o cancelados (status: 'received', 'delivered', 'completed', 'cancelled')
+    const activeItems = preSales.filter((item: any) =>
+        item.status !== 'received' && item.status !== 'delivered' && item.status !== 'completed' && item.status !== 'cancelled'
+    )
+    const archivedItems = preSales.filter((item: any) =>
+        item.status === 'received' || item.status === 'delivered' || item.status === 'completed' || item.status === 'cancelled'
+    )
     const itemsToDisplay = activeView === 'active' ? activeItems : archivedItems
 
     // Apply filters
@@ -140,8 +146,8 @@ const PreSaleDashboard: React.FC = () => {
                         <button
                             onClick={() => setActiveView('active')}
                             className={`flex items-center gap-2 px-4 py-3 font-medium transition border-b-2 ${activeView === 'active'
-                                    ? `border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
-                                    : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+                                ? `border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                                : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
                                 }`}
                         >
                             <Clock className="w-5 h-5" />
@@ -151,8 +157,8 @@ const PreSaleDashboard: React.FC = () => {
                         <button
                             onClick={() => setActiveView('archived')}
                             className={`flex items-center gap-2 px-4 py-3 font-medium transition border-b-2 ${activeView === 'archived'
-                                    ? `border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
-                                    : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+                                ? `border-blue-600 ${isDark ? 'text-blue-400' : 'text-blue-600'}`
+                                : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
                                 }`}
                         >
                             <Archive className="w-5 h-5" />

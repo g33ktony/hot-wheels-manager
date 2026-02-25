@@ -2,7 +2,7 @@ import React from 'react'
 import { Search } from 'lucide-react'
 
 interface FiltersProps {
-    status: 'all' | 'pending' | 'in-progress' | 'completed'
+    status: 'all' | 'pending' | 'in-progress' | 'completed' | 'purchased' | 'shipped' | 'received' | 'delivered' | 'cancelled'
     carId: string
     supplierId: string
     searchTerm: string
@@ -34,8 +34,8 @@ const PreSaleFilters: React.FC<PreSaleFiltersProps> = ({ filters, onFilterChange
                                 })
                             }
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filters.status === option.value
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                                 }`}
                         >
                             {option.label}

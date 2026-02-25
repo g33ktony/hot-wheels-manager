@@ -48,6 +48,7 @@ import publicRoutes from './routes/publicRoutes'
 import leadsRoutes from './routes/leadsRoutes'
 import storeSettingsRoutes from './routes/storeSettingsRoutes'
 import dataReportRoutes from './routes/dataReportRoutes'
+import storesRoutes from './routes/storesRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -169,6 +170,7 @@ app.post('/api/public/leads', leadCreationLimiter)
 
 // Rutas protegidas (requieren autenticación)
 app.use('/api/users', authMiddleware, usersRoutes)
+app.use('/api/stores', authMiddleware, storesRoutes)
 app.use('/api/hotwheels', authMiddleware, hotWheelsRoutes)
 app.use('/api/inventory', authMiddleware, inventoryRoutes)
 app.use('/api/sales', authMiddleware, salesRoutes)

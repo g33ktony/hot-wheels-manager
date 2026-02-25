@@ -67,12 +67,14 @@ router.get('/car/:carId', async (req: Request, res: Response) => {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { status, carId, onlyActive } = req.query
+    const storeId = req.storeId
 
-    console.log('📌 GET /presale/items - Filters:', { status, carId, onlyActive })
+    console.log('📌 GET /presale/items - Filters:', { status, carId, onlyActive, storeId })
 
     const filters: any = {}
     if (status) filters.status = status
     if (carId) filters.carId = carId
+    if (storeId) filters.storeId = storeId
     if (onlyActive === 'true') filters.onlyActive = true
 
     console.log('📌 Calling PreSaleItemService.getPreSaleItems with filters:', filters)

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { UserModel } from '../models/User'
+import Store from '../models/Store'
 import { createStoreFilter } from '../utils/storeAccess'
 
 /**
@@ -109,7 +110,7 @@ export const approveUser = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params
-    const { role } = req.body
+    const { role, storeId } = req.body
 
     const user = await UserModel.findById(id)
 
@@ -129,15 +130,34 @@ export const approveUser = async (req: Request, res: Response) => {
       })
     }
 
+    // Default role is 'admin' if not specified
+    const finalRole = role || 'admin'
+
+    // If admin role, create store automatically
+    let finalStoreId = storeId
+    if (finalRole === 'admin') {
+      const storeName = `Tienda de coleccionables ${user.name}`
+      const newStore = new Store({
+        name: storeName,
+        storeAdminId: user._id
+      })
+      await newStore.save()
+      finalStoreId = newStore._id.toString()
+    } else if (!storeId) {
+      // editor/analyst must have a store
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'Debe asignar una tienda para el usuario'
+      })
+    }
+
     // Actualizar usuario
     user.status = 'approved'
+    user.role = finalRole
+    user.storeId = finalStoreId
     user.approvedAt = new Date()
     user.approvedBy = req.userEmail || 'system'
-    
-    // Actualizar rol si se proporciona
-    if (role && ['admin', 'editor', 'analyst'].includes(role)) {
-      user.role = role
-    }
 
     await user.save()
 
@@ -335,6 +355,108 @@ export const deleteUser = async (req: Request, res: Response) => {
       success: false,
       data: null,
       message: 'Error al eliminar usuario: ' + error.message
+    })
+  }
+}
+
+/**
+ * POST /api/users/create-in-store - Create new user in store (admin or sys_admin)
+ * Admin can only create in their store
+ * sys_admin can create in any store
+ */
+export const createUserInStore = async (req: Request, res: Response) => {
+  try {
+    const { name, email, role, storeId } = req.body
+    const requesterRole = req.userRole as string
+    const requesterStoreId = req.storeId as string
+
+    // Verify auth properties exist
+    if (!requesterRole || !requesterStoreId) {
+      return res.status(401).json({
+        success: false,
+        error: 'No autenticado'
+      })
+    }
+
+    // Only admin or sys_admin can create users
+    if (!['admin', 'sys_admin'].includes(requesterRole)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo admins pueden crear usuarios'
+      })
+    }
+
+    // Validate input
+    if (!name || !email || !role || !storeId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nombre, email, rol y tienda son requeridos'
+      })
+    }
+
+    // Ensure storeId is a string
+    const storeIdStr = typeof storeId === 'string' ? storeId : String(storeId)
+
+    // Admin can only create in their store
+    if (requesterRole === 'admin' && requesterStoreId !== storeIdStr) {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo puedes crear usuarios en tu tienda'
+      })
+    }
+
+    // Check if email already exists
+    const existingUser = await UserModel.findOne({ email })
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: 'El email ya está registrado'
+      })
+    }
+
+    // Generate temporary password
+    const tempPassword = Math.random().toString(36).slice(-8)
+
+    // Hash password
+    const bcrypt = require('bcryptjs')
+    const hashedPassword = await bcrypt.hash(tempPassword, 10)
+
+    // Create user
+    const newUser = new UserModel({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      storeId: storeIdStr,
+      status: 'approved', // Created by admin are auto-approved
+      phone: ''
+    })
+
+    await newUser.save()
+
+    // TODO: Send email with temporary password
+    // await sendEmail(email, 'Bienvenido', `Tu contraseña temporal es: ${tempPassword}`)
+
+    res.status(201).json({
+      success: true,
+      message: 'Usuario creado exitosamente',
+      data: {
+        user: {
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          storeId: newUser.storeId,
+          status: newUser.status
+        },
+        temporaryPassword: tempPassword
+      }
+    })
+  } catch (error: any) {
+    console.error('Error creating user in store:', error)
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Error al crear usuario'
     })
   }
 }

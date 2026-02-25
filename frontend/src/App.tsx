@@ -11,6 +11,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ChangePassword from './pages/ChangePassword'
 import Users from './pages/Users'
+import Stores from './pages/Stores'
 import Dashboard from './pages/Dashboard'
 import Inventory from './pages/Inventory'
 import ItemDetail from './pages/ItemDetail'
@@ -85,6 +86,7 @@ function App() {
                                                     <Route path="/theme-settings" element={<ThemeSettings />} />
                                                     <Route path="/store-settings" element={<StoreSettings />} />
                                                     <Route path="/admin/users" element={<SysAdminRoute><Users /></SysAdminRoute>} />
+                                                    <Route path="/admin/stores" element={<SysAdminRoute><Stores /></SysAdminRoute>} />
                                                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                                 </Routes>
                                             </Layout>

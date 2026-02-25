@@ -23,6 +23,7 @@ export interface PreSaleUnitAssignment {
 
 export interface PreSaleItem extends Document {
   carId: string; // Reference to HotWheels car model
+  storeId: string; // Store this pre-sale belongs to (multi-tenancy)
   totalQuantity: number; // Total units available from all purchases
   assignedQuantity: number; // Units assigned to deliveries
   availableQuantity: number; // Calculated: totalQuantity - assignedQuantity
@@ -104,6 +105,11 @@ const DeliveryAssignmentSchema = new Schema(
 const PreSaleItemSchema = new Schema<PreSaleItem>(
   {
     carId: {
+      type: String,
+      required: true,
+      index: true
+    },
+    storeId: {
       type: String,
       required: true,
       index: true

@@ -157,6 +157,12 @@ export default function Layout({ children }: LayoutProps) {
                 href: '/admin/users',
                 icon: Users,
                 highlight: true
+            },
+            {
+                name: 'Administración de Tiendas',
+                href: '/admin/stores',
+                icon: Building2,
+                highlight: true
             }
         ] : []),
         { name: 'Catálogo Público', href: '/browse?adminView=true', icon: SearchIcon },

@@ -24,6 +24,7 @@ class PreSaleItemService {
   async createOrUpdatePreSaleItem(
     purchaseId: string,
     carId: string,
+    storeId: string,
     quantity: number,
     unitPrice: number,
     markupPercentage?: number,
@@ -32,8 +33,8 @@ class PreSaleItemService {
     photo?: string | null,
     endDate?: string | Date
   ): Promise<PreSaleItemType> {
-    // Check if pre-sale item already exists for this car
-    let preSaleItem = await PreSaleItem.findOne({ carId })
+    // Check if pre-sale item already exists for this car in this store
+    let preSaleItem = await PreSaleItem.findOne({ carId, storeId })
 
     if (preSaleItem) {
       // Add to existing pre-sale item
@@ -94,6 +95,7 @@ class PreSaleItemService {
 
       preSaleItem = new PreSaleItem({
         carId,
+        storeId,
         totalQuantity: quantity,
         assignedQuantity: 0,
         availableQuantity: quantity,
@@ -136,6 +138,7 @@ class PreSaleItemService {
   async getPreSaleItems(filters?: {
     status?: string
     carId?: string
+    storeId?: string
     onlyActive?: boolean
   }): Promise<PreSaleItemType[]> {
     const query: any = {}
@@ -146,6 +149,10 @@ class PreSaleItemService {
 
     if (filters?.carId) {
       query.carId = filters.carId
+    }
+
+    if (filters?.storeId) {
+      query.storeId = filters.storeId
     }
 
     if (filters?.onlyActive !== undefined && filters.onlyActive) {
