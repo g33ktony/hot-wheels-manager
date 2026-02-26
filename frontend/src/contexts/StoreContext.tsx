@@ -25,7 +25,7 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-    const { user } = useAuth()
+    const { user, token } = useAuth()
     const [userStore, setUserStore] = useState<string | null>(null)
     const [selectedStore, setSelectedStore] = useState<string | null>(null)
     const [availableStores, setAvailableStores] = useState<Store[]>([])
@@ -63,7 +63,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     // Fetch all stores for sys_admin
     useEffect(() => {
-        if (!user || user.role !== 'sys_admin') {
+        if (!user || user.role !== 'sys_admin' || !token) {
             return
         }
 
@@ -72,9 +72,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 setLoading(true)
                 setError(null)
 
-                const response = await fetch('/api/store-settings/all', {
+                const response = await fetch('/api/stores', {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 })
 
@@ -83,10 +83,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 }
 
                 const data = await response.json()
-                const storeList = data.map((store: any) => ({
+                const storeList = data.data.map((store: any) => ({
                     _id: store._id || '',
-                    storeId: store.storeId,
-                    storeName: store.storeName || `Store ${store.storeId}`
+                    storeId: store._id,
+                    storeName: store.name || `Store ${store._id}`
                 }))
 
                 setAvailableStores(storeList)
@@ -108,7 +108,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
 
         fetchStores()
-    }, [user])
+    }, [user, token])
 
     // Persist selected store in localStorage
     useEffect(() => {

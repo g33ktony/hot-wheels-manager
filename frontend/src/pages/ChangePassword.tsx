@@ -57,7 +57,7 @@ export default function ChangePassword() {
 
         setLoading(true)
         try {
-            const response = await fetch('http://localhost:3001/api/auth/change-password', {
+            const response = await fetch('/api/auth/change-password', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

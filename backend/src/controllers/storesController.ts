@@ -3,12 +3,40 @@ import Store from '../models/Store'
 import { UserModel } from '../models/User'
 
 /**
+ * Ensure sys_admin has a personal store
+ */
+const ensureSysAdminStore = async (userEmail: string) => {
+  try {
+    // Check if sys_admin already has a store
+    const existingStore = await Store.findOne({ storeAdminId: userEmail })
+    if (existingStore) {
+      return existingStore
+    }
+
+    // Create sys_admin's personal store if it doesn't exist
+    const sysAdminStore = new Store({
+      name: 'Tienda de Coleccionables - Sistema',
+      description: 'Tienda personal del administrador del sistema',
+      storeAdminId: userEmail
+    })
+    await sysAdminStore.save()
+    console.log(`✅ Created sys_admin store: ${sysAdminStore._id}`)
+    return sysAdminStore
+  } catch (error: any) {
+    console.error('Error ensuring sys_admin store:', error)
+    return null
+  }
+}
+
+/**
  * GET /api/stores - Get all stores with user and item counts
  * Only sys_admin can access
+ * Query params: archived (true/false) - filter by archive status
  */
 export const getStores = async (req: Request, res: Response) => {
   try {
     const userRole = req.userRole
+    const { archived } = req.query
 
     // Only sys_admin can view all stores
     if (userRole !== 'sys_admin') {
@@ -18,16 +46,35 @@ export const getStores = async (req: Request, res: Response) => {
       })
     }
 
-    const stores = await Store.find().sort({ createdAt: -1 })
+    // Ensure sys_admin has a store
+    if (req.userEmail) {
+      await ensureSysAdminStore(req.userEmail)
+    }
+
+    // Build filter based on archived parameter
+    const filter: any = {}
+    if (archived === 'true') {
+      filter.isArchived = true
+    } else if (archived === 'false') {
+      filter.isArchived = false
+    }
+    // If archived param not specified, return all stores
+
+    const stores = await Store.find(filter).sort({ createdAt: -1 })
 
     // Get user counts and item counts for each store
     const storesWithDetails = await Promise.all(
       stores.map(async (store) => {
         const users = await UserModel.find({ storeId: store._id })
+        
+        // Check if this store's admin is sys_admin
+        const isAdminSysAdmin = users.some((u: any) => u.role === 'sys_admin')
+        
         const storeUsers = {
           admin: users.filter((u: any) => u.role === 'admin').length,
           editor: users.filter((u: any) => u.role === 'editor').length,
           analyst: users.filter((u: any) => u.role === 'analyst').length,
+          sys_admin: users.filter((u: any) => u.role === 'sys_admin').length,
           total: users.length,
           userDetails: users.map((u: any) => ({
             _id: u._id,
@@ -40,7 +87,10 @@ export const getStores = async (req: Request, res: Response) => {
 
         return {
           ...store.toObject(),
-          users: storeUsers
+          users: storeUsers,
+          isSysAdminStore: isAdminSysAdmin,
+          isSysAdminOwnStore: store.storeAdminId === req.userEmail, // True if this is the sys_admin's own store
+          canDelete: !isAdminSysAdmin && store.storeAdminId !== req.userEmail // Can't delete if it has sys_admin or is sys_admin's own store
         }
       })
     )
@@ -258,6 +308,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
 /**
  * DELETE /api/stores/:storeId/users/:userId - Remove user from store
  * Only sys_admin or store admin can remove
+ * sys_admin users cannot be removed from stores
  */
 export const removeUserFromStore = async (req: Request, res: Response) => {
   try {
@@ -273,13 +324,23 @@ export const removeUserFromStore = async (req: Request, res: Response) => {
       })
     }
 
-    const user = await UserModel.findOneAndDelete({ _id: userId, storeId })
+    const user = await UserModel.findOne({ _id: userId, storeId })
     if (!user) {
       return res.status(404).json({
         success: false,
         error: 'Usuario no encontrado'
       })
     }
+
+    // Prevent removal of sys_admin users
+    if (user.role === 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'No se puede eliminar usuarios con rol de administrador del sistema'
+      })
+    }
+
+    await UserModel.findOneAndDelete({ _id: userId, storeId })
 
     res.json({
       success: true,
@@ -346,6 +407,148 @@ export const assignUserToStore = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to assign user'
+    })
+  }
+}
+/**
+ * PATCH /api/stores/:id/archive - Archive a store and save its users
+ * Only sys_admin can archive stores
+ */
+export const archiveStore = async (req: Request, res: Response) => {
+  try {
+    // Only sys_admin can archive
+    if (req.userRole !== 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo el administrador del sistema puede archivar tiendas'
+      })
+    }
+
+    const { id } = req.params
+
+    const store = await Store.findById(id)
+
+    if (!store) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Tienda no encontrada'
+      })
+    }
+
+    if (store.isArchived) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'La tienda ya está archivada'
+      })
+    }
+
+    // Get all users in this store before archiving
+    const users = await UserModel.find({ storeId: id })
+    const archivedUsers = users.map((u: any) => ({
+      _id: u._id.toString(),
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      status: u.status,
+      phone: u.phone,
+      storeId: u.storeId?.toString(),
+      approvedAt: u.approvedAt
+    }))
+
+    // Archive the store
+    store.isArchived = true
+    store.archivedAt = new Date()
+    store.archivedBy = req.userEmail || 'system'
+    store.archivedUsers = archivedUsers
+
+    await store.save()
+
+    res.json({
+      success: true,
+      data: {
+        store: {
+          _id: store._id,
+          name: store.name,
+          isArchived: store.isArchived,
+          archivedAt: store.archivedAt,
+          usersCount: archivedUsers.length
+        }
+      },
+      message: `Tienda ${store.name} archivada exitosamente con ${archivedUsers.length} usuario(s)`
+    })
+  } catch (error: any) {
+    console.error('Error archiving store:', error)
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al archivar tienda: ' + error.message
+    })
+  }
+}
+
+/**
+ * PATCH /api/stores/:id/restore - Restore an archived store
+ * Only sys_admin can restore stores
+ */
+export const restoreStore = async (req: Request, res: Response) => {
+  try {
+    // Only sys_admin can restore
+    if (req.userRole !== 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'Solo el administrador del sistema puede restaurar tiendas'
+      })
+    }
+
+    const { id } = req.params
+
+    const store = await Store.findById(id)
+
+    if (!store) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: 'Tienda no encontrada'
+      })
+    }
+
+    if (!store.isArchived) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: 'La tienda no está archivada'
+      })
+    }
+
+    // Restore the store
+    store.isArchived = false
+    store.archivedAt = undefined
+    store.archivedBy = undefined
+    store.archivedUsers = []
+
+    await store.save()
+
+    res.json({
+      success: true,
+      data: {
+        store: {
+          _id: store._id,
+          name: store.name,
+          isArchived: store.isArchived
+        }
+      },
+      message: `Tienda ${store.name} restaurada exitosamente`
+    })
+  } catch (error: any) {
+    console.error('Error restoring store:', error)
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Error al restaurar tienda: ' + error.message
     })
   }
 }

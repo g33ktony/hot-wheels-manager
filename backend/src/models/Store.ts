@@ -5,6 +5,10 @@ export interface Store extends Document {
   name: string // Nombre de la tienda
   description?: string
   storeAdminId?: string // ID del usuario admin principal (sys_admin puede cambiar)
+  isArchived: boolean // Estado de archivación
+  archivedAt?: Date // Fecha de archivación
+  archivedBy?: string // ID del usuario que archivó
+  archivedUsers?: any[] // Usuarios guardados cuando se archiva
   createdAt: Date
   updatedAt: Date
 }
@@ -23,7 +27,28 @@ const StoreSchema = new Schema<Store>(
     storeAdminId: {
       type: String,
       index: true
-    }
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+    archivedAt: {
+      type: Date
+    },
+    archivedBy: {
+      type: String
+    },
+    archivedUsers: [{
+      _id: String,
+      name: String,
+      email: String,
+      role: String,
+      status: String,
+      phone: String,
+      storeId: String,
+      approvedAt: Date
+    }]
   },
   { timestamps: true }
 )

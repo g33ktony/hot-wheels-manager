@@ -23,6 +23,11 @@ interface Store {
   description?: string
   users: StoreUsers
   createdAt: string
+  isArchived?: boolean
+  archivedAt?: string
+  archivedBy?: string
+  isSysAdminStore?: boolean
+  canDelete?: boolean
 }
 
 export const useStores = () => {
@@ -146,6 +151,42 @@ export const useStores = () => {
     }
   }
 
+  const archiveStore = async (storeId: string) => {
+    try {
+      const response = await fetch(`/api/stores/${storeId}/archive`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to archive store')
+      }
+      await fetchStores()
+      return true
+    } catch (err: any) {
+      setError(err.message)
+      throw err
+    }
+  }
+
+  const restoreStore = async (storeId: string) => {
+    try {
+      const response = await fetch(`/api/stores/${storeId}/restore`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to restore store')
+      }
+      await fetchStores()
+      return true
+    } catch (err: any) {
+      setError(err.message)
+      throw err
+    }
+  }
+
   return {
     stores,
     isLoading,
@@ -155,6 +196,8 @@ export const useStores = () => {
     updateStore,
     updateUserRole,
     removeUser,
-    assignUser
+    assignUser,
+    archiveStore,
+    restoreStore
   }
 }

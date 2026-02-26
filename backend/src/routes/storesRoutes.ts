@@ -6,7 +6,9 @@ import {
   updateStore,
   updateUserRole,
   removeUserFromStore,
-  assignUserToStore
+  assignUserToStore,
+  archiveStore,
+  restoreStore
 } from '../controllers/storesController'
 
 const router = express.Router()
@@ -33,5 +35,11 @@ router.delete('/:storeId/users/:userId', removeUserFromStore)
 
 // POST /api/stores/:storeId/assign-user - Assign user to store
 router.post('/:storeId/assign-user', assignUserToStore)
+
+// PATCH /api/stores/:id/archive - Archive store
+router.patch('/:id/archive', archiveStore)
+
+// PATCH /api/stores/:id/restore - Restore archived store
+router.patch('/:id/restore', restoreStore)
 
 export default router

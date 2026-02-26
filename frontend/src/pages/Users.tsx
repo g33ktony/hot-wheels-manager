@@ -252,8 +252,8 @@ const UsersPage: React.FC = () => {
                                     key={f}
                                     onClick={() => setFilter(f)}
                                     className={`px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${filter === f
-                                            ? `${isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'}`
-                                            : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
+                                        ? `${isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'}`
+                                        : `${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`
                                         }`}
                                 >
                                     {f === 'pending' && 'Pendientes'}
@@ -358,11 +358,16 @@ const UsersPage: React.FC = () => {
                                                 )}
                                                 <button
                                                     onClick={() => handleDelete(user._id, user.email)}
-                                                    className={`p-2 rounded-lg transition-colors ${isDark
-                                                            ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                                                            : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                    disabled={user.role === 'sys_admin'}
+                                                    className={`p-2 rounded-lg transition-colors ${user.role === 'sys_admin'
+                                                            ? isDark
+                                                                ? 'bg-gray-700/30 text-gray-500 cursor-not-allowed'
+                                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                            : isDark
+                                                                ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
                                                         }`}
-                                                    title="Eliminar"
+                                                    title={user.role === 'sys_admin' ? 'No se puede eliminar administradores del sistema' : 'Eliminar'}
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -401,8 +406,8 @@ const UsersPage: React.FC = () => {
                                 value={approvalRole}
                                 onChange={(e) => setApprovalRole(e.target.value)}
                                 className={`w-full px-3 py-2 rounded-lg border ${isDark
-                                        ? 'bg-slate-700 border-slate-600 text-white'
-                                        : 'bg-white border-gray-300'
+                                    ? 'bg-slate-700 border-slate-600 text-white'
+                                    : 'bg-white border-gray-300'
                                     }`}
                             >
                                 <option value="admin">Admin de Tienda</option>
@@ -455,8 +460,8 @@ const UsersPage: React.FC = () => {
                                 onChange={(e) => setRejectionReason(e.target.value)}
                                 placeholder="Explica por qué rechazas esta solicitud"
                                 className={`w-full px-3 py-2 rounded-lg border ${isDark
-                                        ? 'bg-slate-700 border-slate-600 text-white'
-                                        : 'bg-white border-gray-300'
+                                    ? 'bg-slate-700 border-slate-600 text-white'
+                                    : 'bg-white border-gray-300'
                                     }`}
                                 rows={3}
                             />

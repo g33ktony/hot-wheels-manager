@@ -133,6 +133,18 @@ export const approveUser = async (req: Request, res: Response) => {
     // Default role is 'admin' if not specified
     const finalRole = role || 'admin'
 
+    // Check if trying to create a second sys_admin (only one allowed)
+    if (finalRole === 'sys_admin') {
+      const existingSysAdmin = await UserModel.findOne({ role: 'sys_admin' })
+      if (existingSysAdmin) {
+        return res.status(400).json({
+          success: false,
+          data: null,
+          message: 'No se puede crear más de un administrador del sistema. Ya existe uno: ' + existingSysAdmin.email
+        })
+      }
+    }
+
     // If admin role, create store automatically
     let finalStoreId = storeId
     if (finalRole === 'admin') {
@@ -305,6 +317,17 @@ export const updateUser = async (req: Request, res: Response) => {
     // Solo sys_admin puede cambiar rol
     if (role && req.userRole === 'sys_admin') {
       if (['sys_admin', 'admin', 'editor', 'analyst'].includes(role)) {
+        // Check if trying to change role to sys_admin when one already exists
+        if (role === 'sys_admin' && user.role !== 'sys_admin') {
+          const existingSysAdmin = await UserModel.findOne({ role: 'sys_admin' })
+          if (existingSysAdmin) {
+            return res.status(400).json({
+              success: false,
+              data: null,
+              message: 'No se puede crear más de un administrador del sistema. Ya existe uno: ' + existingSysAdmin.email
+            })
+          }
+        }
         user.role = role
       }
     }
@@ -338,6 +361,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
 /**
  * DELETE /api/users/:id - Delete user (only sys_admin)
+ * sys_admin users cannot be deleted
  */
 export const deleteUser = async (req: Request, res: Response) => {
   try {
@@ -352,7 +376,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     const { id } = req.params
 
-    const user = await UserModel.findByIdAndDelete(id)
+    const user = await UserModel.findById(id)
 
     if (!user) {
       return res.status(404).json({
@@ -362,10 +386,51 @@ export const deleteUser = async (req: Request, res: Response) => {
       })
     }
 
+    // Prevent deletion of sys_admin users
+    if (user.role === 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        message: 'No se puede eliminar usuarios con rol de administrador del sistema'
+      })
+    }
+
+    // If this user is an admin of a store, archive that store
+    const userEmail = user.email
+    const storesAdminedByUser = await Store.find({ storeAdminId: userEmail })
+    
+    for (const store of storesAdminedByUser) {
+      if (!store.isArchived) {
+        // Get all users in this store before archiving
+        const storeUsers = await UserModel.find({ storeId: store._id })
+        const archivedUsers = storeUsers.map((u: any) => ({
+          _id: u._id.toString(),
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          status: u.status,
+          phone: u.phone,
+          storeId: u.storeId?.toString(),
+          approvedAt: u.approvedAt
+        }))
+
+        // Archive the store
+        store.isArchived = true
+        store.archivedAt = new Date()
+        store.archivedBy = req.userEmail || 'system'
+        store.archivedUsers = archivedUsers
+        await store.save()
+        
+        console.log(`✅ Store ${store.name} archived automatically because admin was deleted`)
+      }
+    }
+
+    await UserModel.findByIdAndDelete(id)
+
     res.json({
       success: true,
       data: null,
-      message: `Usuario ${user.email} eliminado exitosamente`
+      message: `Usuario ${user.email} eliminado exitosamente${storesAdminedByUser.length > 0 ? ` y ${storesAdminedByUser.length} tienda(s) archivada(s)` : ''}`
     })
   } catch (error: any) {
     console.error('Error deleting user:', error)

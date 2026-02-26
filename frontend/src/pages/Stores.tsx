@@ -12,6 +12,8 @@ import {
   Users,
   Plus,
   Edit,
+  Archive,
+  RotateCcw,
   Trash2,
   AlertCircle
 } from 'lucide-react'
@@ -21,7 +23,7 @@ const StoresPage: React.FC = () => {
   const { mode } = useTheme()
   const { isSysAdmin } = usePermissions()
   const isDark = mode === 'dark'
-  const { stores, isLoading, createStore, updateUserRole, removeUser } = useStores()
+  const { stores, isLoading, createStore, updateUserRole, removeUser, archiveStore, restoreStore } = useStores()
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -32,6 +34,7 @@ const StoresPage: React.FC = () => {
   const [newStoreDescription, setNewStoreDescription] = useState('')
   const [newUserRole, setNewUserRole] = useState('editor')
   const [searchTerm, setSearchTerm] = useState('')
+  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active')
 
   // Verificar permisos
   if (!isSysAdmin()) {
@@ -95,9 +98,38 @@ const StoresPage: React.FC = () => {
     }
   }
 
-  const filteredStores = stores.filter(store =>
-    store.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const handleArchiveStore = async (storeId: string) => {
+    if (window.confirm('¿Estás seguro de que deseas archivar esta tienda? Los usuarios se guardarán para poder restaurarlos después.')) {
+      try {
+        await archiveStore(storeId)
+        toast.success('Tienda archivada exitosamente')
+        setShowDetailModal(false)
+        setSelectedStore(null)
+      } catch (error: any) {
+        toast.error(error.message || 'Error al archivar tienda')
+      }
+    }
+  }
+
+  const handleRestoreStore = async (storeId: string) => {
+    if (window.confirm('¿Estás seguro de que deseas restaurar esta tienda?')) {
+      try {
+        await restoreStore(storeId)
+        toast.success('Tienda restaurada exitosamente')
+        setShowDetailModal(false)
+        setSelectedStore(null)
+      } catch (error: any) {
+        toast.error(error.message || 'Error al restaurar tienda')
+      }
+    }
+  }
+
+  const filteredStores = stores
+    .filter(store => {
+      const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesTab = activeTab === 'active' ? !store.isArchived : store.isArchived
+      return matchesSearch && matchesTab
+    })
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
@@ -134,6 +166,28 @@ const StoresPage: React.FC = () => {
           />
         </Card>
 
+        {/* Tabs */}
+        <div className="mb-6 flex gap-2 border-b" style={{ borderColor: isDark ? '#334155' : '#e5e7eb' }}>
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`px-4 py-2 font-medium transition ${activeTab === 'active'
+                ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
+                : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-gray-600 hover:text-gray-700'}`
+              }`}
+          >
+            Tiendas Activas ({stores.filter(s => !s.isArchived).length})
+          </button>
+          <button
+            onClick={() => setActiveTab('archived')}
+            className={`px-4 py-2 font-medium transition ${activeTab === 'archived'
+                ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
+                : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-gray-600 hover:text-gray-700'}`
+              }`}
+          >
+            Tiendas Archivadas ({stores.filter(s => s.isArchived).length})
+          </button>
+        </div>
+
         {/* Lista de Tiendas */}
         {isLoading ? (
           <Loading />
@@ -157,9 +211,16 @@ const StoresPage: React.FC = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : ''}`}>
-                      {store.name}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className={`text-xl font-bold ${isDark ? 'text-white' : ''}`}>
+                        {store.name}
+                      </h3>
+                      {store.isSysAdminStore && (
+                        <span className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                          Tienda del Sistema
+                        </span>
+                      )}
+                    </div>
                     {store.description && (
                       <p className={isDark ? 'text-slate-400 mb-3' : 'text-gray-600 mb-3'}>
                         {store.description}
@@ -191,6 +252,32 @@ const StoresPage: React.FC = () => {
                     >
                       <Edit size={18} />
                     </Button>
+                    {activeTab === 'active' && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleArchiveStore(store._id)
+                        }}
+                        title="Archivar tienda"
+                      >
+                        <Archive size={18} />
+                      </Button>
+                    )}
+                    {activeTab === 'archived' && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRestoreStore(store._id)
+                        }}
+                        title="Restaurar tienda"
+                      >
+                        <RotateCcw size={18} />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -283,14 +370,14 @@ const StoresPage: React.FC = () => {
                         </p>
                         <div className="flex gap-3 mt-1 text-xs">
                           <span className={`px-2 py-1 rounded ${user.role === 'admin' ? 'bg-blue-100 text-blue-800' :
-                              user.role === 'editor' ? 'bg-green-100 text-green-800' :
-                                'bg-purple-100 text-purple-800'
+                            user.role === 'editor' ? 'bg-green-100 text-green-800' :
+                              'bg-purple-100 text-purple-800'
                             }`}>
                             {user.role}
                           </span>
                           <span className={`px-2 py-1 rounded ${user.status === 'approved' ? 'bg-green-100 text-green-800' :
-                              user.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-red-100 text-red-800'
+                            user.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
                             }`}>
                             {user.status}
                           </span>
@@ -312,7 +399,9 @@ const StoresPage: React.FC = () => {
                           variant="secondary"
                           size="sm"
                           onClick={() => handleRemoveUser(user._id)}
-                          className="text-red-600"
+                          disabled={user.role === 'sys_admin'}
+                          className={`${user.role === 'sys_admin' ? 'opacity-50 cursor-not-allowed' : 'text-red-600'}`}
+                          title={user.role === 'sys_admin' ? 'No se puede eliminar administradores del sistema' : 'Eliminar usuario'}
                         >
                           <Trash2 size={16} />
                         </Button>
@@ -364,8 +453,8 @@ const StoresPage: React.FC = () => {
                 value={newUserRole}
                 onChange={(e) => setNewUserRole(e.target.value)}
                 className={`w-full px-3 py-2 rounded-lg border ${isDark
-                    ? 'bg-slate-700 border-slate-600 text-white'
-                    : 'bg-white border-gray-300'
+                  ? 'bg-slate-700 border-slate-600 text-white'
+                  : 'bg-white border-gray-300'
                   }`}
               >
                 <option value="admin">Admin</option>
