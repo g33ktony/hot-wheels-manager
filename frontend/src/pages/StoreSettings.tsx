@@ -166,8 +166,8 @@ const StoreSettingsPage: React.FC = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`px-4 py-3 font-medium transition ${activeTab === tab.id
-                                    ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
-                                    : `${isDark ? 'text-slate-400' : 'text-gray-600'}`
+                                ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
+                                : `${isDark ? 'text-slate-400' : 'text-gray-600'}`
                                 }`}
                         >
                             {tab.label}
@@ -265,14 +265,14 @@ const StoreSettingsPage: React.FC = () => {
                                             </p>
                                             <div className="flex gap-3 mt-2 text-xs">
                                                 <span className={`px-2 py-1 rounded ${user.role === 'admin' ? 'bg-blue-100 text-blue-800' :
-                                                        user.role === 'editor' ? 'bg-green-100 text-green-800' :
-                                                            'bg-purple-100 text-purple-800'
+                                                    user.role === 'editor' ? 'bg-green-100 text-green-800' :
+                                                        'bg-purple-100 text-purple-800'
                                                     }`}>
                                                     {user.role}
                                                 </span>
                                                 <span className={`px-2 py-1 rounded ${user.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                        user.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                            'bg-red-100 text-red-800'
+                                                    user.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                        'bg-red-100 text-red-800'
                                                     }`}>
                                                     {user.status}
                                                 </span>
@@ -310,8 +310,8 @@ const StoreSettingsPage: React.FC = () => {
                                     value={newUserRole}
                                     onChange={(e) => setNewUserRole(e.target.value as any)}
                                     className={`w-full px-3 py-2 rounded-lg border ${isDark
-                                            ? 'bg-slate-700 border-slate-600 text-white'
-                                            : 'bg-white border-gray-300'
+                                        ? 'bg-slate-700 border-slate-600 text-white'
+                                        : 'bg-white border-gray-300'
                                         }`}
                                 >
                                     <option value="editor">Editor</option>
