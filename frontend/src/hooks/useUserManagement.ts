@@ -24,15 +24,23 @@ export const useUserManagement = () => {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Error al crear usuario')
+        let errorMsg = 'Error al crear usuario'
+        try {
+          const errorData = await response.json()
+          errorMsg = errorData.error || errorData.message || errorMsg
+        } catch {
+          errorMsg = `Error ${response.status}: ${response.statusText}`
+        }
+        throw new Error(errorMsg)
       }
 
       const data = await response.json()
       toast.success('Usuario creado exitosamente')
       return data.data
     } catch (error: any) {
-      toast.error(error.message)
+      const errorMessage = error.message || 'Error desconocido'
+      console.error('❌ Error creating user:', error)
+      toast.error(errorMessage)
       throw error
     } finally {
       setIsLoading(false)

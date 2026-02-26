@@ -12,6 +12,7 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import dotenv from 'dotenv'
 import { UserModel } from '../models/User'
+import Store from '../models/Store'
 
 dotenv.config()
 
@@ -64,19 +65,40 @@ const createAdmin = async () => {
     console.log('🔐 Hasheando contraseña...')
     const hashedPassword = await bcrypt.hash(password, 10)
 
+    // Crear tienda para el admin
+    console.log('🏪 Creando tienda para el administrador...')
+    const storeName = `Tienda de coleccionables ${name}`
+    const newStore = new Store({
+      name: storeName,
+      description: `Tienda administrada por ${name}`,
+      storeAdminId: undefined // Se establecerá después de crear el usuario
+    })
+    await newStore.save()
+    console.log('✅ Tienda creada:', storeName)
+
     // Crear usuario
     console.log('👤 Creando usuario administrador...')
     const user = await UserModel.create({
       email: email.toLowerCase(),
       password: hashedPassword,
       name,
-      role: 'admin'
+      role: 'admin',
+      storeId: newStore._id.toString(),
+      status: 'approved'
     })
+
+    // Actualizar la tienda con el storeAdminId
+    await Store.updateOne(
+      { _id: newStore._id },
+      { storeAdminId: (user._id as any).toString() }
+    )
 
     console.log('✅ Usuario administrador creado exitosamente')
     console.log('📧 Email:', user.email)
     console.log('👤 Nombre:', user.name)
     console.log('🔑 Role:', user.role)
+    console.log('🏪 Tienda:', newStore.name)
+    console.log('🆔 Tienda ID:', newStore._id)
     console.log('\n🎉 Ahora puedes iniciar sesión con estas credenciales')
 
     process.exit(0)

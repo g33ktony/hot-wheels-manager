@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 interface StoreUser {
   _id: string
@@ -25,16 +26,29 @@ interface Store {
 }
 
 export const useStores = () => {
+  const { token } = useAuth()
   const [stores, setStores] = useState<Store[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  })
 
   const fetchStores = async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await fetch('/api/stores')
-      if (!response.ok) throw new Error('Failed to fetch stores')
+      const response = await fetch('/api/stores', {
+        headers: getAuthHeaders()
+      })
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('No autorizado. Se requiere ser administrador del sistema.')
+        }
+        throw new Error('Failed to fetch stores')
+      }
       const data = await response.json()
       setStores(data.data || [])
     } catch (err: any) {
@@ -46,14 +60,16 @@ export const useStores = () => {
   }
 
   useEffect(() => {
-    fetchStores()
-  }, [])
+    if (token) {
+      fetchStores()
+    }
+  }, [token])
 
   const createStore = async (name: string, description?: string) => {
     try {
       const response = await fetch('/api/stores', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ name, description })
       })
       if (!response.ok) throw new Error('Failed to create store')
@@ -70,7 +86,7 @@ export const useStores = () => {
     try {
       const response = await fetch(`/api/stores/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updates)
       })
       if (!response.ok) throw new Error('Failed to update store')
@@ -87,7 +103,7 @@ export const useStores = () => {
     try {
       const response = await fetch(`/api/stores/${storeId}/users/${userId}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ role })
       })
       if (!response.ok) throw new Error('Failed to update user role')
@@ -102,7 +118,8 @@ export const useStores = () => {
   const removeUser = async (storeId: string, userId: string) => {
     try {
       const response = await fetch(`/api/stores/${storeId}/users/${userId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       })
       if (!response.ok) throw new Error('Failed to remove user')
       await fetchStores()
@@ -117,7 +134,7 @@ export const useStores = () => {
     try {
       const response = await fetch(`/api/stores/${storeId}/assign-user`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ userId, role })
       })
       if (!response.ok) throw new Error('Failed to assign user')

@@ -9,10 +9,6 @@ import { useUserManagement } from '@/hooks/useUserManagement'
 import { useStores } from '@/hooks/useStores'
 import {
     Settings,
-    Users,
-    Plus,
-    Edit,
-    Trash2,
     Lock,
     Copy,
     CheckCircle
@@ -27,7 +23,6 @@ const StoreSettingsPage: React.FC = () => {
     const isDark = mode === 'dark'
 
     const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user'>('profile')
-    const [showCreateUserModal, setShowCreateUserModal] = useState(false)
     const [showPasswordModal, setShowPasswordModal] = useState(false)
 
     // Profile state
@@ -40,7 +35,6 @@ const StoreSettingsPage: React.FC = () => {
     const [newUserName, setNewUserName] = useState('')
     const [newUserEmail, setNewUserEmail] = useState('')
     const [newUserRole, setNewUserRole] = useState<'editor' | 'analyst'>('editor')
-    const [generatedPassword, setGeneratedPassword] = useState('')
     const [createdUserData, setCreatedUserData] = useState<any>(null)
 
     // Password state
@@ -81,7 +75,6 @@ const StoreSettingsPage: React.FC = () => {
                 email: result.user.email,
                 password: result.temporaryPassword
             })
-            setGeneratedPassword(result.temporaryPassword)
             setNewUserName('')
             setNewUserEmail('')
             setNewUserRole('editor')
@@ -151,6 +144,16 @@ const StoreSettingsPage: React.FC = () => {
                         Gestiona tu perfil, tienda y usuarios
                     </p>
                 </div>
+
+                {/* sys_admin notice */}
+                {user?.role === 'sys_admin' && (
+                    <div className={`mb-6 p-4 rounded-lg border-l-4 ${isDark ? 'bg-blue-50 border-blue-500 text-blue-900' : 'bg-blue-50 border-blue-500'}`}>
+                        <p className="font-semibold">ℹ️ Administrador del Sistema</p>
+                        <p className={`text-sm mt-2 ${isDark ? 'text-blue-800' : ''}`}>
+                            Como administrador del sistema, te recomendamos usar la página <strong>"Administración de Tiendas"</strong> para gestionar tiendas y usuarios de forma centralizada.
+                        </p>
+                    </div>
+                )}
 
                 {/* Tabs */}
                 <div className="flex gap-2 mb-6 border-b" style={{ borderColor: isDark ? '#3f4651' : '#e5e7eb' }}>

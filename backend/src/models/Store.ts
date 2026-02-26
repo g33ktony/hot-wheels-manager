@@ -14,7 +14,6 @@ const StoreSchema = new Schema<Store>(
     name: {
       type: String,
       required: true,
-      unique: true,
       trim: true
     },
     description: {

@@ -136,13 +136,31 @@ export const approveUser = async (req: Request, res: Response) => {
     // If admin role, create store automatically
     let finalStoreId = storeId
     if (finalRole === 'admin') {
-      const storeName = `Tienda de coleccionables ${user.name}`
-      const newStore = new Store({
-        name: storeName,
-        storeAdminId: user._id
-      })
-      await newStore.save()
-      finalStoreId = newStore._id.toString()
+      try {
+        // Create unique store name with timestamp to avoid conflicts
+        const timestamp = Date.now()
+        const storeName = `Tienda de coleccionables ${user.name} (${timestamp})`
+        
+        console.log(`🏪 Creating store: ${storeName} for user ${user.email}`)
+        
+        const newStore = new Store({
+          name: storeName,
+          storeAdminId: (user._id as any).toString()
+        })
+        await newStore.save()
+        finalStoreId = newStore._id.toString()
+        
+        console.log(`✅ Store created with ID: ${finalStoreId}`)
+        console.log(`✅ Store name: ${newStore.name}`)
+        console.log(`✅ Store admin ID: ${newStore.storeAdminId}`)
+      } catch (storeError: any) {
+        console.error('❌ Error creating store:', storeError.message)
+        return res.status(500).json({
+          success: false,
+          data: null,
+          message: 'Error al crear tienda: ' + storeError.message
+        })
+      }
     } else if (!storeId) {
       // editor/analyst must have a store
       return res.status(400).json({
@@ -371,7 +389,15 @@ export const createUserInStore = async (req: Request, res: Response) => {
     const requesterStoreId = req.storeId as string
 
     // Verify auth properties exist
-    if (!requesterRole || !requesterStoreId) {
+    // sys_admin can work without storeId (superuser), but others need it
+    if (!requesterRole) {
+      return res.status(401).json({
+        success: false,
+        error: 'No autenticado'
+      })
+    }
+
+    if (requesterRole !== 'sys_admin' && !requesterStoreId) {
       return res.status(401).json({
         success: false,
         error: 'No autenticado'
@@ -387,26 +413,47 @@ export const createUserInStore = async (req: Request, res: Response) => {
     }
 
     // Validate input
-    if (!name || !email || !role || !storeId) {
+    // sys_admin needs to specify which store, admin uses their own store
+    if (!name || !email || !role) {
       return res.status(400).json({
         success: false,
-        error: 'Nombre, email, rol y tienda son requeridos'
+        error: 'Nombre, email y rol son requeridos'
       })
     }
 
-    // Ensure storeId is a string
-    const storeIdStr = typeof storeId === 'string' ? storeId : String(storeId)
-
-    // Admin can only create in their store
-    if (requesterRole === 'admin' && requesterStoreId !== storeIdStr) {
-      return res.status(403).json({
-        success: false,
-        error: 'Solo puedes crear usuarios en tu tienda'
-      })
+    // Determine which storeId to use
+    let storeIdStr: string
+    
+    if (requesterRole === 'sys_admin') {
+      // sys_admin must specify which store
+      if (!storeId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Debes especificar la tienda para crear el usuario'
+        })
+      }
+      storeIdStr = typeof storeId === 'string' ? storeId : String(storeId)
+    } else {
+      // admin uses their own store
+      if (!requesterStoreId) {
+        return res.status(401).json({
+          success: false,
+          error: 'No tienes una tienda asignada'
+        })
+      }
+      // Allow admin to optionally specify a store, or use their own
+      if (storeId && storeId !== requesterStoreId) {
+        return res.status(403).json({
+          success: false,
+          error: 'Solo puedes crear usuarios en tu tienda'
+        })
+      }
+      storeIdStr = requesterStoreId
     }
 
     // Check if email already exists
-    const existingUser = await UserModel.findOne({ email })
+    const emailLower = email.toLowerCase().trim()
+    const existingUser = await UserModel.findOne({ email: emailLower })
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -423,8 +470,8 @@ export const createUserInStore = async (req: Request, res: Response) => {
 
     // Create user
     const newUser = new UserModel({
-      name,
-      email,
+      name: name.trim(),
+      email: emailLower,
       password: hashedPassword,
       role,
       storeId: storeIdStr,
