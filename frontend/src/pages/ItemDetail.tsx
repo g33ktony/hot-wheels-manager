@@ -44,7 +44,7 @@ export default function ItemDetail() {
     const isDark = mode === 'dark'
     const canEditCatalog = hasPermission('catalog:edit')
     const { uploadImage } = useCloudinaryUpload()
-    
+
     // Debug: Log admin status
     useEffect(() => {
         console.debug('ItemDetail - User:', { email: user?.email, role: user?.role, canEditCatalog })
@@ -1010,7 +1010,7 @@ export default function ItemDetail() {
             </div>
 
             <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-                {/* Main Image Gallery */}
+                {/* Main Image Gallery - including catalog carded photo */}
                 <Card className="overflow-hidden">
                     {item.photos && item.photos.length > 0 ? (
                         <div>
@@ -1023,13 +1023,16 @@ export default function ItemDetail() {
                                     className={`max-h-full max-w-full object-contain cursor-pointer hover:opacity-90 transition-opacity ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}
                                 />
                             </div>
-                            {item.photos.length > 1 && (
+
+                            {/* Thumbnails - inventory photos + catalog carded photo */}
+                            {(item.photos.length > 1 || item.hotWheelsCar?.photo_url_carded) && (
                                 <div className="flex gap-2 p-3 overflow-x-auto">
+                                    {/* Inventory photos */}
                                     {item.photos.map((photo, index) => (
                                         <button
-                                            key={index}
+                                            key={`inv-${index}`}
                                             onClick={() => setSelectedPhotoIndex(index)}
-                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative ${selectedPhotoIndex === index
+                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative flex flex-col items-center justify-center ${selectedPhotoIndex === index
                                                 ? 'border-primary-600'
                                                 : 'border-slate-700'
                                                 }`}
@@ -1040,12 +1043,33 @@ export default function ItemDetail() {
                                                 crossOrigin="anonymous"
                                                 className="w-full h-full object-cover"
                                             />
+                                            <div className="absolute bottom-0.5 left-0.5 bg-gray-900/80 text-white text-xs px-1 rounded">L</div>
                                             {/* Destaca la foto principal */}
                                             {index === (item.primaryPhotoIndex || 0) && (
                                                 <div className="absolute top-1 right-1 text-lg">⭐</div>
                                             )}
                                         </button>
                                     ))}
+
+                                    {/* Catalog carded photo (if exists) */}
+                                    {item.hotWheelsCar?.photo_url_carded && (
+                                        <button
+                                            onClick={() => setSelectedPhotoIndex(item.photos!.length)}
+                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative flex flex-col items-center justify-center ${selectedPhotoIndex === item.photos!.length
+                                                ? 'border-primary-600'
+                                                : 'border-slate-700'
+                                                }`}
+                                            title="Foto Carded del Catálogo"
+                                        >
+                                            <img
+                                                src={proxifyImageUrl(item.hotWheelsCar.photo_url_carded)}
+                                                alt="Foto Carded del Catálogo"
+                                                crossOrigin="anonymous"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute bottom-0.5 left-0.5 bg-amber-900/80 text-white text-xs px-1 rounded">C</div>
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -1988,64 +2012,92 @@ export default function ItemDetail() {
             </Modal>
 
             {/* Lightbox Modal - Simple Image Viewer */}
-            {showGalleryModal && item?.photos && item.photos.length > 0 && (
-                <div
-                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-                    onClick={() => setShowGalleryModal(false)}
-                >
-                    {/* Image Container */}
+            {showGalleryModal && item?.photos && (item.photos.length > 0 || item.hotWheelsCar?.photo_url_carded) && (() => {
+                // Build combined photos array (inventory + carded)
+                const allPhotos = [
+                    ...item.photos.map((photo, idx) => ({
+                        url: photo,
+                        type: 'loose' as const,
+                        index: idx
+                    })),
+                    ...(item.hotWheelsCar?.photo_url_carded
+                        ? [{
+                            url: item.hotWheelsCar.photo_url_carded,
+                            type: 'carded' as const,
+                            index: -1
+                        }]
+                        : [])
+                ]
+                const totalPhotos = allPhotos.length
+                const currentPhoto = allPhotos[selectedPhotoIndex]
+
+                return (
                     <div
-                        className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center"
-                        onClick={(e) => e.stopPropagation()}
+                        className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                        onClick={() => setShowGalleryModal(false)}
                     >
-                        {/* Main Image */}
-                        <img
-                            src={proxifyImageUrl(item.photos[selectedPhotoIndex])}
-                            alt={`${carName} - Foto ${selectedPhotoIndex + 1}`}
-                            crossOrigin="anonymous"
-                            className="w-full h-full object-contain"
-                        />
-
-                        {/* Left Arrow */}
-                        {item.photos.length > 1 && (
-                            <button
-                                onClick={() => setSelectedPhotoIndex(prev => prev === 0 ? item.photos!.length - 1 : prev - 1)}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-lg transition-colors"
-                                aria-label="Foto anterior"
-                            >
-                                <ChevronLeft className="w-6 h-6" />
-                            </button>
-                        )}
-
-                        {/* Right Arrow */}
-                        {item.photos.length > 1 && (
-                            <button
-                                onClick={() => setSelectedPhotoIndex(prev => prev === item.photos!.length - 1 ? 0 : prev + 1)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-lg transition-colors"
-                                aria-label="Siguiente foto"
-                            >
-                                <ChevronRight className="w-6 h-6" />
-                            </button>
-                        )}
-
-                        {/* Close Button */}
-                        <button
-                            onClick={() => setShowGalleryModal(false)}
-                            className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-2 rounded-lg transition-colors"
-                            aria-label="Cerrar"
+                        {/* Image Container */}
+                        <div
+                            className="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            <X className="w-6 h-6" />
-                        </button>
+                            {/* Main Image */}
+                            {currentPhoto && (
+                                <img
+                                    src={proxifyImageUrl(currentPhoto.url)}
+                                    alt={`${carName} - ${currentPhoto.type === 'carded' ? 'Carded' : 'Loose'}`}
+                                    crossOrigin="anonymous"
+                                    className="w-full h-full object-contain"
+                                />
+                            )}
 
-                        {/* Photo Counter */}
-                        {item.photos.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                                {selectedPhotoIndex + 1} / {item.photos.length}
-                            </div>
-                        )}
+                            {/* Left Arrow */}
+                            {totalPhotos > 1 && (
+                                <button
+                                    onClick={() => setSelectedPhotoIndex(prev => prev === 0 ? totalPhotos - 1 : prev - 1)}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-lg transition-colors"
+                                    aria-label="Foto anterior"
+                                >
+                                    <ChevronLeft className="w-6 h-6" />
+                                </button>
+                            )}
+
+                            {/* Right Arrow */}
+                            {totalPhotos > 1 && (
+                                <button
+                                    onClick={() => setSelectedPhotoIndex(prev => prev === totalPhotos - 1 ? 0 : prev + 1)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-lg transition-colors"
+                                    aria-label="Siguiente foto"
+                                >
+                                    <ChevronRight className="w-6 h-6" />
+                                </button>
+                            )}
+
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setShowGalleryModal(false)}
+                                className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-2 rounded-lg transition-colors"
+                                aria-label="Cerrar"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+
+                            {/* Photo Counter and Type */}
+                            {totalPhotos > 1 && currentPhoto && (
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-3">
+                                    <span>{selectedPhotoIndex + 1} / {totalPhotos}</span>
+                                    <span className={`px-2 py-1 rounded text-xs font-semibold ${currentPhoto.type === 'carded'
+                                            ? 'bg-amber-900/80 text-amber-100'
+                                            : 'bg-slate-700/80 text-slate-100'
+                                        }`}>
+                                        {currentPhoto.type === 'carded' ? '📦 Carded' : '📷 Loose'}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            })()}
 
             {/* Edit Catalog Modal */}
             {item && (
