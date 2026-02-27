@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { usePreSaleItems } from '@/hooks/usePresale'
+import { useStore } from '@/contexts/StoreContext'
 import { Search, AlertCircle } from 'lucide-react'
 
 interface PreSaleItem {
@@ -25,10 +26,11 @@ const PreSaleItemAutocomplete: React.FC<PreSaleItemAutocompleteProps> = ({
     placeholder = 'Search presale items by car ID or model...',
     onlyActive = true
 }) => {
+    const { selectedStore } = useStore()
     const [searchTerm, setSearchTerm] = useState('')
     const [isOpen, setIsOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<PreSaleItem | null>(null)
-    const { data: preSaleItems = [] } = usePreSaleItems({ status: onlyActive ? 'active' : undefined })
+    const { data: preSaleItems = [] } = usePreSaleItems({ status: onlyActive ? 'active' : undefined, storeId: selectedStore || undefined })
 
     useEffect(() => {
         setSearchTerm(value)

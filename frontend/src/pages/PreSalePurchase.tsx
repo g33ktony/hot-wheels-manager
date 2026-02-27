@@ -3,11 +3,13 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Ca
 import PreSalePurchaseForm from '@/components/PreSalePurchaseForm'
 import { Package, History } from 'lucide-react'
 import { usePreSaleItems } from '@/hooks/usePresale'
+import { useStore } from '@/contexts/StoreContext'
 import LoadingSpinner from '@/components/common/Loading'
 
 export default function PreSalePurchasePage() {
     const [showForm, setShowForm] = useState(false)
-    const { data: presSaleItems = [], isLoading } = usePreSaleItems()
+    const { selectedStore } = useStore()
+    const { data: presSaleItems = [], isLoading } = usePreSaleItems({ storeId: selectedStore || undefined })
 
     // Get recent pre-sales (last 5)
     const recentPreSales = presSaleItems.slice(0, 5)

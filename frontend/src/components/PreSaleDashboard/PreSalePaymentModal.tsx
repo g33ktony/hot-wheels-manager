@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { X, CheckCircle, AlertCircle, Calendar } from 'lucide-react'
+import { useStore } from '@/contexts/StoreContext'
 import { useDeliveries } from '@/hooks/useDeliveries'
 import { usePaymentPlans, useCreatePaymentPlan, useRecordPayment } from '@/hooks/usePaymentPlans'
 
@@ -21,8 +22,11 @@ const PreSalePaymentModal: React.FC<PreSalePaymentModalProps> = ({
     const [paymentPlanId, setPaymentPlanId] = useState<string>('')
     const [existingPlan, setExistingPlan] = useState<any>(null)
 
+    // Get selected store
+    const { selectedStore } = useStore()
+
     // Fetch real deliveries and payment plans
-    const { data: allDeliveries = [] } = useDeliveries()
+    const { data: allDeliveries = [] } = useDeliveries(undefined, undefined, selectedStore || undefined)
     const { data: paymentPlans = [] } = usePaymentPlans()
 
     // Filter to show only deliveries that don't have a payment plan yet

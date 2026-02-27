@@ -1,9 +1,11 @@
 import React from 'react'
 import { usePreSaleItems } from '@/hooks/usePresale'
+import { useStore } from '@/contexts/StoreContext'
 import { AlertCircle, Calendar, DollarSign } from 'lucide-react'
 
 const PreSaleAlertSection: React.FC = () => {
-    const { data: preSaleItems = [] } = usePreSaleItems({ status: 'active' })
+    const { selectedStore } = useStore()
+    const { data: preSaleItems = [] } = usePreSaleItems({ status: 'active', storeId: selectedStore || undefined })
 
     // Filter items with upcoming dates
     const today = new Date()
@@ -48,8 +50,8 @@ const PreSaleAlertSection: React.FC = () => {
                         <div
                             key={item._id}
                             className={`p-3 rounded-lg border-2 transition ${isToday
-                                    ? 'bg-red-50 border-red-300 scale-105'
-                                    : 'bg-blue-50 border-blue-200 hover:border-blue-300'
+                                ? 'bg-red-50 border-red-300 scale-105'
+                                : 'bg-blue-50 border-blue-200 hover:border-blue-300'
                                 }`}
                         >
                             <div className="flex items-start gap-3">

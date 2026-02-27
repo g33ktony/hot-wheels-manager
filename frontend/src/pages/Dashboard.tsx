@@ -6,6 +6,7 @@ import { useUpdateHotWheelsCatalog, useGetUpdateStatus } from '@/hooks/useHotWhe
 import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
 import { useDownloadHotWheelsDatabase } from '@/hooks/useDownloadHotWheels'
 import { useNavigate } from 'react-router-dom'
+import { useStore } from '@/contexts/StoreContext'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
 import Button from '@/components/common/Button'
@@ -18,23 +19,42 @@ import toast from 'react-hot-toast'
 
 export default function Dashboard() {
     const navigate = useNavigate()
+    const { selectedStore, userStore } = useStore()
+
+    // Log EVERY render along with selectedStore value
+    console.log('🎯 [Dashboard] RENDER - selectedStore:', selectedStore, 'userStore:', userStore)
+
     const [showUpdateModal, setShowUpdateModal] = React.useState(false)
     const [showSearchModal, setShowSearchModal] = React.useState(false)
     const [searchQuery, setSearchQuery] = React.useState('')
     const [isDownloading, setIsDownloading] = React.useState(false)
     const [selectedUnpaidDelivery, setSelectedUnpaidDelivery] = React.useState<any>(null)
+
+    // Log when selectedStore changes
+    React.useEffect(() => {
+        console.log('🔍 [Dashboard] selectedStore CHANGED (effect):', selectedStore)
+    }, [selectedStore])
+
     const { data: metrics, isLoading, error } = useQuery(
-        'dashboard-metrics',
-        dashboardService.getMetrics,
+        ['dashboard-metrics', selectedStore],
+        () => {
+            console.log('📊 [Dashboard] useQuery fetching metrics for:', selectedStore)
+            return dashboardService.getMetrics(selectedStore ?? undefined)
+        },
         {
             refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
+            staleTime: 0, // Treat as stale immediately so changes are visible
         }
     )
     const { data: unpaidDeliveries = [] } = useQuery(
-        'unpaid-deliveries',
-        dashboardService.getUnpaidDeliveries,
+        ['unpaid-deliveries', selectedStore],
+        () => {
+            console.log('📊 [Dashboard] useQuery fetching unpaid deliveries for:', selectedStore)
+            return dashboardService.getUnpaidDeliveries(selectedStore ?? undefined)
+        },
         {
             refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
+            staleTime: 0,
         }
     )
     const { data: pendingItemsStats } = usePendingItemsStats()

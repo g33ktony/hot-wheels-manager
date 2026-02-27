@@ -22,6 +22,11 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
     const limit = parseInt(req.query.limit as string) || 15;
     const skip = (page - 1) * limit;
 
+    // Check if storeId is provided as query parameter (for sys_admin viewing other stores)
+    const queryStoreId = (req.query.storeId as string)
+    const finalStoreId = queryStoreId || req.storeId
+    console.log('🔍 [getInventoryItems] Fetching inventory for store:', finalStoreId, '(query param:', queryStoreId, ', user store:', req.storeId, ')')
+
     // Extract filter parameters
     const searchTerm = req.query.search as string;
     const filterCondition = req.query.condition as string;
@@ -93,7 +98,17 @@ export const getInventoryItems = async (req: Request, res: Response): Promise<vo
 
     // Get all items matching non-search filters
     // Apply store filter to ensure user only sees their store's data
-    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    let storeFilter: any
+    if (queryStoreId) {
+      // If specific storeId is provided, use it exactly (no mixing with unassigned items)
+      storeFilter = { storeId: queryStoreId }
+    } else {
+      // Default: use createStoreFilter which handles both cases
+      storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    }
+    
+    console.log('📊 [getInventoryItems] Store filter:', storeFilter)
+    
     let allItems = await InventoryItemModel.find({ ...query, ...storeFilter })
       .select('-__v -updatedAt')
       .populate({
@@ -247,7 +262,7 @@ export const getInventoryItemById = async (req: Request, res: Response): Promise
     }
 
     // Check if user can access this store's data
-    if (req.userRole !== 'sys_admin' && item.storeId !== req.storeId) {
+    if (item.storeId !== req.storeId) {
       res.status(403).json({
         success: false,
         message: 'Access denied: You can only view items from your store'
@@ -277,6 +292,15 @@ export const addInventoryItem = async (req: Request, res: Response): Promise<voi
       seriesId, seriesName, seriesSize, seriesPosition, seriesPrice, primaryPhotoIndex,
       brand, pieceType, isTreasureHunt, isSuperTreasureHunt, isChase, isFantasy, series, year, color
     } = req.body;
+
+    // Security: Verify user can only add items to their own store
+    if (!req.storeId) {
+      res.status(403).json({ 
+        success: false,
+        error: 'No store assigned to user' 
+      });
+      return;
+    }
 
     // Validate required fields - allow carId or carName
     if ((!carId && !carName) || quantity === undefined || purchasePrice === undefined || suggestedPrice === undefined) {
@@ -446,12 +470,18 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
     }
 
     // Only allow editing own store items
-    if (item.storeId !== req.storeId) {
+    // For unassigned items (no storeId), assign them to the editing user's store
+    if (item.storeId && item.storeId !== req.storeId) {
       res.status(403).json({
         success: false,
         error: 'You can only edit items from your own store'
       });
       return;
+    }
+    
+    // If item has no storeId, assign it to the editing user's store
+    if (!item.storeId && req.storeId) {
+      item.storeId = req.storeId
     }
 
     // Prevent changing storeId
@@ -496,6 +526,11 @@ export const updateInventoryItem = async (req: Request, res: Response): Promise<
       if (!updates.seriesPrice) {
         updates.seriesPrice = seriesDefaultPrice
       }
+    }
+
+    // If item had no storeId, include it in updates
+    if (!item.storeId && req.storeId) {
+      updates.storeId = req.storeId
     }
 
     const inventoryItem = await InventoryItemModel.findByIdAndUpdate(
@@ -546,7 +581,8 @@ export const deleteInventoryItem = async (req: Request, res: Response): Promise<
     }
 
     // Only allow deleting own store items
-    if (item.storeId !== req.storeId) {
+    // For unassigned items (no storeId), allow deletion by any user (treat as owner)
+    if (item.storeId && item.storeId !== req.storeId) {
       res.status(403).json({
         success: false,
         error: 'You can only delete items from your own store'
@@ -600,7 +636,8 @@ export const deleteInventoryItemPermanent = async (req: Request, res: Response):
     }
 
     // Check ownership before allowing permanent delete
-    if (item.storeId !== req.storeId) {
+    // For unassigned items (no storeId), allow deletion by any user (treat as owner)
+    if (item.storeId && item.storeId !== req.storeId) {
       res.status(403).json({
         success: false,
         error: 'You can only delete items from your own store'

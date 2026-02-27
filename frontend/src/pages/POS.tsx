@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useSearch } from '@/contexts/SearchContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useStore } from '@/contexts/StoreContext';
 import { useInventorySyncInBackground } from '@/hooks/useInventoryCache';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { setInventoryItems, setLoading, setError } from '@/store/slices/inventorySlice';
@@ -47,6 +48,9 @@ const POS: React.FC = () => {
   const { mode } = useTheme()
   const isDark = mode === 'dark'
 
+  // Get selected store
+  const { selectedStore } = useStore()
+
   // Get inventory from Redux cache
   const reduxInventory = useAppSelector(state => state.inventory);
   const reduxCart = useAppSelector(state => state.cart);
@@ -86,7 +90,7 @@ const POS: React.FC = () => {
         let totalPages = 0;
 
         // Load first batch
-        const firstBatch = await inventoryService.getAll(1, INITIAL_BATCH_SIZE, {});
+        const firstBatch = await inventoryService.getAll(1, INITIAL_BATCH_SIZE, { storeId: selectedStore ?? undefined });
 
         if (!firstBatch || !firstBatch.items) {
           throw new Error('Respuesta inválida del servidor: no hay datos');
@@ -121,7 +125,7 @@ const POS: React.FC = () => {
 
           for (let page = 2; page <= totalPages; page++) {
             try {
-              const batch = await inventoryService.getAll(page, INITIAL_BATCH_SIZE, {});
+              const batch = await inventoryService.getAll(page, INITIAL_BATCH_SIZE, { storeId: selectedStore ?? undefined });
               allItems.push(...(batch.items || []));
               console.log('✅ POS: Página', page, '/', totalPages, 'cargada');
             } catch (pageError) {
@@ -160,7 +164,7 @@ const POS: React.FC = () => {
     };
 
     loadInitialInventory();
-  }, []);
+  }, [selectedStore, dispatch]);
 
   // When navigating to POS page, reload full inventory to avoid filtered/cached inventory from other pages
   useEffect(() => {
@@ -175,7 +179,7 @@ const POS: React.FC = () => {
           let totalItems = 0;
           let totalPages = 0;
 
-          const firstBatch = await inventoryService.getAll(1, INITIAL_BATCH_SIZE, {});
+          const firstBatch = await inventoryService.getAll(1, INITIAL_BATCH_SIZE, { storeId: selectedStore ?? undefined });
 
           if (!firstBatch || !firstBatch.items) {
             throw new Error('Respuesta inválida del servidor');
@@ -199,7 +203,7 @@ const POS: React.FC = () => {
           if (totalPages > 1) {
             for (let page = 2; page <= totalPages; page++) {
               try {
-                const batch = await inventoryService.getAll(page, INITIAL_BATCH_SIZE, {});
+                const batch = await inventoryService.getAll(page, INITIAL_BATCH_SIZE, { storeId: selectedStore ?? undefined });
                 allItems.push(...(batch.items || []));
               } catch (pageError) {
                 console.warn('⚠️ Error loading page', page);
@@ -226,7 +230,7 @@ const POS: React.FC = () => {
 
       reloadFullInventory();
     }
-  }, [currentPage, initialLoadDone]);
+  }, [currentPage, initialLoadDone, selectedStore, dispatch]);
 
   // Smart search con scoring multi-criterio + filtros
   const filteredInventory = useMemo(() => {

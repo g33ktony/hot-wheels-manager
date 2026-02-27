@@ -11,7 +11,7 @@ interface Store {
 interface StoreContextType {
     // The store user belongs to (for writing)
     userStore: string | null
-    // The store user is currently viewing (for reading)
+    // The store user is currently viewing (for reading) - defaults to userStore
     selectedStore: string | null
     // All available stores for sys_admin
     availableStores: Store[]
@@ -27,39 +27,59 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined)
 export function StoreProvider({ children }: { children: ReactNode }) {
     const { user, token } = useAuth()
     const [userStore, setUserStore] = useState<string | null>(null)
-    const [selectedStore, setSelectedStore] = useState<string | null>(null)
+    const [selectedStore, setSelectedStoreState] = useState<string | null>(null)
     const [availableStores, setAvailableStores] = useState<Store[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    // Initialize user's own store
+    // Wrapper para setSelectedStore con logging
+    const setSelectedStore = (storeId: string | null) => {
+        console.log('🏪 [StoreContext] setSelectedStore called with:', storeId)
+        setSelectedStoreState(storeId)
+        if (storeId) {
+            localStorage.setItem('selectedStore', storeId)
+        } else {
+            localStorage.removeItem('selectedStore')
+        }
+    }
+
+    // Initialize from localStorage on first render
+    useEffect(() => {
+        const saved = localStorage.getItem('selectedStore')
+        if (saved) {
+            console.log('🏪 [StoreContext] Restored selectedStore from localStorage:', saved)
+            setSelectedStoreState(saved)
+        }
+    }, [])
+
+    // When user changes, set defaults
     useEffect(() => {
         if (!user) {
+            console.log('👤 [StoreContext] No user, resetting')
             setUserStore(null)
-            setSelectedStore(null)
+            setSelectedStoreState(null)
             setAvailableStores([])
             return
         }
 
-        // User's own store is always their storeId
+        // Set user's own store
+        console.log('👤 [StoreContext] Setting userStore to:', user.storeId)
         setUserStore(user.storeId || null)
 
-        // If not sys_admin, viewing store = own store
+        // If not sys_admin, can only view own store
         if (user.role !== 'sys_admin') {
-            setSelectedStore(user.storeId || null)
-            setAvailableStores(user.storeId ? [{
-                _id: '',
-                storeId: user.storeId,
+            console.log('👤 [StoreContext] Non-admin, using own store:', user.storeId)
+            const normalizedStoreId = user.storeId || null
+            setSelectedStoreState(normalizedStoreId)
+            if (normalizedStoreId) localStorage.setItem('selectedStore', normalizedStoreId)
+            setAvailableStores(normalizedStoreId ? [{
+                _id: normalizedStoreId,
+                storeId: normalizedStoreId,
                 storeName: 'Mi Tienda'
             }] : [])
             return
         }
-
-        // For sys_admin, default to their own store
-        if (!selectedStore) {
-            setSelectedStore(user.storeId || null)
-        }
-    }, [user, selectedStore])
+    }, [user])
 
     // Fetch all stores for sys_admin
     useEffect(() => {
@@ -89,18 +109,56 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                     storeName: store.name || `Store ${store._id}`
                 }))
 
+                console.log('🏪 [StoreContext] Fetched', storeList.length, 'stores for sys_admin')
                 setAvailableStores(storeList)
+
+                // Update userStore to use storeId if it matches a store by name
+                // This fixes issues where userStore might be in a different format
+                let normalizedUserStore = userStore
+                if (userStore && !storeList.find((s: Store) => s.storeId === userStore)) {
+                    // If userStore doesn't match any storeId directly, try to find by name match
+                    const matchingStore = storeList.find((s: Store) => s.storeName.toLowerCase().includes(userStore.toLowerCase()))
+                    if (matchingStore) {
+                        console.log('🏪 [StoreContext] Updated userStore to match store ID:', matchingStore.storeId)
+                        normalizedUserStore = matchingStore.storeId
+                        setUserStore(matchingStore.storeId)
+                    }
+                }
+
+                // Auto-assign selectedStore: default to user's own store (not first store in list)
+                setSelectedStoreState(prev => {
+                    // Always default to user's own store, even if something was loaded from localStorage
+                    if (normalizedUserStore) {
+                        console.log('🏪 [StoreContext] Setting selectedStore to user store:', normalizedUserStore, '(was:', prev, ')')
+                        localStorage.setItem('selectedStore', normalizedUserStore)
+                        return normalizedUserStore
+                    }
+                    return prev
+                })
             } catch (err) {
                 console.error('Error fetching stores:', err)
                 setError(err instanceof Error ? err.message : 'Unknown error')
 
                 // Fallback: add user's own store
                 if (user.storeId) {
-                    setAvailableStores([{
-                        _id: '',
+                    const fallbackStores = [{
+                        _id: user.storeId,
                         storeId: user.storeId,
                         storeName: 'Mi Tienda'
-                    }])
+                    }]
+                    setAvailableStores(fallbackStores)
+                    // Update userStore to use the normalized storeId
+                    setUserStore(user.storeId)
+
+                    // Auto-assign to own store if no selectedStore
+                    setSelectedStoreState(prev => {
+                        if (!prev) {
+                            console.log('🏪 [StoreContext] Auto-assigning selectedStore to own store (fallback):', user.storeId)
+                            localStorage.setItem('selectedStore', user.storeId)
+                            return user.storeId
+                        }
+                        return prev
+                    })
                 }
             } finally {
                 setLoading(false)
@@ -109,13 +167,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
         fetchStores()
     }, [user, token])
-
-    // Persist selected store in localStorage
-    useEffect(() => {
-        if (selectedStore) {
-            localStorage.setItem('selectedStore', selectedStore)
-        }
-    }, [selectedStore])
 
     return (
         <StoreContext.Provider value={{

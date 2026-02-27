@@ -8,13 +8,17 @@ interface SaleCardProps {
     onViewDetails: (sale: any) => void
     onDelete: (saleId: string) => void
     isLoadingDelete?: boolean
+    canEdit?: boolean
+    canDelete?: boolean
 }
 
 export default function SaleCard({
     sale,
     onViewDetails,
     onDelete,
-    isLoadingDelete
+    isLoadingDelete,
+    canEdit = true,
+    canDelete = true
 }: SaleCardProps) {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
@@ -171,30 +175,34 @@ export default function SaleCard({
 
                 {/* Action buttons - Always at bottom */}
                 <div className={`flex items-center gap-2 pt-4 flex-wrap border-t ${cardBorder} mt-auto`}>
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => onViewDetails(sale)}
-                        className="flex-1"
-                        title="Ver detalles"
-                    >
-                        <Eye size={14} />
-                        <span className="hidden sm:inline">Detalles</span>
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => {
-                            if (confirm('¿Estás seguro de que quieres eliminar esta venta?')) {
-                                onDelete(sale._id)
-                            }
-                        }}
-                        disabled={isLoadingDelete}
-                        title="Eliminar venta"
-                    >
-                        <Trash2 size={14} />
-                        <span className="hidden sm:inline">Eliminar</span>
-                    </Button>
+                    {canEdit && (
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => onViewDetails(sale)}
+                            className="flex-1"
+                            title="Ver detalles"
+                        >
+                            <Eye size={14} />
+                            <span className="hidden sm:inline">Detalles</span>
+                        </Button>
+                    )}
+                    {canDelete && (
+                        <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => {
+                                if (confirm('¿Estás seguro de que quieres eliminar esta venta?')) {
+                                    onDelete(sale._id)
+                                }
+                            }}
+                            disabled={isLoadingDelete}
+                            title="Eliminar venta"
+                        >
+                            <Trash2 size={14} />
+                            <span className="hidden sm:inline">Eliminar</span>
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>

@@ -3,10 +3,14 @@ import { salesService } from '@/services/sales'
 import type { CreateSaleDto } from '@shared/types'
 import toast from 'react-hot-toast'
 
-export const useSales = () => {
-  return useQuery('sales', salesService.getAll, {
-    staleTime: 2 * 60 * 1000, // 2 minutos
-  })
+export const useSales = (selectedStore?: string) => {
+  return useQuery(
+    ['sales', selectedStore],
+    () => salesService.getAll(selectedStore),
+    {
+      staleTime: 2 * 60 * 1000, // 2 minutos
+    }
+  )
 }
 
 export const useSale = (id: string) => {

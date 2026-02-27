@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { customersService } from '@/services/customers'
 import type { CreateCustomerDto } from '@shared/types'
 
-export const useCustomers = () => {
+export const useCustomers = (storeId?: string) => {
   return useQuery({
-    queryKey: ['customers'],
-    queryFn: customersService.getAll,
+    queryKey: ['customers', storeId],
+    queryFn: () => customersService.getAll(storeId),
   })
 }
 

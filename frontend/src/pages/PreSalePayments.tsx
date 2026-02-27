@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { usePaymentPlans, useRecordPayment } from '@/hooks/usePaymentPlans'
+import { useStore } from '@/contexts/StoreContext'
 import { useCustomers } from '@/hooks/useCustomers'
 import { useDeliveries } from '@/hooks/useDeliveries'
 import Card from '@/components/common/Card'
@@ -10,7 +11,8 @@ import { DollarSign, Calendar, TrendingUp, CheckCircle, AlertTriangle } from 'lu
 
 export default function PreSalePayments() {
     const { data: paymentPlans, isLoading } = usePaymentPlans()
-    const { data: customers } = useCustomers()
+    const { selectedStore } = useStore()
+    const { data: customers } = useCustomers(selectedStore || undefined)
     const { data: allDeliveries } = useDeliveries()
     const recordPaymentMutation = useRecordPayment()
     // const updateStatusMutation = useUpdatePaymentPlanStatus() // Future use

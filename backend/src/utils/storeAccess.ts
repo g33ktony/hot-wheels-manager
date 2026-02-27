@@ -128,6 +128,7 @@ export const createStoreFilter = (userStoreId: string, userRole: string, canView
     return {} // Sin filtro
   }
 
+
   // Por defecto, filtrar por tienda del usuario
   return { storeId: userStoreId }
 }

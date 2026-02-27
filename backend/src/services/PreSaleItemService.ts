@@ -587,7 +587,7 @@ class PreSaleItemService {
   /**
    * Get summary statistics for all active pre-sales
    */
-  async getActiveSalesSummary(): Promise<{
+  async getActiveSalesSummary(storeId?: string): Promise<{
     totalActiveItems: number
     totalQuantityAvailable: number
     totalQuantityAssigned: number
@@ -596,7 +596,11 @@ class PreSaleItemService {
     totalPotentialProfit: number
     averageMarkupPercentage: number
   }> {
-    const activeItems = await PreSaleItem.find({ status: 'active' })
+    const query: any = { status: 'active' }
+    if (storeId) {
+      query.storeId = storeId
+    }
+    const activeItems = await PreSaleItem.find(query)
 
     let totalQuantityAvailable = 0
     let totalQuantityAssigned = 0

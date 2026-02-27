@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useQueryClient } from 'react-query'
 import { useNavigate } from 'react-router-dom'
 import { useSearch } from '@/contexts/SearchContext'
+import { useStore } from '@/contexts/StoreContext'
+import { useCanEditStore } from '@/hooks/useCanEditStore'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useInventory, useCreateInventoryItem, useDeleteInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory'
 import { useCustomBrands, useCreateCustomBrand } from '@/hooks/useCustomBrands'
@@ -226,8 +228,10 @@ export default function Inventory() {
     // Sync inventory in background (keeps Redux cache fresh for other pages)
     useInventorySyncInBackground()
 
-    // Get theme
+    // Get theme and store
     const { mode } = useTheme()
+    const { selectedStore } = useStore()
+    const { canEdit, canDelete, canCreate } = useCanEditStore()
     const isDark = mode === 'dark'
 
     // Cloudinary upload
@@ -474,7 +478,8 @@ export default function Inventory() {
         fantasyOnly: filterFantasyOnly,
         moto: filterMoto,
         camioneta: filterCamioneta,
-        fastFurious: filterFastFurious
+        fastFurious: filterFastFurious,
+        selectedStore: selectedStore || undefined
     })
     const { data: customBrands } = useCustomBrands()
     const createItemMutation = useCreateInventoryItem()
@@ -484,7 +489,7 @@ export default function Inventory() {
 
     // Delivery creation hooks
     const createDeliveryMutation = useCreateDelivery()
-    const { data: customers } = useCustomers()
+    const { data: customers } = useCustomers(selectedStore || undefined)
     const { data: deliveryLocations } = useDeliveryLocations()
 
     // Query client for prefetching
@@ -920,10 +925,51 @@ export default function Inventory() {
                 let position = 1
                 for (const car of newItem.cars) {
                     await createItemMutation.mutateAsync({
-                        carId: car.carId,
-                        quantity: car.quantity,
-                        purchasePrice: pricePerPiece,
-                        suggestedPrice: suggestedPricePerPiece,
+                        data: {
+                            carId: car.carId,
+                            quantity: car.quantity,
+                            purchasePrice: pricePerPiece,
+                            suggestedPrice: suggestedPricePerPiece,
+                            actualPrice: newItem.actualPrice,
+                            condition: newItem.condition,
+                            notes: newItem.notes,
+                            photos: newItem.photos,
+                            location: newItem.location,
+                            brand: newItem.brand,
+                            pieceType: newItem.pieceType || undefined,
+                            isTreasureHunt: newItem.isTreasureHunt,
+                            isSuperTreasureHunt: newItem.isSuperTreasureHunt,
+                            isChase: newItem.isChase,
+                            isFantasy: newItem.isFantasy,
+                            isMoto: newItem.isMoto,
+                            isCamioneta: newItem.isCamioneta,
+                            isFastFurious: newItem.isFastFurious,
+                            // Include series info if this is a series
+                            ...(newItem.seriesId && {
+                                seriesId: newItem.seriesId,
+                                seriesName: newItem.seriesName,
+                                seriesSize: newItem.seriesSize,
+                                seriesPosition: position++, // Increment position for each piece
+                                seriesPrice: newItem.seriesPrice
+                            })
+                        },
+                        selectedStore: selectedStore || undefined
+                    })
+                }
+            } else {
+                // Handle single car or box with same model
+                const finalPurchasePrice = newItem.isBox
+                    ? newItem.purchasePrice / newItem.boxSize
+                    : newItem.purchasePrice
+
+                const finalSuggestedPrice = newItem.suggestedPrice
+
+                await createItemMutation.mutateAsync({
+                    data: {
+                        carId: newItem.carId,
+                        quantity: newItem.quantity,
+                        purchasePrice: finalPurchasePrice,
+                        suggestedPrice: finalSuggestedPrice,
                         actualPrice: newItem.actualPrice,
                         condition: newItem.condition,
                         notes: newItem.notes,
@@ -943,46 +989,11 @@ export default function Inventory() {
                             seriesId: newItem.seriesId,
                             seriesName: newItem.seriesName,
                             seriesSize: newItem.seriesSize,
-                            seriesPosition: position++, // Increment position for each piece
+                            seriesPosition: newItem.seriesPosition,
                             seriesPrice: newItem.seriesPrice
                         })
-                    })
-                }
-            } else {
-                // Handle single car or box with same model
-                const finalPurchasePrice = newItem.isBox
-                    ? newItem.purchasePrice / newItem.boxSize
-                    : newItem.purchasePrice
-
-                const finalSuggestedPrice = newItem.suggestedPrice
-
-                await createItemMutation.mutateAsync({
-                    carId: newItem.carId,
-                    quantity: newItem.quantity,
-                    purchasePrice: finalPurchasePrice,
-                    suggestedPrice: finalSuggestedPrice,
-                    actualPrice: newItem.actualPrice,
-                    condition: newItem.condition,
-                    notes: newItem.notes,
-                    photos: newItem.photos,
-                    location: newItem.location,
-                    brand: newItem.brand,
-                    pieceType: newItem.pieceType || undefined,
-                    isTreasureHunt: newItem.isTreasureHunt,
-                    isSuperTreasureHunt: newItem.isSuperTreasureHunt,
-                    isChase: newItem.isChase,
-                    isFantasy: newItem.isFantasy,
-                    isMoto: newItem.isMoto,
-                    isCamioneta: newItem.isCamioneta,
-                    isFastFurious: newItem.isFastFurious,
-                    // Include series info if this is a series
-                    ...(newItem.seriesId && {
-                        seriesId: newItem.seriesId,
-                        seriesName: newItem.seriesName,
-                        seriesSize: newItem.seriesSize,
-                        seriesPosition: newItem.seriesPosition,
-                        seriesPrice: newItem.seriesPrice
-                    })
+                    },
+                    selectedStore: selectedStore || undefined
                 })
             }
 
@@ -1771,13 +1782,19 @@ export default function Inventory() {
                                     Seleccionar
                                 </Button>
                             )}
-                            <Button
-                                icon={<Plus size={18} />}
-                                onClick={() => setShowAddModal(true)}
-                                size="sm"
-                            >
-                                Agregar Pieza
-                            </Button>
+                            {canCreate ? (
+                                <Button
+                                    icon={<Plus size={18} />}
+                                    onClick={() => setShowAddModal(true)}
+                                    size="sm"
+                                >
+                                    Agregar Pieza
+                                </Button>
+                            ) : (
+                                <div className="text-xs text-orange-400 px-3 py-2 bg-orange-900/30 rounded-lg border border-orange-700/50">
+                                    📖 Solo lectura - Seleccionaste otra tienda
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
@@ -2127,7 +2144,7 @@ export default function Inventory() {
                                     : 'Comienza agregando tu primera pieza al inventario'
                                 }
                             </p>
-                            {!searchTerm && !filterCondition && !filterBrand && !filterPieceType && filterTreasureHunt === 'all' && !filterChase && (
+                            {!searchTerm && !filterCondition && !filterBrand && !filterPieceType && filterTreasureHunt === 'all' && !filterChase && canCreate && (
                                 <Button icon={<Plus size={20} />} onClick={() => setShowAddModal(true)}>
                                     Agregar Primera Pieza
                                 </Button>
@@ -2377,7 +2394,7 @@ export default function Inventory() {
                                                                 toast.success('Agregado al carrito de entrega')
                                                             }
                                                         }}
-                                                        disabled={!isAvailable}
+                                                        disabled={!isAvailable || !canCreate}
                                                         title="Agregar a entrega"
                                                     >
                                                         <Truck size={16} />
@@ -2391,25 +2408,29 @@ export default function Inventory() {
                                                                 toast.success('Agregado al carrito POS')
                                                             }
                                                         }}
-                                                        disabled={!isAvailable}
+                                                        disabled={!isAvailable || !canCreate}
                                                         title="Agregar a POS"
                                                     >
                                                         <ShoppingCart size={16} />
                                                     </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={() => handleEditItem(item)}
-                                                    >
-                                                        <Edit size={16} />
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="danger"
-                                                        onClick={() => item._id && handleDeleteItem(item._id)}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </Button>
+                                                    {canEdit && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            onClick={() => handleEditItem(item)}
+                                                        >
+                                                            <Edit size={16} />
+                                                        </Button>
+                                                    )}
+                                                    {canDelete && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="danger"
+                                                            onClick={() => item._id && handleDeleteItem(item._id)}
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
  * Pre-Sale Items Hooks
  */
 
-export const usePreSaleItems = (filters?: { status?: string; carId?: string; onlyActive?: boolean }) => {
+export const usePreSaleItems = (filters?: { status?: string; carId?: string; onlyActive?: boolean; storeId?: string }) => {
   return useQuery(
     ['presaleItems', filters],
     () => presaleService.items.getAll(filters),
@@ -187,10 +187,10 @@ export const useUnassignPreSaleUnits = () => {
   )
 }
 
-export const usePreSaleActiveSummary = () => {
+export const usePreSaleActiveSummary = (storeId?: string) => {
   return useQuery(
-    'presaleActiveSummary',
-    () => presaleService.items.getActiveSummary(),
+    ['presaleActiveSummary', storeId],
+    () => presaleService.items.getActiveSummary(storeId),
     {
       staleTime: 5 * 60 * 1000,
     }

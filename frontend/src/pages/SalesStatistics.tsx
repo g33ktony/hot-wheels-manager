@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { api } from '@/services/api'
+import { useStore } from '@/contexts/StoreContext'
 import {
     LineChart, Line,
     BarChart, Bar,
@@ -62,10 +63,11 @@ export default function SalesStatistics() {
     const [outOfStockSearch, setOutOfStockSearch] = useState('')
     const [reactivatingId, setReactivatingId] = useState<string | null>(null)
     const [reactivateQuantity, setReactivateQuantity] = useState<{ [key: string]: number }>({})
+    const { selectedStore } = useStore()
 
     // Fetch detailed statistics
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery<StatisticsData>(
-        ['sales-statistics', { period, startDate, endDate, saleType, brand, pieceType }],
+        ['sales-statistics', { period, startDate, endDate, saleType, brand, pieceType, selectedStore }],
         async () => {
             const params = new URLSearchParams({
                 period,
@@ -85,7 +87,7 @@ export default function SalesStatistics() {
 
     // Fetch out-of-stock items
     const { data: outOfStockData, isLoading: outOfStockLoading, refetch: refetchOutOfStock } = useQuery<OutOfStockItem[]>(
-        ['out-of-stock', outOfStockSearch],
+        ['out-of-stock', outOfStockSearch, selectedStore],
         async () => {
             const params = outOfStockSearch ? `?search=${outOfStockSearch}` : ''
             const response = await api.get(`/sales/inventory/out-of-stock${params}`)

@@ -5,7 +5,11 @@ import { createStoreFilter } from '../utils/storeAccess';
 // Get all customers
 export const getCustomers = async (req: Request, res: Response) => {
   try {
-    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    // Check if storeId is provided as query parameter (for sys_admin viewing other stores)
+    const queryStoreId = (req.query.storeId as string)
+    const storeFilter = queryStoreId
+      ? { storeId: queryStoreId }  // If specific storeId is provided, use it
+      : createStoreFilter(req.storeId!, req.userRole!)  // Otherwise use store filter based on user's store
     const customers = await CustomerModel.find(storeFilter).sort({ name: 1 });
 
     res.json({

@@ -24,7 +24,13 @@ router.get('/test/debug', async (req: Request, res: Response) => {
 // GET /api/presale/items/summary/active - Get summary of active pre-sales (MUST BE BEFORE /:id)
 router.get('/summary/active', async (req: Request, res: Response) => {
   try {
-    const summary = await PreSaleItemService.getActiveSalesSummary()
+    const { storeId: queryStoreId } = req.query
+    const userStoreId = req.storeId
+
+    // Use query parameter storeId if provided, otherwise use authenticated user's storeId
+    const storeId = queryStoreId ? (queryStoreId as string) : userStoreId
+
+    const summary = await PreSaleItemService.getActiveSalesSummary(storeId)
 
     res.json({
       success: true,
@@ -66,15 +72,20 @@ router.get('/car/:carId', async (req: Request, res: Response) => {
 // GET /api/presale/items - Get all pre-sale items with optional filters
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { status, carId, onlyActive } = req.query
-    const storeId = req.storeId
+    const { status, carId, onlyActive, storeId: queryStoreId } = req.query
+    const userStoreId = req.storeId
 
-    console.log('📌 GET /presale/items - Filters:', { status, carId, onlyActive, storeId })
+    console.log('📌 GET /presale/items - Filters:', { status, carId, onlyActive, queryStoreId, userStoreId })
 
     const filters: any = {}
     if (status) filters.status = status
     if (carId) filters.carId = carId
-    if (storeId) filters.storeId = storeId
+    // Use query parameter storeId if provided, otherwise use authenticated user's storeId
+    if (queryStoreId) {
+      filters.storeId = queryStoreId
+    } else if (userStoreId) {
+      filters.storeId = userStoreId
+    }
     if (onlyActive === 'true') filters.onlyActive = true
 
     console.log('📌 Calling PreSaleItemService.getPreSaleItems with filters:', filters)

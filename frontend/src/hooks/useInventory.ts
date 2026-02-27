@@ -20,6 +20,7 @@ interface UseInventoryOptions {
   camioneta?: boolean
   fastFurious?: boolean
   useRedux?: boolean // Use Redux cache alongside React Query
+  selectedStore?: string // Store to filter by
 }
 
 export const useInventory = (options: UseInventoryOptions = {}) => {
@@ -37,14 +38,15 @@ export const useInventory = (options: UseInventoryOptions = {}) => {
     moto = false,
     camioneta = false,
     fastFurious = false,
-    useRedux = true
+    useRedux = true,
+    selectedStore
   } = options
 
   const dispatch = useAppDispatch()
   
   return useQuery<PaginatedInventoryResponse, Error>(
-    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase, fantasy, fantasyOnly, moto, camioneta, fastFurious],
-    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase, fantasy, fantasyOnly, moto, camioneta, fastFurious }),
+    ['inventory', page, limit, search, condition, brand, pieceType, treasureHunt, chase, fantasy, fantasyOnly, moto, camioneta, fastFurious, selectedStore],
+    () => inventoryService.getAll(page, limit, { search, condition, brand, pieceType, treasureHunt, chase, fantasy, fantasyOnly, moto, camioneta, fastFurious, storeId: selectedStore }),
     {
       staleTime: 2 * 60 * 1000, // 2 minutes - shorter for more frequent updates
       cacheTime: 10 * 60 * 1000, // 10 minutes in cache
@@ -95,7 +97,8 @@ export const useCreateInventoryItem = () => {
   const queryClient = useQueryClient()
 
   return useMutation(
-    (data: CreateInventoryItemDto) => inventoryService.create(data),
+    ({ data, selectedStore }: { data: CreateInventoryItemDto; selectedStore?: string }) => 
+      inventoryService.create(data, selectedStore),
     {
       onSuccess: () => {
         queryClient.invalidateQueries('inventory')
@@ -112,8 +115,8 @@ export const useUpdateInventoryItem = () => {
   const queryClient = useQueryClient()
 
   return useMutation(
-    ({ id, data }: { id: string; data: Partial<CreateInventoryItemDto> }) =>
-      inventoryService.update(id, data),
+    ({ id, data, selectedStore }: { id: string; data: Partial<CreateInventoryItemDto>; selectedStore?: string }) =>
+      inventoryService.update(id, data, selectedStore),
     {
       onSuccess: (_, variables) => {
         queryClient.invalidateQueries('inventory')

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from 'react-query'
+import { useStore } from '@/contexts/StoreContext'
 import { useDeliveries, useAllDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
 import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
 import { useInventory } from '@/hooks/useInventory'
@@ -23,6 +24,7 @@ import type { InventoryItem } from '../../../shared/types'
 
 export default function Deliveries() {
     const navigate = useNavigate()
+    const { selectedStore } = useStore()
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState<string>()
     const [showCreateModal, setShowCreateModal] = useState(false)
@@ -92,16 +94,17 @@ export default function Deliveries() {
     const [customLocation, setCustomLocation] = useState('')
     const [showCustomLocationInput, setShowCustomLocationInput] = useState(false)
 
-    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter, selectedDate)
-    const { data: allDeliveries } = useAllDeliveries(selectedDate) // Always loaded for widget stats
-    const { data: customers } = useCustomers()
+    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter, selectedDate, selectedStore || undefined)
+    const { data: allDeliveries } = useAllDeliveries(selectedDate, selectedStore || undefined) // Always loaded for widget stats
+    const { data: customers } = useCustomers(selectedStore || undefined)
     // Only load inventory when creating/editing a delivery
     const { data: inventoryData } = useInventory({
-        limit: showCreateModal ? 1000 : 10 // Load all only when modal is open
+        limit: showCreateModal ? 1000 : 10, // Load all only when modal is open
+        selectedStore: selectedStore || undefined
     })
     const inventoryItems = inventoryData?.items || []
     const { data: deliveryLocations } = useDeliveryLocations()
-    const { data: preSaleItems } = usePreSaleItems()
+    const { data: preSaleItems } = usePreSaleItems({ storeId: selectedStore || undefined })
 
     // Use empty array as default to avoid initial zero values, but still show loading state
     const deliveriesData = deliveries || []

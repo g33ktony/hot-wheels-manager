@@ -9,8 +9,19 @@ import { createStoreFilter } from '../utils/storeAccess';
 // Get all sales
 export const getSales = async (req: Request, res: Response) => {
   try {
+    // Check if storeId is provided as query parameter (for sys_admin viewing other stores)
+    const queryStoreId = (req.query.storeId as string)
+    const finalStoreId = queryStoreId || req.storeId
+    
+    console.log('🔍 [getSales] Fetching sales for store:', finalStoreId, '(query param:', queryStoreId, ', user store:', req.storeId, ')')
+    
     // Use aggregation pipeline to ensure customerId is a string
-    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const storeFilter = queryStoreId 
+      ? { storeId: queryStoreId }  // If specific storeId is provided, use it
+      : createStoreFilter(req.storeId!, req.userRole!)  // Default: use user's store
+    
+    console.log('📊 [getSales] Store filter:', storeFilter)
+    
     const sales = await SaleModel.aggregate([
       {
         $match: storeFilter
@@ -40,7 +51,7 @@ export const getSales = async (req: Request, res: Response) => {
       }
     ]);
 
-    console.log(`[getSales] Total sales from aggregation: ${sales.length}`);
+    console.log(`✅ [getSales] Found ${sales.length} sales for store ${finalStoreId}`);
     if (sales.length > 0) {
       console.log(`[getSales] First sale:`, {
         _id: sales[0]._id,
@@ -298,8 +309,13 @@ export const createSale = async (req: Request, res: Response) => {
 // Get sales statistics
 export const getSalesStats = async (req: Request, res: Response) => {
   try {
-    const totalSales = await SaleModel.countDocuments();
+    const storeId = (req as any).storeId; // Get user's store
+    
+    const totalSales = await SaleModel.countDocuments({ storeId });
     const totalRevenue = await SaleModel.aggregate([
+      {
+        $match: { storeId }
+      },
       {
         $group: {
           _id: null,
@@ -313,6 +329,7 @@ export const getSalesStats = async (req: Request, res: Response) => {
     const monthlyStats = await SaleModel.aggregate([
       {
         $match: {
+          storeId,
           saleDate: { $gte: thisMonth }
         }
       },
@@ -711,6 +728,7 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
 
     // Construir match query
     const matchQuery: any = {
+      storeId: ((req.query.storeId as string) || (req as any).storeId), // Filter by store (query param for sys_admin, else user's store)
       saleDate: dateRange,
       status: 'completed'
     };
@@ -922,8 +940,10 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
 export const getOutOfStockItems = async (req: Request, res: Response) => {
   try {
     const { search } = req.query;
+    const storeId = (req as any).storeId; // Get user's store
 
     const query: any = {
+      storeId, // Filter by user's store
       quantity: 0
     };
 
@@ -936,7 +956,7 @@ export const getOutOfStockItems = async (req: Request, res: Response) => {
     }
 
     const items = await InventoryItemModel.find(query)
-      .select('carId carName brand pieceType quantity suggestedPrice actualPrice condition')
+      .select('carId carName brand pieceType quantity suggestedPrice actualPrice condition storeId')
       .sort({ dateAdded: -1 });
 
     res.json({

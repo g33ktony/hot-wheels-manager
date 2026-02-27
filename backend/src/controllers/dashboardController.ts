@@ -104,18 +104,28 @@ async function getRecentActivityData(totalCatalogCars: number, totalSales: numbe
 export const getDashboardMetrics = async (req: Request, res: Response): Promise<Response | void> => {
   try {
     const storeId = (req as any).storeId; // Obtener storeId del usuario
-    console.log('🔍 Fetching dashboard metrics for store:', storeId);
+    // If storeId is provided as query parameter (for sys_admin viewing other stores), use that instead
+    const queryStoreId = (req.query.storeId as string)
+    const finalStoreId = queryStoreId || storeId
+    console.log('🔍 Fetching dashboard metrics for store:', finalStoreId);
     
-    // Check cache first
-    const cachedMetrics = dashboardCache.get(CACHE_KEYS.DASHBOARD_METRICS);
+    // Check cache first (keyed by storeId to ensure per-store data)
+    const cacheKey = `${CACHE_KEYS.DASHBOARD_METRICS}_${finalStoreId}`;
+    const cachedMetrics = dashboardCache.get(cacheKey);
     if (cachedMetrics) {
-      console.log('✅ Returning cached dashboard metrics (5min TTL)');
+      console.log('✅ Returning cached dashboard metrics for store', finalStoreId, '(5min TTL)');
       return res.json({
         success: true,
         data: cachedMetrics,
         cached: true
       });
     }
+    
+    // Helper function to create storeId filter
+    const getStoreFilter = (storeId: string) => {
+      return { storeId }  // Always filter by specific store
+    }
+    const storeFilter = getStoreFilter(finalStoreId)
     
     // Check if database is connected
     if (mongoose.connection.readyState !== 1) {
@@ -156,9 +166,9 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     
     // Get inventory stats
     console.log('📊 Getting inventory stats...');
-    const totalInventoryItems = await InventoryItemModel.countDocuments({ storeId });
+    const totalInventoryItems = await InventoryItemModel.countDocuments(storeFilter);
     const totalQuantity = await InventoryItemModel.aggregate([
-      { $match: { storeId } },
+      { $match: storeFilter },
       { $group: { _id: null, total: { $sum: '$quantity' } } }
     ]);
     
@@ -172,7 +182,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     // Calculate total value estimate
     console.log('💰 Calculating inventory value...');
     const inventoryValue = await InventoryItemModel.aggregate([
-      { $match: { storeId } },
+      { $match: storeFilter },
       { $group: { _id: null, total: { $sum: { $multiply: ['$quantity', '$suggestedPrice'] } } } }
     ]);
 
@@ -182,19 +192,19 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     firstDayOfMonth.setDate(1);
     const currentMonth = getStartOfDayUTC(firstDayOfMonth);
 
-    const totalSales = await SaleModel.countDocuments({ storeId });
+    const totalSales = await SaleModel.countDocuments(storeFilter);
     const monthlySales = await SaleModel.countDocuments({
-      storeId,
+      ...storeFilter,
       saleDate: { $gte: currentMonth }
     });
 
     const totalRevenue = await SaleModel.aggregate([
-      { $match: { storeId } },
+      { $match: storeFilter },
       { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
 
     const monthlyRevenue = await SaleModel.aggregate([
-      { $match: { storeId, saleDate: { $gte: currentMonth } } },
+      { $match: { ...storeFilter, saleDate: { $gte: currentMonth } } },
       { $group: { _id: null, total: { $sum: '$totalAmount' } } }
     ]);
 
@@ -204,7 +214,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Daily sales from completed sales (POS)
     const dailySalesData = await SaleModel.find({
-      storeId,
+      ...storeFilter,
       saleDate: { $gte: startOfToday, $lte: endOfToday },
       status: 'completed'
     }).populate({
@@ -226,7 +236,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Daily profit from delivery payments made today
     const dailyDeliveryPaymentsData = await DeliveryModel.find({
-      storeId,
+      ...storeFilter,
       'paymentHistory.date': { $gte: startOfToday, $lte: endOfToday }
     }).populate({
       path: 'items.inventoryItemId',
@@ -249,14 +259,14 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     console.log('💵 Calculating profits...');
     
     // Get all sales with their items and populate inventory data
-    const allSales = await SaleModel.find({ storeId, status: 'completed' })
+    const allSales = await SaleModel.find({ ...storeFilter, status: 'completed' })
       .populate({
         path: 'items.inventoryItemId',
         select: 'purchasePrice'
       });
 
     const monthlySalesData = await SaleModel.find({
-      storeId,
+      ...storeFilter,
       status: 'completed',
       saleDate: { $gte: currentMonth }
     }).populate({
@@ -285,20 +295,20 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     });
 
     // Get delivery metrics
-    console.log('� Getting delivery metrics...');
+    console.log('Getting delivery metrics...');
     const pendingDeliveries = await DeliveryModel.countDocuments({
-      storeId,
+      ...storeFilter,
       status: { $in: ['scheduled', 'prepared'] }
     });
     // Get unpaid deliveries (pending or partial payment)
     const unpaidDeliveries = await DeliveryModel.countDocuments({
-      storeId,
+      ...storeFilter,
       paymentStatus: { $in: ['pending', 'partial'] }
     });
 
     // Get items to prepare (scheduled deliveries that are not yet prepared)
     const itemsToPrepare = await DeliveryModel.aggregate([
-      { $match: { storeId, status: 'scheduled' } },
+      { $match: { ...storeFilter, status: 'scheduled' } },
       { $unwind: '$items' },
       { $group: { _id: null, total: { $sum: '$items.quantity' } } }
     ]);
@@ -306,7 +316,7 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
     const { startDate: startOfDay, endDate: endOfDay } = getDayRangeLocal(getTodayString());
 
     const todaysDeliveries = await DeliveryModel.find({
-      storeId,
+      ...storeFilter,
       scheduledDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $in: ['scheduled', 'prepared'] }
     })
@@ -316,7 +326,9 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
 
     // Get purchase metrics
     console.log('📦 Getting purchase metrics...');
-    const pendingPurchases = await Purchase.countDocuments({      storeId,      status: { $in: ['pending', 'paid', 'shipped'] }
+    const pendingPurchases = await Purchase.countDocuments({
+      ...storeFilter,
+      status: { $in: ['pending', 'paid', 'shipped'] }
     });
 
     console.log('📋 Compiling dashboard data...');
@@ -349,14 +361,13 @@ export const getDashboardMetrics = async (req: Request, res: Response): Promise<
         totalAmount: delivery.totalAmount,
         itemCount: delivery.items?.length || 0
       })),
-      recentActivity: await getRecentActivityData(totalCatalogCars, totalSales, storeId)
+      recentActivity: await getRecentActivityData(totalCatalogCars, totalSales, finalStoreId)
     };
 
     console.log('✅ Dashboard metrics fetched successfully');
-    // Cache the metrics for 5 minutes
-    dashboardCache.set(CACHE_KEYS.DASHBOARD_METRICS, dashboardData, 5 * 60 * 1000);
-    
-    console.log('✅ Dashboard metrics fetched successfully');
+    // Cache the metrics for 5 minutes (keyed by storeId)
+    dashboardCache.set(cacheKey, dashboardData, 5 * 60 * 1000);
+    console.log('✅ Dashboard metrics cached for store', finalStoreId);
     res.json({
       success: true,
       data: dashboardData

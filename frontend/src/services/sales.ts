@@ -7,8 +7,9 @@ import type {
 
 export const salesService = {
   // Obtener todas las ventas
-  getAll: async (): Promise<Sale[]> => {
-    const response = await api.get<ApiResponse<Sale[]>>('/sales')
+  getAll: async (selectedStore?: string): Promise<Sale[]> => {
+    const params = selectedStore ? `?storeId=${selectedStore}` : ''
+    const response = await api.get<ApiResponse<Sale[]>>(`/sales${params}`)
     return response.data.data || []
   },
 

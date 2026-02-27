@@ -13,6 +13,11 @@ export const getDeliveries = async (req: Request, res: Response) => {
     // Get status filter from query params
     const { status, fromDate, includeCompleted, includeUnpaidCompleted } = req.query;
 
+    // Check if storeId is provided as query parameter (for sys_admin viewing other stores)
+    const queryStoreId = (req.query.storeId as string)
+    const finalStoreId = queryStoreId || req.storeId
+    console.log('🔍 [getDeliveries] Fetching deliveries for store:', finalStoreId, '(query param:', queryStoreId, ', user store:', req.storeId, ')')
+
     // Build filter
     const filter: any = {};
     
@@ -54,7 +59,9 @@ export const getDeliveries = async (req: Request, res: Response) => {
     }
     
     // Simplified query - remove nested populate for better performance
-    const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
+    const storeFilter = queryStoreId
+      ? { storeId: queryStoreId }  // If specific storeId is provided, use it
+      : createStoreFilter(req.storeId!, req.userRole!)  // Otherwise use store filter based on user's store
     const deliveries = await DeliveryModel.find({ ...filter, ...storeFilter })
       .populate('customerId', 'name email phone') // Only populate customer
       .populate('items.inventoryItemId', 'photos purchasePrice') // Populate photos for items
@@ -82,7 +89,16 @@ export const getDeliveries = async (req: Request, res: Response) => {
 // Get delivery statistics
 export const getDeliveryStats = async (req: Request, res: Response) => {
   try {
+    // Check if storeId is provided as query parameter (for sys_admin viewing other stores)
+    const queryStoreId = (req.query.storeId as string)
+    
+    // Build the match stage for store filtering
+    const matchStage: any = queryStoreId
+      ? { storeId: queryStoreId }  // If specific storeId is provided, use it
+      : createStoreFilter(req.storeId!, req.userRole!)  // Otherwise use store filter based on user's store
+    
     const stats = await DeliveryModel.aggregate([
+      { $match: matchStage },  // Add store filter
       {
         $group: {
           _id: '$status',

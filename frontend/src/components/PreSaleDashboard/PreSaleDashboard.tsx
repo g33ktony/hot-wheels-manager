@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { usePreSaleItems } from '@/hooks/usePresale'
+import { useStore } from '@/contexts/StoreContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import PreSaleItemCard from './PreSaleItemCard'
 import PreSaleFilters from './PreSaleFilters'
@@ -19,7 +20,8 @@ interface Filters {
 }
 
 const PreSaleDashboard: React.FC = () => {
-    const { data: preSalesData, isLoading, error, refetch } = usePreSaleItems()
+    const { selectedStore } = useStore()
+    const { data: preSalesData, isLoading, error, refetch } = usePreSaleItems({ storeId: selectedStore || undefined })
     const { mode } = useTheme()
     const isDark = mode === 'dark'
     const [showDetailModal, setShowDetailModal] = useState(false)

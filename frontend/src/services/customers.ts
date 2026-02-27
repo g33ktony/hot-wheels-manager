@@ -7,8 +7,10 @@ import type {
 
 export const customersService = {
   // Obtener todos los clientes
-  getAll: async (): Promise<Customer[]> => {
-    const response = await api.get<ApiResponse<Customer[]>>('/customers')
+  getAll: async (storeId?: string): Promise<Customer[]> => {
+    const params: any = {}
+    if (storeId) params.storeId = storeId
+    const response = await api.get<ApiResponse<Customer[]>>('/customers', { params })
     return response.data.data || []
   },
 

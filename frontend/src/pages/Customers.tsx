@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useStore } from '@/contexts/StoreContext'
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer } from '@/hooks/useCustomers'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -9,6 +10,7 @@ import Modal from '@/components/common/Modal'
 
 export default function Customers() {
     const navigate = useNavigate()
+    const { selectedStore } = useStore()
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [editingCustomer, setEditingCustomer] = useState<any>(null)
@@ -21,7 +23,7 @@ export default function Customers() {
         notes: ''
     })
 
-    const { data: customers, isLoading, error } = useCustomers()
+    const { data: customers, isLoading, error } = useCustomers(selectedStore || undefined)
     const createCustomerMutation = useCreateCustomer()
     const updateCustomerMutation = useUpdateCustomer()
     const deleteCustomerMutation = useDeleteCustomer()

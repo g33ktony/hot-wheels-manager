@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useStore } from '@/contexts/StoreContext'
 import { useAssignPreSaleUnits, usePreSaleItem } from '@/hooks/usePresale'
 import { useDeliveries, useCreateDelivery } from '@/hooks/useDeliveries'
 import { useCustomers } from '@/hooks/useCustomers'
@@ -43,8 +44,11 @@ const PreSaleAssignmentModal: React.FC<PreSaleAssignmentModalProps> = ({
     const [paymentDayOfWeek, setPaymentDayOfWeek] = useState(5) // Friday = 5
     const [paymentDayOfMonth, setPaymentDayOfMonth] = useState(25)
 
-    const { data: deliveries = [], isLoading: deliveriesLoading } = useDeliveries()
-    const { data: customers = [] } = useCustomers()
+    // Get selected store
+    const { selectedStore } = useStore()
+
+    const { data: deliveries = [], isLoading: deliveriesLoading } = useDeliveries(undefined, undefined, selectedStore || undefined)
+    const { data: customers = [] } = useCustomers(selectedStore || undefined)
     const { data: preSaleItem } = usePreSaleItem(preSaleItemId)
     const assignUnits = useAssignPreSaleUnits()
     const createDelivery = useCreateDelivery()

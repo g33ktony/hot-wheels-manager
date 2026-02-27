@@ -55,11 +55,12 @@ export const presaleService = {
   // Pre-Sale Items
   items: {
     // Get all pre-sale items
-    getAll: async (filters?: { status?: string; carId?: string; onlyActive?: boolean }): Promise<PreSaleItem[]> => {
+    getAll: async (filters?: { status?: string; carId?: string; onlyActive?: boolean; storeId?: string }): Promise<PreSaleItem[]> => {
       const params = new URLSearchParams()
       if (filters?.status) params.append('status', filters.status)
       if (filters?.carId) params.append('carId', filters.carId)
       if (filters?.onlyActive) params.append('onlyActive', 'true')
+      if (filters?.storeId) params.append('storeId', filters.storeId)
 
       const response = await api.get<ApiResponse<PreSaleItem[]>>(
         `/presale/items${params.toString() ? '?' + params.toString() : ''}`
@@ -193,8 +194,12 @@ export const presaleService = {
     },
 
     // Get active sales summary
-    getActiveSummary: async (): Promise<any> => {
-      const response = await api.get<ApiResponse<any>>('/presale/items/summary/active')
+    getActiveSummary: async (storeId?: string): Promise<any> => {
+      const params = new URLSearchParams()
+      if (storeId) {
+        params.append('storeId', storeId)
+      }
+      const response = await api.get<ApiResponse<any>>(`/presale/items/summary/active?${params}`)
       return response.data.data
     },
 

@@ -27,6 +27,7 @@ export interface InventoryFilters {
   moto?: boolean
   camioneta?: boolean
   fastFurious?: boolean
+  storeId?: string // Store to filter by
 }
 
 export const inventoryService = {
@@ -76,6 +77,9 @@ export const inventoryService = {
     if (filters.fastFurious) {
       params.append('fastFurious', 'true')
     }
+    if (filters.storeId) {
+      params.append('storeId', filters.storeId)
+    }
 
     const response = await api.get<ApiResponse<PaginatedInventoryResponse>>(
       `/inventory?${params.toString()}`
@@ -93,8 +97,9 @@ export const inventoryService = {
   },
 
   // Crear nuevo item en inventario
-  create: async (data: CreateInventoryItemDto): Promise<InventoryItem> => {
-    const response = await api.post<ApiResponse<InventoryItem>>('/inventory', data)
+  create: async (data: CreateInventoryItemDto, selectedStore?: string): Promise<InventoryItem> => {
+    const payload = selectedStore ? { ...data, storeId: selectedStore } : data
+    const response = await api.post<ApiResponse<InventoryItem>>('/inventory', payload)
     if (!response.data.data) {
       throw new Error('Failed to create item')
     }
@@ -102,8 +107,9 @@ export const inventoryService = {
   },
 
   // Actualizar item del inventario
-  update: async (id: string, data: Partial<CreateInventoryItemDto>): Promise<InventoryItem> => {
-    const response = await api.put<ApiResponse<InventoryItem>>(`/inventory/${id}`, data)
+  update: async (id: string, data: Partial<CreateInventoryItemDto>, selectedStore?: string): Promise<InventoryItem> => {
+    const payload = selectedStore ? { ...data, storeId: selectedStore } : data
+    const response = await api.put<ApiResponse<InventoryItem>>(`/inventory/${id}`, payload)
     if (!response.data.data) {
       throw new Error('Failed to update item')
     }

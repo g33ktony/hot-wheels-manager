@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useStore } from '@/contexts/StoreContext'
+import { useCanEditStore } from '@/hooks/useCanEditStore'
 import { useSales, useDeleteSale } from '@/hooks/useSales'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
@@ -11,6 +13,8 @@ import { Plus, Search, ShoppingCart, X, ChevronLeft, ChevronRight } from 'lucide
 
 export default function Sales() {
     const [searchParams] = useSearchParams()
+    const { selectedStore } = useStore()
+    const { canEdit, canDelete, canCreate } = useCanEditStore()
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [showDetailsModal, setShowDetailsModal] = useState(false)
@@ -19,7 +23,7 @@ export default function Sales() {
     const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-    const { data: sales, isLoading, error } = useSales()
+    const { data: sales, isLoading, error } = useSales(selectedStore || undefined)
     const deleteSaleMutation = useDeleteSale()
 
     // Auto-open modal if id parameter is provided in URL
@@ -137,7 +141,7 @@ export default function Sales() {
                                 : 'Comienza registrando tu primera venta'
                             }
                         </p>
-                        {!searchTerm && (
+                        {!searchTerm && canCreate && (
                             <Button
                                 icon={<Plus size={20} />}
                                 onClick={() => setShowCreateModal(true)}
@@ -156,6 +160,8 @@ export default function Sales() {
                             onViewDetails={handleViewDetails}
                             onDelete={handleDeleteSale}
                             isLoadingDelete={deleteSaleMutation.isLoading}
+                            canEdit={canEdit}
+                            canDelete={canDelete}
                         />
                     ))}
                 </div>

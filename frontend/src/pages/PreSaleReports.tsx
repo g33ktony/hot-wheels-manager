@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { TrendingUp, DollarSign, Percent, Package, Calendar } from 'lucide-react'
+import { useStore } from '@/contexts/StoreContext'
 import { usePreSaleItems } from '@/hooks/usePresale'
 import { useInventory } from '@/hooks/useInventory'
 
 export default function PreSaleReports() {
+    const { selectedStore } = useStore()
     const [dateFilter, setDateFilter] = useState<'all' | '30days' | '90days' | 'year'>('all')
-    const { data: preSaleItems = [] } = usePreSaleItems()
-    const { data: inventoryData } = useInventory({ limit: 1000 })
+    const { data: preSaleItems = [] } = usePreSaleItems({ storeId: selectedStore || undefined })
+    const { data: inventoryData } = useInventory({ limit: 1000, selectedStore: selectedStore || undefined })
     const inventory = inventoryData?.items || []
 
     // Filter items based on date range

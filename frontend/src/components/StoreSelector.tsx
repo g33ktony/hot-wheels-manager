@@ -51,7 +51,7 @@ export default function StoreSelector() {
             >
                 <Building2 size={18} />
                 <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
-                    {currentStore ? currentStore.storeName : 'Selecciona tienda'}
+                    {currentStore?.storeName || 'Selecciona tienda'}
                 </span>
                 <ChevronDown
                     size={16}
@@ -90,7 +90,7 @@ export default function StoreSelector() {
                     {/* Available stores to view */}
                     <div className="px-4 py-3">
                         <div className="text-xs font-semibold mb-2">
-                            👀 Ver datos de otras tiendas:
+                            👀 Ver datos de tiendas:
                         </div>
                         <div className="p-2 max-h-48 overflow-y-auto space-y-1">
                             {availableStores.length === 0 ? (
@@ -102,7 +102,12 @@ export default function StoreSelector() {
                                     <button
                                         key={store.storeId}
                                         onClick={() => {
-                                            setSelectedStore(store.storeId)
+                                            // Toggle: if already selected, go back to user's store
+                                            if (selectedStore === store.storeId) {
+                                                setSelectedStore(userStore!)
+                                            } else {
+                                                setSelectedStore(store.storeId)
+                                            }
                                             setIsOpen(false)
                                         }}
                                         className={`
