@@ -103,11 +103,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 }
 
                 const data = await response.json()
-                const storeList = data.data.map((store: any) => ({
-                    _id: store._id || '',
-                    storeId: store._id,
-                    storeName: store.name || `Store ${store._id}`
-                }))
+                const storeList = data.data
+                    .filter((store: any) => !store.isArchived) // Only active stores
+                    .map((store: any) => ({
+                        _id: store._id || '',
+                        storeId: store._id,
+                        storeName: store.name || `Store ${store._id}`
+                    }))
 
                 console.log('🏪 [StoreContext] Fetched', storeList.length, 'stores for sys_admin')
                 setAvailableStores(storeList)
@@ -127,9 +129,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
                 // Auto-assign selectedStore: default to user's own store (not first store in list)
                 setSelectedStoreState(prev => {
-                    // Always default to user's own store, even if something was loaded from localStorage
-                    if (normalizedUserStore) {
-                        console.log('🏪 [StoreContext] Setting selectedStore to user store:', normalizedUserStore, '(was:', prev, ')')
+                    // Only default to user's own store if not already selected
+                    if (!prev && normalizedUserStore) {
+                        console.log('🏪 [StoreContext] Setting selectedStore to user store (initial):', normalizedUserStore)
                         localStorage.setItem('selectedStore', normalizedUserStore)
                         return normalizedUserStore
                     }

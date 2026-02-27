@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserModel } from '../models/User'
+import Store from '../models/Store'
 
 const JWT_EXPIRES_IN = '1d' // Token válido por 1 día
 
@@ -93,6 +94,38 @@ export const login = async (req: Request, res: Response) => {
       { _id: user._id },
       { $set: { lastLogin: new Date() } }
     )
+
+    // If sys_admin, ensure they have their system store and sync storeId
+    if (user.role === 'sys_admin') {
+      try {
+        let sysAdminStore = await Store.findOne({ storeAdminId: user.email })
+        
+        if (!sysAdminStore) {
+          // Create sys_admin's personal store if it doesn't exist
+          sysAdminStore = new Store({
+            name: 'Tienda de Coleccionables - Sistema',
+            description: 'Tienda personal del administrador del sistema',
+            storeAdminId: user.email
+          })
+          await sysAdminStore.save()
+          console.log(`✅ Created sys_admin store during login: ${sysAdminStore._id}`)
+        }
+        
+        // Update user's storeId to match the store's _id if different
+        if (user.storeId !== sysAdminStore._id.toString()) {
+          await UserModel.updateOne(
+            { _id: user._id },
+            { storeId: sysAdminStore._id.toString() }
+          )
+          console.log(`✅ Synced sys_admin storeId to: ${sysAdminStore._id}`)
+          // Update the user object so we use the correct storeId in the token
+          user.storeId = sysAdminStore._id.toString()
+        }
+      } catch (error) {
+        console.error('Error ensuring sys_admin store during login:', error)
+        // Continue anyway, don't block login
+      }
+    }
 
     // Generar token
     const token = jwt.sign(

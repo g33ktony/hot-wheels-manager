@@ -281,6 +281,87 @@ function cleanWikitext(text: string): string {
 }
 
 /**
+ * Extrae múltiples URLs de imágenes (principal y carded) del wikitext
+ */
+function extractImages(wikitext: string): { main?: string, carded?: string } {
+  const images: { main?: string, carded?: string } = {}
+
+  // Buscar sección ==Images== o ==Gallery==
+  const imagesSection = wikitext.match(/==(Images|Gallery)==([^]*?)(?===|$)/i)
+  if (!imagesSection) return images
+
+  const imageSectionText = imagesSection[2]
+
+  // Método 1: Buscar en tabla de imágenes [[File:xxx.jpg|description]]
+  const fileMatches = imageSectionText.match(/\[\[(File|Image):([^\]|]+)[^\]]*\|?([^\]]*)\]\]/gi)
+  
+  if (fileMatches && fileMatches.length > 0) {
+    // Primera imagen = main
+    let mainMatch = fileMatches[0].match(/(?:File|Image):([^\]|]+)/i)
+    if (mainMatch) {
+      const fileName = mainMatch[1].trim().replace(/ /g, '_')
+      images.main = `wiki-file:${fileName}`
+    }
+
+    // Buscar segunda imagen con palabras clave "carded", "card", "boxed", "box", "original"
+    for (let i = 1; i < fileMatches.length; i++) {
+      const match = fileMatches[i].match(/(?:File|Image):([^\]|]+)[^\]]*\|?([^\]]*)\]\]/i)
+      if (match) {
+        const fileName = match[1].trim().replace(/ /g, '_')
+        const description = (match[2] || '').toLowerCase()
+        
+        // Buscar keywords que indiquen que es la versión "carded"
+        if (description.includes('carded') || description.includes('card') || 
+            description.includes('boxed') || description.includes('box') || 
+            description.includes('original') || description.includes('package') ||
+            fileName.toLowerCase().includes('carded') || fileName.toLowerCase().includes('boxed')) {
+          images.carded = `wiki-file:${fileName}`
+          break
+        }
+      }
+    }
+
+    // Si no encontró carded por descripción, usar la segunda imagen disponible
+    if (!images.carded && fileMatches.length > 1) {
+      let secondMatch = fileMatches[1].match(/(?:File|Image):([^\]|]+)/i)
+      if (secondMatch) {
+        const fileName = secondMatch[1].trim().replace(/ /g, '_')
+        images.carded = `wiki-file:${fileName}`
+      }
+    }
+  }
+
+  // Método 2: Si no encuentra en tabla, buscar en galería <gallery>...</gallery>
+  if (!images.carded && !images.main) {
+    const galleryMatch = imageSectionText.match(/<gallery[^>]*>([^]*?)<\/gallery>/i)
+    if (galleryMatch) {
+      const galleryContent = galleryMatch[1]
+      const galleryFiles = galleryContent.match(/(?:File|Image):([^\n|]+)/gi)
+      if (galleryFiles) {
+        // First file in gallery is main
+        if (galleryFiles.length > 0) {
+          const mainFile = galleryFiles[0].match(/(?:File|Image):([^\n|]+)/i)
+          if (mainFile) {
+            const fileName = mainFile[1].trim().replace(/ /g, '_')
+            images.main = `wiki-file:${fileName}`
+          }
+        }
+        // Second file is often carded
+        if (galleryFiles.length > 1) {
+          const cardedFile = galleryFiles[1].match(/(?:File|Image):([^\n|]+)/i)
+          if (cardedFile) {
+            const fileName = cardedFile[1].trim().replace(/ /g, '_')
+            images.carded = `wiki-file:${fileName}`
+          }
+        }
+      }
+    }
+  }
+
+  return images
+}
+
+/**
  * Mapea los headers a posiciones de datos
  */
 function mapColumns(headers: string[]): Record<string, number> {

@@ -8,8 +8,14 @@ import { UserModel } from '../models/User'
 const ensureSysAdminStore = async (userEmail: string) => {
   try {
     // Check if sys_admin already has a store
-    const existingStore = await Store.findOne({ storeAdminId: userEmail })
+    let existingStore = await Store.findOne({ storeAdminId: userEmail })
     if (existingStore) {
+      // Also ensure the user's storeId matches the store's _id
+      await UserModel.updateOne(
+        { email: userEmail },
+        { storeId: existingStore._id.toString() }
+      )
+      console.log(`✅ Ensured sys_admin storeId matches store _id: ${existingStore._id}`)
       return existingStore
     }
 
@@ -21,6 +27,14 @@ const ensureSysAdminStore = async (userEmail: string) => {
     })
     await sysAdminStore.save()
     console.log(`✅ Created sys_admin store: ${sysAdminStore._id}`)
+    
+    // Update the user's storeId to match the new store's _id
+    await UserModel.updateOne(
+      { email: userEmail },
+      { storeId: sysAdminStore._id.toString() }
+    )
+    console.log(`✅ Updated user storeId to: ${sysAdminStore._id}`)
+    
     return sysAdminStore
   } catch (error: any) {
     console.error('Error ensuring sys_admin store:', error)

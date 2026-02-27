@@ -75,7 +75,8 @@ export default function SalesStatistics() {
                 ...(period === 'custom' && { endDate }),
                 saleType,
                 ...(brand && { brand }),
-                ...(pieceType && { pieceType })
+                ...(pieceType && { pieceType }),
+                ...(selectedStore && { storeId: selectedStore })
             })
             const response = await api.get(`/sales/statistics/detailed?${params}`)
             return response.data.data
@@ -89,7 +90,10 @@ export default function SalesStatistics() {
     const { data: outOfStockData, isLoading: outOfStockLoading, refetch: refetchOutOfStock } = useQuery<OutOfStockItem[]>(
         ['out-of-stock', outOfStockSearch, selectedStore],
         async () => {
-            const params = outOfStockSearch ? `?search=${outOfStockSearch}` : ''
+            const searchParams = new URLSearchParams()
+            if (outOfStockSearch) searchParams.append('search', outOfStockSearch)
+            if (selectedStore) searchParams.append('storeId', selectedStore)
+            const params = searchParams.toString() ? `?${searchParams}` : ''
             const response = await api.get(`/sales/inventory/out-of-stock${params}`)
             return response.data.data
         },

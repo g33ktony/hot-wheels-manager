@@ -939,11 +939,12 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
  */
 export const getOutOfStockItems = async (req: Request, res: Response) => {
   try {
-    const { search } = req.query;
-    const storeId = (req as any).storeId; // Get user's store
+    const { search, storeId: queryStoreId } = req.query;
+    // Filter by query storeId (for sys_admin viewing other stores), else use user's store
+    const storeId = (queryStoreId as string) || (req as any).storeId;
 
     const query: any = {
-      storeId, // Filter by user's store
+      storeId, // Filter by store (query param for sys_admin, else user's store)
       quantity: 0
     };
 

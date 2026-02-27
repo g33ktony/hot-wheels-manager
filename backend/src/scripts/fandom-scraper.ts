@@ -20,6 +20,7 @@ interface ParsedVehicle {
   year: string
   color?: string
   photo_url?: string
+  photo_url_carded?: string
   tampo?: string
   wheel_type?: string
   car_make?: string
@@ -101,13 +102,98 @@ function parseTemplate(wikitext: string): Partial<ParsedVehicle> | null {
     }
   }
 
+  // Extract images from wikitext for both main and carded
+  const images = extractImages(wikitext)
+
   return {
     carModel: params.name,
     series: params.series,
     toy_num: params.number,
     year: params.years,
-    photo_url: params.image ? `https://static.wikia.nocookie.net/hotwheels/images/${params.image}` : undefined
+    photo_url: images.main || (params.image ? `https://static.wikia.nocookie.net/hotwheels/images/${params.image}` : undefined),
+    photo_url_carded: images.carded
   }
+}
+
+/**
+ * Extrae múltiples URLs de imágenes (principal y carded) del wikitext
+ */
+function extractImages(wikitext: string): { main?: string, carded?: string } {
+  const images: { main?: string, carded?: string } = {}
+
+  // Buscar sección ==Images== o ==Gallery==
+  const imagesSection = wikitext.match(/==(Images|Gallery)==([^]*?)(?===|$)/i)
+  if (!imagesSection) return images
+
+  const imageSectionText = imagesSection[2]
+
+  // Método 1: Buscar en tabla de imágenes [[File:xxx.jpg|description]]
+  const fileMatches = imageSectionText.match(/\[\[(File|Image):([^\]|]+)[^\]]*\|?([^\]]*)\]\]/gi)
+  
+  if (fileMatches && fileMatches.length > 0) {
+    // Primera imagen = main
+    let mainMatch = fileMatches[0].match(/(?:File|Image):([^\]|]+)/i)
+    if (mainMatch) {
+      const fileName = mainMatch[1].trim().replace(/ /g, '_')
+      images.main = `https://static.wikia.nocookie.net/hotwheels/images/${fileName}`
+    }
+
+    // Buscar segunda imagen con palabras clave "carded", "card", "boxed", "box", "original"
+    for (let i = 1; i < fileMatches.length; i++) {
+      const match = fileMatches[i].match(/(?:File|Image):([^\]|]+)[^\]]*\|?([^\]]*)\]\]/i)
+      if (match) {
+        const fileName = match[1].trim().replace(/ /g, '_')
+        const description = (match[2] || '').toLowerCase()
+        
+        // Buscar keywords que indiquen que es la versión "carded"
+        if (description.includes('carded') || description.includes('card') || 
+            description.includes('boxed') || description.includes('box') || 
+            description.includes('original') || description.includes('package') ||
+            fileName.toLowerCase().includes('carded') || fileName.toLowerCase().includes('boxed')) {
+          images.carded = `https://static.wikia.nocookie.net/hotwheels/images/${fileName}`
+          break
+        }
+      }
+    }
+
+    // Si no encontró carded por descripción, usar la segunda imagen disponible
+    if (!images.carded && fileMatches.length > 1) {
+      let secondMatch = fileMatches[1].match(/(?:File|Image):([^\]|]+)/i)
+      if (secondMatch) {
+        const fileName = secondMatch[1].trim().replace(/ /g, '_')
+        images.carded = `https://static.wikia.nocookie.net/hotwheels/images/${fileName}`
+      }
+    }
+  }
+
+  // Método 2: Si no encuentra en tabla, buscar en galería <gallery>...</gallery>
+  if (!images.carded && !images.main) {
+    const galleryMatch = imageSectionText.match(/<gallery[^>]*>([^]*?)<\/gallery>/i)
+    if (galleryMatch) {
+      const galleryContent = galleryMatch[1]
+      const galleryFiles = galleryContent.match(/(?:File|Image):([^\n|]+)/gi)
+      if (galleryFiles) {
+        // First file in gallery is main
+        if (galleryFiles.length > 0) {
+          const mainFile = galleryFiles[0].match(/(?:File|Image):([^\n|]+)/i)
+          if (mainFile) {
+            const fileName = mainFile[1].trim().replace(/ /g, '_')
+            images.main = `https://static.wikia.nocookie.net/hotwheels/images/${fileName}`
+          }
+        }
+        // Second file is often carded
+        if (galleryFiles.length > 1) {
+          const cardedFile = galleryFiles[1].match(/(?:File|Image):([^\n|]+)/i)
+          if (cardedFile) {
+            const fileName = cardedFile[1].trim().replace(/ /g, '_')
+            images.carded = `https://static.wikia.nocookie.net/hotwheels/images/${fileName}`
+          }
+        }
+      }
+    }
+  }
+
+  return images
 }
 
 /**
@@ -271,8 +357,8 @@ async function parsePage(pageId: number, title: string): Promise<ParsedVehicle[]
       const toyNumMatch = wikitext.match(/\(([A-Z0-9]{3,10})\)/i)
       // Extract year from text like "released in 2020"
       const yearMatch = wikitext.match(/released in (\d{4})/i)
-      // Extract image URL from wikitext
-      const imageUrl = extractImageUrl(wikitext)
+      // Extract image URLs from wikitext
+      const images = extractImages(wikitext)
 
       if (toyNumMatch && yearMatch && packContents.length > 0) {
         console.log(`    ✓ Multi-pack sin template - extrayendo del texto`)
@@ -283,7 +369,8 @@ async function parsePage(pageId: number, title: string): Promise<ParsedVehicle[]
           col_num: '',
           series_num: '',
           year: yearMatch[1],
-          photo_url: imageUrl,
+          photo_url: images.main,
+          photo_url_carded: images.carded,
           pack_contents: packContents
         } as ParsedVehicle]
       }
@@ -312,6 +399,7 @@ async function parsePage(pageId: number, title: string): Promise<ParsedVehicle[]
           series: templateData.series || '',
           toy_num: templateData.toy_num,
           year: templateData.year,
+          photo_url_carded: templateData.photo_url_carded,
           pack_contents: packContents.length > 0 ? packContents : undefined
         } as ParsedVehicle]
       }
@@ -330,6 +418,7 @@ async function parsePage(pageId: number, title: string): Promise<ParsedVehicle[]
       tampo: version.tampo,
       wheel_type: version.wheel_type,
       photo_url: templateData.photo_url,
+      photo_url_carded: templateData.photo_url_carded,
       car_make: title.match(/^\d{4}\s+([A-Za-z]+)/)?.[1], // Extract make from title like "1967 Ferrari..."
       pack_contents: packContents.length > 0 ? packContents : undefined
     } as ParsedVehicle))
