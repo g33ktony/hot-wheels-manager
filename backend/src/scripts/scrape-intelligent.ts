@@ -544,6 +544,11 @@ function extractVehiclesFromTable(
     }
     
     // Extrae datos usando el mapeo de columnas
+    const mainPhoto = extractPhotoUrl(row[table.columnMap.photo] || '')
+    const cardedPhoto = table.columnMap.photo_carded !== undefined
+      ? extractPhotoUrl(row[table.columnMap.photo_carded] || '')
+      : undefined
+
     const vehicle: any = {
       carModel: stripFileMarkers(row[table.columnMap.name] || ''),
       toy_num: stripFileMarkers(row[table.columnMap.toy_num] || row[table.columnMap.number] || ''),
@@ -560,10 +565,9 @@ function extractVehiclesFromTable(
       interior_color: stripFileMarkers(row[table.columnMap.interior] || ''),
       country: stripFileMarkers(row[table.columnMap.country] || ''),
       notes: stripFileMarkers(row[table.columnMap.notes] || ''),
-      photo_url: extractPhotoUrl(row[table.columnMap.photo] || ''),
-      photo_url_carded: table.columnMap.photo_carded !== undefined 
-        ? extractPhotoUrl(row[table.columnMap.photo_carded] || '') 
-        : undefined,
+      photo_url: mainPhoto,
+      photo_url_carded: cardedPhoto,
+      photo_gallery: [mainPhoto, cardedPhoto].filter((url): url is string => Boolean(url)),
       segment: classifySegment(series),
     }
     

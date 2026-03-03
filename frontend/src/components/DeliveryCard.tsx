@@ -80,9 +80,25 @@ export default function DeliveryCard({
     const statusInfo = statusConfig[status]
     const paymentInfo = paymentConfig[paymentStatus]
 
-    const dateStr = delivery.scheduledDate.toString().split('T')[0]
-    const [year, month, day] = dateStr.split('-')
-    const formattedDate = `${day}/${month}/${year}`
+    // Format date safely - handle both Date objects and strings
+    const formatDeliveryDate = () => {
+        try {
+            const date = typeof delivery.scheduledDate === 'string'
+                ? new Date(delivery.scheduledDate)
+                : delivery.scheduledDate instanceof Date
+                    ? delivery.scheduledDate
+                    : new Date()
+
+            const day = String(date.getDate()).padStart(2, '0')
+            const month = String(date.getMonth() + 1).padStart(2, '0')
+            const year = date.getFullYear()
+            return `${day}/${month}/${year}`
+        } catch (e) {
+            return 'Fecha inválida'
+        }
+    }
+
+    const formattedDate = formatDeliveryDate()
 
     return (
         <div className={`${cardBg} rounded-lg border ${cardBorder} hover:shadow-lg transition-all overflow-hidden flex flex-col h-full`}>

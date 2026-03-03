@@ -29,6 +29,7 @@ export interface CatalogItem {
   sub_series?: string
   photo_url?: string
   photo_url_carded?: string
+  photo_gallery?: string[]
   year: string
   brand: string
   color?: string

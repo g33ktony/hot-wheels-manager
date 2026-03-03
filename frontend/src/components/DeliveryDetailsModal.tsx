@@ -49,6 +49,41 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
 
     if (!isOpen || !delivery) return null
 
+    // Helper function to safely format dates
+    const formatDate = (dateValue: any): string => {
+        try {
+            const date = typeof dateValue === 'string'
+                ? new Date(dateValue)
+                : dateValue instanceof Date
+                    ? dateValue
+                    : new Date()
+
+            if (isNaN(date.getTime())) {
+                return 'Fecha inválida'
+            }
+            return date.toLocaleDateString('es-MX')
+        } catch (e) {
+            return 'Fecha inválida'
+        }
+    }
+
+    const formatDateTime = (dateValue: any): string => {
+        try {
+            const date = typeof dateValue === 'string'
+                ? new Date(dateValue)
+                : dateValue instanceof Date
+                    ? dateValue
+                    : new Date()
+
+            if (isNaN(date.getTime())) {
+                return 'Fecha inválida'
+            }
+            return `${date.toLocaleDateString('es-MX')} ${date.toLocaleTimeString('es-MX')}`
+        } catch (e) {
+            return 'Fecha inválida'
+        }
+    }
+
     // Check if delivery is active (not completed)
     const isDeliveryActive = delivery.status !== 'completed'
 
@@ -205,7 +240,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                         <p><span className="font-medium">Cliente:</span> {delivery.customer?.name}</p>
                                         <p><span className="font-medium">Email:</span> {delivery.customer?.email}</p>
                                         <p><span className="font-medium">Teléfono:</span> {delivery.customer?.phone}</p>
-                                        <p><span className="font-medium">Fecha programada:</span> {new Date(delivery.scheduledDate).toLocaleDateString()}{delivery.scheduledTime ? ` a las ${delivery.scheduledTime}` : ''}</p>
+                                        <p><span className="font-medium">Fecha programada:</span> {formatDate(delivery.scheduledDate)}{delivery.scheduledTime ? ` a las ${delivery.scheduledTime}` : ''}</p>
                                         <p><span className="font-medium">Ubicación:</span> {delivery.location}</p>
                                         <p><span className="font-medium">Estado:</span>
                                             <span className={`ml-2 px-2 py-1 text-xs rounded-full ${delivery.status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -345,7 +380,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                                                     payment.paymentMethod === 'card' ? 'Tarjeta' : 'Otro'}
                                                         </span>
                                                         <span className="text-sm text-gray-600">
-                                                            {new Date(payment.paymentDate).toLocaleDateString()} {new Date(payment.paymentDate).toLocaleTimeString()}
+                                                            {formatDateTime(payment.paymentDate)}
                                                         </span>
                                                     </div>
                                                     {payment.notes && (

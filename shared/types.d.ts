@@ -5,6 +5,8 @@ export interface HotWheelsCar {
     series: string;
     series_num: string;
     photo_url?: string;
+    photo_url_carded?: string;
+    photo_gallery?: string[];
     year: string;
     color?: string;
     tampo?: string;

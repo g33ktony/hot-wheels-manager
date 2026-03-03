@@ -242,10 +242,10 @@ export default function Dashboard() {
                         variant="secondary"
                         onClick={() => setShowUpdateModal(true)}
                         className="flex items-center gap-2 whitespace-nowrap"
-                        disabled={updateCatalogMutation.isLoading}
+                        disabled={updateStatus?.progress?.isUpdating}
                     >
-                        <RefreshCw size={16} className={updateCatalogMutation.isLoading ? 'animate-spin' : ''} />
-                        {updateCatalogMutation.isLoading ? 'Actualizando...' : 'Actualizar Catálogo'}
+                        <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin' : ''} />
+                        {updateStatus?.progress?.isUpdating ? 'Actualizando...' : 'Actualizar Catálogo'}
                     </Button>
                 </div>
             </div>
@@ -501,7 +501,7 @@ export default function Dashboard() {
                 isOpen={showUpdateModal}
                 onClose={() => {
                     setShowUpdateModal(false)
-                    if (updateCatalogMutation.isSuccess) {
+                    if (updateStatus?.progress?.step === 'completed') {
                         updateCatalogMutation.reset()
                     }
                 }}
@@ -514,30 +514,30 @@ export default function Dashboard() {
                             className="flex-1"
                             onClick={() => {
                                 setShowUpdateModal(false)
-                                if (updateCatalogMutation.isSuccess) {
+                                if (updateStatus?.progress?.step === 'completed') {
                                     updateCatalogMutation.reset()
                                 }
                             }}
-                            disabled={updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating}
+                            disabled={updateStatus?.progress?.isUpdating}
                         >
-                            {updateCatalogMutation.isSuccess || updateStatus?.progress?.step === 'completed' ? 'Cerrar' : 'Cancelar'}
+                            {updateStatus?.progress?.step === 'completed' ? 'Cerrar' : 'Cancelar'}
                         </Button>
-                        {!updateCatalogMutation.isSuccess && updateStatus?.progress?.step !== 'completed' && (
+                        {updateStatus?.progress?.step !== 'completed' && (
                             <Button
                                 className="flex-1 flex items-center justify-center gap-2 relative overflow-hidden"
                                 onClick={() => updateCatalogMutation.mutate()}
-                                disabled={updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating}
+                                disabled={updateStatus?.progress?.isUpdating}
                             >
                                 {/* Progress Filling Effect */}
-                                {(updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating) && (
+                                {updateStatus?.progress?.isUpdating && (
                                     <div
                                         className="absolute left-0 top-0 bottom-0 bg-emerald-600/30 transition-all duration-500 ease-out"
                                         style={{ width: `${updateStatus?.progress?.percent || 0}%` }}
                                     />
                                 )}
-                                <RefreshCw size={16} className={updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating ? 'animate-spin z-10' : ''} />
+                                <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin z-10' : ''} />
                                 <span className="z-10">
-                                    {updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating
+                                    {updateStatus?.progress?.isUpdating
                                         ? `Descargando (${updateStatus?.progress?.percent || 0}%)`
                                         : 'Actualizar Ahora'}
                                 </span>
@@ -547,7 +547,7 @@ export default function Dashboard() {
                 }
             >
                 <div className="space-y-4">
-                    {!updateCatalogMutation.isSuccess && !updateCatalogMutation.isError && (
+                    {updateStatus?.progress?.step !== 'completed' && updateStatus?.progress?.step !== 'error' && !updateStatus?.progress?.isUpdating && (
                         <>
                             <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
                                 <p className="text-sm text-white">
@@ -582,7 +582,7 @@ export default function Dashboard() {
                         </>
                     )}
 
-                    {(updateCatalogMutation.isLoading || updateStatus?.progress?.isUpdating) && (
+                    {updateStatus?.progress?.isUpdating && (
                         <div className="flex items-center justify-center py-8">
                             <div className="text-center space-y-4 w-full px-4">
                                 <div className="flex justify-center mb-2">
@@ -618,26 +618,26 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    {(updateCatalogMutation.isSuccess || (updateStatus?.progress?.step === 'completed' && !updateStatus?.progress?.isUpdating)) && (
+                    {(updateStatus?.progress?.step === 'completed' && !updateStatus?.progress?.isUpdating) && (
                         <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 animate-in fade-in zoom-in duration-300">
                             <p className="text-white text-center">
                                 <span className="text-3xl block mb-2">✅</span>
                                 <span className="font-semibold text-emerald-400 text-lg">Actualización completada</span>
                                 <br className="mt-2" />
                                 <span className="text-sm text-slate-300">
-                                    El catálogo de autos a escala ha sido sincronizado exitosamente con MongoDB.
+                                    {updateStatus?.progress?.message || 'El catálogo de autos a escala ha sido sincronizado exitosamente con MongoDB.'}
                                 </span>
                             </p>
                         </div>
                     )}
 
-                    {(updateCatalogMutation.isError || updateStatus?.progress?.step === 'error') && (
+                    {updateStatus?.progress?.step === 'error' && (
                         <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
                             <p className="text-white">
                                 <span className="font-semibold text-red-400">❌ Error en la actualización</span>
                                 <br className="mt-2" />
                                 <span className="text-sm">
-                                    {updateStatus?.progress?.lastError || updateCatalogMutation.error?.message || 'No se pudo actualizar el catálogo'}
+                                    {updateStatus?.progress?.lastError || 'No se pudo actualizar el catálogo'}
                                 </span>
                             </p>
                         </div>

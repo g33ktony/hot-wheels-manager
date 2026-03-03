@@ -75,6 +75,8 @@ async function syncJSONToMongoDB(): Promise<{ synced: number; added: number; upd
                 series: car.series || '',
                 series_num: car.series_num || '',
                 photo_url: car.photo_url || '',
+                photo_url_carded: car.photo_url_carded || '', // ← NUEVO: Actualizar foto carded
+                photo_gallery: Array.isArray(car.photo_gallery) ? car.photo_gallery : [],
                 year: (car.year || '').toString(),
                 color: car.color || '',
                 tampo: car.tampo || '',

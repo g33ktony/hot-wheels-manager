@@ -33,14 +33,24 @@ export default function CatalogItemDetailModal({
   const photos = useMemo(() => {
     const isValidUrl = (url?: string) => url && url.startsWith('https://') && !url.includes('wiki-file:')
     const list: { url: string; label: string }[] = []
+
     if (isValidUrl(item.photo_url)) {
       list.push({ url: item.photo_url!, label: item.photo_url_carded ? 'Loose' : '' })
     }
     if (isValidUrl(item.photo_url_carded)) {
       list.push({ url: item.photo_url_carded!, label: 'Carded' })
     }
+
+    if (Array.isArray(item.photo_gallery)) {
+      for (const url of item.photo_gallery) {
+        if (isValidUrl(url) && !list.some(p => p.url === url)) {
+          list.push({ url, label: '' })
+        }
+      }
+    }
+
     return list
-  }, [item.photo_url, item.photo_url_carded])
+  }, [item.photo_url, item.photo_url_carded, item.photo_gallery])
 
   const hasMultiplePhotos = photos.length > 1
 
@@ -328,8 +338,8 @@ export default function CatalogItemDetailModal({
               <button
                 onClick={() => setShowReportModal(true)}
                 className={`w-full flex items-center justify-center gap-2 text-xs py-2 rounded-lg transition-colors ${isDark
-                    ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-700/50'
-                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                  ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-700/50'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
                   }`}
               >
                 <Flag size={14} />

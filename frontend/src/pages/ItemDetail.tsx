@@ -1024,8 +1024,8 @@ export default function ItemDetail() {
                                 />
                             </div>
 
-                            {/* Thumbnails - inventory photos + catalog carded photo */}
-                            {(item.photos.length > 1 || item.hotWheelsCar?.photo_url_carded) && (
+                            {/* Thumbnails - inventory photos + catalog carded photo + gallery */}
+                            {(item.photos.length > 1 || item.hotWheelsCar?.photo_url_carded || (Array.isArray(item.hotWheelsCar?.photo_gallery) && item.hotWheelsCar.photo_gallery.length > 0)) && (
                                 <div className="flex gap-2 p-3 overflow-x-auto">
                                     {/* Inventory photos */}
                                     {item.photos.map((photo, index) => (
@@ -1070,6 +1070,33 @@ export default function ItemDetail() {
                                             <div className="absolute bottom-0.5 left-0.5 bg-amber-900/80 text-white text-xs px-1 rounded">C</div>
                                         </button>
                                     )}
+
+                                    {/* Gallery photos (if exists and not duplicates) */}
+                                    {Array.isArray(item.hotWheelsCar?.photo_gallery) && item.hotWheelsCar.photo_gallery
+                                        .filter((url: string) => url && url.startsWith('https://') && !item.photos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded)
+                                        .map((url: string, idx: number) => {
+                                            const baseIndex = item.photos!.length + (item.hotWheelsCar?.photo_url_carded ? 1 : 0)
+                                            return (
+                                                <button
+                                                    key={`gallery-${idx}`}
+                                                    onClick={() => setSelectedPhotoIndex(baseIndex + idx)}
+                                                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative flex flex-col items-center justify-center ${selectedPhotoIndex === baseIndex + idx
+                                                        ? 'border-primary-600'
+                                                        : 'border-slate-700'
+                                                        }`}
+                                                    title="Foto de Galería"
+                                                >
+                                                    <img
+                                                        src={proxifyImageUrl(url)}
+                                                        alt={`Gallery ${idx + 1}`}
+                                                        crossOrigin="anonymous"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <div className="absolute bottom-0.5 left-0.5 bg-emerald-900/80 text-white text-xs px-1 rounded">G</div>
+                                                </button>
+                                            )
+                                        })
+                                    }
                                 </div>
                             )}
                         </div>
@@ -2012,8 +2039,8 @@ export default function ItemDetail() {
             </Modal>
 
             {/* Lightbox Modal - Simple Image Viewer */}
-            {showGalleryModal && item?.photos && (item.photos.length > 0 || item.hotWheelsCar?.photo_url_carded) && (() => {
-                // Build combined photos array (inventory + carded)
+            {showGalleryModal && item?.photos && (item.photos.length > 0 || item.hotWheelsCar?.photo_url_carded || (Array.isArray(item.hotWheelsCar?.photo_gallery) && item.hotWheelsCar.photo_gallery.length > 0)) && (() => {
+                // Build combined photos array (inventory + carded + gallery)
                 const allPhotos = [
                     ...item.photos.map((photo, idx) => ({
                         url: photo,
@@ -2026,6 +2053,15 @@ export default function ItemDetail() {
                             type: 'carded' as const,
                             index: -1
                         }]
+                        : []),
+                    ...(Array.isArray(item.hotWheelsCar?.photo_gallery)
+                        ? item.hotWheelsCar.photo_gallery
+                            .filter((url: string) => url && url.startsWith('https://') && !item.photos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded)
+                            .map((url: string, idx: number) => ({
+                                url,
+                                type: 'gallery' as const,
+                                index: idx
+                            }))
                         : [])
                 ]
                 const totalPhotos = allPhotos.length
@@ -2088,9 +2124,11 @@ export default function ItemDetail() {
                                     <span>{selectedPhotoIndex + 1} / {totalPhotos}</span>
                                     <span className={`px-2 py-1 rounded text-xs font-semibold ${currentPhoto.type === 'carded'
                                             ? 'bg-amber-900/80 text-amber-100'
-                                            : 'bg-slate-700/80 text-slate-100'
+                                            : currentPhoto.type === 'gallery'
+                                                ? 'bg-emerald-900/80 text-emerald-100'
+                                                : 'bg-slate-700/80 text-slate-100'
                                         }`}>
-                                        {currentPhoto.type === 'carded' ? '📦 Carded' : '📷 Loose'}
+                                        {currentPhoto.type === 'carded' ? '📦 Carded' : currentPhoto.type === 'gallery' ? '🖼️ Gallery' : '📷 Loose'}
                                     </span>
                                 </div>
                             )}

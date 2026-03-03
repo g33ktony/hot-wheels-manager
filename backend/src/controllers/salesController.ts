@@ -185,7 +185,7 @@ export const createSale = async (req: Request, res: Response) => {
     }
 
     // Validate and process each item
-    const processedItems = [];
+    const processedItems: any[] = [];
     for (const item of items) {
       if (item.inventoryItemId) {
         // Check if inventory item exists and has sufficient quantity
@@ -261,29 +261,67 @@ export const createSale = async (req: Request, res: Response) => {
       }
     }
 
-    // Create the sale
-    const newSale = new SaleModel({
-      customerId,
-      items: processedItems,
-      totalAmount,
-      saleDate: new Date(),
-      deliveryId,
-      paymentMethod: paymentMethod || 'cash',
-      status: status || 'pending',
-      notes: notes || '',
-      storeId: req.storeId
-    });
-
-    const savedSale = await newSale.save();
-
-    // Update inventory quantities
-    for (const item of items) {
-      if (item.inventoryItemId) {
-        await InventoryItemModel.findByIdAndUpdate(
-          item.inventoryItemId,
-          { $inc: { quantity: -item.quantity } }
-        );
+    // Decrement stock atomically with quantity guard, then create sale
+    const successfulUpdates: Array<{ itemId: string; quantityReduced: number }> = [];
+    
+    try {
+      for (const item of items) {
+        if (item.inventoryItemId) {
+          const result = await InventoryItemModel.findOneAndUpdate(
+            {
+              _id: item.inventoryItemId,
+              quantity: { $gte: item.quantity } // Guard: only decrement if enough stock
+            },
+            { $inc: { quantity: -item.quantity } },
+            { new: true }
+          );
+          
+          if (!result) {
+            throw new Error(`Stock insuficiente para ${item.carName} al momento de actualizar`);
+          }
+          
+          successfulUpdates.push({
+            itemId: item.inventoryItemId,
+            quantityReduced: item.quantity
+          });
+        }
       }
+    } catch (stockError) {
+      // Rollback successful decrements
+      for (const upd of successfulUpdates) {
+        await InventoryItemModel.findByIdAndUpdate(
+          upd.itemId,
+          { $inc: { quantity: upd.quantityReduced } }
+        ).catch(rbErr => console.error('❌ Rollback failed for', upd.itemId, rbErr));
+      }
+      throw stockError;
+    }
+
+    // Create the sale (stock already decremented)
+    let savedSale: any;
+    try {
+      const newSale = new SaleModel({
+        customerId,
+        items: processedItems,
+        totalAmount,
+        saleDate: new Date(),
+        deliveryId,
+        paymentMethod: paymentMethod || 'cash',
+        status: status || 'pending',
+        notes: notes || '',
+        storeId: req.storeId
+      });
+
+      savedSale = await newSale.save();
+    } catch (saleError) {
+      // Rollback stock if sale creation fails
+      for (const upd of successfulUpdates) {
+        await InventoryItemModel.findByIdAndUpdate(
+          upd.itemId,
+          { $inc: { quantity: upd.quantityReduced } }
+        ).catch(rbErr => console.error('❌ Rollback failed for', upd.itemId, rbErr));
+      }
+      throw saleError;
     }
 
     // Populate the sale with customer and delivery data
@@ -297,7 +335,7 @@ export const createSale = async (req: Request, res: Response) => {
       message: 'Venta creada exitosamente'
     });
   } catch (error) {
-    console.error('Error creating sale:', error);
+    console.error('Error creating sale (transacción revertida):', error);
     res.status(500).json({
       success: false,
       data: null,
@@ -639,28 +677,74 @@ export const createPOSSale = async (req: Request, res: Response) => {
       }
     }
 
-    // 2. SEGUNDA FASE: Una vez validado TODO, guardar cambios en la base de datos
-    for (const update of inventoryUpdates) {
-      update.item.quantity = (update.item.quantity || 0) - update.quantityToReduce;
-      update.item.actualPrice = update.finalPrice;
-      await update.item.save();
-      console.log(`✅ Item ${update.item._id} actualizado: -${update.quantityToReduce} unidades`);
+    // 2. SEGUNDA FASE: Decrementar stock atómicamente con guard de cantidad
+    //    Cada findOneAndUpdate verifica quantity >= needed antes de decrementar
+    const successfulUpdates: Array<{ itemId: any; quantityReduced: number }> = [];
+    
+    try {
+      for (const update of inventoryUpdates) {
+        const result = await InventoryItemModel.findOneAndUpdate(
+          {
+            _id: update.item._id,
+            quantity: { $gte: update.quantityToReduce } // Guard: solo decrementa si hay stock
+          },
+          {
+            $inc: { quantity: -update.quantityToReduce },
+            $set: { actualPrice: update.finalPrice }
+          },
+          { new: true }
+        );
+        
+        if (!result) {
+          throw new Error(`Stock insuficiente para item ${update.item._id} al momento de actualizar`);
+        }
+        
+        successfulUpdates.push({
+          itemId: update.item._id,
+          quantityReduced: update.quantityToReduce
+        });
+        
+        console.log(`✅ Item ${update.item._id} actualizado: -${update.quantityToReduce} unidades (quedan: ${result.quantity})`);
+      }
+    } catch (stockError) {
+      // Rollback: restaurar stock de los items que sí se actualizaron
+      console.error('⚠️ Rollback de stock por error:', stockError);
+      for (const upd of successfulUpdates) {
+        await InventoryItemModel.findByIdAndUpdate(
+          upd.itemId,
+          { $inc: { quantity: upd.quantityReduced } }
+        ).catch(rbErr => console.error('❌ Rollback failed for', upd.itemId, rbErr));
+      }
+      throw stockError;
     }
 
-    // Crear la venta
-    const sale = new SaleModel({
-      items: saleItems,
-      totalAmount,
-      saleDate: new Date(),
-      paymentMethod: paymentMethod || 'cash',
-      status: 'completed',
-      saleType: 'pos',
-      notes: notes || 'Venta en sitio (POS)',
-      storeId: req.storeId
-    });
+    // 3. TERCERA FASE: Crear la venta (stock ya decrementado)
+    let savedSale: any;
+    try {
+      const sale = new SaleModel({
+        items: saleItems,
+        totalAmount,
+        saleDate: new Date(),
+        paymentMethod: paymentMethod || 'cash',
+        status: 'completed',
+        saleType: 'pos',
+        notes: notes || 'Venta en sitio (POS)',
+        storeId: req.storeId
+      });
 
-    const savedSale = await sale.save();
-    console.log('✅ POS Sale created successfully:', savedSale._id);
+      savedSale = await sale.save();
+      console.log('✅ POS Sale created successfully:', savedSale._id);
+    } catch (saleError) {
+      // Rollback: restaurar stock si no se pudo crear la venta
+      console.error('⚠️ Rollback de stock porque falló crear la venta:', saleError);
+      for (const upd of successfulUpdates) {
+        await InventoryItemModel.findByIdAndUpdate(
+          upd.itemId,
+          { $inc: { quantity: upd.quantityReduced } }
+        ).catch(rbErr => console.error('❌ Rollback failed for', upd.itemId, rbErr));
+      }
+      throw saleError;
+    }
 
     res.status(201).json({
       success: true,
@@ -668,7 +752,7 @@ export const createPOSSale = async (req: Request, res: Response) => {
       message: `Venta completada exitosamente. Total: $${totalAmount.toFixed(2)}`
     });
   } catch (error) {
-    console.error('❌ Error creating POS sale:', error);
+    console.error('❌ Error creating POS sale (transacción revertida):', error);
     const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
     const errorDetails = error instanceof Error ? error.stack : undefined;
     

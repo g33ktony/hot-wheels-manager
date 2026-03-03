@@ -833,6 +833,7 @@ const createSalesFromDelivery = async (delivery: any) => {
 
     // Create single sale record with all items
     const sale = new SaleModel({
+      storeId: delivery.storeId,
       customerId: delivery.customerId,
       customer: delivery.customer,
       items: saleItems,

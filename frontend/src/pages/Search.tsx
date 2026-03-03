@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import { api } from '@/services/api'
 import { useTheme } from '@/contexts/ThemeContext'
 import {
@@ -47,6 +47,7 @@ export default function Search() {
     const initialQuery = searchParams.get('q') || ''
     const dispatch = useAppDispatch()
 
+    const queryClient = useQueryClient()
     const [query, setQuery] = useState(initialQuery)
     const [modal, setModal] = useState<ModalState>({ isOpen: false, type: null, id: null })
     const [addToCartQuantity, setAddToCartQuantity] = useState<{ [key: string]: number }>({})
@@ -233,7 +234,7 @@ export default function Search() {
             const response = await api.get(`/inventory/${itemId}`)
             const item = response.data.data
 
-            if (item.stock === 0 || item.stock === undefined) {
+            if (item.quantity === 0 || item.quantity === undefined) {
                 // Reutilizar endpoint de reactivación
                 const newStock = prompt('¿Cuántas unidades agregar al stock?', '1')
                 if (!newStock) return // Usuario canceló
@@ -245,18 +246,20 @@ export default function Search() {
                 }
 
                 await api.put(`/inventory/${itemId}`, {
-                    stock: qty
+                    quantity: qty
                 })
 
                 toast.success(`Stock actualizado: +${qty} unidades`)
+                // Refrescar resultados de búsqueda para reflejar el nuevo stock
+                queryClient.invalidateQueries(['global-search'])
             } else {
-                toast.success(`Este artículo ya tiene ${item.stock} unidades en stock`)
+                toast.success(`Este artículo ya tiene ${item.quantity} unidades en stock`)
             }
         } catch (error) {
             toast.error('Error al agregar stock')
             console.error(error)
         }
-    }, [])
+    }, [queryClient])
 
     const handlePermanentDelete = useCallback(async (itemId: string, itemName: string) => {
         // Show confirmation dialog
@@ -1135,6 +1138,7 @@ function GenericDetailModal({
     id: string
     onClose: () => void
 }) {
+    const queryClient = useQueryClient()
     const [isEditingCustomer, setIsEditingCustomer] = useState(false)
     const [editingCustomer, setEditingCustomer] = useState<any>(null)
     const [isEditingInventory, setIsEditingInventory] = useState(false)
@@ -1184,7 +1188,9 @@ function GenericDetailModal({
             }
             await api.put(`/inventory/${inventoryData._id}`, updated)
             setIsEditingInventory(false)
-            // TODO: Refetch inventory data to update view
+            // Refetch inventory detail and search results to reflect changes
+            queryClient.invalidateQueries(['inventory-detail', inventoryData._id])
+            queryClient.invalidateQueries(['global-search'])
             toast.success('Item actualizado correctamente')
         } catch (error) {
             toast.error('Error al actualizar item')

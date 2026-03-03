@@ -272,6 +272,7 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
         sub_series: item.sub_series,
         photo_url: item.photo_url,
         photo_url_carded: item.photo_url_carded,
+        photo_gallery: item.photo_gallery,
         year: item.year,
         brand: item.brand || 'Hot Wheels',
         color: item.color,
@@ -380,6 +381,8 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
         series: 'Custom / Sin Serie', // Custom items don't have series
         series_num: null,
         photo_url: primaryPhoto,
+        photo_url_carded: null,
+        photo_gallery: primaryPhoto ? [primaryPhoto] : [],
         year: new Date().getFullYear().toString(), // Use current year
         color: null,
         tampo: null,
@@ -448,7 +451,7 @@ export const getCatalogItem = async (req: Request, res: Response): Promise<void>
     // Get catalog item
     const catalogItem = await HotWheelsCarModel
       .findById(id)
-      .select('toy_num col_num carModel series series_num photo_url year brand color tampo wheel_type car_make segment pack_contents')
+      .select('toy_num col_num carModel series series_num photo_url photo_url_carded photo_gallery year brand color tampo wheel_type car_make segment pack_contents')
       .lean()
 
     if (!catalogItem) {

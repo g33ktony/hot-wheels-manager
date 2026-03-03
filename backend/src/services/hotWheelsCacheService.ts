@@ -16,6 +16,7 @@ export interface CachedHotWheelsCar {
   sub_series?: string
   photo_url?: string
   photo_url_carded?: string
+  photo_gallery?: string[]
   year: string
   brand?: string
   color?: string
@@ -49,6 +50,10 @@ let isLoaded = false
  * Normalize a car entry from either scraper format or old JSON format
  */
 function normalizeCar(car: any): CachedHotWheelsCar {
+  const photoGallery = Array.isArray(car.photo_gallery)
+    ? car.photo_gallery.filter((url: unknown): url is string => typeof url === 'string' && url.trim().length > 0)
+    : []
+
   return {
     toy_num: car.toy_num || '',
     col_num: car.col_num || '',
@@ -57,6 +62,8 @@ function normalizeCar(car: any): CachedHotWheelsCar {
     series: car.series || '',
     series_num: car.series_num || '',
     photo_url: car.photo_url || '',
+    photo_url_carded: car.photo_url_carded || '',
+    photo_gallery: photoGallery,
     year: (car.year || '').toString(),
     brand: car.brand || 'Hot Wheels',
     color: car.color || '',
@@ -174,8 +181,20 @@ export function mergeCarsIntoJSON(newCars: any[]): number {
       // Update existing entry with any new non-empty fields
       const existing = existingMap.get(key)!
       for (const [field, value] of Object.entries(normalized)) {
-        if (value && !(existing as any)[field]) {
-          (existing as any)[field] = value
+        if (field === 'photo_gallery' && Array.isArray(value)) {
+          const existingGallery = Array.isArray((existing as any).photo_gallery) ? (existing as any).photo_gallery : []
+          const mergedGallery = Array.from(new Set([...existingGallery, ...value]))
+          if (mergedGallery.length > existingGallery.length) {
+            ;(existing as any).photo_gallery = mergedGallery
+          }
+          continue
+        }
+
+        if (value) {
+          // Always update photo_url_carded (even if exists), other fields only if missing
+          if (field === 'photo_url_carded' || !(existing as any)[field]) {
+            (existing as any)[field] = value
+          }
         }
       }
     }

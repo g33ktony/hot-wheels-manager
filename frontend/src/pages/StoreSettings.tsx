@@ -61,13 +61,18 @@ const StoreSettingsPage: React.FC = () => {
             return
         }
 
+        if (!user?.storeId) {
+            toast.error('No se detectó tu tienda. Por favor cierra sesión y vuelve a entrar.')
+            return
+        }
+
         try {
             setIsLoading(true)
             const result = await createUserInStore({
                 name: newUserName,
                 email: newUserEmail,
                 role: newUserRole,
-                storeId: user?.storeId || ''
+                storeId: user.storeId
             })
 
             setCreatedUserData({

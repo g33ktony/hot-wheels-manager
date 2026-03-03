@@ -10,6 +10,7 @@ export interface IHotWheelsCar extends Document {
   sub_series?: string;
   photo_url?: string;
   photo_url_carded?: string;
+  photo_gallery?: string[];
   year: string;
   brand?: string;
   color?: string;
@@ -38,6 +39,7 @@ const hotWheelsCarSchema = new Schema<IHotWheelsCar>({
   sub_series: { type: String, default: '' },
   photo_url: { type: String },
   photo_url_carded: { type: String },
+  photo_gallery: { type: [String], default: undefined },
   year: { type: String, default: '' },
   brand: { type: String, default: 'Hot Wheels' },
   // Campos opcionales adicionales
