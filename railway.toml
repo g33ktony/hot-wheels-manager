@@ -11,5 +11,6 @@ restartPolicyMaxRetries = 10
 
 [variables]
 NODE_ENV = "production"
+NIXPACKS_NODE_VERSION = "20"
 CORS_ORIGIN = "https://hot-wheels-manager.vercel.app,https://hot-wheels-manager-jfsn91o9q-antonio-martnez-s-projects.vercel.app"
 MONGODB_URI = "${{MONGODB_URI}}"

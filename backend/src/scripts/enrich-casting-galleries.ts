@@ -2,7 +2,7 @@ import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
 import dotenv from 'dotenv'
-import { getAllCars, refreshCache, saveCarsToJSON } from '../services/hotWheelsCacheService'
+import { getAllCars, refreshCache, saveCarsToJSON, type CachedHotWheelsCar } from '../services/hotWheelsCacheService'
 
 dotenv.config()
 
@@ -11,16 +11,7 @@ const REQUEST_DELAY_MS = 120
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-type EnrichableCar = {
-  carModel: string
-  toy_num?: string
-  year?: string | number
-  series?: string
-  photo_url?: string
-  photo_url_carded?: string
-  photo_gallery?: string[]
-  [key: string]: unknown
-}
+type EnrichableCar = CachedHotWheelsCar
 
 type ExtractedRef = {
   url: string
@@ -253,8 +244,8 @@ async function main() {
 
   const cars = getAllCars().map(car => ({
     ...car,
-    photo_gallery: Array.isArray((car as EnrichableCar).photo_gallery)
-      ? [...((car as EnrichableCar).photo_gallery as string[])]
+    photo_gallery: Array.isArray(car.photo_gallery)
+      ? [...car.photo_gallery]
       : [],
   })) as EnrichableCar[]
 
