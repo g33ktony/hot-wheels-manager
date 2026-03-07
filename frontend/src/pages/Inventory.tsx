@@ -1456,18 +1456,28 @@ export default function Inventory() {
 
     // Select Hot Wheels catalog item and fill in details
     const handleSelectCatalogItem = (catalogItem: any) => {
-        // Add catalog image to photos (as second photo since first is from OCR)
-        const photos = [...newItem.photos]
-        if (catalogItem.photo_url) {
-            // Ensure the URL is valid - if it's from the catalog, it should already be proxified
-            // If not, we can use weserv.nl as fallback
-            let photoUrl = catalogItem.photo_url
-            if (!photoUrl.includes('weserv.nl') && !photoUrl.startsWith('http')) {
-                // If it's a relative path, use weserv.nl proxy
-                photoUrl = `https://images.weserv.nl/?url=${encodeURIComponent(photoUrl)}&w=300&h=300&fit=contain`
+        const resolveCatalogPhotoUrl = (url?: string) => {
+            if (!url || typeof url !== 'string') return ''
+            if (url.startsWith('wiki-file:')) {
+                const fileName = url.replace('wiki-file:', '').trim()
+                return fileName
+                    ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
+                    : ''
             }
-            photos.push(photoUrl)
+            if (url.startsWith('http://') || url.startsWith('https://')) return url
+            return ''
         }
+
+        // Add all available catalog photos (main + carded + gallery), deduplicated
+        const catalogCandidates = [
+            catalogItem.photo_url,
+            catalogItem.photo_url_carded,
+            ...(Array.isArray(catalogItem.photo_gallery) ? catalogItem.photo_gallery : []),
+        ]
+            .map(resolveCatalogPhotoUrl)
+            .filter((url: string) => Boolean(url))
+
+        const photos = Array.from(new Set([...(newItem.photos || []), ...catalogCandidates]))
 
         // Detect piece type from catalog
         const detectedType = detectPieceType(catalogItem)
@@ -1492,7 +1502,8 @@ export default function Inventory() {
         setShowCatalogResults(false)
         const typeLabel = detectedType ? `(${formatPieceType(detectedType)})` : ''
         const seriesLabel = seriesInfo.isPartOfSeries ? ` - Serie: ${seriesInfo.seriesName} ${seriesInfo.position}/${seriesInfo.seriesSize}` : ''
-        toast.success(`✅ ${catalogItem.model} ${typeLabel}${seriesLabel} agregado`)
+        const photosLabel = catalogCandidates.length > 0 ? ` • ${catalogCandidates.length} foto(s)` : ''
+        toast.success(`✅ ${catalogItem.model} ${typeLabel}${seriesLabel}${photosLabel} agregado`)
     }
 
     const handleCancelUpdate = () => {
@@ -1852,8 +1863,8 @@ export default function Inventory() {
                         <button
                             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                             className={`flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-lg border text-sm font-medium transition-colors whitespace-nowrap ${showAdvancedFilters
-                                    ? isDark ? 'bg-primary-600/20 border-primary-500 text-primary-400' : 'bg-primary-50 border-primary-400 text-primary-700'
-                                    : isDark ? 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                                ? isDark ? 'bg-primary-600/20 border-primary-500 text-primary-400' : 'bg-primary-50 border-primary-400 text-primary-700'
+                                : isDark ? 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                                 }`}
                         >
                             <SlidersHorizontal size={16} />
@@ -2975,6 +2986,17 @@ export default function Inventory() {
                                         {catalogSearchResults.map((item: any, idx: number) => {
                                             // Check if item is part of a series for visual indicator
                                             const seriesInfo = detectSeriesInfo(item)
+                                            const previewPhoto = (() => {
+                                                const candidate = item.photo_url || item.photo_url_carded || (Array.isArray(item.photo_gallery) ? item.photo_gallery[0] : '')
+                                                if (!candidate || typeof candidate !== 'string') return ''
+                                                if (candidate.startsWith('wiki-file:')) {
+                                                    const fileName = candidate.replace('wiki-file:', '').trim()
+                                                    return fileName
+                                                        ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
+                                                        : ''
+                                                }
+                                                return candidate
+                                            })()
 
                                             return (
                                                 <button
@@ -2986,9 +3008,9 @@ export default function Inventory() {
                                                     <div className="flex items-start gap-3">
                                                         {/* Imagen pequeña del catálogo */}
                                                         <div className="flex-shrink-0 w-12 h-12 bg-emerald-800 rounded overflow-hidden flex items-center justify-center relative">
-                                                            {item.photo_url ? (
+                                                            {previewPhoto ? (
                                                                 <img
-                                                                    src={item.photo_url}
+                                                                    src={previewPhoto}
                                                                     alt={item.model}
                                                                     className="w-full h-full object-contain"
                                                                     crossOrigin="anonymous"

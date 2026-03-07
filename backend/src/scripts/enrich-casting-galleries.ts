@@ -13,16 +13,18 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 type EnrichableCar = {
   carModel: string
+  toy_num?: string
+  year?: string | number
+  series?: string
   photo_url?: string
   photo_url_carded?: string
   photo_gallery?: string[]
   [key: string]: unknown
 }
 
-type ExtractedGallery = {
-  main?: string
-  carded?: string
-  gallery: string[]
+type ExtractedRef = {
+  url: string
+  text: string
 }
 
 function normalizeModel(value: string): string {
@@ -37,9 +39,26 @@ function toWikiFile(fileName: string): string {
   return `wiki-file:${fileName.trim().replace(/ /g, '_')}`
 }
 
-function extractGallery(wikitext: string): ExtractedGallery {
+function tokenize(value: string): string[] {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+function extractImageRefs(wikitext: string): ExtractedRef[] {
   const section = wikitext.match(/==(Images|Gallery)==([^]*?)(?===|$)/i)
-  const source = section?.[2] || wikitext
+  const standaloneGalleryBlocks = Array.from(wikitext.matchAll(/<gallery[^>]*>([^]*?)<\/gallery>/gi))
+    .map(match => match[1])
+    .join('\n')
+
+  const source = section?.[2] || standaloneGalleryBlocks
+
+  if (!source || !source.trim()) {
+    return []
+  }
 
   const refs: Array<{ file: string; description: string }> = []
 
@@ -70,27 +89,81 @@ function extractGallery(wikitext: string): ExtractedGallery {
     }
   }
 
-  const gallery = Array.from(new Set(refs.map(ref => toWikiFile(ref.file))))
-
-  if (gallery.length === 0) {
-    return { gallery: [] }
+  const dedup = new Map<string, ExtractedRef>()
+  for (const ref of refs) {
+    const url = toWikiFile(ref.file)
+    const text = `${ref.file} ${ref.description}`.toLowerCase()
+    if (!dedup.has(url)) {
+      dedup.set(url, { url, text })
+    }
   }
 
-  const main = gallery[0]
-  const cardedRef = refs.find(ref => {
-    const text = `${ref.file} ${ref.description}`.toLowerCase()
-    return (
-      text.includes('carded') ||
-      text.includes('card') ||
-      text.includes('package') ||
-      text.includes('boxed') ||
-      text.includes('blister')
-    )
-  })
+  return Array.from(dedup.values())
+}
 
-  const carded = cardedRef ? toWikiFile(cardedRef.file) : (gallery.length > 1 ? gallery[1] : undefined)
+function includesCardedKeyword(text: string): boolean {
+  return (
+    text.includes('carded') ||
+    text.includes('card') ||
+    text.includes('package') ||
+    text.includes('boxed') ||
+    text.includes('blister')
+  )
+}
 
-  return { main, carded, gallery }
+function computeRefScore(car: EnrichableCar, refText: string): number {
+  let score = 0
+  const text = refText.toLowerCase()
+
+  const toyNum = String(car.toy_num || '').trim().toLowerCase()
+  if (toyNum && text.includes(toyNum)) {
+    score += 8
+  }
+
+  const year = String(car.year || '').trim()
+  if (year && text.includes(year)) {
+    score += 4
+  }
+
+  const modelTokens = tokenize(car.carModel || '')
+  for (const token of modelTokens) {
+    if (token.length >= 4 && text.includes(token)) {
+      score += 2
+    }
+  }
+
+  const seriesTokens = tokenize(String(car.series || ''))
+  for (const token of seriesTokens) {
+    if (token.length >= 4 && text.includes(token)) {
+      score += 1
+    }
+  }
+
+  if (text.includes('prototype') || text.includes('concept') || text.includes('playset')) {
+    score -= 4
+  }
+
+  return score
+}
+
+function selectMainAndCarded(car: EnrichableCar, refs: ExtractedRef[]): { main?: string; carded?: string } {
+  if (refs.length === 0) return {}
+
+  const ranked = refs
+    .map(ref => ({
+      ref,
+      score: computeRefScore(car, ref.text),
+      carded: includesCardedKeyword(ref.text),
+    }))
+    .sort((a, b) => b.score - a.score)
+
+  const mainCandidate = ranked.find(item => !item.carded) || ranked[0]
+  const main = mainCandidate?.ref.url
+
+  const cardedCandidate = ranked.find(item => item.carded && item.ref.url !== main)
+  const carded = cardedCandidate?.ref.url || main
+
+  return { main, carded }
 }
 
 async function fetchPageWikitext(title: string): Promise<{ title: string; content: string | null }> {
@@ -173,6 +246,8 @@ async function discoverMissingCastings(existingModels: Set<string>): Promise<str
 async function main() {
   const limit = Number(process.env.GALLERY_ENRICH_LIMIT || 400)
   const enableDiscovery = process.env.GALLERY_DISCOVER_MODELS !== 'false'
+  const replaceGallery = process.env.GALLERY_REPLACE_MODE === 'true'
+  const modelFilter = (process.env.GALLERY_MODEL_FILTER || '').trim().toLowerCase()
 
   refreshCache()
 
@@ -199,11 +274,23 @@ async function main() {
     modelToIndexes.set(key, list)
   }
 
-  const models = Array.from(modelToIndexes.keys()).slice(0, limit)
+  let models = Array.from(modelToIndexes.keys())
+  if (modelFilter) {
+    models = models.filter(model => model.includes(modelFilter))
+  }
+  models = models.slice(0, limit)
+
   console.log(`🚀 Enriqueciendo galerías de ${models.length} castings (de ${modelToIndexes.size} disponibles)`)
+  if (modelFilter) {
+    console.log(`🎯 Filtro por modelo activo: "${modelFilter}"`)
+  }
+  if (replaceGallery) {
+    console.log('♻️ Modo reemplazo activo: photo_gallery se recalcula desde Fandom')
+  }
 
   let foundPages = 0
-  let modelsWithGallery = 0
+  let modelsWithMain = 0
+  let modelsWithCarded = 0
   let updatedCars = 0
   const unresolvedModels: string[] = []
 
@@ -230,30 +317,37 @@ async function main() {
     }
 
     foundPages++
-    const extracted = extractGallery(page.content)
+    const refs = extractImageRefs(page.content)
 
-    if (extracted.gallery.length > 0) {
-      modelsWithGallery++
-    }
+    let anyMainInModel = false
+    let anyCardedInModel = false
 
     const indexes = modelToIndexes.get(modelKey) || []
     for (const index of indexes) {
       const car = cars[index]
+      const selected = selectMainAndCarded(car, refs)
       const before = JSON.stringify({
         photo_url: car.photo_url || '',
         photo_url_carded: car.photo_url_carded || '',
         photo_gallery: Array.isArray(car.photo_gallery) ? car.photo_gallery : [],
       })
 
-      const mergedGallery = Array.from(new Set([...(car.photo_gallery || []), ...extracted.gallery]))
-      car.photo_gallery = mergedGallery
+      if (selected.main) {
+        anyMainInModel = true
+      }
+      if (selected.carded) {
+        anyCardedInModel = true
+      }
 
-      if (!car.photo_url && extracted.main) {
-        car.photo_url = extracted.main
+      if (replaceGallery || !car.photo_url) {
+        car.photo_url = selected.main || ''
       }
-      if (!car.photo_url_carded && extracted.carded) {
-        car.photo_url_carded = extracted.carded
+      if (replaceGallery || !car.photo_url_carded) {
+        car.photo_url_carded = selected.carded || ''
       }
+
+      // No extra gallery images by request
+      car.photo_gallery = []
 
       const after = JSON.stringify({
         photo_url: car.photo_url || '',
@@ -266,8 +360,11 @@ async function main() {
       }
     }
 
+    if (anyMainInModel) modelsWithMain++
+    if (anyCardedInModel) modelsWithCarded++
+
     if ((i + 1) % 25 === 0) {
-      console.log(`... ${i + 1}/${models.length} procesados (páginas encontradas: ${foundPages}, con galería: ${modelsWithGallery})`)
+      console.log(`... ${i + 1}/${models.length} procesados (páginas encontradas: ${foundPages}, con main: ${modelsWithMain}, con carded: ${modelsWithCarded})`)
     }
 
     await sleep(REQUEST_DELAY_MS)
@@ -314,7 +411,8 @@ async function main() {
   console.log('✅ Enriquecimiento de galerías completado')
   console.log(`   Modelos revisados: ${models.length}`)
   console.log(`   Páginas encontradas: ${foundPages}`)
-  console.log(`   Modelos con galería: ${modelsWithGallery}`)
+  console.log(`   Modelos con main: ${modelsWithMain}`)
+  console.log(`   Modelos con carded: ${modelsWithCarded}`)
   console.log(`   Registros actualizados: ${updatedCars}`)
   console.log(`   Sin resolver: ${unresolvedModels.length}`)
   console.log('')

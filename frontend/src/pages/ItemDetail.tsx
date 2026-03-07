@@ -130,6 +130,14 @@ export default function ItemDetail() {
 
     const proxifyImageUrl = (url: string): string => {
         if (!url) return ''
+        if (url.startsWith('wiki-file:')) {
+            const fileName = url.replace('wiki-file:', '').trim()
+            if (fileName) {
+                const fandomUrl = `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
+                return `https://images.weserv.nl/?url=${encodeURIComponent(fandomUrl)}&w=500&h=500&fit=contain`
+            }
+            return ''
+        }
         // Si ya está proxificada o es una URL completa con dominio confiable
         if (url.includes('weserv.nl') || url.includes('cloudinary') || url.includes('localhost')) {
             return url
@@ -1073,7 +1081,7 @@ export default function ItemDetail() {
 
                                     {/* Gallery photos (if exists and not duplicates) */}
                                     {Array.isArray(item.hotWheelsCar?.photo_gallery) && item.hotWheelsCar.photo_gallery
-                                        .filter((url: string) => url && url.startsWith('https://') && !item.photos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded)
+                                        .filter((url: string) => url && !item.photos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded)
                                         .map((url: string, idx: number) => {
                                             const baseIndex = item.photos!.length + (item.hotWheelsCar?.photo_url_carded ? 1 : 0)
                                             return (
@@ -2056,7 +2064,7 @@ export default function ItemDetail() {
                         : []),
                     ...(Array.isArray(item.hotWheelsCar?.photo_gallery)
                         ? item.hotWheelsCar.photo_gallery
-                            .filter((url: string) => url && url.startsWith('https://') && !item.photos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded)
+                            .filter((url: string) => url && !item.photos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded)
                             .map((url: string, idx: number) => ({
                                 url,
                                 type: 'gallery' as const,
@@ -2123,10 +2131,10 @@ export default function ItemDetail() {
                                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-3">
                                     <span>{selectedPhotoIndex + 1} / {totalPhotos}</span>
                                     <span className={`px-2 py-1 rounded text-xs font-semibold ${currentPhoto.type === 'carded'
-                                            ? 'bg-amber-900/80 text-amber-100'
-                                            : currentPhoto.type === 'gallery'
-                                                ? 'bg-emerald-900/80 text-emerald-100'
-                                                : 'bg-slate-700/80 text-slate-100'
+                                        ? 'bg-amber-900/80 text-amber-100'
+                                        : currentPhoto.type === 'gallery'
+                                            ? 'bg-emerald-900/80 text-emerald-100'
+                                            : 'bg-slate-700/80 text-slate-100'
                                         }`}>
                                         {currentPhoto.type === 'carded' ? '📦 Carded' : currentPhoto.type === 'gallery' ? '🖼️ Gallery' : '📷 Loose'}
                                     </span>

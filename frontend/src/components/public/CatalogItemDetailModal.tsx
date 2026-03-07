@@ -31,20 +31,36 @@ export default function CatalogItemDetailModal({
 
   // Build array of available photos (only valid URLs)
   const photos = useMemo(() => {
-    const isValidUrl = (url?: string) => url && url.startsWith('https://') && !url.includes('wiki-file:')
+    const resolveImageUrl = (url?: string) => {
+      if (!url) return ''
+      if (url.startsWith('wiki-file:')) {
+        const fileName = url.replace('wiki-file:', '').trim()
+        return fileName
+          ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
+          : ''
+      }
+      return url
+    }
+
+    const isValidUrl = (url?: string) => {
+      const resolved = resolveImageUrl(url)
+      return Boolean(resolved && resolved.startsWith('https://'))
+    }
+
     const list: { url: string; label: string }[] = []
 
     if (isValidUrl(item.photo_url)) {
-      list.push({ url: item.photo_url!, label: item.photo_url_carded ? 'Loose' : '' })
+      list.push({ url: resolveImageUrl(item.photo_url), label: item.photo_url_carded ? 'Loose' : '' })
     }
     if (isValidUrl(item.photo_url_carded)) {
-      list.push({ url: item.photo_url_carded!, label: 'Carded' })
+      list.push({ url: resolveImageUrl(item.photo_url_carded), label: 'Carded' })
     }
 
     if (Array.isArray(item.photo_gallery)) {
       for (const url of item.photo_gallery) {
-        if (isValidUrl(url) && !list.some(p => p.url === url)) {
-          list.push({ url, label: '' })
+        const resolved = resolveImageUrl(url)
+        if (isValidUrl(url) && !list.some(p => p.url === resolved)) {
+          list.push({ url: resolved, label: '' })
         }
       }
     }
