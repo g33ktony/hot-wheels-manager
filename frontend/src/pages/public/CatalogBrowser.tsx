@@ -13,6 +13,17 @@ import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import SegmentBadge from '@/components/public/SegmentBadge'
 import toast from 'react-hot-toast'
 
+const resolveCatalogImageUrl = (url?: string): string => {
+  if (!url) return ''
+  if (url.startsWith('wiki-file:')) {
+    const fileName = url.replace('wiki-file:', '').trim()
+    return fileName
+      ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
+      : ''
+  }
+  return url
+}
+
 export default function CatalogBrowser() {
   const { mode } = useTheme()
   const { user } = useAuth()
@@ -288,48 +299,53 @@ export default function CatalogBrowser() {
                   }`}
               >
                 {suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion._id}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 border-b last:border-b-0 ${isDark
-                      ? 'border-slate-700 hover:bg-slate-700'
-                      : 'border-slate-100 hover:bg-slate-50'
-                      }`}
-                  >
-                    {/* Small thumbnail */}
-                    <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
-                      {suggestion.photo_url && suggestion.photo_url.startsWith('https://') ? (
-                        <img
-                          src={`https://images.weserv.nl/?url=${encodeURIComponent(suggestion.photo_url)}&w=48&h=48&fit=cover`}
-                          alt={suggestion.carModel}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none'
-                          }}
-                        />
-                      ) : (
-                        <img src={getPlaceholderLogo(suggestion.series, suggestion.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
-                      )}
-                    </div>
+                  (() => {
+                    const previewUrl = resolveCatalogImageUrl(suggestion.photo_url)
+                    return (
+                      <div
+                        key={suggestion._id}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 border-b last:border-b-0 ${isDark
+                          ? 'border-slate-700 hover:bg-slate-700'
+                          : 'border-slate-100 hover:bg-slate-50'
+                          }`}
+                      >
+                        {/* Small thumbnail */}
+                        <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
+                          {previewUrl && previewUrl.startsWith('https://') ? (
+                            <img
+                              src={`https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=48&h=48&fit=cover`}
+                              alt={suggestion.carModel}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none'
+                              }}
+                            />
+                          ) : (
+                            <img src={getPlaceholderLogo(suggestion.series, suggestion.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
+                          )}
+                        </div>
 
-                    {/* Model info */}
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        {suggestion.carModel}
-                      </p>
-                      <p className={`text-sm truncate flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                        <SegmentBadge segment={suggestion.segment} />
-                        <span className="truncate">{suggestion.series} • {suggestion.year}</span>
-                      </p>
-                    </div>
+                        {/* Model info */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {suggestion.carModel}
+                          </p>
+                          <p className={`text-sm truncate flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                            <SegmentBadge segment={suggestion.segment} />
+                            <span className="truncate">{suggestion.series} • {suggestion.year}</span>
+                          </p>
+                        </div>
 
-                    {/* Availability badge */}
-                    {suggestion.availability?.available && (
-                      <div className="flex-shrink-0 px-2 py-1 bg-green-500 text-white text-xs rounded">
-                        Disponible
+                        {/* Availability badge */}
+                        {suggestion.availability?.available && (
+                          <div className="flex-shrink-0 px-2 py-1 bg-green-500 text-white text-xs rounded">
+                            Disponible
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    )
+                  })()
                 ))}
               </div>
             )}
@@ -565,76 +581,79 @@ export default function CatalogBrowser() {
       ) : results.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-            {results.map((item) => (
-              <div
-                key={item._id}
-                onClick={() => handleItemClick(item)}
-                className={`rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${isDark
-                  ? 'bg-slate-800 hover:bg-slate-750 hover:shadow-xl'
-                  : 'bg-white hover:shadow-lg'
-                  } shadow-md border ${isDark ? 'border-slate-700' : 'border-slate-200'
-                  }`}
-              >
-                {/* Image */}
-                <div className="relative h-48 bg-slate-700 flex items-center justify-center">
-                  {item.photo_url && item.photo_url.startsWith('https://') ? (
-                    <img
-                      src={item.photo_url.includes('weserv') ? item.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(item.photo_url)}&w=300&h=200&fit=contain`}
-                      alt={item.carModel}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
-                      }}
-                    />
-                  ) : (
-                    <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
-                  )}
+            {results.map((item) => {
+              const previewUrl = resolveCatalogImageUrl(item.photo_url)
+              return (
+                <div
+                  key={item._id}
+                  onClick={() => handleItemClick(item)}
+                  className={`rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${isDark
+                    ? 'bg-slate-800 hover:bg-slate-750 hover:shadow-xl'
+                    : 'bg-white hover:shadow-lg'
+                    } shadow-md border ${isDark ? 'border-slate-700' : 'border-slate-200'
+                    }`}
+                >
+                  {/* Image */}
+                  <div className="relative h-48 bg-slate-700 flex items-center justify-center">
+                    {previewUrl && previewUrl.startsWith('https://') ? (
+                      <img
+                        src={previewUrl.includes('weserv') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
+                        alt={item.carModel}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
+                        }}
+                      />
+                    ) : (
+                      <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
+                    )}
 
-                  {/* Segment Badge */}
-                  <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    <SegmentBadge segment={item.segment} />
-                    {item.brand && item.brand !== 'Hot Wheels' && (
-                      <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
-                        {item.brand}
-                      </span>
+                    {/* Segment Badge */}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                      <SegmentBadge segment={item.segment} />
+                      {item.brand && item.brand !== 'Hot Wheels' && (
+                        <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
+                          {item.brand}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Availability Badge */}
+                    {item.availability.available && (
+                      <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
+                        Disponible
+                      </div>
                     )}
                   </div>
 
-                  {/* Availability Badge */}
-                  {item.availability.available && (
-                    <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
-                      Disponible
+                  {/* Info */}
+                  <div className="p-4">
+                    <h3 className={`font-semibold text-base mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'
+                      }`}>
+                      {item.carModel}
+                    </h3>
+
+                    <div className={`text-sm space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <p>{item.series}</p>
+                      <p>Año: {item.year}</p>
+                      {item.color && <p>Color: {item.color}</p>}
                     </div>
-                  )}
-                </div>
 
-                {/* Info */}
-                <div className="p-4">
-                  <h3 className={`font-semibold text-base mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'
-                    }`}>
-                    {item.carModel}
-                  </h3>
-
-                  <div className={`text-sm space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                    <p>{item.series}</p>
-                    <p>Año: {item.year}</p>
-                    {item.color && <p>Color: {item.color}</p>}
+                    {/* Price (if available) */}
+                    {item.availability.available && item.availability.price && (
+                      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                        <p className="text-lg font-bold text-green-600">
+                          ${item.availability.price.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          Entrega inmediata
+                        </p>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Price (if available) */}
-                  {item.availability.available && item.availability.price && (
-                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                      <p className="text-lg font-bold text-green-600">
-                        ${item.availability.price.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-blue-600">
-                        Entrega inmediata
-                      </p>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Pagination */}

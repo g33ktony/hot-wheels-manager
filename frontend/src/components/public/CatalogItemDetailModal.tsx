@@ -220,40 +220,56 @@ export default function CatalogItemDetailModal({
                 </h3>
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {item.pack_contents.map((car, index) => (
-                    <div
-                      key={index}
-                      className={`p-3 rounded border flex gap-3 ${isDark ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-200'
-                        }`}
-                    >
-                      {/* Car Photo */}
-                      <div className="w-16 h-16 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
-                        {car.photo_url && car.photo_url.startsWith('https://') ? (
-                          <img
-                            src={car.photo_url.includes('weserv') ? car.photo_url : `https://images.weserv.nl/?url=${encodeURIComponent(car.photo_url)}&w=64&h=64&fit=contain`}
-                            alt={car.casting_name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
-                            }}
-                          />
-                        ) : (
-                          <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
-                        )}
-                      </div>
+                    (() => {
+                      const packPhotoUrl = (() => {
+                        const raw = car.photo_url || ''
+                        if (!raw) return ''
+                        if (raw.startsWith('wiki-file:')) {
+                          const fileName = raw.replace('wiki-file:', '').trim()
+                          return fileName
+                            ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
+                            : ''
+                        }
+                        return raw
+                      })()
 
-                      {/* Car Details */}
-                      <div className="flex-1 min-w-0">
-                        <p className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                          {car.casting_name}
-                        </p>
-                        <div className={`text-xs space-y-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                          {car.body_color && <p>Color: {car.body_color}</p>}
-                          {car.tampo && <p>Tampo: {car.tampo}</p>}
-                          {car.wheel_type && <p>Ruedas: {car.wheel_type}</p>}
-                          {car.notes && <p className="text-xs italic">{car.notes}</p>}
+                      return (
+                        <div
+                          key={index}
+                          className={`p-3 rounded border flex gap-3 ${isDark ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-200'
+                            }`}
+                        >
+                          {/* Car Photo */}
+                          <div className="w-16 h-16 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
+                            {packPhotoUrl && packPhotoUrl.startsWith('https://') ? (
+                              <img
+                                src={packPhotoUrl.includes('weserv') ? packPhotoUrl : `https://images.weserv.nl/?url=${encodeURIComponent(packPhotoUrl)}&w=64&h=64&fit=contain`}
+                                alt={car.casting_name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                                }}
+                              />
+                            ) : (
+                              <img src={getPlaceholderLogo(item.series)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
+                            )}
+                          </div>
+
+                          {/* Car Details */}
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {car.casting_name}
+                            </p>
+                            <div className={`text-xs space-y-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                              {car.body_color && <p>Color: {car.body_color}</p>}
+                              {car.tampo && <p>Tampo: {car.tampo}</p>}
+                              {car.wheel_type && <p>Ruedas: {car.wheel_type}</p>}
+                              {car.notes && <p className="text-xs italic">{car.notes}</p>}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      )
+                    })()
                   ))}
                 </div>
               </div>
