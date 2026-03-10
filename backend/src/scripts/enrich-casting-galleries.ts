@@ -18,6 +18,16 @@ type ExtractedRef = {
   text: string
 }
 
+type RefSignals = {
+  score: number
+  toyMatch: boolean
+  yearMatch: boolean
+  colorMatch: boolean
+  seriesMatch: boolean
+  modelTokenHits: number
+  ordinalMatch: boolean
+}
+
 function normalizeModel(value: string): string {
   return value
     .toLowerCase()
@@ -102,32 +112,60 @@ function includesCardedKeyword(text: string): boolean {
   )
 }
 
+function extractOrdinalToken(value: string): string | null {
+  const text = value.toLowerCase()
+  const match = text.match(/\b(2nd|3rd|4th|5th|second|third|fourth|fifth)\b/)
+  return match ? match[1] : null
+}
+
 function computeRefScore(car: EnrichableCar, refText: string): number {
   let score = 0
   const text = refText.toLowerCase()
 
   const toyNum = String(car.toy_num || '').trim().toLowerCase()
+  const toyMatch = Boolean(toyNum && text.includes(toyNum))
   if (toyNum && text.includes(toyNum)) {
     score += 8
   }
 
   const year = String(car.year || '').trim()
+  const yearMatch = Boolean(year && text.includes(year))
   if (year && text.includes(year)) {
     score += 4
   }
 
   const modelTokens = tokenize(car.carModel || '')
+  let modelTokenHits = 0
   for (const token of modelTokens) {
     if (token.length >= 4 && text.includes(token)) {
+      modelTokenHits++
       score += 2
     }
   }
 
   const seriesTokens = tokenize(String(car.series || ''))
+  let seriesMatch = false
   for (const token of seriesTokens) {
     if (token.length >= 4 && text.includes(token)) {
+      seriesMatch = true
       score += 1
     }
+  }
+
+  const colorTokens = tokenize(String(car.color || ''))
+  const colorMatch = colorTokens.some(token => token.length >= 4 && text.includes(token))
+  if (colorMatch) {
+    score += 3
+  }
+
+  const ordinalToken = extractOrdinalToken(car.carModel || '')
+  const ordinalMatch = Boolean(ordinalToken && text.includes(ordinalToken))
+  if (ordinalMatch) {
+    score += 3
+  }
+
+  if (ordinalToken && !ordinalMatch) {
+    score -= 2
   }
 
   if (text.includes('prototype') || text.includes('concept') || text.includes('playset')) {
@@ -137,22 +175,68 @@ function computeRefScore(car: EnrichableCar, refText: string): number {
   return score
 }
 
+function computeRefSignals(car: EnrichableCar, refText: string): RefSignals {
+  const text = refText.toLowerCase()
+  const toyNum = String(car.toy_num || '').trim().toLowerCase()
+  const year = String(car.year || '').trim()
+
+  const toyMatch = Boolean(toyNum && text.includes(toyNum))
+  const yearMatch = Boolean(year && text.includes(year))
+
+  const colorTokens = tokenize(String(car.color || ''))
+  const colorMatch = colorTokens.some(token => token.length >= 4 && text.includes(token))
+
+  const seriesTokens = tokenize(String(car.series || ''))
+  const seriesMatch = seriesTokens.some(token => token.length >= 4 && text.includes(token))
+
+  const modelTokens = tokenize(car.carModel || '')
+  const modelTokenHits = modelTokens.filter(token => token.length >= 4 && text.includes(token)).length
+
+  const ordinalToken = extractOrdinalToken(car.carModel || '')
+  const ordinalMatch = Boolean(ordinalToken && text.includes(ordinalToken))
+
+  return {
+    score: computeRefScore(car, refText),
+    toyMatch,
+    yearMatch,
+    colorMatch,
+    seriesMatch,
+    modelTokenHits,
+    ordinalMatch,
+  }
+}
+
+function isStrongMainMatch(signals: RefSignals): boolean {
+  if (signals.toyMatch) return true
+  if (signals.score < 6) return false
+  if (signals.yearMatch && (signals.colorMatch || signals.seriesMatch || signals.ordinalMatch)) return true
+  if (signals.yearMatch && signals.modelTokenHits >= 2) return true
+  return false
+}
+
+function isStrongCardedMatch(signals: RefSignals): boolean {
+  if (signals.toyMatch) return true
+  if (signals.score < 5) return false
+  if (signals.yearMatch && (signals.colorMatch || signals.seriesMatch || signals.ordinalMatch)) return true
+  return false
+}
+
 function selectMainAndCarded(car: EnrichableCar, refs: ExtractedRef[]): { main?: string; carded?: string } {
   if (refs.length === 0) return {}
 
   const ranked = refs
     .map(ref => ({
       ref,
-      score: computeRefScore(car, ref.text),
+      signals: computeRefSignals(car, ref.text),
       carded: includesCardedKeyword(ref.text),
     }))
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.signals.score - a.signals.score)
 
-  const mainCandidate = ranked.find(item => !item.carded) || ranked[0]
+  const mainCandidate = ranked.find(item => !item.carded && isStrongMainMatch(item.signals))
   const main = mainCandidate?.ref.url
 
-  const cardedCandidate = ranked.find(item => item.carded && item.ref.url !== main)
-  const carded = cardedCandidate?.ref.url || main
+  const cardedCandidate = ranked.find(item => item.carded && item.ref.url !== main && isStrongCardedMatch(item.signals))
+  const carded = cardedCandidate?.ref.url
 
   return { main, carded }
 }

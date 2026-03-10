@@ -47,7 +47,9 @@
     "fix-shared-photos": "tsx src/scripts/fix-shared-photos.ts",
     "classify-segments": "tsx src/scripts/classify-segments.ts",
     "scrape:amazon": "tsx src/scripts/scrape-amazon-premium-brands.ts",
-    "scrape:premium": "tsx src/scripts/scrape-premium-brands.ts"
+    "scrape:premium": "tsx src/scripts/scrape-premium-brands.ts",
+    "enrich:master": "tsx src/scripts/master-catalog-enrich.ts",
+    "enrich:master:dev": "tsx watch src/scripts/master-catalog-enrich.ts"
   },
   "keywords": [
     "hot-wheels",
