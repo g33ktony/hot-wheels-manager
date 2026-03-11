@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getImageUrl } from '../utils/imageUtils'
 import './CatalogBrowserPage.css'
 
 interface CatalogItem {
@@ -208,10 +209,10 @@ export default function CatalogBrowserPage() {
                                     {item.photo_url && (
                                         <div className="item-photo">
                                             <img
-                                                src={item.photo_url}
+                                                src={getImageUrl(item.photo_url)}
                                                 alt={item.carModel}
                                                 onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = '🖼️'
+                                                    (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23e0e0e0" width="200" height="200"/%3E%3C/svg%3E'
                                                 }}
                                             />
                                         </div>

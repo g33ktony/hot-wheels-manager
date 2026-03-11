@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PhotoUploadSection from '../components/PhotoUploadSection'
+import { getImageUrl } from '../utils/imageUtils'
 import './CatalogDetailPage.css'
 
 interface DetailItem {
@@ -141,7 +142,7 @@ export default function CatalogDetailPage() {
                 <div className="photo-panel">
                     <div className="photo-main">
                         {item.photo_url ? (
-                            <img src={item.photo_url} alt={item.carModel} />
+                            <img src={getImageUrl(item.photo_url)} alt={item.carModel} />
                         ) : (
                             <div className="no-photo">📷 Sin foto principal</div>
                         )}
@@ -149,14 +150,14 @@ export default function CatalogDetailPage() {
 
                     <div className="photo-thumbnails">
                         {item.photo_url_carded && (
-                            <a href={item.photo_url_carded} target="_blank" rel="noopener noreferrer" className="thumb">
-                                <img src={item.photo_url_carded} alt="Carded" title="Foto empaque" />
+                            <a href={getImageUrl(item.photo_url_carded) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
+                                <img src={getImageUrl(item.photo_url_carded)} alt="Carded" title="Foto empaque" />
                             </a>
                         )}
                         {Array.isArray(item.photo_gallery) &&
                             item.photo_gallery.map((url, idx) => (
-                                <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="thumb">
-                                    <img src={url} alt={`Gallery ${idx}`} />
+                                <a key={idx} href={getImageUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
+                                    <img src={getImageUrl(url)} alt={`Gallery ${idx}`} />
                                 </a>
                             ))}
                     </div>
