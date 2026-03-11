@@ -88,7 +88,23 @@ const limiter = rateLimit({
 })
 
 // Middleware
-app.use(helmet()) // Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      baseSrc: ["'self'"],
+      fontSrc: ["'self'", 'https:', 'data:'],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'http://localhost:3001', 'http://localhost:*', 'https://'],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'"],
+      scriptSrcAttr: ["'none'"],
+      styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+}))
 app.use(compression({
   filter: (req, res) => {
     // Don't compress if client doesn't accept encoding

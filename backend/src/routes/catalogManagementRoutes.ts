@@ -241,8 +241,6 @@ router.post('/items/:id/photos', upload.single('photo'), async (req: Request, re
       })
     }
 
-    const fileUrl = `/uploads/photos/${req.file.filename}`
-
     let item = null
 
     // Handle cache ID format (cache-{toy_num})
@@ -260,6 +258,10 @@ router.post('/items/:id/photos', upload.single('photo'), async (req: Request, re
         }
       }
     }
+
+    // Construct the file URL as absolute URL
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001'
+    const fileUrl = `${backendUrl}/uploads/photos/${req.file.filename}`
 
     if (!item) {
       // Borrar archivo si item no existe

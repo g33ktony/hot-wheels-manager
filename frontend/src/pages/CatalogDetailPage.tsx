@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PhotoUploadSection from '../components/PhotoUploadSection'
-import { getImageUrl } from '../utils/imageUtils'
+import { getImageFallbacks } from '../utils/imageUtils'
 import './CatalogDetailPage.css'
 
 interface DetailItem {
@@ -34,6 +34,7 @@ export default function CatalogDetailPage() {
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
     const [showPhotos, setShowPhotos] = useState(true)
+    const [imageFallbacks, setImageFallbacks] = useState<Record<string, number>>({})
 
     useEffect(() => {
         loadItem()
@@ -50,6 +51,7 @@ export default function CatalogDetailPage() {
             if (json.success) {
                 setItem(json.data)
                 setEdited({})
+                setImageFallbacks({}) // Limpiar fallbacks cuando se carga nueva imagen
             } else {
                 setError(json.error || 'Error loading item')
             }
@@ -62,6 +64,25 @@ export default function CatalogDetailPage() {
 
     const handleFieldChange = (field: string, value: any) => {
         setEdited({ ...edited, [field]: value })
+    }
+
+    const handleImageError = (imageKey: string, imageUrl: string) => {
+        const fallbacks = getImageFallbacks(imageUrl)
+        const currentAttempt = imageFallbacks[imageKey] || 0
+
+        if (currentAttempt < fallbacks.length - 1) {
+            setImageFallbacks(prev => ({
+                ...prev,
+                [imageKey]: currentAttempt + 1
+            }))
+        }
+    }
+
+    const getImageSrc = (imageUrl: string | undefined, imageKey: string): string => {
+        if (!imageUrl) return ''
+        const fallbacks = getImageFallbacks(imageUrl)
+        const attemptIndex = imageFallbacks[imageKey] || 0
+        return fallbacks[attemptIndex] || fallbacks[fallbacks.length - 1] || ''
     }
 
     const handleSave = async () => {
@@ -142,7 +163,11 @@ export default function CatalogDetailPage() {
                 <div className="photo-panel">
                     <div className="photo-main">
                         {item.photo_url ? (
-                            <img src={getImageUrl(item.photo_url)} alt={item.carModel} />
+                            <img
+                                src={getImageSrc(item.photo_url, 'photo_main')}
+                                alt={item.carModel}
+                                onError={() => handleImageError('photo_main', item.photo_url!)}
+                            />
                         ) : (
                             <div className="no-photo">📷 Sin foto principal</div>
                         )}
@@ -150,14 +175,23 @@ export default function CatalogDetailPage() {
 
                     <div className="photo-thumbnails">
                         {item.photo_url_carded && (
-                            <a href={getImageUrl(item.photo_url_carded) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
-                                <img src={getImageUrl(item.photo_url_carded)} alt="Carded" title="Foto empaque" />
+                            <a href={getImageSrc(item.photo_url_carded, 'photo_carded') || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
+                                <img
+                                    src={getImageSrc(item.photo_url_carded, 'photo_carded')}
+                                    alt="Carded"
+                                    title="Foto empaque"
+                                    onError={() => handleImageError('photo_carded', item.photo_url_carded!)}
+                                />
                             </a>
                         )}
                         {Array.isArray(item.photo_gallery) &&
                             item.photo_gallery.map((url, idx) => (
-                                <a key={idx} href={getImageUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
-                                    <img src={getImageUrl(url)} alt={`Gallery ${idx}`} />
+                                <a key={idx} href={getImageSrc(url, `photo_gallery_${idx}`) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
+                                    <img
+                                        src={getImageSrc(url, `photo_gallery_${idx}`)}
+                                        alt={`Gallery ${idx}`}
+                                        onError={() => handleImageError(`photo_gallery_${idx}`, url)}
+                                    />
                                 </a>
                             ))}
                     </div>
@@ -244,7 +278,7 @@ export default function CatalogDetailPage() {
                 </div>
             </div>
 
-            {/* Sección de fotos (desplegable) */}
+            {/* Gestión de fotos */}
             {showPhotos && <PhotoUploadSection itemId={id!} onPhotoUploaded={loadItem} />}
         </div>
     )
