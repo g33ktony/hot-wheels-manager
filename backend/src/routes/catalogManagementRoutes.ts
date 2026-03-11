@@ -89,12 +89,28 @@ router.get('/items', async (req: Request, res: Response) => {
 /**
  * GET /api/catalog/items/:id
  * Obtener detalle de un item
+ * Soporta tanto MongoDB ObjectId como cache keys (cache-{toy_num})
  */
 router.get('/items/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
+    let item = null
 
-    const item = await HotWheelsCarModel.findById(id).lean()
+    // Check if it's a cache ID (format: cache-{toy_num})
+    if (id.startsWith('cache-')) {
+      const toy_num = id.replace('cache-', '')
+      item = await HotWheelsCarModel.findOne({ toy_num }).lean()
+    } else {
+      // Try as MongoDB ObjectId first
+      try {
+        item = await HotWheelsCarModel.findById(id).lean()
+      } catch (e) {
+        // If not valid ObjectId, try as toy_num
+        if (!item) {
+          item = await HotWheelsCarModel.findOne({ toy_num: id }).lean()
+        }
+      }
+    }
 
     if (!item) {
       return res.status(404).json({
@@ -119,6 +135,7 @@ router.get('/items/:id', async (req: Request, res: Response) => {
 /**
  * PUT /api/catalog/items/:id
  * Actualizar item (campos editables)
+ * Soporta tanto MongoDB ObjectId como cache keys (cache-{toy_num})
  */
 router.put('/items/:id', async (req: Request, res: Response) => {
   try {
@@ -147,10 +164,34 @@ router.put('/items/:id', async (req: Request, res: Response) => {
       }
     }
 
-    const updatedItem = await HotWheelsCarModel.findByIdAndUpdate(id, filteredUpdates, {
-      new: true,
-      lean: true,
-    })
+    let updatedItem = null
+
+    // Handle cache ID format (cache-{toy_num})
+    if (id.startsWith('cache-')) {
+      const toy_num = id.replace('cache-', '')
+      updatedItem = await HotWheelsCarModel.findOneAndUpdate(
+        { toy_num },
+        filteredUpdates,
+        { new: true, lean: true }
+      )
+    } else {
+      // Try as MongoDB ObjectId or toy_num
+      try {
+        updatedItem = await HotWheelsCarModel.findByIdAndUpdate(id, filteredUpdates, {
+          new: true,
+          lean: true,
+        })
+      } catch (e) {
+        // If not valid ObjectId, try as toy_num
+        if (!updatedItem) {
+          updatedItem = await HotWheelsCarModel.findOneAndUpdate(
+            { toy_num: id },
+            filteredUpdates,
+            { new: true, lean: true }
+          )
+        }
+      }
+    }
 
     if (!updatedItem) {
       return res.status(404).json({
@@ -179,6 +220,7 @@ router.put('/items/:id', async (req: Request, res: Response) => {
 /**
  * POST /api/catalog/items/:id/photos
  * Subir/actualizar foto de un item
+ * Soporta tanto MongoDB ObjectId como cache keys (cache-{toy_num})
  */
 router.post('/items/:id/photos', upload.single('photo'), async (req: Request, res: Response) => {
   try {
@@ -201,7 +243,23 @@ router.post('/items/:id/photos', upload.single('photo'), async (req: Request, re
 
     const fileUrl = `/uploads/photos/${req.file.filename}`
 
-    const item = await HotWheelsCarModel.findById(id)
+    let item = null
+
+    // Handle cache ID format (cache-{toy_num})
+    if (id.startsWith('cache-')) {
+      const toy_num = id.replace('cache-', '')
+      item = await HotWheelsCarModel.findOne({ toy_num })
+    } else {
+      // Try as MongoDB ObjectId or toy_num
+      try {
+        item = await HotWheelsCarModel.findById(id)
+      } catch (e) {
+        // If not valid ObjectId, try as toy_num
+        if (!item) {
+          item = await HotWheelsCarModel.findOne({ toy_num: id })
+        }
+      }
+    }
 
     if (!item) {
       // Borrar archivo si item no existe
@@ -247,12 +305,28 @@ router.post('/items/:id/photos', upload.single('photo'), async (req: Request, re
 /**
  * DELETE /api/catalog/items/:id/photos/:photoIndex
  * Eliminar foto de galería
+ * Soporta tanto MongoDB ObjectId como cache keys (cache-{toy_num})
  */
 router.delete('/items/:id/photos/:photoIndex', async (req: Request, res: Response) => {
   try {
     const { id, photoIndex } = req.params
+    let item = null
 
-    const item = await HotWheelsCarModel.findById(id)
+    // Handle cache ID format (cache-{toy_num})
+    if (id.startsWith('cache-')) {
+      const toy_num = id.replace('cache-', '')
+      item = await HotWheelsCarModel.findOne({ toy_num })
+    } else {
+      // Try as MongoDB ObjectId or toy_num
+      try {
+        item = await HotWheelsCarModel.findById(id)
+      } catch (e) {
+        // If not valid ObjectId, try as toy_num
+        if (!item) {
+          item = await HotWheelsCarModel.findOne({ toy_num: id })
+        }
+      }
+    }
 
     if (!item) {
       return res.status(404).json({
