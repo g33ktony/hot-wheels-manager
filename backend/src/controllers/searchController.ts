@@ -276,8 +276,15 @@ export const globalSearch = async (req: Request, res: Response) => {
       const allCars = getAllCars();
       const searchLower = searchTerm.toLowerCase();
       
+      // Ordenar por año descendente (más recientes primero) para mostrar castings nuevos
+      const sortedCars = [...allCars].sort((a, b) => {
+        const yearA = parseInt(a.year || '0');
+        const yearB = parseInt(b.year || '0');
+        return yearB - yearA; // Descendente: 2026, 2025, 2024...
+      });
+      
       let count = 0;
-      for (const car of allCars) {
+      for (const car of sortedCars) {
         if (count >= 100) break; // Max 100 catalog results
         
         // Quick substring check first

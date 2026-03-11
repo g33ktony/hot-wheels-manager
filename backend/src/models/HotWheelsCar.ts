@@ -28,6 +28,24 @@ export interface IHotWheelsCar extends Document {
     photo_url?: string;
     photo_url_carded?: string;
   }>;
+  
+  // Enrichment fields
+  colorGroup?: string;
+  colorVariant?: string;
+  colorHex?: string;
+  hwSeriesType?: string;
+  seriesPosition?: number;
+  yearPosition?: number;
+  photoValidation?: {
+    source: 'main' | 'carded' | 'gallery' | 'none';
+    url?: string;
+    cardedValidated?: boolean;
+  };
+  enrichmentMetadata?: {
+    processedAt?: Date;
+    dataQuality: 'high' | 'medium' | 'low';
+    issues?: string[];
+  };
 }
 
 const hotWheelsCarSchema = new Schema<IHotWheelsCar>({
@@ -60,9 +78,34 @@ const hotWheelsCarSchema = new Schema<IHotWheelsCar>({
       photo_url: { type: String }
     }],
     default: undefined
+  },
+  
+  // Enrichment fields
+  colorGroup: { type: String },
+  colorVariant: { type: String },
+  colorHex: { type: String },
+  hwSeriesType: { type: String },
+  seriesPosition: { type: Number },
+  yearPosition: { type: Number },
+  photoValidation: {
+    type: {
+      source: { type: String, enum: ['main', 'carded', 'gallery', 'none'] },
+      url: { type: String },
+      cardedValidated: { type: Boolean }
+    },
+    default: undefined
+  },
+  enrichmentMetadata: {
+    type: {
+      processedAt: { type: Date },
+      dataQuality: { type: String, enum: ['high', 'medium', 'low'] },
+      issues: { type: [String] }
+    },
+    default: undefined
   }
 }, {
   timestamps: true,
+  strict: false // Allow additional fields from enrichment
 })
 
 // Índices para mejorar las búsquedas

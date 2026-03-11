@@ -1,0 +1,46 @@
+{
+  "totalProcessed": 31461,
+  "brandBreakdown": {
+    "Hot Wheels": 31461,
+    "Mini GT": 0,
+    "Pop Race": 0,
+    "Kaido House": 0,
+    "Tomica": 0
+  },
+  "photosCoverage": {
+    "total": 31461,
+    "withMainPhoto": 2643,
+    "withCardedPhoto": 612,
+    "withGallery": 0,
+    "withoutPhoto": 28646,
+    "percentWithMainPhoto": 8.4
+  },
+  "colorNormalization": {
+    "totalUnique": 3585,
+    "groupedInto": 15,
+    "byGroup": {
+      "Red": 3303,
+      "Blue": 3400,
+      "Green": 1982,
+      "Yellow": 2316,
+      "Orange": 1126,
+      "Purple": 969,
+      "Pink": 331,
+      "Black": 2519,
+      "White": 2012,
+      "Silver": 1731,
+      "Gold": 0,
+      "Brown": 333,
+      "Gray": 6,
+      "Chrome": 6,
+      "Multi": 3,
+      "Unknown": 1676
+    }
+  },
+  "enrichmentSuccess": {
+    "full": 2756,
+    "partial": 0,
+    "failed": 28705
+  },
+  "processingTime": 1637
+}

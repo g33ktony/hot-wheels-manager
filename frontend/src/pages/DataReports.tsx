@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useTheme } from '@/contexts/ThemeContext'
 import { dataReportsApi, DataReport } from '@/services/dataReports'
@@ -16,7 +17,8 @@ import {
     Camera,
     Image,
     FileText,
-    Filter
+    Filter,
+    Edit
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -36,6 +38,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
 export default function DataReports() {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
+    const navigate = useNavigate()
     const queryClient = useQueryClient()
 
     const [page, setPage] = useState(1)
@@ -241,6 +244,15 @@ export default function DataReports() {
 
                                         {/* Actions */}
                                         <div className="flex sm:flex-col gap-2 flex-shrink-0">
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => navigate(`/catalog/items/${report.catalogItemId}`)}
+                                                icon={<Edit size={14} />}
+                                                title="Editar detalle del item"
+                                            >
+                                                Editar
+                                            </Button>
                                             {report.status === 'pending' && (
                                                 <Button
                                                     variant="primary"

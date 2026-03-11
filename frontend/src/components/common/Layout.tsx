@@ -165,6 +165,7 @@ export default function Layout({ children }: LayoutProps) {
                 highlight: true
             }
         ] : []),
+        { name: '📋 Gestión de Catálogo', href: '/catalog', icon: Package },
         { name: 'Catálogo Público', href: '/browse?adminView=true', icon: SearchIcon },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
         { name: 'Configuración de Tienda', href: '/store-settings', icon: Store },

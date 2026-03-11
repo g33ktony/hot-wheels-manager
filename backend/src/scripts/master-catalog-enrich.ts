@@ -329,7 +329,7 @@ export class MasterCatalogEnricher {
   }
 
   /**
-   * Sincroniza items enriquecidos a MongoDB - INSERT new documents with upsert
+   * Sincroniza items enriquecidos a MongoDB
    */
   private async syncToMongo(enrichedItems: EnrichedCatalogItem[]): Promise<void> {
     this.emitProgress({
@@ -346,39 +346,30 @@ export class MasterCatalogEnricher {
       await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/hot-wheels')
     }
 
+    const collection = HotWheelsCarModel.collection
+
+    // Clear existing data
+    try {
+      const deleteResult = await collection.deleteMany({})
+      console.log(`[PRE-SYNC] Cleared ${deleteResult.deletedCount} existing documents`)
+    } catch (e) {
+      console.log('[PRE-SYNC] Collection might not exist yet')
+    }
+
     const BATCH_SIZE = 1000
     let synced = 0
 
-    // Drop collection if exists to start fresh
-    try {
-      await HotWheelsCarModel.collection.deleteMany({})
-      console.log('[PRE-SYNC] Dropped existing hotwheelscars collection')
-    } catch (e) {
-      // Collection might not exist, that's OK
-    }
-
-    // Insert enriched items in batches
+    // Insert enriched items in batches using raw collection insert (no schema validation delays)
     for (let batchStart = 0; batchStart < enrichedItems.length; batchStart += BATCH_SIZE) {
       const batchEnd = Math.min(batchStart + BATCH_SIZE, enrichedItems.length)
       const batch = enrichedItems.slice(batchStart, batchEnd)
 
       try {
-        // Use replaceOne with upsert to avoid duplicate key errors
-        const collection = HotWheelsCarModel.collection
-        const bulkOps = batch.map(item => ({
-          replaceOne: {
-            filter: { toy_num: item.toy_num },
-            replacement: item,
-            upsert: true,
-          },
-        }))
-
-        const result = await collection.bulkWrite(bulkOps)
-        synced += (result.upsertedCount || 0) + (result.modifiedCount || 0)
-
-        console.log(
-          `[SYNC_BATCH] ${batchStart}-${batchEnd}: upserted=${result.upsertedCount}, modified=${result.modifiedCount}`
-        )
+        // Use raw insertMany with no validation or session involvement
+        const result = await collection.insertMany(batch)
+        const insertedCount = Object.keys(result.insertedIds).length
+        synced += insertedCount
+        console.log(`[SYNC_BATCH] ${batchStart}-${batchEnd}: inserted=${insertedCount}`)
 
         this.emitProgress({
           step: 'syncing',
@@ -388,12 +379,23 @@ export class MasterCatalogEnricher {
           processedItems: batchEnd,
           totalItems: enrichedItems.length,
         })
-      } catch (e) {
-        console.error(`❌ Error en lote ${batchStart}-${batchEnd}:`, (e as Error).message)
+      } catch (e: any) {
+        // Count successfully inserted even if there were errors
+        if (e.insertedIds) {
+          const insertedCount = Object.keys(e.insertedIds).length
+          synced += insertedCount
+          console.log(
+            `[SYNC_BATCH] ${batchStart}-${batchEnd}: inserted=${insertedCount} (${e.writeErrors?.length || 0} errors)`
+          )
+        } else {
+          console.error(`[ERROR] Batch ${batchStart}-${batchEnd}: ${(e as Error).message?.substring(0, 100)}`)
+        }
       }
     }
 
-    console.log(`✅ Sincronización completada: ${synced} items en MongoDB`)
+    // Verify final count
+    const finalCount = await collection.countDocuments({})
+    console.log(`✅ Final sync: ${synced} processed, ${finalCount} in MongoDB`)
   }
 }
 

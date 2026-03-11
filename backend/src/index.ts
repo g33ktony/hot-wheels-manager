@@ -50,6 +50,7 @@ import storeSettingsRoutes from './routes/storeSettingsRoutes'
 import dataReportRoutes from './routes/dataReportRoutes'
 import storesRoutes from './routes/storesRoutes'
 import catalogEnrichmentRoutes from './routes/catalogEnrichmentRoutes'
+import catalogManagementRoutes from './routes/catalogManagementRoutes'
 
 // Import middleware
 import { authMiddleware } from './middleware/auth'
@@ -193,7 +194,8 @@ app.use('/api/payment-plans', authMiddleware, paymentPlansRoutes)
 app.use('/api/leads', authMiddleware, leadsRoutes)
 app.use('/api/store-settings', authMiddleware, storeSettingsRoutes)
 app.use('/api/data-reports', authMiddleware, dataReportRoutes)
-app.use('/api/catalog', authMiddleware, catalogEnrichmentRoutes)
+app.use('/api/catalog', authMiddleware, catalogManagementRoutes)
+app.use('/api/enrichment', authMiddleware, catalogEnrichmentRoutes)
 
 // Error handling middleware
 app.use(notFoundHandler)
