@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import PhotoUploadSection from '../components/PhotoUploadSection'
-import { getImageFallbacks } from '../utils/imageUtils'
+import { convertImageUrl } from '../utils/imageUtils'
 import './CatalogDetailPage.css'
 
 interface DetailItem {
@@ -34,7 +34,7 @@ export default function CatalogDetailPage() {
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
     const [showPhotos, setShowPhotos] = useState(true)
-    const [imageFallbacks, setImageFallbacks] = useState<Record<string, number>>({})
+    const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
     useEffect(() => {
         loadItem()
@@ -51,7 +51,7 @@ export default function CatalogDetailPage() {
             if (json.success) {
                 setItem(json.data)
                 setEdited({})
-                setImageFallbacks({}) // Limpiar fallbacks cuando se carga nueva imagen
+                setFailedImages(new Set()) // Limpiar imágenes fallidas cuando se carga nuevo item
             } else {
                 setError(json.error || 'Error loading item')
             }
@@ -66,23 +66,16 @@ export default function CatalogDetailPage() {
         setEdited({ ...edited, [field]: value })
     }
 
-    const handleImageError = (imageKey: string, imageUrl: string) => {
-        const fallbacks = getImageFallbacks(imageUrl)
-        const currentAttempt = imageFallbacks[imageKey] || 0
-
-        if (currentAttempt < fallbacks.length - 1) {
-            setImageFallbacks(prev => ({
-                ...prev,
-                [imageKey]: currentAttempt + 1
-            }))
-        }
+    const handleImageError = (imageKey: string) => {
+        setFailedImages(prev => new Set([...prev, imageKey]))
     }
 
-    const getImageSrc = (imageUrl: string | undefined, imageKey: string): string => {
-        if (!imageUrl) return ''
-        const fallbacks = getImageFallbacks(imageUrl)
-        const attemptIndex = imageFallbacks[imageKey] || 0
-        return fallbacks[attemptIndex] || fallbacks[fallbacks.length - 1] || ''
+    const getImageSrc = (url: string | undefined, imageKey: string): string => {
+        if (!url || failedImages.has(imageKey)) {
+            return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e0e0e0" width="400" height="300"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="%23999"%3E📷 No disponible%3C/text%3E%3C/svg%3E'
+        }
+        const converted = convertImageUrl(url)
+        return converted || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e0e0e0" width="400" height="300"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="%23999"%3E📷 No disponible%3C/text%3E%3C/svg%3E'
     }
 
     const handleSave = async () => {
@@ -166,7 +159,7 @@ export default function CatalogDetailPage() {
                             <img
                                 src={getImageSrc(item.photo_url, 'photo_main')}
                                 alt={item.carModel}
-                                onError={() => handleImageError('photo_main', item.photo_url!)}
+                                onError={() => handleImageError('photo_main')}
                             />
                         ) : (
                             <div className="no-photo">📷 Sin foto principal</div>
@@ -180,7 +173,7 @@ export default function CatalogDetailPage() {
                                     src={getImageSrc(item.photo_url_carded, 'photo_carded')}
                                     alt="Carded"
                                     title="Foto empaque"
-                                    onError={() => handleImageError('photo_carded', item.photo_url_carded!)}
+                                    onError={() => handleImageError('photo_carded')}
                                 />
                             </a>
                         )}
@@ -190,7 +183,7 @@ export default function CatalogDetailPage() {
                                     <img
                                         src={getImageSrc(url, `photo_gallery_${idx}`)}
                                         alt={`Gallery ${idx}`}
-                                        onError={() => handleImageError(`photo_gallery_${idx}`, url)}
+                                        onError={() => handleImageError(`photo_gallery_${idx}`)}
                                     />
                                 </a>
                             ))}
