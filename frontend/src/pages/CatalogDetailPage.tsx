@@ -41,7 +41,9 @@ export default function CatalogDetailPage() {
     const loadItem = async () => {
         try {
             setLoading(true)
-            const res = await fetch(`/api/catalog/items/${id}`)
+            const res = await fetch(`/api/catalog/items/${id}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            })
             const json = await res.json()
 
             if (json.success) {
@@ -71,7 +73,10 @@ export default function CatalogDetailPage() {
         try {
             const res = await fetch(`/api/catalog/items/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
                 body: JSON.stringify(edited),
             })
 

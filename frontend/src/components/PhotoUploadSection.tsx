@@ -55,6 +55,7 @@ export default function PhotoUploadSection({ itemId, onPhotoUploaded }: PhotoUpl
 
             const res = await fetch(`/api/catalog/items/${itemId}/photos`, {
                 method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                 body: formData,
             })
 

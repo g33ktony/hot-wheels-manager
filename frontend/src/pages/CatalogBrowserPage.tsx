@@ -46,7 +46,9 @@ export default function CatalogBrowserPage() {
     useEffect(() => {
         const loadFilters = async () => {
             try {
-                const res = await fetch('/api/catalog/filters')
+                const res = await fetch('/api/catalog/filters', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                })
                 const json = await res.json()
                 if (json.success) {
                     setSeries(json.data.series)
@@ -76,7 +78,9 @@ export default function CatalogBrowserPage() {
             if (selectedYear) params.append('year', selectedYear)
             if (selectedColor) params.append('color', selectedColor)
 
-            const res = await fetch(`/api/catalog/items?${params}`)
+            const res = await fetch(`/api/catalog/items?${params}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            })
             const json = await res.json()
 
             if (json.success) {
