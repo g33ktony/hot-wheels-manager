@@ -31,10 +31,282 @@ dotenv.config()
 
 const FANDOM_API = 'https://hotwheels.fandom.com/api.php'
 const REQUEST_DELAY_MS = 120
+const CASTING_PROGRESS_PATH = path.join(__dirname, '../../data/casting-enrich-progress.json')
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 
 interface ProgressCallback {
   (progress: CatalogEnrichmentProgress): void
 }
+
+// ─── Casting Page Types ──────────────────────────────────────────
+
+interface VersionRow {
+  col_num: string
+  year: string
+  series: string
+  color: string
+  tampo: string
+  base_color: string
+  window_color: string
+  interior_color: string
+  wheel_type: string
+  toy_num: string
+  country: string
+  notes: string
+  photo_url: string | undefined
+}
+
+interface CastingEnrichStats {
+  modelsChecked: number
+  pagesFound: number
+  pagesMissing: number
+  rowsParsed: number
+  itemsEnriched: number
+  fieldsUpdated: number
+  photosAdded: number
+  errors: number
+}
+
+// ─── Casting Page Wikitext Parsing ───────────────────────────────
+
+function cleanCastingWikitext(text: string): string {
+  return text
+    .replace(/\[\[(?:File|Image):([^\]|]+)(?:\|[^\]]+)?\]\]/gi, (_m, name: string) =>
+      'wiki-file:' + name.trim().replace(/ /g, '_')
+    )
+    .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
+    .replace(/\[\[([^\]]+)\]\]/g, '$1')
+    .replace(/\{\{[^}]*\}\}/g, '')
+    .replace(/<br\s*\/?>/gi, ' / ')
+    .replace(/<[^>]+>/g, '')
+    .replace(/''+/g, '')
+    .trim()
+}
+
+function splitCellsProtected(content: string): string[] {
+  const cells: string[] = []
+  let depth = 0
+  let current = ''
+  for (let i = 0; i < content.length; i++) {
+    if (content[i] === '[' && content[i + 1] === '[') { depth++; current += '[['; i++ }
+    else if (content[i] === ']' && content[i + 1] === ']') { depth--; current += ']]'; i++ }
+    else if (content[i] === '|' && content[i + 1] === '|' && depth === 0) {
+      cells.push(current)
+      current = ''
+      i++ // skip second |
+    }
+    else { current += content[i] }
+  }
+  if (current) cells.push(current)
+  return cells
+}
+
+function mapVersionHeaders(headers: string[]): Record<string, number> {
+  const map: Record<string, number> = {}
+  for (let i = 0; i < headers.length; i++) {
+    const h = headers[i].toLowerCase().trim()
+    if (/col\s*#|col\.\s*#|^#$/i.test(h)) map.col_num = i
+    else if (/^year$/i.test(h)) map.year = i
+    else if (/^series$/i.test(h)) map.series = i
+    else if (/^color$/i.test(h)) map.color = i
+    else if (/^tampo/i.test(h)) map.tampo = i
+    else if (/base\s*color/i.test(h)) map.base_color = i
+    else if (/window\s*color/i.test(h)) map.window_color = i
+    else if (/interior\s*color/i.test(h)) map.interior_color = i
+    else if (/wheel\s*type/i.test(h)) map.wheel_type = i
+    else if (/toy\s*#|toy\s*num/i.test(h)) map.toy_num = i
+    else if (/country/i.test(h)) map.country = i
+    else if (/notes/i.test(h)) map.notes = i
+    else if (/photo|image/i.test(h)) map.photo = i
+  }
+  return map
+}
+
+function parseVersionsTable(wikitext: string): VersionRow[] {
+  const rows: VersionRow[] = []
+
+  const vIdx = wikitext.indexOf('==Versions==')
+  if (vIdx < 0) return rows
+
+  let tableStart = wikitext.indexOf('{|', vIdx)
+  if (tableStart < 0) return rows
+
+  let depth = 0
+  let tableEnd = -1
+  for (let i = tableStart; i < wikitext.length; i++) {
+    if (wikitext[i] === '{' && wikitext[i + 1] === '|') { depth++; i++ }
+    else if (wikitext[i] === '|' && wikitext[i + 1] === '}') {
+      depth--
+      if (depth === 0) { tableEnd = i + 2; break }
+      i++
+    }
+  }
+  if (tableEnd < 0) tableEnd = wikitext.length
+
+  const tableText = wikitext.substring(tableStart, tableEnd)
+  const lines = tableText.split('\n')
+
+  const headers: string[] = []
+  const dataRows: string[][] = []
+  let currentRow: string[] = []
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+
+    if (trimmed.startsWith('{|') || trimmed.startsWith('|+')) continue
+
+    if (trimmed.startsWith('|-') || trimmed.startsWith('|}')) {
+      if (currentRow.length > 0) {
+        if (headers.length > 0) dataRows.push(currentRow)
+        currentRow = []
+      }
+      continue
+    }
+
+    if (trimmed.startsWith('!')) {
+      const content = trimmed.substring(1)
+      const parts = content.split('!!')
+      for (let part of parts) {
+        if (part.includes('|')) part = part.split('|').pop() || ''
+        headers.push(cleanCastingWikitext(part))
+      }
+      continue
+    }
+
+    if (trimmed.startsWith('|')) {
+      const content = trimmed.substring(1)
+      const cells = splitCellsProtected(content)
+      for (let cell of cells) {
+        if (/^\s*(style|class|align|width|bgcolor|rowspan|colspan)\s*=/i.test(cell)) {
+          const pipeIdx = cell.indexOf('|')
+          if (pipeIdx >= 0) cell = cell.substring(pipeIdx + 1)
+          else continue
+        }
+        currentRow.push(cleanCastingWikitext(cell))
+      }
+    }
+  }
+  if (currentRow.length > 0 && headers.length > 0) dataRows.push(currentRow)
+
+  const colMap = mapVersionHeaders(headers)
+  if (colMap.toy_num === undefined) return rows
+
+  for (const cells of dataRows) {
+    const get = (key: string) => {
+      const idx = (colMap as any)[key]
+      if (idx === undefined || idx >= cells.length) return ''
+      return cells[idx] || ''
+    }
+
+    const photoRaw = get('photo')
+    let photoUrl: string | undefined = undefined
+    if (photoRaw) {
+      const wikiMatch = photoRaw.match(/wiki-file:([^\s]+)/i)
+      if (wikiMatch) photoUrl = `wiki-file:${wikiMatch[1]}`
+    }
+
+    const toyNum = get('toy_num')
+    if (!toyNum) continue
+
+    rows.push({
+      col_num: get('col_num'),
+      year: get('year'),
+      series: get('series'),
+      color: get('color'),
+      tampo: get('tampo'),
+      base_color: get('base_color'),
+      window_color: get('window_color'),
+      interior_color: get('interior_color'),
+      wheel_type: get('wheel_type'),
+      toy_num: toyNum,
+      country: get('country'),
+      notes: get('notes'),
+      photo_url: photoUrl,
+    })
+  }
+
+  return rows
+}
+
+// ─── Fandom API Helpers for Casting Pages ────────────────────────
+
+async function checkCastingPagesExist(titles: string[]): Promise<Map<string, string>> {
+  const existMap = new Map<string, string>()
+  const BATCH = 50
+
+  for (let i = 0; i < titles.length; i += BATCH) {
+    const batch = titles.slice(i, i + BATCH)
+    const params = new URLSearchParams({
+      action: 'query',
+      titles: batch.join('|'),
+      format: 'json',
+      formatversion: '2',
+    })
+
+    try {
+      const resp = await axios.get(`${FANDOM_API}?${params}`)
+      const pages = resp.data.query?.pages || []
+      const normalized = resp.data.query?.normalized || []
+
+      const normMap = new Map<string, string>()
+      for (const n of normalized) normMap.set(n.to, n.from)
+
+      for (const page of pages) {
+        if (!page.missing) {
+          const wikiTitle = page.title
+          const originalTitle = normMap.get(wikiTitle) || wikiTitle.replace(/ /g, '_')
+          existMap.set(originalTitle, wikiTitle)
+        }
+      }
+    } catch (e) {
+      console.error(`  ⚠️ Error checking page existence:`, (e as Error).message)
+    }
+
+    if (i + BATCH < titles.length) await sleep(REQUEST_DELAY_MS)
+  }
+
+  return existMap
+}
+
+async function fetchCastingPageContents(wikiTitles: string[]): Promise<Map<string, string>> {
+  const contentMap = new Map<string, string>()
+  const BATCH = 10
+
+  for (let i = 0; i < wikiTitles.length; i += BATCH) {
+    const batch = wikiTitles.slice(i, i + BATCH)
+    const params = new URLSearchParams({
+      action: 'query',
+      titles: batch.join('|'),
+      prop: 'revisions',
+      rvprop: 'content',
+      format: 'json',
+      formatversion: '2',
+    })
+
+    try {
+      const resp = await axios.get(`${FANDOM_API}?${params}`)
+      const pages = resp.data.query?.pages || []
+
+      for (const page of pages) {
+        if (page.revisions?.[0]?.content) {
+          contentMap.set(page.title, page.revisions[0].content)
+        }
+      }
+    } catch (e) {
+      console.error(`  ⚠️ Error fetching content:`, (e as Error).message)
+    }
+
+    if (i + BATCH < wikiTitles.length) await sleep(REQUEST_DELAY_MS)
+  }
+
+  return contentMap
+}
+
+const ENRICHABLE_FIELDS = [
+  'color', 'tampo', 'base_color', 'window_color', 'interior_color',
+  'wheel_type', 'country', 'notes',
+] as const
 
 export class MasterCatalogEnricher {
   private progressCallbacks: ProgressCallback[] = []
@@ -130,19 +402,57 @@ export class MasterCatalogEnricher {
       this.emitProgress({
         step: 'loading',
         message: `✅ Catálogos cargados: ${totalItems} items`,
-        percent: 15,
+        percent: 8,
         currentBrand: 'Hot Wheels',
         processedItems: totalItems,
         totalItems,
       })
 
-      // 2. Procesar y enriquecer
+      // 2. Enrich from individual Fandom casting pages (color, tampo, wheels, etc.)
+      const castingStats = await this.enrichFromCastingPages(allItems)
+      console.log(`📖 Casting page enrichment: ${castingStats.pagesFound} pages, ${castingStats.itemsEnriched} items enriched, ${castingStats.fieldsUpdated} fields updated`)
+
+      // 3. Resolver wiki-file: URLs a CDN HTTPS (en lote — including any new ones from casting pages)
+      this.emitProgress({
+        step: 'resolving-photos',
+        message: '🔗 Resolviendo URLs de imágenes wiki-file: a CDN...',
+        percent: 17,
+        currentBrand: 'Hot Wheels',
+        processedItems: 0,
+        totalItems,
+      })
+
+      const wikiResolution = await CatalogPhotoService.resolveAllWikiUrls(allItems, (resolved, total) => {
+        this.emitProgress({
+          step: 'resolving-photos',
+          message: `🔗 Resueltas ${resolved}/${total} URLs wiki-file:`,
+          percent: 17 + Math.round((resolved / Math.max(total, 1)) * 8),
+          currentBrand: 'Hot Wheels',
+          processedItems: resolved,
+          totalItems: total,
+        })
+      })
+
+      console.log(`📸 Wiki-file resolution: ${wikiResolution.resolved}/${wikiResolution.total} resolved, ${wikiResolution.failed} failed`)
+
+      // 4. Procesar y enriquecer
       const enrichedItems = await this.enrichAllItems(allItems)
 
-      // 3. Calcular estadísticas de fotos
+      // 5. Calcular estadísticas de fotos
       this.stats.photosCoverage = CatalogPhotoService.calculatePhotoCoverage(enrichedItems)
 
-      // 4. Sincronizar con MongoDB
+      // 6. Guardar JSON con URLs resueltas (para que el cache use HTTPS)
+      if (wikiResolution.resolved > 0 || castingStats.fieldsUpdated > 0) {
+        const dataDir = path.join(__dirname, '../../data')
+        const hwPath = path.join(dataDir, 'hotwheels_database.json')
+        if (fs.existsSync(hwPath)) {
+          const hwItems = enrichedItems.filter(item => (item as any).brand === 'Hot Wheels' || !(item as any).brand)
+          fs.writeFileSync(hwPath, JSON.stringify(hwItems, null, 2))
+          console.log(`💾 JSON actualizado con ${wikiResolution.resolved} URLs resueltas y ${castingStats.fieldsUpdated} campos de casting pages`)
+        }
+      }
+
+      // 7. Sincronizar con MongoDB
       await this.syncToMongo(enrichedItems)
 
       this.stats.processingTime = Date.now() - startTime
@@ -179,6 +489,220 @@ export class MasterCatalogEnricher {
       })
       throw error
     }
+  }
+
+  /**
+   * Enrich items from individual Fandom casting pages.
+   * Matches by toy_num and fills missing fields (never overwrites).
+   */
+  private async enrichFromCastingPages(items: any[]): Promise<CastingEnrichStats> {
+    const stats: CastingEnrichStats = {
+      modelsChecked: 0,
+      pagesFound: 0,
+      pagesMissing: 0,
+      rowsParsed: 0,
+      itemsEnriched: 0,
+      fieldsUpdated: 0,
+      photosAdded: 0,
+      errors: 0,
+    }
+
+    this.emitProgress({
+      step: 'enriching-from-castings',
+      message: '📖 Preparando enriquecimiento desde casting pages...',
+      percent: 10,
+      currentBrand: 'Hot Wheels',
+      processedItems: 0,
+      totalItems: items.length,
+    })
+
+    // Build toy_num → item index
+    const toyNumIndex = new Map<string, number[]>()
+    for (let i = 0; i < items.length; i++) {
+      const tn = String(items[i].toy_num || '').trim()
+      if (tn) {
+        const arr = toyNumIndex.get(tn) || []
+        arr.push(i)
+        toyNumIndex.set(tn, arr)
+      }
+    }
+
+    // Collect unique carModel → wiki title candidates
+    const modelTitles = new Map<string, string>()
+    for (const item of items) {
+      const model = String(item.carModel || '').trim()
+      if (!model || modelTitles.has(model)) continue
+      modelTitles.set(model, model.replace(/ /g, '_'))
+    }
+
+    const allModels = Array.from(modelTitles.entries())
+    console.log(`🔍 Checking ${allModels.length} unique models against Fandom casting pages...`)
+
+    // Load resume progress
+    let processedModels = new Set<string>()
+    if (fs.existsSync(CASTING_PROGRESS_PATH)) {
+      try {
+        const progress = JSON.parse(fs.readFileSync(CASTING_PROGRESS_PATH, 'utf-8'))
+        processedModels = new Set(progress.processedModels || [])
+        console.log(`📌 Resuming: ${processedModels.size} models already processed`)
+      } catch {}
+    }
+
+    const remaining = allModels.filter(([model]) => !processedModels.has(model))
+    console.log(`📋 Models to process: ${remaining.length}`)
+
+    if (remaining.length === 0) {
+      console.log('✅ All models already processed from casting pages')
+      return stats
+    }
+
+    // Batch-check page existence
+    const CHECK_BATCH = 200
+    const existingPages = new Map<string, string>()
+
+    for (let i = 0; i < remaining.length; i += CHECK_BATCH) {
+      const batch = remaining.slice(i, i + CHECK_BATCH)
+      const titles = batch.map(([, t]) => t)
+      const found = await checkCastingPagesExist(titles)
+      for (const [k, v] of found) existingPages.set(k, v)
+
+      const progress = Math.min(i + CHECK_BATCH, remaining.length)
+      this.emitProgress({
+        step: 'enriching-from-castings',
+        message: `🔍 Verificando casting pages: ${progress}/${remaining.length} modelos...`,
+        percent: 10 + Math.round((progress / remaining.length) * 3),
+        currentBrand: 'Hot Wheels',
+        processedItems: progress,
+        totalItems: remaining.length,
+      })
+    }
+
+    console.log(`✅ Found ${existingPages.size} casting pages on Fandom`)
+    stats.modelsChecked = remaining.length
+    stats.pagesFound = existingPages.size
+    stats.pagesMissing = remaining.length - existingPages.size
+
+    // Map carModel → wikiTitle for existing pages
+    const modelToWikiTitle = new Map<string, string>()
+    for (const [model, searchTitle] of remaining) {
+      if (existingPages.has(searchTitle)) {
+        modelToWikiTitle.set(model, existingPages.get(searchTitle)!)
+      }
+    }
+
+    // Fetch and process casting pages
+    const wikiTitles = Array.from(new Set(modelToWikiTitle.values()))
+    console.log(`📥 Fetching ${wikiTitles.length} casting pages...`)
+
+    const CONTENT_BATCH = 10
+    let fetchedCount = 0
+
+    for (let i = 0; i < wikiTitles.length; i += CONTENT_BATCH) {
+      const batch = wikiTitles.slice(i, i + CONTENT_BATCH)
+      const contentMap = await fetchCastingPageContents(batch)
+
+      for (const [wikiTitle, wikitext] of contentMap) {
+        try {
+          const versionRows = parseVersionsTable(wikitext)
+          stats.rowsParsed += versionRows.length
+
+          for (const row of versionRows) {
+            const toyNum = row.toy_num.trim()
+            if (!toyNum) continue
+
+            const itemIndices = toyNumIndex.get(toyNum)
+            if (!itemIndices) continue
+
+            for (const idx of itemIndices) {
+              const item = items[idx]
+              let fieldsChanged = 0
+
+              for (const field of ENRICHABLE_FIELDS) {
+                const castingValue = row[field]
+                if (!castingValue) continue
+
+                const currentValue = String(item[field] || '').trim()
+                if (currentValue) continue // Don't overwrite
+
+                const cleanValue = castingValue.replace(/wiki-file:\S+/gi, '').trim()
+                if (!cleanValue) continue
+
+                item[field] = cleanValue
+                fieldsChanged++
+                stats.fieldsUpdated++
+              }
+
+              // Update series if current is generic "List of XXXX Hot Wheels"
+              if (row.series && /^List of \d{4}/i.test(String(item.series || ''))) {
+                item.series = row.series
+                stats.fieldsUpdated++
+                fieldsChanged++
+              }
+
+              // Update col_num if missing
+              if (row.col_num && !item.col_num) {
+                item.col_num = row.col_num
+                stats.fieldsUpdated++
+                fieldsChanged++
+              }
+
+              // Photo: only if current is missing or localhost
+              if (row.photo_url) {
+                const currentPhoto = String(item.photo_url || '').trim()
+                if (!currentPhoto || currentPhoto.includes('localhost')) {
+                  if (!row.photo_url.toLowerCase().includes('not_available') &&
+                      !row.photo_url.toLowerCase().includes('image_not_available')) {
+                    item.photo_url = row.photo_url
+                    stats.photosAdded++
+                    fieldsChanged++
+                  }
+                }
+              }
+
+              if (fieldsChanged > 0) stats.itemsEnriched++
+            }
+          }
+        } catch (e) {
+          console.error(`  ⚠️ Error processing ${wikiTitle}:`, (e as Error).message)
+          stats.errors++
+        }
+      }
+
+      // Mark processed
+      for (const [model, wt] of modelToWikiTitle) {
+        if (batch.includes(wt)) processedModels.add(model)
+      }
+
+      fetchedCount += batch.length
+
+      this.emitProgress({
+        step: 'enriching-from-castings',
+        message: `📖 Casting pages: ${fetchedCount}/${wikiTitles.length} | ${stats.itemsEnriched} items enriched`,
+        percent: 13 + Math.round((fetchedCount / wikiTitles.length) * 3),
+        currentBrand: 'Hot Wheels',
+        processedItems: fetchedCount,
+        totalItems: wikiTitles.length,
+      })
+
+      // Save progress periodically
+      if (fetchedCount % 100 === 0) {
+        fs.writeFileSync(CASTING_PROGRESS_PATH, JSON.stringify({
+          processedModels: Array.from(processedModels),
+          lastSaved: new Date().toISOString(),
+        }))
+      }
+    }
+
+    // Save final progress
+    fs.writeFileSync(CASTING_PROGRESS_PATH, JSON.stringify({
+      processedModels: Array.from(processedModels),
+      lastSaved: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+    }))
+
+    console.log(`📖 Casting enrichment: ${stats.itemsEnriched} items, ${stats.fieldsUpdated} fields, ${stats.photosAdded} photos`)
+
+    return stats
   }
 
   /**

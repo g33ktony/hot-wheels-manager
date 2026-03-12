@@ -39,12 +39,17 @@ export default function CatalogItemDetailModal({
           ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
           : ''
       }
+      // Handle relative and absolute URLs
+      if (url.startsWith('/uploads/')) {
+        return `${import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3001'}${url}`
+      }
       return url
     }
 
     const isValidUrl = (url?: string) => {
       const resolved = resolveImageUrl(url)
-      return Boolean(resolved && resolved.startsWith('https://'))
+      // Accept both http and https URLs
+      return Boolean(resolved && (resolved.startsWith('https://') || resolved.startsWith('http://')))
     }
 
     const list: { url: string; label: string }[] = []
@@ -71,7 +76,7 @@ export default function CatalogItemDetailModal({
   const hasMultiplePhotos = photos.length > 1
 
   const proxyUrl = (url: string) =>
-    url.includes('weserv') ? url : `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=400&fit=contain`
+    url.includes('weserv') || url.startsWith('http://localhost') ? url : `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=400&fit=contain`
 
   // Get Facebook Messenger URL
   const getMessengerLink = () => {
@@ -241,9 +246,9 @@ export default function CatalogItemDetailModal({
                         >
                           {/* Car Photo */}
                           <div className="w-16 h-16 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
-                            {packPhotoUrl && packPhotoUrl.startsWith('https://') ? (
+                            {packPhotoUrl && (packPhotoUrl.startsWith('https://') || packPhotoUrl.startsWith('http://')) ? (
                               <img
-                                src={packPhotoUrl.includes('weserv') ? packPhotoUrl : `https://images.weserv.nl/?url=${encodeURIComponent(packPhotoUrl)}&w=64&h=64&fit=contain`}
+                                src={packPhotoUrl.includes('weserv') || packPhotoUrl.startsWith('http://localhost') ? packPhotoUrl : `https://images.weserv.nl/?url=${encodeURIComponent(packPhotoUrl)}&w=64&h=64&fit=contain`}
                                 alt={car.casting_name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
@@ -386,7 +391,7 @@ export default function CatalogItemDetailModal({
       {photos.length > 0 && (
         <ImageModal
           isOpen={showImageViewer}
-          images={photos.map(p => `https://images.weserv.nl/?url=${encodeURIComponent(p.url)}&w=1200&h=1200&fit=contain`)}
+          images={photos.map(p => p.url.startsWith('http://localhost') ? p.url : `https://images.weserv.nl/?url=${encodeURIComponent(p.url)}&w=1200&h=1200&fit=contain`)}
           initialIndex={currentPhotoIndex}
           onClose={() => setShowImageViewer(false)}
           title={item.carModel}

@@ -21,6 +21,10 @@ const resolveCatalogImageUrl = (url?: string): string => {
       ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
       : ''
   }
+  // Handle relative URLs to uploads
+  if (url.startsWith('/uploads/')) {
+    return `${import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3001'}${url}`
+  }
   return url
 }
 
@@ -312,9 +316,9 @@ export default function CatalogBrowser() {
                       >
                         {/* Small thumbnail */}
                         <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
-                          {previewUrl && previewUrl.startsWith('https://') ? (
+                          {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
                             <img
-                              src={`https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=48&h=48&fit=cover`}
+                              src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=48&h=48&fit=cover`}
                               alt={suggestion.carModel}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -566,7 +570,7 @@ export default function CatalogBrowser() {
       {/* Results Grid */}
       {!hasSearched ? (
         <div className="text-center py-16">
-          <img src="/hot-wheels-placeholder.png" alt="Auto a Escala" className="w-48 h-32 mx-auto mb-6 opacity-60" />
+          <img src="/hw-flame-gold.jpg" alt="Auto a Escala" className="w-48 h-48 mx-auto mb-6 opacity-60 object-contain" />
           <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             ¿Qué modelo buscas?
           </h3>
@@ -595,9 +599,9 @@ export default function CatalogBrowser() {
                 >
                   {/* Image */}
                   <div className="relative h-48 bg-slate-700 flex items-center justify-center">
-                    {previewUrl && previewUrl.startsWith('https://') ? (
+                    {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
                       <img
-                        src={previewUrl.includes('weserv') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
+                        src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
                         alt={item.carModel}
                         className="w-full h-full object-cover"
                         onError={(e) => {

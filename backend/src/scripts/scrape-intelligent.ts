@@ -9,6 +9,7 @@ import path from 'path'
 import { HotWheelsCarModel } from '../models/HotWheelsCar'
 import { mergeCarsIntoJSON } from '../services/hotWheelsCacheService'
 import mongoose from 'mongoose'
+import { CatalogPhotoService } from '../services/catalogPhotoService'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -964,6 +965,31 @@ async function scrapeIntelligent(saveToMongo = true, onProgress?: (progress: {
       mergeCarsIntoJSON(pendingVehicles)
     }
     saveProgress()
+
+    // ============================================================
+    // Resolve wiki-file: URLs to HTTPS CDN URLs
+    // ============================================================
+    if (allScrapedVehicles.length > 0) {
+      console.log('\n🔗 Resolviendo wiki-file: URLs a CDN...')
+      if (onProgress) {
+        onProgress({
+          step: 'resolving-photos',
+          percent: 75,
+          current: 0,
+          total: allScrapedVehicles.length,
+          message: 'Resolviendo URLs de imágenes...'
+        })
+      }
+
+      const wikiStats = await CatalogPhotoService.resolveAllWikiUrls(allScrapedVehicles)
+      console.log(`   ✅ Resueltas: ${wikiStats.resolved}/${wikiStats.total} | ❌ Fallidas: ${wikiStats.failed}`)
+
+      // Re-save with resolved URLs
+      if (wikiStats.resolved > 0) {
+        mergeCarsIntoJSON(allScrapedVehicles)
+        console.log('   💾 JSON actualizado con URLs resueltas')
+      }
+    }
 
     console.log('\n' + '='.repeat(70))
     console.log('🎉 ¡Scraping Inteligente Completado!')

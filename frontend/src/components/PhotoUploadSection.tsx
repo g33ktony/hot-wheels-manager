@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { uploadImageToCloudinary } from '@/services/cloudinary'
 import './PhotoUploadSection.css'
 
 interface PhotoUploadSectionProps {
@@ -49,14 +50,23 @@ export default function PhotoUploadSection({ itemId, onPhotoUploaded }: PhotoUpl
         setUploadSuccess('')
 
         try {
-            const formData = new FormData()
-            formData.append('photo', selectedFile)
-            formData.append('photoType', uploadType)
+            // 1. Upload to Cloudinary
+            const cloudinaryUrl = await uploadImageToCloudinary(
+                selectedFile,
+                'hot-wheels-manager/catalog'
+            )
 
+            // 2. Save Cloudinary URL to backend (MongoDB + JSON cache)
             const res = await fetch(`/api/catalog/items/${itemId}/photos`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify({
+                    photoType: uploadType,
+                    photoUrl: cloudinaryUrl,
+                }),
             })
 
             const json = await res.json()
@@ -70,10 +80,10 @@ export default function PhotoUploadSection({ itemId, onPhotoUploaded }: PhotoUpl
                     onPhotoUploaded?.()
                 }, 2000)
             } else {
-                setUploadError(json.error || 'Error uploading photo')
+                setUploadError(json.error || 'Error guardando foto')
             }
         } catch (err) {
-            setUploadError(err instanceof Error ? err.message : 'Error uploading photo')
+            setUploadError(err instanceof Error ? err.message : 'Error subiendo foto')
         } finally {
             setUploading(false)
         }

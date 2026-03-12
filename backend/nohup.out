@@ -1,0 +1,288 @@
+✅ Hot Wheels cache loaded: 31461 items (2026-03-11T20:03:11.930Z)
+⚠️  GEMINI_API_KEY no está configurado. El análisis de imágenes no estará disponible.
+✅ Hot Wheels database loaded: 31461 items
+✅ Presale Items Routes loaded - v1.0.2 with improved error handling and conversion logging
+🔌 Connecting to MongoDB...
+📍 URI: mongodb://mongo:****@switchyard.proxy.rlwy.net:42764/railway?authSource=admin
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"carId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"deliveryId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"email":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+(node:14387) [MONGOOSE] Warning: Duplicate schema index on {"storeId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
+✅ MongoDB connected successfully to database: railway
+🚀 Server running on port 3001
+📊 Health check: http://0.0.0.0:3001/health
+🌍 Environment: development
+📊 Database: ✅ Connected
+🎯 Frontend URL: http://localhost:5173
+(node:14387) [MONGOOSE] Warning: mongoose: Cannot specify a custom index on `_id` for model name "StoreSettings", MongoDB does not allow overwriting the default `_id` index. See https://bit.ly/mongodb-id-index
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 234ms - 200
+127.0.0.1 - - [11/Mar/2026:20:03:37 +0000] "GET /api/public/catalog/search?q=miata&limit=2 HTTP/1.1" 200 1248 "-" "curl/8.7.1"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/auth/verify - 2ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/auth/verify - 0ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 VERIFICANDO TOKEN:
+  - Token recibido: eyJhbGciOiJIUzI1NiIs...
+  - Token válido
+  - Usuario: antonio@hotwheels.com
+  - Emitido: 2026-03-11T13:55:51.000Z
+  - Expira: 2026-03-12T13:55:51.000Z
+  - Tiempo restante: 17 horas
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 VERIFICANDO TOKEN:
+  - Token recibido: eyJhbGciOiJIUzI1NiIs...
+  - Token válido
+  - Usuario: antonio@hotwheels.com
+  - Emitido: 2026-03-11T13:55:51.000Z
+  - Expira: 2026-03-12T13:55:51.000Z
+  - Tiempo restante: 17 horas
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /verify - 113ms - 304
+127.0.0.1 - - [11/Mar/2026:20:03:49 +0000] "GET /api/auth/verify HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /verify - 106ms - 304
+127.0.0.1 - - [11/Mar/2026:20:03:49 +0000] "GET /api/auth/verify HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+✅ Ensured sys_admin storeId matches store _id: 69a08b82d0f5f8acd705a4d9
+✅ Ensured sys_admin storeId matches store _id: 69a08b82d0f5f8acd705a4d9
+✅ Ensured sys_admin storeId matches store _id: 69a08b82d0f5f8acd705a4d9
+📊 GET / - 409ms - 304
+127.0.0.1 - - [11/Mar/2026:20:03:49 +0000] "GET /api/stores HTTP/1.1" 304 - "http://localhost:5173/browse?adminView=true" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET / - 478ms - 304
+127.0.0.1 - - [11/Mar/2026:20:03:49 +0000] "GET /api/stores HTTP/1.1" 304 - "http://localhost:5173/browse?adminView=true" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET / - 677ms - 304
+127.0.0.1 - - [11/Mar/2026:20:03:49 +0000] "GET /api/stores HTTP/1.1" 304 - "http://localhost:5173/browse?adminView=true" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 215ms - 200
+127.0.0.1 - - [11/Mar/2026:20:03:55 +0000] "GET /api/public/catalog/search?q=miata&page=1&limit=8 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 260ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:02 +0000] "GET /api/public/catalog/search?q=mustang&page=1&limit=8 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 211ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:08 +0000] "GET /api/public/catalog/search?q=mclaren&page=1&limit=8 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 198ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:09 +0000] "GET /api/public/catalog/search?q=mclaren&year=&brand=Hot+Wheels&sort=desc&page=1&limit=20 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 430ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:28 +0000] "GET /api/public/catalog/search?q=mclaren&year=&brand=Hot+Wheels&sort=desc&page=2&limit=20 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 207ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:43 +0000] "GET /api/public/catalog/search?q=959&page=1&limit=8 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 215ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:44 +0000] "GET /api/public/catalog/search?q=959&year=&brand=Hot+Wheels&sort=desc&page=1&limit=20 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 224ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:59 +0000] "GET /api/public/catalog/search?q=Porsche+959&year=&brand=Hot+Wheels&sort=desc&page=1&limit=20 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /catalog/search - 199ms - 200
+127.0.0.1 - - [11/Mar/2026:20:04:59 +0000] "GET /api/public/catalog/search?q=Porsche+959&page=1&limit=8 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 205ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:01 +0000] "GET /api/public/catalog/search?q=Porsche+959&year=&brand=Hot+Wheels&sort=desc&page=1&limit=20 HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 192ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:08 +0000] "GET /api/public/catalog/search?q=Porsche+964&year=&brand=Hot+Wheels&sort=desc&page=1&limit=20 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /catalog/search - 177ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:08 +0000] "GET /api/public/catalog/search?q=Porsche+964&page=1&limit=8 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 193ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:22 +0000] "GET /api/public/catalog/search?q=cobra+&page=1&limit=8 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /catalog/search - 190ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:22 +0000] "GET /api/public/catalog/search?q=cobra+&year=&brand=Hot+Wheels&sort=desc&page=1&limit=20 HTTP/1.1" 200 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 232ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:27 +0000] "GET /api/public/catalog/search?q=1965+Shelby+Cobra+427+S%2FC&year=&brand=Hot+Wheels&sort=desc&page=1&limit=20 HTTP/1.1" 200 667 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 192ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:27 +0000] "GET /api/public/catalog/search?q=1965+Shelby+Cobra+427+S%2FC&page=1&limit=8 HTTP/1.1" 200 666 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/dashboard/metrics - 3ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/deliveries - 5ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/data-reports - 1ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/pending-items/stats - 0ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 Fetching dashboard metrics for store: 69a08b82d0f5f8acd705a4d9
+📊 Getting inventory stats...
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/hotwheels/update-status - 1ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 [getDeliveries] Fetching deliveries for store: 69a08b82d0f5f8acd705a4d9 (query param: 69a08b82d0f5f8acd705a4d9 , user store: 69a08b82d0f5f8acd705a4d9 )
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/boxes - 1ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 Fetching pending items stats for store: 69a08b82d0f5f8acd705a4d9
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/leads/statistics - 0ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /update-status - 7ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:30 +0000] "GET /api/hotwheels/update-status HTTP/1.1" 200 344 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /stats - 367ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:31 +0000] "GET /api/pending-items/stats HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET / - 381ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:31 +0000] "GET /api/boxes HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📚 Getting catalog stats...
+📊 GET / - 569ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:31 +0000] "GET /api/deliveries?status=completed&paymentStatus=unpaid,partial&storeId=69a08b82d0f5f8acd705a4d9 HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /statistics - 592ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:31 +0000] "GET /api/leads/statistics HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET / - 890ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:31 +0000] "GET /api/data-reports?page=1&limit=1 HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+💰 Calculating inventory value...
+📈 Getting sales metrics...
+💸 Calculating daily revenue...
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/data-reports - 2ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+💵 Calculating profits...
+📊 GET / - 469ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:32 +0000] "GET /api/data-reports?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+Getting delivery metrics...
+📦 Getting purchase metrics...
+📋 Compiling dashboard data...
+📋 Getting recent activity for store: 69a08b82d0f5f8acd705a4d9
+✅ Dashboard metrics fetched successfully
+✅ Dashboard metrics cached for store 69a08b82d0f5f8acd705a4d9
+📊 GET /metrics - 3309ms - 304
+⚠️  SLOW ENDPOINT: GET /metrics - 3309ms - 304
+🚨 VERY SLOW ENDPOINT: GET /metrics - 3309ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:34 +0000] "GET /api/dashboard/metrics?storeId=69a08b82d0f5f8acd705a4d9 HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /items/cache-JJY67 - 103ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:34 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+127.0.0.1 - - [11/Mar/2026:20:05:34 +0000] "GET /uploads/photos/1773238496003.webp HTTP/1.1" 200 641006 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+127.0.0.1 - - [11/Mar/2026:20:05:34 +0000] "GET /uploads/photos/1773238505247.webp HTTP/1.1" 200 446552 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /items/cache-JJY67 - 203ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:34 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔄 Refreshing Hot Wheels cache...
+✅ Hot Wheels cache loaded: 31461 items (2026-03-11T20:05:44.799Z)
+[PHOTO_SYNC] Updated cache for JJY67 (in-memory cache refreshed)
+📊 POST /items/cache-JJY67/photos - 885ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:44 +0000] "POST /api/catalog/items/cache-JJY67/photos HTTP/1.1" 200 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /items/cache-JJY67 - 232ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:47 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 200 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+127.0.0.1 - - [11/Mar/2026:20:05:47 +0000] "GET /uploads/photos/1773259543924.webp HTTP/1.1" 200 641006 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /photos/1773259543924.webp - 8ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:47 +0000] "GET /uploads/photos/1773238505247.webp HTTP/1.1" 200 446552 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/auth/verify - 4ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/auth/verify - 1ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 VERIFICANDO TOKEN:
+  - Token recibido: eyJhbGciOiJIUzI1NiIs...
+  - Token válido
+  - Usuario: antonio@hotwheels.com
+  - Emitido: 2026-03-11T13:55:51.000Z
+  - Expira: 2026-03-12T13:55:51.000Z
+  - Tiempo restante: 17 horas
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 VERIFICANDO TOKEN:
+  - Token recibido: eyJhbGciOiJIUzI1NiIs...
+  - Token válido
+  - Usuario: antonio@hotwheels.com
+  - Emitido: 2026-03-11T13:55:51.000Z
+  - Expira: 2026-03-12T13:55:51.000Z
+  - Tiempo restante: 17 horas
+📊 GET /verify - 86ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/auth/verify HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/boxes - 1ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/leads/statistics - 0ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/data-reports - 0ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+✅ Ensured sys_admin storeId matches store _id: 69a08b82d0f5f8acd705a4d9
+📊 GET /verify - 211ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/auth/verify HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET / - 91ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/boxes HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /items/cache-JJY67 - 93ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /items/cache-JJY67 - 97ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /photos/1773238505247.webp - 2ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /uploads/photos/1773238505247.webp HTTP/1.1" 200 446552 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /photos/1773259543924.webp - 2ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /uploads/photos/1773259543924.webp HTTP/1.1" 200 641006 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+✅ Ensured sys_admin storeId matches store _id: 69a08b82d0f5f8acd705a4d9
+📊 GET / - 359ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/stores HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET / - 483ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/data-reports?page=1&limit=1 HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /statistics - 518ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/leads/statistics HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET / - 670ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:51 +0000] "GET /api/stores HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+✅ Ensured sys_admin storeId matches store _id: 69a08b82d0f5f8acd705a4d9
+📊 GET / - 917ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:52 +0000] "GET /api/stores HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 OPTIONS /api/data-reports - 2ms - 204
+🔍 CORS Check - Origin: http://localhost:5173 Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET / - 437ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:55 +0000] "GET /api/data-reports?page=1&limit=20 HTTP/1.1" 304 - "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /items/cache-JJY67 - 86ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:56 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /photos/1773238505247.webp - 4ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:56 +0000] "GET /uploads/photos/1773238505247.webp HTTP/1.1" 200 446552 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+127.0.0.1 - - [11/Mar/2026:20:05:56 +0000] "GET /uploads/photos/1773259543924.webp HTTP/1.1" 200 641006 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /items/cache-JJY67 - 165ms - 304
+127.0.0.1 - - [11/Mar/2026:20:05:56 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 304 - "http://localhost:5173/catalog/items/cache-JJY67" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /photos/1773238505247.webp - 4ms - 200
+127.0.0.1 - - [11/Mar/2026:20:05:56 +0000] "GET /uploads/photos/1773238505247.webp HTTP/1.1" 200 446552 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+127.0.0.1 - - [11/Mar/2026:20:05:56 +0000] "GET /uploads/photos/1773259543924.webp HTTP/1.1" 200 641006 "http://localhost:5173/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3 Safari/605.1.15"
+📊 GET /photos/1773259543924.webp - 10ms - 200
+🧹 Cache cleanup: removed 1 expired entries
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /items/cache-JJY67 - 2ms - 401
+127.0.0.1 - - [11/Mar/2026:20:13:19 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 401 62 "-" "curl/8.7.1"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /items/cache-JJY67 - 3ms - 401
+127.0.0.1 - - [11/Mar/2026:20:13:33 +0000] "GET /api/catalog/items/cache-JJY67 HTTP/1.1" 401 62 "-" "curl/8.7.1"
+🔍 CORS Check - Origin: undefined Allowed: [ 'http://localhost:5173', 'http://localhost:5174' ]
+📊 GET /catalog/search - 206ms - 200
+127.0.0.1 - - [11/Mar/2026:20:15:37 +0000] "GET /api/public/catalog/search?q=miata&limit=1 HTTP/1.1" 200 772 "-" "curl/8.7.1"

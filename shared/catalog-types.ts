@@ -90,7 +90,7 @@ export interface EnrichedCatalogItem {
 
 // Progreso de enriquecimiento
 export interface CatalogEnrichmentProgress {
-  step: 'loading' | 'classifying' | 'normalizing' | 'validating-photos' | 'enriching' | 'syncing' | 'complete' | 'error';
+  step: 'loading' | 'enriching-from-castings' | 'resolving-photos' | 'classifying' | 'normalizing' | 'validating-photos' | 'enriching' | 'syncing' | 'complete' | 'error';
   message: string;
   percent: number;
   currentBrand: Brand;

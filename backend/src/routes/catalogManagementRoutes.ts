@@ -1,28 +1,11 @@
 import express, { Request, Response } from 'express'
-import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import { HotWheelsCarModel } from '../models/HotWheelsCar'
 import { IHotWheelsCar } from '../models/HotWheelsCar'
+import { getAllCars, refreshCache } from '../services/hotWheelsCacheService'
 
 const router = express.Router()
-
-// Configurar multer para uploads
-const uploadsDir = path.join(__dirname, '../../uploads/photos')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
-
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (req, file, cb) => {
-    const timestamp = Date.now()
-    const ext = path.extname(file.originalname)
-    cb(null, `${timestamp}${ext}`)
-  },
-})
-
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } })
 
 /**
  * GET /api/catalog/items
@@ -219,18 +202,18 @@ router.put('/items/:id', async (req: Request, res: Response) => {
 
 /**
  * POST /api/catalog/items/:id/photos
- * Subir/actualizar foto de un item
+ * Guardar URL de foto (Cloudinary) para un item
  * Soporta tanto MongoDB ObjectId como cache keys (cache-{toy_num})
  */
-router.post('/items/:id/photos', upload.single('photo'), async (req: Request, res: Response) => {
+router.post('/items/:id/photos', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { photoType } = req.body // 'main', 'carded', 'gallery'
+    const { photoType, photoUrl } = req.body
 
-    if (!req.file) {
+    if (!photoUrl || typeof photoUrl !== 'string' || !photoUrl.startsWith('https://')) {
       return res.status(400).json({
         success: false,
-        error: 'No file uploaded',
+        error: 'photoUrl is required and must be a valid HTTPS URL',
       })
     }
 
@@ -242,60 +225,115 @@ router.post('/items/:id/photos', upload.single('photo'), async (req: Request, re
     }
 
     let item = null
+    let toyNum = ''
 
     // Handle cache ID format (cache-{toy_num})
     if (id.startsWith('cache-')) {
-      const toy_num = id.replace('cache-', '')
-      item = await HotWheelsCarModel.findOne({ toy_num })
+      toyNum = id.replace('cache-', '')
+      item = await HotWheelsCarModel.findOne({ toy_num: toyNum })
     } else {
       // Try as MongoDB ObjectId or toy_num
       try {
         item = await HotWheelsCarModel.findById(id)
+        if (item) toyNum = item.toy_num
       } catch (e) {
         // If not valid ObjectId, try as toy_num
         if (!item) {
           item = await HotWheelsCarModel.findOne({ toy_num: id })
+          if (item) toyNum = item.toy_num
+          else toyNum = id
         }
       }
     }
 
-    // Construct the file URL as absolute URL
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001'
-    const fileUrl = `${backendUrl}/uploads/photos/${req.file.filename}`
+    // If item not found, create it from catalog cache
+    if (!item && toyNum) {
+      const allCars = getAllCars()
+      const cachedItem = allCars.find((car: any) => car.toy_num === toyNum)
+      
+      if (cachedItem) {
+        // Parse series_num like "3/8" to extract position number
+        const parsePosition = (val: string | undefined): number | undefined => {
+          if (!val) return undefined
+          const match = val.match(/^(\d+)/)
+          return match ? parseInt(match[1], 10) : undefined
+        }
+
+        // Create new MongoDB document from cache data
+        item = new HotWheelsCarModel({
+          toy_num: cachedItem.toy_num,
+          col_num: cachedItem.col_num || '',
+          carModel: cachedItem.carModel || '',
+          series: cachedItem.series || '',
+          series_num: cachedItem.series_num || '',
+          sub_series: cachedItem.sub_series || '',
+          year: cachedItem.year || '',
+          brand: cachedItem.brand || 'Hot Wheels',
+          color: cachedItem.color || '',
+          tampo: cachedItem.tampo || '',
+          wheel_type: cachedItem.wheel_type || '',
+          car_make: cachedItem.car_make || '',
+          segment: cachedItem.segment || '',
+          photo_url: cachedItem.photo_url || '',
+          photo_url_carded: cachedItem.photo_url_carded || '',
+          photo_gallery: Array.isArray(cachedItem.photo_gallery) ? cachedItem.photo_gallery : [],
+          seriesPosition: parsePosition(cachedItem.series_num),
+        })
+        await item.save()
+        console.log(`[PHOTO_UPLOAD] Created new item from cache: ${toyNum}`)
+      }
+    }
 
     if (!item) {
-      // Borrar archivo si item no existe
-      fs.unlinkSync(req.file.path)
       return res.status(404).json({
         success: false,
-        error: 'Item not found',
+        error: 'Item not found in catalog or cache',
       })
     }
 
     // Actualizar según tipo de foto
     if (photoType === 'main') {
-      item.photo_url = fileUrl
+      item.photo_url = photoUrl
     } else if (photoType === 'carded') {
-      item.photo_url_carded = fileUrl
+      item.photo_url_carded = photoUrl
     } else if (photoType === 'gallery') {
       if (!Array.isArray(item.photo_gallery)) {
         item.photo_gallery = []
       }
-      item.photo_gallery.push(fileUrl)
+      item.photo_gallery.push(photoUrl)
     }
 
     await item.save()
+
+    // Sync photos back to JSON cache so public catalog can see them
+    try {
+      const cacheDataPath = path.join(__dirname, '../../../backend/data/hotwheels_database.json')
+      if (fs.existsSync(cacheDataPath)) {
+        const cacheData = JSON.parse(fs.readFileSync(cacheDataPath, 'utf8'))
+        const cacheItem = cacheData.find((c: any) => c.toy_num === item.toy_num)
+        if (cacheItem) {
+          cacheItem.photo_url = item.photo_url || ''
+          cacheItem.photo_url_carded = item.photo_url_carded || ''
+          cacheItem.photo_gallery = item.photo_gallery || []
+          fs.writeFileSync(cacheDataPath, JSON.stringify(cacheData, null, 2))
+          // Refresh the in-memory cache so public API serves updated photos immediately
+          refreshCache()
+          console.log(`[PHOTO_SYNC] Updated cache for ${item.toy_num} (in-memory cache refreshed)`)
+        }
+      } else {
+        console.warn(`[PHOTO_SYNC] Cache file not found at: ${cacheDataPath}`)
+      }
+    } catch (syncErr) {
+      console.warn(`[PHOTO_SYNC] Warning: Failed to sync to cache:`, syncErr instanceof Error ? syncErr.message : syncErr)
+    }
 
     res.json({
       success: true,
       data: item.toObject(),
       message: `${photoType} photo uploaded successfully`,
-      fileUrl,
+      fileUrl: photoUrl,
     })
   } catch (error) {
-    if (req.file) {
-      fs.unlinkSync(req.file.path)
-    }
     console.error('[PHOTO_UPLOAD]', error)
     res.status(500).json({
       success: false,
