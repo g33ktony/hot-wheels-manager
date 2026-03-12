@@ -78,6 +78,27 @@ export default function CatalogBrowser() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
 
+  // Random featured item for hero placeholder
+  const [featuredItem, setFeaturedItem] = useState<CatalogItem | null>(null)
+  const [featuredLoading, setFeaturedLoading] = useState(true)
+
+  // Fetch random featured item on mount
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const response = await publicService.getRandomItem()
+        if (response.success && response.data) {
+          setFeaturedItem(response.data)
+        }
+      } catch (e) {
+        console.warn('Could not load featured item')
+      } finally {
+        setFeaturedLoading(false)
+      }
+    }
+    fetchFeatured()
+  }, [])
+
   // Check if lead already captured
   useEffect(() => {
     const captured = localStorage.getItem('leadCaptured')
@@ -569,14 +590,90 @@ export default function CatalogBrowser() {
 
       {/* Results Grid */}
       {!hasSearched ? (
-        <div className="text-center py-16">
-          <img src="/hw-flame-gold.jpg" alt="Auto a Escala" className="w-48 h-48 mx-auto mb-6 opacity-60 object-contain" />
-          <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            ¿Qué modelo buscas?
-          </h3>
-          <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Escribe un nombre, serie o fabricante para comenzar
-          </p>
+        <div className="text-center py-12">
+          {featuredLoading ? (
+            <div className="flex justify-center items-center py-16">
+              <Loader2 className={`animate-spin ${isDark ? 'text-slate-500' : 'text-slate-400'}`} size={36} />
+            </div>
+          ) : featuredItem ? (
+            <>
+              {/* Featured random item */}
+              <div
+                className={`max-w-sm mx-auto rounded-xl overflow-hidden transition-all duration-300 ${isDark
+                    ? 'bg-slate-800/80 shadow-lg shadow-slate-900/50 border border-slate-700/50'
+                    : 'bg-white shadow-md border border-slate-200'
+                  }`}
+              >
+                {/* Photo */}
+                <div className={`relative h-56 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                  {(() => {
+                    const imgUrl = resolveCatalogImageUrl(featuredItem.photo_url)
+                    return imgUrl && (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) ? (
+                      <img
+                        src={imgUrl.includes('weserv') ? imgUrl : `https://images.weserv.nl/?url=${encodeURIComponent(imgUrl)}&w=400&h=280&fit=contain`}
+                        alt={featuredItem.carModel}
+                        className="w-full h-full object-contain p-2"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = getPlaceholderLogo(featuredItem.series, featuredItem.brand)
+                        }}
+                      />
+                    ) : (
+                      <img src={getPlaceholderLogo(featuredItem.series, featuredItem.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-6 opacity-60" />
+                    )
+                  })()}
+                  {featuredItem.segment && (
+                    <div className="absolute top-2 left-2">
+                      <SegmentBadge segment={featuredItem.segment} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-4 text-left">
+                  <h4 className={`text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    {featuredItem.carModel}
+                  </h4>
+                  <p className={`text-sm mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {featuredItem.series} &bull; {featuredItem.year}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {featuredItem.color && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                        🎨 {featuredItem.color}
+                      </span>
+                    )}
+                    {featuredItem.wheel_type && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                        🛞 {featuredItem.wheel_type}
+                      </span>
+                    )}
+                    {featuredItem.toy_num && (
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                        #{featuredItem.toy_num}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <h3 className={`text-2xl font-semibold mt-6 mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                ¿Qué modelo buscas?
+              </h3>
+              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Escribe un nombre, serie o fabricante para comenzar
+              </p>
+            </>
+          ) : (
+            <>
+              <img src="/hw-flame-gold.jpg" alt="Auto a Escala" className="w-48 h-48 mx-auto mb-6 opacity-60 object-contain" />
+              <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                ¿Qué modelo buscas?
+              </h3>
+              <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Escribe un nombre, serie o fabricante para comenzar
+              </p>
+            </>
+          )}
         </div>
       ) : loading ? (
         <div className="flex justify-center items-center py-12">

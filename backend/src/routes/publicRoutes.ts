@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   searchCatalog,
   getCatalogItem,
+  getRandomCatalogItem,
   createLead,
   trackItemView
 } from '../controllers/publicController'
@@ -11,6 +12,9 @@ const router = Router()
 
 // GET /api/public/catalog/search - Search catalog with availability
 router.get('/catalog/search', searchCatalog)
+
+// GET /api/public/catalog/random - Get a random catalog item with photo
+router.get('/catalog/random', getRandomCatalogItem)
 
 // GET /api/public/catalog/:id - Get single catalog item with availability
 router.get('/catalog/:id', getCatalogItem)

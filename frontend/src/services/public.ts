@@ -88,6 +88,14 @@ export const publicService = {
   },
 
   /**
+   * Get a random catalog item (for hero/placeholder display)
+   */
+  getRandomItem: async (): Promise<{ success: boolean; data: CatalogItem }> => {
+    const response = await publicApi.get('/public/catalog/random')
+    return response.data
+  },
+
+  /**
    * Submit lead with reCAPTCHA verification
    */
   submitLead: async (leadData: LeadData) => {

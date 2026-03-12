@@ -642,6 +642,51 @@ export const createLead = async (req: Request, res: Response): Promise<void> => 
 /**
  * Track item view (optional analytics)
  */
+/**
+ * Get a random catalog item that has a photo (from in-memory JSON cache)
+ */
+export const getRandomCatalogItem = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const allCars = getAllCars()
+
+    // Filter to items with valid HTTPS photos
+    const withPhotos = allCars.filter(car => {
+      const url = String(car.photo_url || '').trim()
+      return url.startsWith('https://') && car.carModel
+    })
+
+    if (withPhotos.length === 0) {
+      res.status(404).json({ success: false, error: 'No items found' })
+      return
+    }
+
+    const randomIndex = Math.floor(Math.random() * withPhotos.length)
+    const car = withPhotos[randomIndex]
+
+    res.json({
+      success: true,
+      data: {
+        _id: `cache-${car.toy_num || randomIndex}`,
+        toy_num: car.toy_num,
+        col_num: car.col_num,
+        carModel: car.carModel,
+        series: car.series,
+        year: car.year,
+        brand: (car as any).brand || 'Hot Wheels',
+        color: car.color,
+        wheel_type: car.wheel_type,
+        car_make: car.car_make,
+        segment: (car as any).segment,
+        photo_url: car.photo_url,
+        photo_url_carded: car.photo_url_carded,
+      }
+    })
+  } catch (error) {
+    console.error('Error getting random catalog item:', error)
+    res.status(500).json({ success: false, error: 'Error al obtener item aleatorio' })
+  }
+}
+
 export const trackItemView = async (req: Request, res: Response): Promise<void> => {
   try {
     const { catalogId, carModel } = req.body
