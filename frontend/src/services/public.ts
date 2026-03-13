@@ -42,6 +42,9 @@ export interface CatalogItem {
     price?: number
     quantity?: number
     ebayPrice?: number
+    ebayMinPrice?: number
+    ebayMaxPrice?: number
+    ebaySoldCount?: number
   }
   pack_contents?: Array<{
     casting_name: string

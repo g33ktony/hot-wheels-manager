@@ -37,6 +37,13 @@ export interface CachedHotWheelsCar {
     notes?: string
     photo_url?: string
   }>
+  // eBay pricing (populated by enrich:ebay-prices script)
+  ebay_avg_price?: number | null
+  ebay_min_price?: number | null
+  ebay_max_price?: number | null
+  ebay_sold_count?: number
+  ebay_price_currency?: string
+  ebay_price_updated?: string
 }
 
 const JSON_DB_PATH = path.join(__dirname, '../../data/hotwheels_database.json')
@@ -77,6 +84,13 @@ function normalizeCar(car: any): CachedHotWheelsCar {
     interior_color: car.interior_color || '',
     notes: car.notes || '',
     pack_contents: car.pack_contents || undefined,
+    // eBay pricing
+    ebay_avg_price: car.ebay_avg_price ?? null,
+    ebay_min_price: car.ebay_min_price ?? null,
+    ebay_max_price: car.ebay_max_price ?? null,
+    ebay_sold_count: car.ebay_sold_count || 0,
+    ebay_price_currency: car.ebay_price_currency || 'USD',
+    ebay_price_updated: car.ebay_price_updated || '',
   }
 }
 

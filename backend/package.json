@@ -50,7 +50,8 @@
     "scrape:premium": "tsx src/scripts/scrape-premium-brands.ts",
     "enrich:master": "tsx src/scripts/master-catalog-enrich.ts",
     "enrich:master:dev": "tsx watch src/scripts/master-catalog-enrich.ts",
-    "enrich:casting-pages": "tsx src/scripts/enrich-from-casting-pages.ts"
+    "enrich:casting-pages": "tsx src/scripts/enrich-from-casting-pages.ts",
+    "enrich:ebay-prices": "tsx src/scripts/enrich-ebay-prices.ts"
   },
   "keywords": [
     "hot-wheels",

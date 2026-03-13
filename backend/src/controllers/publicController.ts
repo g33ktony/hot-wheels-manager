@@ -286,10 +286,16 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
           available: true,
           price: inventoryData.price,
           quantity: inventoryData.quantity,
-          // eBay price could be added here if available in catalog or separate collection
-          // ebayPrice: item.ebayPrice || null
+          ebayPrice: item.ebay_avg_price || null,
+          ebayMinPrice: item.ebay_min_price || null,
+          ebayMaxPrice: item.ebay_max_price || null,
+          ebaySoldCount: item.ebay_sold_count || 0,
         } : {
-          available: false
+          available: false,
+          ebayPrice: item.ebay_avg_price || null,
+          ebayMinPrice: item.ebay_min_price || null,
+          ebayMaxPrice: item.ebay_max_price || null,
+          ebaySoldCount: item.ebay_sold_count || 0,
         }
       }
     })
@@ -679,6 +685,7 @@ export const getRandomCatalogItem = async (_req: Request, res: Response): Promis
         segment: (car as any).segment,
         photo_url: car.photo_url,
         photo_url_carded: car.photo_url_carded,
+        ebay_avg_price: car.ebay_avg_price || null,
       }
     })
   } catch (error) {

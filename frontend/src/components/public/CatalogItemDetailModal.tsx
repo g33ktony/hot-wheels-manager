@@ -312,6 +312,12 @@ export default function CatalogItemDetailModal({
                       <p className={`text-lg line-through ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
                         ${item.availability.ebayPrice.toFixed(2)}
                       </p>
+                      {item.availability.ebayMinPrice && item.availability.ebayMaxPrice && (
+                        <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                          Rango: ${item.availability.ebayMinPrice.toFixed(2)} - ${item.availability.ebayMaxPrice.toFixed(2)}
+                          {item.availability.ebaySoldCount ? ` (${item.availability.ebaySoldCount} listados)` : ''}
+                        </p>
+                      )}
                     </div>
                   )}
 
@@ -336,6 +342,23 @@ export default function CatalogItemDetailModal({
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                   Podemos notificarte cuando este modelo esté disponible
                 </p>
+                {/* eBay reference price even when not in stock */}
+                {item.availability.ebayPrice && (
+                  <div className="mt-3 pt-2 border-t border-slate-300 dark:border-slate-600">
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      Precio referencia eBay:
+                    </p>
+                    <p className={`text-lg font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      ${item.availability.ebayPrice.toFixed(2)} USD
+                    </p>
+                    {item.availability.ebayMinPrice && item.availability.ebayMaxPrice && (
+                      <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                        Rango: ${item.availability.ebayMinPrice.toFixed(2)} - ${item.availability.ebayMaxPrice.toFixed(2)}
+                        {item.availability.ebaySoldCount ? ` (${item.availability.ebaySoldCount} listados)` : ''}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
