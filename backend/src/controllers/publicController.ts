@@ -51,6 +51,16 @@ const calculateSimilarity = (str1: string, str2: string): number => {
   return (charSimilarity * 0.3 + bigramSimilarity * 0.7)
 }
 
+const normalizeSearchValue = (value: string): string => {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s*\([^)]*\)\s*/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
 /**
  * Función para buscar con fuzzy matching en todos los campos
  * Mejoras:
@@ -144,6 +154,8 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
       year,
       brand,
       series,
+      preferredToyNum,
+      preferredYear,
       sort: sortOrder = 'desc',
       page = 1,
       limit = 20
@@ -420,24 +432,63 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
       }
     })
 
+    // After enriching, build a position map to preserve the fuzzy-score order from searchCache
+    const catalogItemPositionMap = new Map<string, number>()
+    enrichedCatalogItems.forEach((item, idx) => {
+      catalogItemPositionMap.set(item._id, idx)
+    })
+
     // Combine catalog and custom items
     const allItems = [...enrichedCatalogItems, ...enrichedCustomItems]
     const total = catalogTotal + customOnlyItems.length
 
-    // Sort by year (asc/desc), then available first, then alphabetically
-    allItems.sort((a, b) => {
-      // Primary sort: year
-      const yA = parseInt(a.year) || 0
-      const yB = parseInt(b.year) || 0
-      if (yA !== yB) return sortDir === 'desc' ? yB - yA : yA - yB
-      // Secondary: available items first
-      if (a.availability.available && !b.availability.available) return -1
-      if (!a.availability.available && b.availability.available) return 1
-      // Tertiary: alphabetically
-      const aModel = a.carModel || ''
-      const bModel = b.carModel || ''
-      return aModel.localeCompare(bModel)
-    })
+    if (searchTerm) {
+      // When searching: sort by relevance
+      // 1st priority: exact normalized carModel match
+      // 2nd priority: preferred toy number / year (used by featured random item)
+      // 3rd priority: preserve fuzzy-score position from searchCache for catalog items
+      // Custom inventory items go after catalog items
+      const normalizedSearch = normalizeSearchValue(searchTerm)
+      const normalizedPreferredToyNum = normalizeSearchValue(preferredToyNum ? preferredToyNum.toString() : '')
+      const preferredYearValue = preferredYear ? preferredYear.toString() : ''
+
+      const getPriority = (item: any) => {
+        let score = 0
+        const normalizedModel = normalizeSearchValue(item.carModel || '')
+        const normalizedToyNum = normalizeSearchValue(item.toy_num || '')
+
+        if (normalizedModel === normalizedSearch) score += 1000
+        else if (normalizedModel.startsWith(normalizedSearch) && normalizedSearch) score += 400
+
+        if (normalizedPreferredToyNum && normalizedToyNum === normalizedPreferredToyNum) score += 250
+        if (preferredYearValue && String(item.year || '') === preferredYearValue) score += 100
+
+        return score
+      }
+
+      allItems.sort((a, b) => {
+        const priorityDiff = getPriority(b) - getPriority(a)
+        if (priorityDiff !== 0) return priorityDiff
+
+        const aPos = catalogItemPositionMap.get(a._id)
+        const bPos = catalogItemPositionMap.get(b._id)
+        const safeAPos = aPos !== undefined ? aPos : Number.MAX_SAFE_INTEGER
+        const safeBPos = bPos !== undefined ? bPos : Number.MAX_SAFE_INTEGER
+        return safeAPos - safeBPos
+      })
+    } else {
+      // When no search: sort by year (asc/desc), then available first, then alphabetically
+      allItems.sort((a, b) => {
+        const yA = parseInt(a.year) || 0
+        const yB = parseInt(b.year) || 0
+        if (yA !== yB) return sortDir === 'desc' ? yB - yA : yA - yB
+        if (a.availability.available && !b.availability.available) return -1
+        if (!a.availability.available && b.availability.available) return 1
+        const aModel = a.carModel || ''
+        const bModel = b.carModel || ''
+        return aModel.localeCompare(bModel)
+      })
+    }
 
     // Apply pagination to combined results
     const paginatedItems = allItems.slice(skip, skip + limitNum)

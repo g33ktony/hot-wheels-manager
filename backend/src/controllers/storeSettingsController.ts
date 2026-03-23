@@ -73,12 +73,16 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
       })
     } else {
       // Check ownership: user can only edit their own store's settings
-      if (settings.storeId !== req.storeId) {
+      // If document has no storeId (legacy orphan), claim it for current user.
+      if (settings.storeId && settings.storeId !== req.storeId) {
         return res.status(403).json({
           success: false,
           data: null,
           message: 'You can only edit settings from your own store'
         })
+      }
+      if (!settings.storeId && req.storeId) {
+        settings.storeId = req.storeId
       }
 
       // Actualizar

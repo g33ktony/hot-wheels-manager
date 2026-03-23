@@ -14,6 +14,8 @@ export interface CatalogSearchFilters {
   year?: string
   brand?: string
   series?: string
+  preferredToyNum?: string
+  preferredYear?: string
   sort?: 'asc' | 'desc'
   page?: number
   limit?: number

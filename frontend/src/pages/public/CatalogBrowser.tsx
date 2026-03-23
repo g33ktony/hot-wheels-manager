@@ -155,21 +155,31 @@ export default function CatalogBrowser() {
   }, [])
 
   // Search function — accepts overrides to avoid stale closure issues
-  const handleSearch = async (overrides?: { search?: string; pageNum?: number; brands?: string[] }) => {
+  const handleSearch = async (overrides?: {
+    search?: string
+    pageNum?: number
+    brands?: string[]
+    year?: string
+    preferredToyNum?: string
+    preferredYear?: string
+  }) => {
     const q = overrides?.search ?? searchTerm
     const p = overrides?.pageNum ?? page
     const brands = overrides?.brands ?? brandFilter
+    const effectiveYear = overrides?.year ?? yearFilter
 
     // Check if there's any search criteria
     const hasBrandFilter = brands.length > 0 && !(brands.length === 1 && brands[0] === 'Hot Wheels')
-    if (!q.trim() && !yearFilter && !hasBrandFilter) return // Don't search without criteria
+    if (!q.trim() && !effectiveYear && !hasBrandFilter) return // Don't search without criteria
     setHasSearched(true)
     setLoading(true)
     try {
       const response = await publicService.searchCatalog({
         q,
-        year: yearFilter,
+        year: effectiveYear,
         brand: brands.length > 0 ? brands.join(',') : '',
+        preferredToyNum: overrides?.preferredToyNum,
+        preferredYear: overrides?.preferredYear,
         sort: sortOrder,
         page: p,
         limit: 20
@@ -185,8 +195,8 @@ export default function CatalogBrowser() {
       // Update URL params
       const newParams: Record<string, string> = {}
       if (q) newParams.q = q
-      if (yearFilter) newParams.year = yearFilter
-      if (brandFilter.length > 0) newParams.brand = brandFilter.join(',')
+      if (effectiveYear) newParams.year = effectiveYear
+      if (brands.length > 0) newParams.brand = brands.join(',')
 
       // Preserve adminView if it exists to prevent redirecting admins to dashboard
       const isAdminView = searchParams.get('adminView') === 'true'
@@ -210,6 +220,24 @@ export default function CatalogBrowser() {
     setPage(1)
     // Search immediately with the known values (avoids stale closure)
     handleSearch({ search: suggestion.carModel, pageNum: 1 })
+  }
+
+  const handleFeaturedExactSearch = () => {
+    if (!featuredItem) return
+
+    setSearchTerm(featuredItem.carModel || '')
+    setYearFilter(featuredItem.year || '')
+    setPage(1)
+    setHasSearched(true)
+    setShowSuggestions(false)
+
+    handleSearch({
+      search: featuredItem.carModel,
+      year: featuredItem.year,
+      preferredToyNum: featuredItem.toy_num,
+      preferredYear: featuredItem.year,
+      pageNum: 1
+    })
   }
 
   // Search when filters change (only if user has already searched)
@@ -600,8 +628,8 @@ export default function CatalogBrowser() {
               {/* Featured random item */}
               <div
                 className={`max-w-sm mx-auto rounded-xl overflow-hidden transition-all duration-300 ${isDark
-                    ? 'bg-slate-800/80 shadow-lg shadow-slate-900/50 border border-slate-700/50'
-                    : 'bg-white shadow-md border border-slate-200'
+                  ? 'bg-slate-800/80 shadow-lg shadow-slate-900/50 border border-slate-700/50'
+                  : 'bg-white shadow-md border border-slate-200'
                   }`}
               >
                 {/* Photo */}
@@ -652,6 +680,22 @@ export default function CatalogBrowser() {
                         #{featuredItem.toy_num}
                       </span>
                     )}
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <Button
+                      onClick={handleFeaturedExactSearch}
+                      className="flex-1"
+                    >
+                      Buscar este exacto
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleItemClick(featuredItem)}
+                      className="flex-1"
+                    >
+                      Ver detalles
+                    </Button>
                   </div>
                 </div>
               </div>
