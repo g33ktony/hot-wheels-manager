@@ -470,6 +470,10 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
         const priorityDiff = getPriority(b) - getPriority(a)
         if (priorityDiff !== 0) return priorityDiff
 
+        const yA = parseInt(String(a.year || '')) || 0
+        const yB = parseInt(String(b.year || '')) || 0
+        if (yA !== yB) return yB - yA
+
         const aPos = catalogItemPositionMap.get(a._id)
         const bPos = catalogItemPositionMap.get(b._id)
         const safeAPos = aPos !== undefined ? aPos : Number.MAX_SAFE_INTEGER
