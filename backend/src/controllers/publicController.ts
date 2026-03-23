@@ -189,27 +189,56 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
     }))
     catalogTotal = cacheResult.total
 
-    // Get toy_nums to check inventory
+    // Check store settings FIRST to see which store has public catalog enabled
+    const activeStoreSettings = await StoreSettingsModel.findOne({ 'publicCatalog.showCustomInventory': true })
+    const showCustomInventory = !!activeStoreSettings
+    const activeStoreId = activeStoreSettings?.storeId
+
+    // Get toy_nums and carModel names to check inventory
     const toyNums = catalogItems.map(item => item.toy_num)
+    const carModelNames = catalogItems.map(item => (item.carModel || '').trim()).filter(Boolean)
 
-    // Fetch inventory data for catalog items (including items without stock)
-    const catalogInventoryItems = await InventoryItemModel
-      .find({
-        carId: { $in: toyNums }
-        // Show all items, not just those with stock
-      })
-      .select('carId quantity reservedQuantity actualPrice suggestedPrice')
-      .lean()
+    // Build reverse map: carModel (lowercase) -> toy_num for matching
+    const modelToToyNum = new Map<string, string>()
+    catalogItems.forEach(item => {
+      if (item.carModel && item.toy_num) {
+        modelToToyNum.set(item.carModel.toLowerCase().trim(), item.toy_num)
+      }
+    })
 
-    // Create a map for quick lookup: carId -> inventory data
+    // Fetch inventory data - match by BOTH toy_num AND carModel name
+    // Inventory items may use car model names as carId instead of toy_nums
+    const storeFilter: any = {}
+    if (activeStoreId) storeFilter.storeId = activeStoreId
+
+    const allStoreInventory = activeStoreId
+      ? await InventoryItemModel
+          .find({ storeId: activeStoreId })
+          .select('carId carName quantity reservedQuantity actualPrice suggestedPrice photos primaryPhotoIndex')
+          .lean()
+      : []
+
+    // Create a map for quick lookup: toy_num -> inventory data
+    // Match inventory items by: exact toy_num, or carId matching a carModel name
     const inventoryMap = new Map()
-    catalogInventoryItems.forEach(item => {
+    allStoreInventory.forEach(item => {
       const available = item.quantity - (item.reservedQuantity || 0)
-      inventoryMap.set(item.carId, {
+      const invData = {
         available: available > 0,
         price: item.actualPrice || item.suggestedPrice,
         quantity: Math.max(0, available)
-      })
+      }
+
+      // Direct match: carId is a toy_num
+      if (toyNums.includes(item.carId)) {
+        inventoryMap.set(item.carId, invData)
+      } else {
+        // carId is a model name - find matching toy_num
+        const matchedToyNum = modelToToyNum.get(item.carId.toLowerCase().trim())
+        if (matchedToyNum) {
+          inventoryMap.set(matchedToyNum, invData)
+        }
+      }
     })
 
     // Enrich pack contents with photos from cache (no MongoDB query)
@@ -300,77 +329,65 @@ export const searchCatalog = async (req: Request, res: Response): Promise<void> 
       }
     })
 
-    // Check store settings to see if custom inventory should be shown in public catalog
-    const storeSettings = await StoreSettingsModel.findOne({})
-    const showCustomInventory = storeSettings?.publicCatalog?.showCustomInventory ?? false
-
     // ALSO search custom inventory items (not in catalog) - ONLY if enabled in settings
-    let customInventoryItems = []
-    if (showCustomInventory) {
+    // Use the already-fetched allStoreInventory instead of querying again
+    let customInventoryItems: any[] = []
+    if (showCustomInventory && allStoreInventory.length > 0) {
       if (searchTerm) {
-        // Try regex first
-        const regexFilter: any = {
-          $or: [
-            { carName: { $regex: searchTerm, $options: 'i' } },
-            { carId: { $regex: searchTerm, $options: 'i' } },
-            { brand: { $regex: searchTerm, $options: 'i' } }
-          ]
-        }
+        // Filter from already-loaded inventory
+        const searchLower = searchTerm.toLowerCase()
 
-        customInventoryItems = await InventoryItemModel
-          .find(regexFilter)
-          .select('_id carId carName brand quantity reservedQuantity actualPrice suggestedPrice photos primaryPhotoIndex')
-          .lean()
+        // Regex match
+        const regexMatches = allStoreInventory.filter(item => {
+          const carId = (item.carId || '').toLowerCase()
+          const carName = ((item as any).carName || '').toLowerCase()
+          return carId.includes(searchLower) || carName.includes(searchLower)
+        })
 
-        // If not enough results, try fuzzy matching
-        if (customInventoryItems.length < 10) {
-          const allCustomItems = await InventoryItemModel
-            .find({})
-            .select('_id carId carName brand quantity reservedQuantity actualPrice suggestedPrice photos primaryPhotoIndex')
-            .limit(1000)
-            .lean()
-
-          const fuzzyCustomResults = allCustomItems
-            .map(item => {
-              // Create a searchable object similar to catalog items
-              const searchableItem = {
-                carModel: item.carName || item.carId,
-                series: '',
-                year: '',
-                toy_num: item.carId,
-                col_num: '',
-                series_num: ''
-              }
-              const { match, score } = fuzzyMatch(searchableItem, searchTerm, 0.45)
-              return { item, match, score }
-            })
-            .filter(result => result.match)
-            .sort((a, b) => b.score - a.score)
-            .map(result => result.item)
-
-          // Combine regex and fuzzy results
-          const customMap = new Map()
-          customInventoryItems.forEach(item => customMap.set(item._id.toString(), item))
-          fuzzyCustomResults.forEach(item => {
-            if (!customMap.has(item._id.toString())) {
-              customMap.set(item._id.toString(), item)
+        // Fuzzy match for items not caught by regex
+        const fuzzyMatches = allStoreInventory
+          .map(item => {
+            const searchableItem = {
+              carModel: (item as any).carName || item.carId,
+              series: '',
+              year: '',
+              toy_num: item.carId,
+              col_num: '',
+              series_num: ''
             }
+            const { match, score } = fuzzyMatch(searchableItem, searchTerm, 0.45)
+            return { item, match, score }
           })
+          .filter(result => result.match)
+          .sort((a, b) => b.score - a.score)
+          .map(result => result.item)
 
-          customInventoryItems = Array.from(customMap.values())
-        }
+        // Combine regex and fuzzy results
+        const customMap = new Map<string, any>()
+        regexMatches.forEach(item => customMap.set(item._id.toString(), item))
+        fuzzyMatches.forEach(item => {
+          if (!customMap.has(item._id.toString())) {
+            customMap.set(item._id.toString(), item)
+          }
+        })
+
+        customInventoryItems = Array.from(customMap.values())
       } else {
-        // No search term - get all custom items
-        customInventoryItems = await InventoryItemModel
-          .find({})
-          .select('_id carId carName brand quantity reservedQuantity actualPrice suggestedPrice photos primaryPhotoIndex')
-          .lean()
+        // No search term - use all store inventory items
+        customInventoryItems = [...allStoreInventory]
       }
     }
 
-    // Filter out items that are already in catalog (matched by carId)
+    // Filter out inventory items that already matched a catalog item (by toy_num or model name)
     const catalogCarIds = new Set(toyNums)
-    const customOnlyItems = customInventoryItems.filter(item => !catalogCarIds.has(item.carId))
+    const catalogModelNames = new Set(catalogItems.map((item: any) => (item.carModel || '').toLowerCase().trim()).filter(Boolean))
+    const customOnlyItems = customInventoryItems.filter(item => {
+      // Exclude if carId matches a toy_num directly
+      if (catalogCarIds.has(item.carId)) return false
+      // Exclude if carId (model name) matches a catalog carModel
+      if (catalogModelNames.has(item.carId.toLowerCase().trim())) return false
+      return true
+    })
 
     // Convert custom inventory items to catalog format
     const enrichedCustomItems = customOnlyItems.map(item => {

@@ -6,6 +6,7 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import Modal from '@/components/common/Modal'
 import { Loading } from '@/components/common/Loading'
+import api from '@/services/api'
 import {
     Users,
     CheckCircle,
@@ -47,9 +48,30 @@ const UsersPage: React.FC = () => {
     const [approvalRole, setApprovalRole] = useState('admin')
     const [rejectionReason, setRejectionReason] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
+    const hasAccess = isSysAdmin()
 
-    // Verificar permisos
-    if (!isSysAdmin()) {
+    // Fetch usuarios - hook must be declared before any conditional return
+    useEffect(() => {
+        if (!hasAccess) return
+
+        const fetchUsers = async () => {
+            try {
+                setLoading(true)
+                const { data } = await api.get('/users')
+                setUsers(data.data || [])
+            } catch (error) {
+                console.error('Error fetching users:', error)
+                toast.error('Error al cargar usuarios')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchUsers()
+    }, [hasAccess])
+
+    // Verificar permisos (after all hooks)
+    if (!hasAccess) {
         return (
             <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
                 <Card className="p-8 text-center">
@@ -65,32 +87,6 @@ const UsersPage: React.FC = () => {
         )
     }
 
-    // Fetch usuarios
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setLoading(true)
-                const response = await fetch('/api/users', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                })
-
-                if (!response.ok) throw new Error('Error al cargar usuarios')
-
-                const data = await response.json()
-                setUsers(data.data || [])
-            } catch (error) {
-                console.error('Error fetching users:', error)
-                toast.error('Error al cargar usuarios')
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchUsers()
-    }, [])
-
     // Filtrar usuarios
     const filteredUsers = users.filter(user => {
         const matchesFilter = filter === 'all' || user.status === filter
@@ -104,16 +100,7 @@ const UsersPage: React.FC = () => {
         if (!selectedUser) return
 
         try {
-            const response = await fetch(`/api/users/${selectedUser._id}/approve`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ role: approvalRole })
-            })
-
-            if (!response.ok) throw new Error('Error al aprobar')
+            await api.patch(`/users/${selectedUser._id}/approve`, { role: approvalRole })
 
             toast.success(`Usuario ${selectedUser.email} aprobado`)
             setShowApprovalModal(false)
@@ -142,16 +129,7 @@ const UsersPage: React.FC = () => {
         }
 
         try {
-            const response = await fetch(`/api/users/${selectedUser._id}/reject`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ reason: rejectionReason })
-            })
-
-            if (!response.ok) throw new Error('Error al rechazar')
+            await api.patch(`/users/${selectedUser._id}/reject`, { reason: rejectionReason })
 
             toast.success(`Usuario ${selectedUser.email} rechazado`)
             setShowRejectionModal(false)
@@ -176,14 +154,7 @@ const UsersPage: React.FC = () => {
         if (!window.confirm(`¿Eliminar usuario ${email}?`)) return
 
         try {
-            const response = await fetch(`/api/users/${userId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            })
-
-            if (!response.ok) throw new Error('Error al eliminar')
+            await api.delete(`/users/${userId}`)
 
             toast.success('Usuario eliminado')
             setUsers(users.filter(u => u._id !== userId))
@@ -360,12 +331,12 @@ const UsersPage: React.FC = () => {
                                                     onClick={() => handleDelete(user._id, user.email)}
                                                     disabled={user.role === 'sys_admin'}
                                                     className={`p-2 rounded-lg transition-colors ${user.role === 'sys_admin'
-                                                            ? isDark
-                                                                ? 'bg-gray-700/30 text-gray-500 cursor-not-allowed'
-                                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                            : isDark
-                                                                ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                        ? isDark
+                                                            ? 'bg-gray-700/30 text-gray-500 cursor-not-allowed'
+                                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                        : isDark
+                                                            ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                                                            : 'bg-red-100 text-red-700 hover:bg-red-200'
                                                         }`}
                                                     title={user.role === 'sys_admin' ? 'No se puede eliminar administradores del sistema' : 'Eliminar'}
                                                 >

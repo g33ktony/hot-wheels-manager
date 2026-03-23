@@ -11,9 +11,11 @@ import {
     Settings,
     Lock,
     Copy,
-    CheckCircle
+    CheckCircle,
+    Globe
 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { storeSettingsService } from '@/services/storeSettings'
 
 const StoreSettingsPage: React.FC = () => {
     const { mode } = useTheme()
@@ -22,8 +24,12 @@ const StoreSettingsPage: React.FC = () => {
     const { stores, refetch } = useStores()
     const isDark = mode === 'dark'
 
-    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user'>('profile')
+    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user' | 'public-catalog'>('profile')
     const [showPasswordModal, setShowPasswordModal] = useState(false)
+
+    // Public catalog state
+    const [showCustomInventory, setShowCustomInventory] = useState(false)
+    const [catalogSettingsLoading, setCatalogSettingsLoading] = useState(false)
 
     // Profile state
     const [profileName, setProfileName] = useState(user?.name || '')
@@ -54,6 +60,38 @@ const StoreSettingsPage: React.FC = () => {
             setTeamUsers(currentStore.users.userDetails || [])
         }
     }, [currentStore])
+
+    // Load public catalog settings
+    useEffect(() => {
+        const loadCatalogSettings = async () => {
+            try {
+                const settings = await storeSettingsService.get()
+                setShowCustomInventory(settings.publicCatalog?.showCustomInventory ?? false)
+            } catch (error) {
+                console.error('Error loading catalog settings:', error)
+            }
+        }
+        loadCatalogSettings()
+    }, [])
+
+    const handleToggleShowInventory = async (checked: boolean) => {
+        try {
+            setCatalogSettingsLoading(true)
+            await storeSettingsService.update({
+                publicCatalog: { showCustomInventory: checked }
+            })
+            setShowCustomInventory(checked)
+            toast.success(checked
+                ? 'Tu inventario ahora es visible en el catálogo público'
+                : 'Tu inventario ya no es visible en el catálogo público'
+            )
+        } catch (error) {
+            console.error('Error updating catalog settings:', error)
+            toast.error('Error al actualizar la configuración')
+        } finally {
+            setCatalogSettingsLoading(false)
+        }
+    }
 
     const handleCreateUser = async () => {
         if (!newUserName.trim() || !newUserEmail.trim()) {
@@ -165,7 +203,8 @@ const StoreSettingsPage: React.FC = () => {
                     {[
                         { id: 'profile', label: 'Perfil y Tienda' },
                         { id: 'team', label: 'Mi Equipo' },
-                        { id: 'create-user', label: 'Crear Usuario' }
+                        { id: 'create-user', label: 'Crear Usuario' },
+                        { id: 'public-catalog', label: '🌍 Catálogo Público' }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -358,6 +397,49 @@ const StoreSettingsPage: React.FC = () => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </Card>
+                )}
+
+                {activeTab === 'public-catalog' && (
+                    <Card>
+                        <div className="flex items-center gap-3 mb-6">
+                            <Globe className={isDark ? 'text-emerald-400' : 'text-emerald-600'} size={24} />
+                            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : ''}`}>
+                                Configuración del Catálogo Público
+                            </h2>
+                        </div>
+
+                        <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-gray-50'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={showCustomInventory}
+                                    onChange={(e) => handleToggleShowInventory(e.target.checked)}
+                                    disabled={catalogSettingsLoading}
+                                    className={`mt-1 w-5 h-5 rounded border transition-colors cursor-pointer ${isDark
+                                        ? 'bg-slate-600 border-slate-500 checked:bg-emerald-600'
+                                        : 'border-gray-300 checked:bg-emerald-500'
+                                        }`}
+                                />
+                                <div className="flex-1">
+                                    <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                        Mostrar mi inventario en el catálogo público
+                                    </span>
+                                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                                        Cuando está activado, tus items del inventario aparecerán en los resultados
+                                        de búsqueda del catálogo público junto con el catálogo oficial de Hot Wheels.
+                                        Tus clientes podrán ver las piezas que tienes disponibles.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div className={`mt-4 p-3 rounded-lg text-sm ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-blue-50 text-blue-700'}`}>
+                            <p>💡 <strong>Estado actual:</strong> {showCustomInventory
+                                ? '✅ Tu inventario ES visible en el catálogo público'
+                                : '❌ Tu inventario NO es visible en el catálogo público'}
+                            </p>
                         </div>
                     </Card>
                 )}
