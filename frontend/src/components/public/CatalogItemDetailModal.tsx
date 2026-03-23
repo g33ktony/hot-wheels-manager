@@ -33,23 +33,31 @@ export default function CatalogItemDetailModal({
   const photos = useMemo(() => {
     const resolveImageUrl = (url?: string) => {
       if (!url) return ''
+
+      // Clean up wiki-file URLs
       if (url.startsWith('wiki-file:')) {
         const fileName = url.replace('wiki-file:', '').trim()
-        return fileName
-          ? `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
-          : ''
+        if (!fileName) return ''
+        // Use Fandom's direct image CDN, bypassing weserv.nl sometimes
+        return `https://hotwheels.fandom.com/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
       }
+
       // Handle relative and absolute URLs
       if (url.startsWith('/uploads/')) {
         return `${import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3001'}${url}`
       }
+
       return url
     }
 
     const isValidUrl = (url?: string) => {
+      if (!url || typeof url !== 'string') return false
+
       const resolved = resolveImageUrl(url)
+      if (!resolved) return false
+
       // Accept both http and https URLs
-      return Boolean(resolved && (resolved.startsWith('https://') || resolved.startsWith('http://')))
+      return resolved.startsWith('https://') || resolved.startsWith('http://')
     }
 
     const list: { url: string; label: string }[] = []
@@ -63,9 +71,11 @@ export default function CatalogItemDetailModal({
 
     if (Array.isArray(item.photo_gallery)) {
       for (const url of item.photo_gallery) {
-        const resolved = resolveImageUrl(url)
-        if (isValidUrl(url) && !list.some(p => p.url === resolved)) {
-          list.push({ url: resolved, label: '' })
+        if (isValidUrl(url)) {
+          const resolved = resolveImageUrl(url)
+          if (!list.some(p => p.url === resolved)) {
+            list.push({ url: resolved, label: '' })
+          }
         }
       }
     }
@@ -75,8 +85,14 @@ export default function CatalogItemDetailModal({
 
   const hasMultiplePhotos = photos.length > 1
 
-  const proxyUrl = (url: string) =>
-    url.includes('weserv') || url.startsWith('http://localhost') ? url : `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=400&fit=contain`
+  const proxyUrl = (url: string) => {
+    // Skip proxying for weserv, localhost, and Fandom URLs (they work fine directly)
+    if (url.includes('weserv') || url.startsWith('http://localhost') || url.includes('fandom.com')) {
+      return url
+    }
+    // Proxy other URLs through weserv.nl
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=600&h=400&fit=contain`
+  }
 
   // Get Facebook Messenger URL
   const getMessengerLink = () => {
@@ -120,7 +136,11 @@ export default function CatalogItemDetailModal({
                     alt={item.carModel}
                     className="w-full h-80 object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                      // Fallback to placeholder on error
+                      const img = e.target as HTMLImageElement
+                      if (!img.src.includes(getPlaceholderLogo(item.series))) {
+                        img.src = getPlaceholderLogo(item.series)
+                      }
                     }}
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
@@ -152,23 +172,12 @@ export default function CatalogItemDetailModal({
                         <ChevronRight size={20} />
                       </button>
 
-                      {/* Photo label badge */}
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                        {photos.map((photo, idx) => (
-                          <button
-                            key={idx}
-                            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${idx === currentPhotoIndex
-                              ? 'bg-white text-slate-900 shadow-lg'
-                              : 'bg-black/50 text-white hover:bg-black/70'
-                              }`}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setCurrentPhotoIndex(idx)
-                            }}
-                          >
-                            {photo.label || `${idx + 1}/${photos.length}`}
-                          </button>
-                        ))}
+                      {/* Photo counter badge with type label */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-semibold z-10 flex items-center gap-2 backdrop-blur-sm">
+                        <span>{currentPhotoIndex + 1}/{photos.length}</span>
+                        {photos[currentPhotoIndex].label && (
+                          <span className="text-xs opacity-80">({photos[currentPhotoIndex].label})</span>
+                        )}
                       </div>
                     </>
                   )}

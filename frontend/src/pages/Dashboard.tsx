@@ -29,6 +29,7 @@ export default function Dashboard() {
     const [searchQuery, setSearchQuery] = React.useState('')
     const [isDownloading, setIsDownloading] = React.useState(false)
     const [selectedUnpaidDelivery, setSelectedUnpaidDelivery] = React.useState<any>(null)
+    const [isInitiatingUpdate, setIsInitiatingUpdate] = React.useState(false)
 
     // Log when selectedStore changes
     React.useEffect(() => {
@@ -69,6 +70,13 @@ export default function Dashboard() {
             loadAll()
         }
     }, [showSearchModal, searchResults.length, isSearching, loadAll])
+
+    // Reset isInitiatingUpdate cuando la actualización comienza realmente
+    React.useEffect(() => {
+        if (updateStatus?.progress?.isUpdating && isInitiatingUpdate) {
+            setIsInitiatingUpdate(false)
+        }
+    }, [updateStatus?.progress?.isUpdating, isInitiatingUpdate])
 
     const handleDownload = async () => {
         setIsDownloading(true)
@@ -501,6 +509,7 @@ export default function Dashboard() {
                 isOpen={showUpdateModal}
                 onClose={() => {
                     setShowUpdateModal(false)
+                    setIsInitiatingUpdate(false)
                     if (updateStatus?.progress?.step === 'completed') {
                         updateCatalogMutation.reset()
                     }
@@ -514,6 +523,7 @@ export default function Dashboard() {
                             className="flex-1"
                             onClick={() => {
                                 setShowUpdateModal(false)
+                                setIsInitiatingUpdate(false)
                                 if (updateStatus?.progress?.step === 'completed') {
                                     updateCatalogMutation.reset()
                                 }
@@ -525,21 +535,26 @@ export default function Dashboard() {
                         {updateStatus?.progress?.step !== 'completed' && (
                             <Button
                                 className="flex-1 flex items-center justify-center gap-2 relative overflow-hidden"
-                                onClick={() => updateCatalogMutation.mutate()}
-                                disabled={updateStatus?.progress?.isUpdating}
+                                onClick={() => {
+                                    setIsInitiatingUpdate(true)
+                                    updateCatalogMutation.mutate()
+                                }}
+                                disabled={updateStatus?.progress?.isUpdating || isInitiatingUpdate}
                             >
                                 {/* Progress Filling Effect */}
-                                {updateStatus?.progress?.isUpdating && (
+                                {(updateStatus?.progress?.isUpdating || isInitiatingUpdate) && (
                                     <div
                                         className="absolute left-0 top-0 bottom-0 bg-emerald-600/30 transition-all duration-500 ease-out"
                                         style={{ width: `${updateStatus?.progress?.percent || 0}%` }}
                                     />
                                 )}
-                                <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin z-10' : ''} />
+                                <RefreshCw size={16} className={(updateStatus?.progress?.isUpdating || isInitiatingUpdate) ? 'animate-spin z-10' : ''} />
                                 <span className="z-10">
                                     {updateStatus?.progress?.isUpdating
                                         ? `Descargando (${updateStatus?.progress?.percent || 0}%)`
-                                        : 'Actualizar Ahora'}
+                                        : isInitiatingUpdate
+                                            ? 'Iniciando...'
+                                            : 'Actualizar Ahora'}
                                 </span>
                             </Button>
                         )}
