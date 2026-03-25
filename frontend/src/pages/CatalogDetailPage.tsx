@@ -43,7 +43,8 @@ export default function CatalogDetailPage() {
     const loadItem = async () => {
         try {
             setLoading(true)
-            const res = await fetch(`/api/catalog/items/${id}`, {
+            const encodedId = encodeURIComponent(id || '')
+            const res = await fetch(`/api/catalog/items/${encodedId}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             })
             const json = await res.json()
@@ -86,7 +87,8 @@ export default function CatalogDetailPage() {
         setSuccess('')
 
         try {
-            const res = await fetch(`/api/catalog/items/${id}`, {
+            const encodedId = encodeURIComponent(id || '')
+            const res = await fetch(`/api/catalog/items/${encodedId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

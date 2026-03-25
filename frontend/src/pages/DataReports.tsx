@@ -247,7 +247,7 @@ export default function DataReports() {
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
-                                                onClick={() => navigate(`/catalog/items/${report.catalogItemId}`)}
+                                                onClick={() => navigate(`/catalog/items/${encodeURIComponent(report.catalogItemId)}`)}
                                                 icon={<Edit size={14} />}
                                                 title="Editar detalle del item"
                                             >
