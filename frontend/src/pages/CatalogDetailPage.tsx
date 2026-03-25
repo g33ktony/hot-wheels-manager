@@ -36,6 +36,27 @@ export default function CatalogDetailPage() {
     const [showPhotos, setShowPhotos] = useState(true)
     const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
+    const resolveCatalogId = (rawId: string | undefined): string => {
+        if (!rawId) return ''
+
+        if (!rawId.startsWith('ref_')) {
+            return rawId
+        }
+
+        try {
+            const base64 = rawId.slice(4).replace(/-/g, '+').replace(/_/g, '/')
+            const paddedBase64 = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+            const binary = atob(paddedBase64)
+            const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+
+            return new TextDecoder().decode(bytes)
+        } catch {
+            return rawId
+        }
+    }
+
+    const catalogId = resolveCatalogId(id)
+
     useEffect(() => {
         loadItem()
     }, [id])
@@ -43,7 +64,7 @@ export default function CatalogDetailPage() {
     const loadItem = async () => {
         try {
             setLoading(true)
-            const encodedId = encodeURIComponent(id || '')
+            const encodedId = encodeURIComponent(catalogId || '')
             const res = await fetch(`/api/catalog/items/${encodedId}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             })
@@ -87,7 +108,7 @@ export default function CatalogDetailPage() {
         setSuccess('')
 
         try {
-            const encodedId = encodeURIComponent(id || '')
+            const encodedId = encodeURIComponent(catalogId || '')
             const res = await fetch(`/api/catalog/items/${encodedId}`, {
                 method: 'PUT',
                 headers: {
@@ -274,7 +295,7 @@ export default function CatalogDetailPage() {
             </div>
 
             {/* Gestión de fotos */}
-            {showPhotos && <PhotoUploadSection itemId={id!} onPhotoUploaded={loadItem} />}
+            {showPhotos && <PhotoUploadSection itemId={catalogId} onPhotoUploaded={loadItem} />}
         </div>
     )
 }
