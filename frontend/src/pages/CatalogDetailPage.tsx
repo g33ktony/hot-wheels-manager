@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import PhotoUploadSection from '../components/PhotoUploadSection'
 import { convertImageUrl } from '../utils/imageUtils'
 import './CatalogDetailPage.css'
@@ -27,6 +27,7 @@ interface DetailItem {
 export default function CatalogDetailPage() {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
+    const location = useLocation()
     const [item, setItem] = useState<DetailItem | null>(null)
     const [edited, setEdited] = useState<Partial<DetailItem>>({})
     const [loading, setLoading] = useState(true)
@@ -55,13 +56,20 @@ export default function CatalogDetailPage() {
         }
     }
 
-    const catalogId = resolveCatalogId(id)
+    const stateCatalogId = (location.state as { catalogItemId?: string } | null)?.catalogItemId
+    const catalogId = stateCatalogId ? String(stateCatalogId) : resolveCatalogId(id)
 
     useEffect(() => {
         loadItem()
-    }, [id])
+    }, [id, stateCatalogId])
 
     const loadItem = async () => {
+        if (!catalogId) {
+            setError('ID de item inválido')
+            setLoading(false)
+            return
+        }
+
         try {
             setLoading(true)
             const encodedId = encodeURIComponent(catalogId || '')
@@ -295,7 +303,7 @@ export default function CatalogDetailPage() {
             </div>
 
             {/* Gestión de fotos */}
-            {showPhotos && <PhotoUploadSection itemId={catalogId} onPhotoUploaded={loadItem} />}
+            {showPhotos && catalogId && <PhotoUploadSection itemId={catalogId} onPhotoUploaded={loadItem} />}
         </div>
     )
 }

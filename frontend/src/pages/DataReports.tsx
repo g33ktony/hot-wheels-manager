@@ -35,19 +35,6 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
     resolved: { label: 'Resuelto', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' }
 }
 
-const toBase64Url = (value: string): string => {
-    const bytes = new TextEncoder().encode(value)
-    let binary = ''
-    bytes.forEach((byte) => {
-        binary += String.fromCharCode(byte)
-    })
-
-    return btoa(binary)
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/g, '')
-}
-
 export default function DataReports() {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
@@ -261,8 +248,9 @@ export default function DataReports() {
                                                 variant="secondary"
                                                 size="sm"
                                                 onClick={() => {
-                                                    const safeRef = toBase64Url(String(report.catalogItemId || ''))
-                                                    navigate(`/catalog/items/ref_${safeRef}`)
+                                                    navigate('/catalog/items/report', {
+                                                        state: { catalogItemId: String(report.catalogItemId || '') }
+                                                    })
                                                 }}
                                                 icon={<Edit size={14} />}
                                                 title="Editar detalle del item"
