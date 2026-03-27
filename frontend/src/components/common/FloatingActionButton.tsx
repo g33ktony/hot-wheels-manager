@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface FloatingActionButtonProps {
@@ -8,6 +8,8 @@ interface FloatingActionButtonProps {
     variant: 'delivery' | 'pos'
     ariaLabel: string
     className?: string // Optional override for positioning
+    bottomOffset?: number
+    rightOffset?: number
 }
 
 export default function FloatingActionButton({
@@ -16,10 +18,39 @@ export default function FloatingActionButton({
     onClick,
     variant,
     ariaLabel,
-    className
+    className,
+    bottomOffset = 24,
+    rightOffset = 24
 }: FloatingActionButtonProps) {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
+    const [keyboardHeight, setKeyboardHeight] = useState(0)
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.visualViewport) return
+
+        const updateKeyboardHeight = () => {
+            const viewport = window.visualViewport
+            if (!viewport) return
+
+            const height = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+            setKeyboardHeight(height > 120 ? height : 0)
+        }
+
+        updateKeyboardHeight()
+
+        window.visualViewport.addEventListener('resize', updateKeyboardHeight)
+        window.visualViewport.addEventListener('scroll', updateKeyboardHeight)
+        window.addEventListener('focusin', updateKeyboardHeight)
+        window.addEventListener('focusout', updateKeyboardHeight)
+
+        return () => {
+            window.visualViewport?.removeEventListener('resize', updateKeyboardHeight)
+            window.visualViewport?.removeEventListener('scroll', updateKeyboardHeight)
+            window.removeEventListener('focusin', updateKeyboardHeight)
+            window.removeEventListener('focusout', updateKeyboardHeight)
+        }
+    }, [])
 
     // No mostrar si no hay badge
     if (!badge || badge <= 0) return null
@@ -37,13 +68,20 @@ export default function FloatingActionButton({
     }
 
     const styles = variantStyles[variant]
+    const computedBottom = keyboardHeight > 0
+        ? Math.min(520, keyboardHeight + bottomOffset - 8)
+        : bottomOffset
 
     return (
         <button
             onClick={onClick}
             aria-label={ariaLabel}
+            style={{
+                bottom: `calc(env(safe-area-inset-bottom, 0px) + ${computedBottom}px)`,
+                right: `calc(env(safe-area-inset-right, 0px) + ${rightOffset}px)`
+            }}
             className={`
-                ${className || 'fixed bottom-6 right-6 z-50'}
+                ${className || 'fixed z-50'}
                 w-14 h-14 rounded-full
                 ${styles.bg}
                 text-white

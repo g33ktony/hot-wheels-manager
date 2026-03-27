@@ -1,6 +1,7 @@
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import { useTheme } from '@/contexts/ThemeContext'
 import type { Delivery } from '@shared/types'
 
 interface NewPaymentState {
@@ -28,6 +29,9 @@ export default function DeliveryPaymentModal({
   onSubmit,
   onPaymentChange,
 }: DeliveryPaymentModalProps) {
+  const { mode } = useTheme()
+  const isDark = mode === 'dark'
+
   return (
     <Modal
       isOpen={isOpen && selectedDelivery !== null}
@@ -35,18 +39,18 @@ export default function DeliveryPaymentModal({
       title="Registrar Pago"
       maxWidth="md"
       footer={
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             type="button"
             variant="secondary"
-            className="flex-1"
+            className="w-full sm:flex-1 h-10"
             onClick={onClose}
           >
             Cancelar
           </Button>
           <Button
             type="button"
-            className="flex-1"
+            className="w-full sm:flex-1 h-10"
             onClick={onSubmit}
             disabled={isLoading || newPayment.amount <= 0}
           >
@@ -57,23 +61,23 @@ export default function DeliveryPaymentModal({
     >
       {selectedDelivery && (
         <div className="space-y-4">
-          <div className="bg-slate-700/30 p-4 rounded-lg space-y-2 text-sm">
+          <div className={`p-4 rounded-xl border space-y-2 text-sm ${isDark ? 'bg-slate-700/30 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
             <div className="flex justify-between">
-              <span className="text-slate-400">Total:</span>
-              <span className="font-medium">${selectedDelivery.totalAmount.toFixed(2)}</span>
+              <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Total:</span>
+              <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>${selectedDelivery.totalAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Pagado:</span>
+              <span className={isDark ? 'text-slate-400' : 'text-slate-600'}>Pagado:</span>
               <span className="text-green-600 font-medium">${(selectedDelivery.paidAmount || 0).toFixed(2)}</span>
             </div>
-            <div className="flex justify-between border-t pt-2">
-              <span className="text-white font-medium">Pendiente:</span>
+            <div className={`flex justify-between border-t pt-2 ${isDark ? 'border-slate-600' : 'border-slate-200'}`}>
+              <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Pendiente:</span>
               <span className="text-orange-600 font-bold">${(selectedDelivery.totalAmount - (selectedDelivery.paidAmount || 0)).toFixed(2)}</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
               Monto a Pagar *
             </label>
             <Input
@@ -103,11 +107,11 @@ export default function DeliveryPaymentModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
               Método de Pago *
             </label>
             <select
-              className="w-full px-4 py-3 text-base border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
+              className={`w-full px-4 py-3 text-base border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-slate-300'}`}
               value={newPayment.paymentMethod}
               onChange={(e) =>
                 onPaymentChange({
@@ -124,11 +128,11 @@ export default function DeliveryPaymentModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
               Notas (opcional)
             </label>
             <textarea
-              className="w-full px-4 py-3 text-base border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[80px] touch-manipulation"
+              className={`w-full px-4 py-3 text-base border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[90px] touch-manipulation ${isDark ? 'bg-slate-700 text-white border-slate-600 placeholder:text-slate-400' : 'bg-white text-slate-900 border-slate-300 placeholder:text-slate-400'}`}
               placeholder="Detalles adicionales del pago..."
               value={newPayment.notes}
               onChange={(e) => onPaymentChange({ ...newPayment, notes: e.target.value })}

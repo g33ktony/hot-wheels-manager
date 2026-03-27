@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 
@@ -26,6 +26,26 @@ export default function Modal({
     const { mode } = useTheme()
     const isDark = mode === 'dark'
 
+    useEffect(() => {
+        if (!isOpen) return
+
+        const previousOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose()
+            }
+        }
+
+        window.addEventListener('keydown', handleEscape)
+
+        return () => {
+            document.body.style.overflow = previousOverflow
+            window.removeEventListener('keydown', handleEscape)
+        }
+    }, [isOpen, onClose])
+
     if (!isOpen) return null
 
     const maxWidthClasses = {
@@ -39,33 +59,38 @@ export default function Modal({
     }
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className={`rounded-lg w-full ${maxWidthClasses[maxWidth]} flex flex-col max-h-[90vh] ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
-                {/* Fixed Header */}
-                <div className={`flex items-center justify-between p-4 lg:p-6 border-b rounded-t-lg flex-shrink-0 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-                    <h2 className={`text-lg lg:text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h2>
+        <div
+            className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-[2px] p-0 sm:p-4 flex items-end sm:items-center justify-center"
+            onClick={onClose}
+        >
+            <div
+                className={`w-full ${maxWidthClasses[maxWidth]} flex flex-col max-h-[92dvh] sm:max-h-[90vh] rounded-t-2xl sm:rounded-2xl border shadow-2xl overflow-hidden ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+            >
+                <div className={`sticky top-0 z-10 flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b ${isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur`}>
+                    <h2 className={`text-base sm:text-lg font-semibold pr-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
                     <div className="flex items-center gap-2">
                         {headerActions}
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className={`p-1 rounded transition-colors ${isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+                                className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-700' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
                                 aria-label="Cerrar"
                             >
-                                <X size={24} />
+                                <X size={20} />
                             </button>
                         )}
                     </div>
                 </div>
 
-                {/* Scrollable Content */}
-                <div className={`overflow-y-auto flex-1 p-4 lg:p-6 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+                <div className={`overflow-y-auto flex-1 px-4 py-3 sm:px-5 sm:py-4 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
                     {children}
                 </div>
 
-                {/* Fixed Footer */}
                 {footer && (
-                    <div className={`border-t p-4 lg:p-6 rounded-b-lg flex-shrink-0 ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className={`sticky bottom-0 z-10 border-t px-4 py-3 sm:px-5 sm:py-4 flex-shrink-0 ${isDark ? 'bg-slate-800/95 border-slate-700' : 'bg-white/95 border-slate-200'} backdrop-blur`}>
                         {footer}
                     </div>
                 )}

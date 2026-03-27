@@ -1,5 +1,6 @@
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface DeliveryPaymentStatusDialogProps {
   isOpen: boolean
@@ -14,6 +15,9 @@ export default function DeliveryPaymentStatusDialog({
   onClose,
   onConfirm,
 }: DeliveryPaymentStatusDialogProps) {
+  const { mode } = useTheme()
+  const isDark = mode === 'dark'
+
   return (
     <Modal
       isOpen={isOpen}
@@ -21,11 +25,11 @@ export default function DeliveryPaymentStatusDialog({
       title="Estado de Pago"
       maxWidth="md"
       footer={
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             type="button"
             variant="secondary"
-            className="flex-1"
+            className="w-full sm:flex-1 h-10"
             onClick={onClose}
           >
             Cancelar
@@ -34,16 +38,16 @@ export default function DeliveryPaymentStatusDialog({
       }
     >
       <div className="space-y-4">
-        <p className="text-slate-300">
+        <p className={isDark ? 'text-slate-300' : 'text-slate-600'}>
           Selecciona el estado de pago para esta entrega:
         </p>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
           <Button
             type="button"
             variant="secondary"
             onClick={() => onConfirm('pending')}
             disabled={isLoading}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-600 hover:bg-red-700 text-white h-10"
           >
             {isLoading ? '...' : 'Sin Pago'}
           </Button>
@@ -52,7 +56,7 @@ export default function DeliveryPaymentStatusDialog({
             variant="secondary"
             onClick={() => onConfirm('partial')}
             disabled={isLoading}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white h-10"
           >
             {isLoading ? '...' : 'Parcial'}
           </Button>
@@ -61,7 +65,7 @@ export default function DeliveryPaymentStatusDialog({
             variant="secondary"
             onClick={() => onConfirm('paid')}
             disabled={isLoading}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 hover:bg-green-700 text-white h-10"
           >
             {isLoading ? '...' : 'Pagado'}
           </Button>

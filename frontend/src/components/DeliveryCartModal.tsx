@@ -121,16 +121,16 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
             title="Crear Entrega"
             maxWidth="4xl"
             footer={
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Button
                         variant="secondary"
-                        className="flex-1"
+                        className="w-full sm:flex-1 h-10"
                         onClick={handleClose}
                     >
                         Cancelar
                     </Button>
                     <Button
-                        className="flex-1"
+                        className="w-full sm:flex-1 h-10"
                         onClick={handleCreateDelivery}
                         disabled={createDeliveryMutation.isLoading}
                     >
@@ -139,7 +139,7 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                 </div>
             }
         >
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
                 {/* Información de la entrega */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -221,16 +221,16 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                     </div>
 
                     {deliveryCartItems.length === 0 ? (
-                        <div className={`text-center py-8 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                        <div className={`text-center py-8 rounded-xl border ${isDark ? 'text-slate-400 border-slate-700 bg-slate-800/30' : 'text-gray-500 border-slate-200 bg-slate-50'}`}>
                             No hay items en el carrito
                         </div>
                     ) : (
-                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
                             {deliveryCartItems.map((item) => (
                                 <div
                                     key={item.inventoryItemId}
                                     className={`
-                                        p-3 rounded-lg border
+                                        p-3 sm:p-4 rounded-xl border
                                         ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-gray-50 border-gray-200'}
                                     `}
                                 >

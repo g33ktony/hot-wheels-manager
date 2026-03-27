@@ -542,17 +542,17 @@ export default function InventoryAddModal({
             title="Agregar Nueva Pieza"
             maxWidth="md"
             footer={
-                <div className="flex space-x-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Button
                         variant="secondary"
-                        className="flex-1"
+                        className="w-full sm:flex-1 h-10"
                         onClick={resetForm}
                         disabled={isAddingItem}
                     >
                         Cancelar
                     </Button>
                     <Button
-                        className="flex-1"
+                        className="w-full sm:flex-1 h-10"
                         onClick={handleAddItem}
                         disabled={
                             isAddingItem ||
@@ -585,7 +585,7 @@ export default function InventoryAddModal({
                 </div>
             }
         >
-            <div className="space-y-4">
+            <div className="space-y-4 sm:space-y-5">
                 {/* Type Selection */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1063,7 +1063,7 @@ export default function InventoryAddModal({
                                                             className="w-full h-full object-contain"
                                                             crossOrigin="anonymous"
                                                             onError={(e) => {
-                                                                ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                                                                ; (e.currentTarget as HTMLImageElement).style.display = 'none'
                                                                 const parent = (e.currentTarget as HTMLImageElement).parentElement
                                                                 if (parent && !parent.querySelector('[data-fallback]')) {
                                                                     const fallback = document.createElement('img')
@@ -1479,18 +1479,18 @@ export default function InventoryAddModal({
                 {((newItem.brand &&
                     ['mini gt', 'kaido house', 'm2 machines'].includes(newItem.brand.toLowerCase())) ||
                     (newItem.brand?.toLowerCase() === 'hot wheels' && newItem.pieceType === 'premium')) && (
-                    <div>
-                        <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
-                            <input
-                                type="checkbox"
-                                checked={newItem.isChase}
-                                onChange={(e) => setNewItem(prev => ({ ...prev, isChase: e.target.checked }))}
-                                className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
-                            />
-                            <span className="text-sm font-medium text-gray-700">🌟 Chase</span>
-                        </label>
-                    </div>
-                )}
+                        <div>
+                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                <input
+                                    type="checkbox"
+                                    checked={newItem.isChase}
+                                    onChange={(e) => setNewItem(prev => ({ ...prev, isChase: e.target.checked }))}
+                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
+                                />
+                                <span className="text-sm font-medium text-gray-700">🌟 Chase</span>
+                            </label>
+                        </div>
+                    )}
 
                 {/* Notes */}
                 <div>
@@ -1574,11 +1574,10 @@ export default function InventoryAddModal({
                                                     src={photo}
                                                     alt={`Foto ${index + 1}`}
                                                     loading="lazy"
-                                                    className={`w-full h-20 object-cover rounded border-2 transition-all ${
-                                                        (newItem.primaryPhotoIndex || 0) === index
+                                                    className={`w-full h-20 object-cover rounded border-2 transition-all ${(newItem.primaryPhotoIndex || 0) === index
                                                             ? 'border-blue-500 ring-2 ring-blue-300'
                                                             : 'border-gray-300 hover:border-blue-400'
-                                                    }`}
+                                                        }`}
                                                 />
                                                 {(newItem.primaryPhotoIndex || 0) === index && (
                                                     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded">
@@ -1607,133 +1606,133 @@ export default function InventoryAddModal({
                 {/* Summary */}
                 {((newItem.carId || newItem.cars.length > 0) &&
                     ((newItem.purchasePrice as number) > 0 || (newItem.suggestedPrice as number) > 0)) && (
-                    <div className="border-t pt-4">
-                        <h4 className="font-medium text-white mb-2">Resumen</h4>
-                        <div className="bg-slate-700/30 p-3 rounded-lg text-sm space-y-1">
-                            {newItem.isMultipleCars && newItem.cars.length > 0 && (
-                                <>
-                                    <div className="flex justify-between">
-                                        <span>Tipo:</span>
-                                        <span className="font-medium">Serie/Caja con múltiples modelos</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Modelos diferentes:</span>
-                                        <span className="font-medium">{newItem.cars.length}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Total de piezas:</span>
-                                        <span className="font-medium">
-                                            {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)}
-                                        </span>
-                                    </div>
-                                    <div className="border-t pt-1 mt-1 space-y-1">
-                                        {newItem.cars.map((car, idx) => (
-                                            <div key={idx} className="flex justify-between text-xs">
-                                                <span>{car.carId}</span>
-                                                <span>× {car.quantity}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="flex justify-between border-t pt-1 mt-1">
-                                        <span>Precio total:</span>
-                                        <span className="font-medium">${(newItem.purchasePrice as number).toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Precio por pieza:</span>
-                                        <span className="font-medium">
-                                            ${((newItem.purchasePrice as number) / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)}
-                                        </span>
-                                    </div>
-                                    {(newItem.suggestedPrice as number) > 0 && (
-                                        <>
-                                            <div className="flex justify-between">
-                                                <span>Precio sugerido (por pieza):</span>
-                                                <span className="font-medium text-green-600">
-                                                    ${(newItem.suggestedPrice as number).toFixed(2)}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between border-t pt-1 mt-1">
-                                                <span>Ganancia potencial total:</span>
-                                                <span className="font-medium text-green-600">
-                                                    ${(
-                                                        (newItem.suggestedPrice as number) *
+                        <div className="border-t pt-4">
+                            <h4 className="font-medium text-white mb-2">Resumen</h4>
+                            <div className="bg-slate-700/30 p-3 rounded-lg text-sm space-y-1">
+                                {newItem.isMultipleCars && newItem.cars.length > 0 && (
+                                    <>
+                                        <div className="flex justify-between">
+                                            <span>Tipo:</span>
+                                            <span className="font-medium">Serie/Caja con múltiples modelos</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Modelos diferentes:</span>
+                                            <span className="font-medium">{newItem.cars.length}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Total de piezas:</span>
+                                            <span className="font-medium">
+                                                {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)}
+                                            </span>
+                                        </div>
+                                        <div className="border-t pt-1 mt-1 space-y-1">
+                                            {newItem.cars.map((car, idx) => (
+                                                <div key={idx} className="flex justify-between text-xs">
+                                                    <span>{car.carId}</span>
+                                                    <span>× {car.quantity}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex justify-between border-t pt-1 mt-1">
+                                            <span>Precio total:</span>
+                                            <span className="font-medium">${(newItem.purchasePrice as number).toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Precio por pieza:</span>
+                                            <span className="font-medium">
+                                                ${((newItem.purchasePrice as number) / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)}
+                                            </span>
+                                        </div>
+                                        {(newItem.suggestedPrice as number) > 0 && (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <span>Precio sugerido (por pieza):</span>
+                                                    <span className="font-medium text-green-600">
+                                                        ${(newItem.suggestedPrice as number).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between border-t pt-1 mt-1">
+                                                    <span>Ganancia potencial total:</span>
+                                                    <span className="font-medium text-green-600">
+                                                        ${(
+                                                            (newItem.suggestedPrice as number) *
                                                             newItem.cars.reduce((sum, car) => sum + car.quantity, 0) -
-                                                        (newItem.purchasePrice as number)
-                                                    ).toFixed(2)}
-                                                </span>
-                                            </div>
-                                        </>
-                                    )}
-                                </>
-                            )}
+                                                            (newItem.purchasePrice as number)
+                                                        ).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
 
-                            {!newItem.isMultipleCars && newItem.carId && (
-                                <>
-                                    <div className="flex justify-between">
-                                        <span>Auto a Escala:</span>
-                                        <span className="font-medium">{newItem.carId}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Tipo:</span>
-                                        <span className="font-medium">
-                                            {newItem.isBox ? `Caja de ${newItem.boxSize} piezas` : 'Pieza individual'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span>Total de piezas:</span>
-                                        <span className="font-medium">{newItem.quantity}</span>
-                                    </div>
-                                    {newItem.isBox && (
-                                        <>
+                                {!newItem.isMultipleCars && newItem.carId && (
+                                    <>
+                                        <div className="flex justify-between">
+                                            <span>Auto a Escala:</span>
+                                            <span className="font-medium">{newItem.carId}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Tipo:</span>
+                                            <span className="font-medium">
+                                                {newItem.isBox ? `Caja de ${newItem.boxSize} piezas` : 'Pieza individual'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Total de piezas:</span>
+                                            <span className="font-medium">{newItem.quantity}</span>
+                                        </div>
+                                        {newItem.isBox && (
+                                            <>
+                                                <div className="flex justify-between">
+                                                    <span>Precio total caja:</span>
+                                                    <span className="font-medium">
+                                                        ${(newItem.purchasePrice as number).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Precio por pieza:</span>
+                                                    <span className="font-medium">
+                                                        ${((newItem.purchasePrice as number) / newItem.boxSize).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
+                                        {!newItem.isBox && (newItem.purchasePrice as number) > 0 && (
                                             <div className="flex justify-between">
-                                                <span>Precio total caja:</span>
+                                                <span>Precio de compra:</span>
                                                 <span className="font-medium">
                                                     ${(newItem.purchasePrice as number).toFixed(2)}
                                                 </span>
                                             </div>
+                                        )}
+                                        {(newItem.suggestedPrice as number) > 0 && (
                                             <div className="flex justify-between">
-                                                <span>Precio por pieza:</span>
-                                                <span className="font-medium">
-                                                    ${((newItem.purchasePrice as number) / newItem.boxSize).toFixed(2)}
-                                                </span>
-                                            </div>
-                                        </>
-                                    )}
-                                    {!newItem.isBox && (newItem.purchasePrice as number) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span>Precio de compra:</span>
-                                            <span className="font-medium">
-                                                ${(newItem.purchasePrice as number).toFixed(2)}
-                                            </span>
-                                        </div>
-                                    )}
-                                    {(newItem.suggestedPrice as number) > 0 && (
-                                        <div className="flex justify-between">
-                                            <span>Precio sugerido{newItem.isBox ? ' (por pieza)' : ''}:</span>
-                                            <span className="font-medium text-green-600">
-                                                ${(newItem.suggestedPrice as number).toFixed(2)}
-                                            </span>
-                                        </div>
-                                    )}
-                                    {newItem.isBox &&
-                                        (newItem.suggestedPrice as number) > 0 &&
-                                        (newItem.purchasePrice as number) > 0 && (
-                                            <div className="flex justify-between border-t pt-1 mt-1">
-                                                <span>Ganancia potencial total:</span>
+                                                <span>Precio sugerido{newItem.isBox ? ' (por pieza)' : ''}:</span>
                                                 <span className="font-medium text-green-600">
-                                                    ${(
-                                                        ((newItem.suggestedPrice as number) -
-                                                            (newItem.purchasePrice as number) / newItem.boxSize) *
-                                                        newItem.boxSize
-                                                    ).toFixed(2)}
+                                                    ${(newItem.suggestedPrice as number).toFixed(2)}
                                                 </span>
                                             </div>
                                         )}
-                                </>
-                            )}
+                                        {newItem.isBox &&
+                                            (newItem.suggestedPrice as number) > 0 &&
+                                            (newItem.purchasePrice as number) > 0 && (
+                                                <div className="flex justify-between border-t pt-1 mt-1">
+                                                    <span>Ganancia potencial total:</span>
+                                                    <span className="font-medium text-green-600">
+                                                        ${(
+                                                            ((newItem.suggestedPrice as number) -
+                                                                (newItem.purchasePrice as number) / newItem.boxSize) *
+                                                            newItem.boxSize
+                                                        ).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            )}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
             </div>
         </Modal>
     )

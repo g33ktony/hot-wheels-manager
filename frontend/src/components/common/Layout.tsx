@@ -438,7 +438,7 @@ export default function Layout({ children }: LayoutProps) {
                     onClick={() => setShowDeliveryCartModal(true)}
                     variant="delivery"
                     ariaLabel="Abrir carrito de entrega"
-                    className={cartItemCount > 0 && location.pathname !== '/pos' ? 'fixed bottom-24 right-6 z-50' : undefined}
+                    bottomOffset={cartItemCount > 0 && location.pathname !== '/pos' ? 96 : 24}
                 />
             )}
 
@@ -450,6 +450,7 @@ export default function Layout({ children }: LayoutProps) {
                     onClick={() => navigate('/pos')}
                     variant="pos"
                     ariaLabel="Ir a punto de venta"
+                    bottomOffset={24}
                 />
             )}
 

@@ -5,6 +5,7 @@ import Input from '@/components/common/Input'
 import Modal from '@/components/common/Modal'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
+import { useTheme } from '@/contexts/ThemeContext'
 import type { Customer, DeliveryLocation } from '@shared/types'
 import type { PreSaleItem } from '@/services/presale'
 
@@ -101,6 +102,9 @@ export default function DeliveryFormModal({
   paymentPlanConfig,
   setPaymentPlanConfig,
 }: DeliveryFormModalProps) {
+  const { mode } = useTheme()
+  const isDark = mode === 'dark'
+
   return (
     <Modal
       isOpen={isOpen}
@@ -119,16 +123,16 @@ export default function DeliveryFormModal({
         </Button>
       }
       footer={
-        <div className="flex space-x-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             variant="secondary"
-            className="flex-1"
+            className="w-full sm:flex-1 h-10"
             onClick={onClose}
           >
             Cancelar
           </Button>
           <Button
-            className="flex-1"
+            className="w-full sm:flex-1 h-10"
             onClick={handleCreateDelivery}
             disabled={createLoading || updateLoading}
           >
@@ -140,10 +144,10 @@ export default function DeliveryFormModal({
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
               Cliente *
             </label>
             <div className="flex gap-2">
@@ -174,7 +178,7 @@ export default function DeliveryFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
               Fecha Programada *
             </label>
             <Input
@@ -186,7 +190,7 @@ export default function DeliveryFormModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
               Hora Programada
             </label>
             <Input
@@ -197,7 +201,7 @@ export default function DeliveryFormModal({
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
               Ubicación *
             </label>
             {!showCustomLocationInput ? (
@@ -244,11 +248,11 @@ export default function DeliveryFormModal({
 
         <div>
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-white">Items de la Entrega</h3>
+            <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Items de la Entrega</h3>
           </div>
 
           <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
-            <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+            <h4 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
               <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
                 PRE-SALE
               </span>
@@ -285,7 +289,7 @@ export default function DeliveryFormModal({
           <div className="space-y-4">
             {newDelivery.items.map((item, index: number) => (
               <div key={index} className="space-y-2">
-                <div className={`flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg ${item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : 'border-slate-600'}`}>
+                <div className={`relative flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-xl ${item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : (isDark ? 'bg-slate-700/40 border-slate-600' : 'bg-slate-50 border-slate-200')}`}>
                   {item.isSoldAsSeries && (
                     <div className="absolute top-2 right-2">
                       <span className="inline-block px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded">
@@ -394,7 +398,7 @@ export default function DeliveryFormModal({
                         size="sm"
                         variant="secondary"
                         onClick={() => completeSeries(item.seriesId!, item.seriesPrice || 0, item.seriesSize || 0)}
-                        className="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                        className="w-full flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200 min-h-[40px]"
                       >
                         🎁 Completar Serie: {item.seriesName} ({missingPieces} {missingPieces === 1 ? 'pieza faltante' : 'piezas faltantes'}) - ${item.seriesPrice?.toFixed(2)}
                       </Button>
@@ -413,14 +417,14 @@ export default function DeliveryFormModal({
           </div>
 
           {newDelivery.items.length > 0 && (
-            <div className="mt-4 p-4 bg-slate-700/30 rounded-lg">
-              <p className="text-lg font-semibold">Total: ${calculateTotal().toFixed(2)}</p>
+            <div className={`mt-4 p-4 rounded-xl border ${isDark ? 'bg-slate-700/30 border-slate-600' : 'bg-emerald-50 border-emerald-200'}`}>
+              <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Total: ${calculateTotal().toFixed(2)}</p>
             </div>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
             Notas (Opcional)
           </label>
           <textarea
@@ -480,7 +484,7 @@ export default function DeliveryFormModal({
         {!isEditMode && newDelivery.items.some((item) => item.inventoryItemId?.startsWith('presale_')) && (
           <div className="border-t pt-4 mt-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium text-white">Plan de Pagos (Preventa)</h3>
+              <h3 className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Plan de Pagos (Preventa)</h3>
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -499,7 +503,7 @@ export default function DeliveryFormModal({
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                       Número de Pagos
                     </label>
                     <input
@@ -527,7 +531,7 @@ export default function DeliveryFormModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                       Frecuencia
                     </label>
                     <select
@@ -545,7 +549,7 @@ export default function DeliveryFormModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                       Fecha Primer Pago
                     </label>
                     <input
@@ -560,7 +564,7 @@ export default function DeliveryFormModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                       Bono Pago Anticipado (%)
                     </label>
                     <input
@@ -589,8 +593,8 @@ export default function DeliveryFormModal({
                   </div>
                 </div>
 
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-medium text-sm mb-2">Resumen del Plan</h4>
+                <div className={`p-4 rounded-lg border ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
+                  <h4 className={`font-medium text-sm mb-2 ${isDark ? 'text-blue-200' : 'text-slate-900'}`}>Resumen del Plan</h4>
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="text-slate-400">Total:</span>
