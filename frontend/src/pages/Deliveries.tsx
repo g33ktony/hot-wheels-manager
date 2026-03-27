@@ -1,77 +1,64 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQueryClient } from 'react-query'
 import { useStore } from '@/contexts/StoreContext'
-import { useDeliveries, useAllDeliveries, useCreateDelivery, useUpdateDelivery, useMarkDeliveryAsCompleted, useMarkDeliveryAsPrepared, useDeleteDelivery, useAddPayment, useDeletePayment } from '@/hooks/useDeliveries'
-import { useCustomers, useCreateCustomer } from '@/hooks/useCustomers'
-import { useInventory } from '@/hooks/useInventory'
-import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
-import { usePreSaleItems } from '@/hooks/usePresale'
-import { useCreatePaymentPlan } from '@/hooks/usePaymentPlans'
-import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import PageHeader from '@/components/common/PageHeader'
 import { Loading } from '@/components/common/Loading'
-import DeliveryCard from '@/components/DeliveryCard'
-import { DeliveryDetailsModal } from '@/components/DeliveryDetailsModal'
 import { Plus, Truck, TrendingUp } from 'lucide-react'
-import DeliveryPaymentModal from '@/components/deliveries/DeliveryPaymentModal'
-import DeliveryReportModal from '@/components/deliveries/DeliveryReportModal'
-import DeliveryImageViewerModal from '@/components/deliveries/DeliveryImageViewerModal'
-import DeliveryPaymentStatusDialog from '@/components/deliveries/DeliveryPaymentStatusDialog'
-import CreateCustomerModal from '@/components/deliveries/CreateCustomerModal'
-import DeliveryFormModal from '@/components/deliveries/DeliveryFormModal'
+import DeliveriesModals from '@/components/deliveries/DeliveriesModals'
+import DeliveriesList from '@/components/deliveries/DeliveriesList'
 import DeliveriesStatsAndFilters from '@/components/deliveries/DeliveriesStatsAndFilters'
 import { useDeliveryDetailsActions } from '@/hooks/useDeliveryDetailsActions'
 import { useDeliveryFormActions } from '@/hooks/useDeliveryFormActions'
+import { useDeliveriesPageState } from '@/hooks/useDeliveriesPageState'
+import { useDeliveriesPageComputed } from '@/hooks/useDeliveriesPageComputed'
+import { useDeliveryCustomerActions } from '@/hooks/useDeliveryCustomerActions'
+import { useDeliveriesPageData } from '@/hooks/useDeliveriesPageData'
+import { useDeliveryDeleteAction } from '@/hooks/useDeliveryDeleteAction'
 
 export default function Deliveries() {
     const navigate = useNavigate()
     const { selectedStore } = useStore()
-    const [searchTerm, setSearchTerm] = useState('')
-    const [statusFilter, setStatusFilter] = useState<string>()
-    const [showCreateModal, setShowCreateModal] = useState(false)
-    const [showCreateCustomerModal, setShowCreateCustomerModal] = useState(false)
+    const {
+        searchTerm,
+        setSearchTerm,
+        statusFilter,
+        setStatusFilter,
+        showCreateModal,
+        setShowCreateModal,
+        showCreateCustomerModal,
+        setShowCreateCustomerModal,
+        selectedDate,
+        setSelectedDate,
+        newCustomer,
+        setNewCustomer,
+    } = useDeliveriesPageState()
 
-    // Usar desde el inicio del año por defecto, no hace 30 días
-    const [selectedDate, setSelectedDate] = useState(() => {
-        // Mostrar sin filtro de fecha inicial (vacío = mostrar todas)
-        return ''
+    const {
+        deliveries,
+        allDeliveries,
+        customers,
+        inventoryItems,
+        deliveryLocations,
+        preSaleItems,
+        isLoading,
+        error,
+        createDeliveryMutation,
+        updateDeliveryMutation,
+        createCustomerMutation,
+        createLocationMutation,
+        markCompletedMutation,
+        markPreparedMutation,
+        deleteDeliveryMutation,
+        addPaymentMutation,
+        deletePaymentMutation,
+        createPaymentPlanMutation,
+        queryClient,
+    } = useDeliveriesPageData({
+        selectedStore: selectedStore || undefined,
+        statusFilter,
+        selectedDate,
+        showCreateModal,
     })
-    const [newCustomer, setNewCustomer] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        address: ''
-    })
-
-    const { data: deliveries, isLoading, error } = useDeliveries(statusFilter, selectedDate, selectedStore || undefined)
-    const { data: allDeliveries } = useAllDeliveries(selectedDate, selectedStore || undefined) // Always loaded for widget stats
-    const { data: customers } = useCustomers(selectedStore || undefined)
-    // Only load inventory when creating/editing a delivery
-    const { data: inventoryData } = useInventory({
-        limit: showCreateModal ? 1000 : 10, // Load all only when modal is open
-        selectedStore: selectedStore || undefined
-    })
-    const inventoryItems = inventoryData?.items || []
-    const { data: deliveryLocations } = useDeliveryLocations()
-    const { data: preSaleItems } = usePreSaleItems({ storeId: selectedStore || undefined })
-
-    // Use empty array as default to avoid initial zero values, but still show loading state
-    const deliveriesData = deliveries || []
-    // For widget stats, use allDeliveries to always have counts, filtering by date locally
-    const allDeliveriesData = allDeliveries || []
-    const createDeliveryMutation = useCreateDelivery()
-    const updateDeliveryMutation = useUpdateDelivery()
-    const createCustomerMutation = useCreateCustomer()
-    const createLocationMutation = useCreateDeliveryLocation()
-    const markCompletedMutation = useMarkDeliveryAsCompleted()
-    const markPreparedMutation = useMarkDeliveryAsPrepared()
-    const deleteDeliveryMutation = useDeleteDelivery()
-    const addPaymentMutation = useAddPayment()
-    const deletePaymentMutation = useDeletePayment()
-    const createPaymentPlanMutation = useCreatePaymentPlan()
-    const queryClient = useQueryClient()
 
     const {
         isEditMode,
@@ -141,6 +128,31 @@ export default function Deliveries() {
         deletePayment: deletePaymentMutation.mutateAsync,
     })
 
+    const { handleCreateCustomer } = useDeliveryCustomerActions({
+        newCustomer,
+        setNewCustomer,
+        setNewDelivery,
+        setShowCreateCustomerModal,
+        createCustomer: createCustomerMutation.mutateAsync,
+    })
+
+    const {
+        filteredDeliveries,
+        totalDeliveries,
+        pendingDeliveries,
+        preparedDeliveries,
+        completedDeliveries,
+    } = useDeliveriesPageComputed({
+        deliveries,
+        allDeliveries,
+        searchTerm,
+        selectedDate,
+    })
+
+    const { handleDeleteDelivery } = useDeliveryDeleteAction({
+        deleteDelivery: deleteDeliveryMutation.mutateAsync,
+    })
+
     // Show loading only on initial load, not when filter changes or data is being refetched
     if (isLoading && !deliveries) {
         return <Loading text="Cargando entregas..." />
@@ -166,73 +178,6 @@ export default function Deliveries() {
             </div>
         )
     }
-
-    const filteredDeliveries = deliveriesData?.filter(delivery => {
-        const customerName = delivery.customer?.name || ''
-        const customerEmail = delivery.customer?.email || ''
-        const location = delivery.location || ''
-        const matchesSearch = !searchTerm ||
-            customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            location.toLowerCase().includes(searchTerm.toLowerCase())
-
-        return matchesSearch
-    }) || []
-
-    const handleCreateCustomer = async () => {
-        if (!newCustomer.name.trim()) {
-            alert('El nombre del cliente es obligatorio')
-            return
-        }
-
-        try {
-            const createdCustomer = await createCustomerMutation.mutateAsync({
-                ...newCustomer,
-                contactMethod: 'email' // Default contact method
-            })
-
-            // Set the newly created customer as selected
-            if (createdCustomer._id) {
-                setNewDelivery({ ...newDelivery, customerId: createdCustomer._id })
-            }
-
-            // Reset form and close modal
-            setNewCustomer({
-                name: '',
-                email: '',
-                phone: '',
-                address: ''
-            })
-            setShowCreateCustomerModal(false)
-        } catch (error) {
-            console.error('Error creating customer:', error)
-            alert('Error al crear el cliente')
-        }
-    }
-
-    const handleDeleteDelivery = async (deliveryId: string) => {
-        if (confirm('¿Estás seguro de que quieres eliminar esta entrega?')) {
-            await deleteDeliveryMutation.mutateAsync(deliveryId)
-        }
-    }
-
-    // Calculate stats from allDeliveries (all deliveries regardless of status filter)
-    // but respecting the date filter
-    const allDeliveriesFiltered = allDeliveriesData?.filter(delivery => {
-        const deliveryDate = delivery.scheduledDate.toString().split('T')[0]
-        const matchesDate = !selectedDate || deliveryDate >= selectedDate
-        return matchesDate
-    }) || []
-
-    const scheduledCount = allDeliveriesFiltered.filter(d => d.status === 'scheduled').length
-    const preparedCount = allDeliveriesFiltered.filter(d => d.status === 'prepared').length
-    const completedCount = allDeliveriesFiltered.filter(d => d.status === 'completed').length
-
-    // Total active deliveries = scheduled + prepared (not completed)
-    const totalDeliveries = scheduledCount + preparedCount
-    const pendingDeliveries = scheduledCount + preparedCount
-    const preparedDeliveries = preparedCount
-    const completedDeliveries = completedCount
 
     return (
         <div className="space-y-4 lg:space-y-6">
@@ -272,44 +217,23 @@ export default function Deliveries() {
                 setSelectedDate={setSelectedDate}
             />
 
-            {/* Deliveries Grid */}
-            <Card className="p-4 lg:p-6">
-                <div className="flex items-center justify-between mb-4 lg:mb-6">
-                    <h2 className="text-base lg:text-lg font-semibold text-white">Lista de Entregas</h2>
-                </div>
+            <DeliveriesList
+                filteredDeliveries={filteredDeliveries}
+                inventoryItems={inventoryItems}
+                onViewDetails={handleViewDetails}
+                onEdit={handleEditDelivery}
+                onMarkAsPrepared={handleMarkAsPrepared}
+                onMarkAsCompleted={handleOpenPaymentStatusDialog}
+                onDelete={handleDeleteDelivery}
+                onShare={handleShowReport}
+                isLoadingPrepared={markPreparedMutation.isLoading}
+                isLoadingCompleted={markCompletedMutation.isLoading}
+                isLoadingDelete={deleteDeliveryMutation.isLoading}
+            />
 
-                {filteredDeliveries && filteredDeliveries.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-                        {filteredDeliveries.map((delivery) => (
-                            <DeliveryCard
-                                key={delivery._id}
-                                delivery={delivery}
-                                inventoryItems={inventoryItems}
-                                onViewDetails={handleViewDetails}
-                                onEdit={handleEditDelivery}
-                                onMarkAsPrepared={handleMarkAsPrepared}
-                                onMarkAsCompleted={handleOpenPaymentStatusDialog}
-                                onDelete={handleDeleteDelivery}
-                                onShare={handleShowReport}
-                                isLoadingPrepared={markPreparedMutation.isLoading}
-                                isLoadingCompleted={markCompletedMutation.isLoading}
-                                isLoadingDelete={deleteDeliveryMutation.isLoading}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-12">
-                        <Truck size={48} className="mx-auto text-slate-400 mb-4" />
-                        <h3 className="text-lg font-medium text-white mb-2">No hay entregas</h3>
-                        <p className="text-slate-400">No se encontraron entregas para los filtros seleccionados</p>
-                    </div>
-                )}
-            </Card>
-
-            {/* Create Delivery Modal */}
-            <DeliveryFormModal
-                isOpen={showCreateModal}
-                onClose={handleCloseModal}
+            <DeliveriesModals
+                showCreateModal={showCreateModal}
+                handleCloseModal={handleCloseModal}
                 isEditMode={isEditMode}
                 addDeliveryItem={addDeliveryItem}
                 handleCreateDelivery={handleCreateDelivery}
@@ -318,7 +242,7 @@ export default function Deliveries() {
                 newDelivery={newDelivery}
                 setNewDelivery={setNewDelivery}
                 customers={customers}
-                onOpenCreateCustomer={() => setShowCreateCustomerModal(true)}
+                openCreateCustomer={() => setShowCreateCustomerModal(true)}
                 deliveryLocations={deliveryLocations}
                 showCustomLocationInput={showCustomLocationInput}
                 customLocation={customLocation}
@@ -332,68 +256,45 @@ export default function Deliveries() {
                 calculateTotal={calculateTotal}
                 paymentPlanConfig={paymentPlanConfig}
                 setPaymentPlanConfig={setPaymentPlanConfig}
-            />
-
-            {/* Create Customer Modal */}
-            <CreateCustomerModal
-                isOpen={showCreateCustomerModal}
-                onClose={() => setShowCreateCustomerModal(false)}
+                showCreateCustomerModal={showCreateCustomerModal}
+                closeCreateCustomer={() => setShowCreateCustomerModal(false)}
                 newCustomer={newCustomer}
-                isCreating={createCustomerMutation.isLoading}
-                onCreate={handleCreateCustomer}
-                onChange={setNewCustomer}
-            />
-
-            {/* Delivery Details Modal */}
-            <DeliveryDetailsModal
-                delivery={selectedDelivery}
-                isOpen={showDetailsModal}
-                onClose={handleCloseDetails}
-                onMarkAsPrepared={handleMarkAsPrepared}
-                onMarkAsCompleted={handleMarkAsCompleted}
-                onEdit={handleEditDelivery}
-                onViewCustomer={(customerId) => navigate(`/customers/${customerId}`)}
-                onShareReport={handleOpenReportFromDetails}
-                onRegisterPayment={handleOpenPaymentModal}
-                onDeletePayment={handleDeletePayment}
-                onDelete={(id) => deleteDeliveryMutation.mutateAsync(id)}
+                createCustomerLoading={createCustomerMutation.isLoading}
+                handleCreateCustomer={handleCreateCustomer}
+                setNewCustomer={setNewCustomer}
+                selectedDelivery={selectedDelivery}
+                showDetailsModal={showDetailsModal}
+                handleCloseDetails={handleCloseDetails}
+                handleMarkAsPrepared={handleMarkAsPrepared}
+                handleMarkAsCompleted={handleMarkAsCompleted}
+                handleEditDelivery={handleEditDelivery}
+                handleOpenReportFromDetails={handleOpenReportFromDetails}
+                handleOpenPaymentModal={handleOpenPaymentModal}
+                handleDeletePayment={handleDeletePayment}
+                deleteDelivery={deleteDeliveryMutation.mutateAsync}
                 inventoryItems={inventoryItems}
                 preSaleItems={preSaleItems}
                 markPreparedLoading={markPreparedMutation.isLoading}
                 markCompletedLoading={markCompletedMutation.isLoading}
-                onOpenImageModal={handleOpenImageModal}
-            />
-
-            <DeliveryPaymentModal
-                isOpen={showPaymentModal}
-                selectedDelivery={selectedDelivery}
+                handleOpenImageModal={handleOpenImageModal}
+                showPaymentModal={showPaymentModal}
                 newPayment={newPayment}
-                isLoading={addPaymentMutation.isLoading}
-                onClose={handleClosePaymentModal}
-                onSubmit={handleAddPayment}
-                onPaymentChange={setNewPayment}
-            />
-
-            <DeliveryReportModal
-                isOpen={showReportModal}
-                selectedDelivery={selectedDelivery}
-                onClose={handleCloseReport}
-            />
-
-            <DeliveryImageViewerModal
-                isOpen={showImageModal}
-                images={allImagesForModal}
-                currentIndex={currentImageIndex}
-                onClose={handleCloseImageModal}
-                onPrev={handlePrevImage}
-                onNext={handleNextImage}
-            />
-
-            <DeliveryPaymentStatusDialog
-                isOpen={showPaymentStatusDialog}
-                isLoading={markCompletedMutation.isLoading}
-                onClose={handleClosePaymentStatusDialog}
-                onConfirm={handleConfirmPaymentStatus}
+                addPaymentLoading={addPaymentMutation.isLoading}
+                handleClosePaymentModal={handleClosePaymentModal}
+                handleAddPayment={handleAddPayment}
+                setNewPayment={setNewPayment}
+                showReportModal={showReportModal}
+                handleCloseReport={handleCloseReport}
+                showImageModal={showImageModal}
+                allImagesForModal={allImagesForModal}
+                currentImageIndex={currentImageIndex}
+                handleCloseImageModal={handleCloseImageModal}
+                handlePrevImage={handlePrevImage}
+                handleNextImage={handleNextImage}
+                showPaymentStatusDialog={showPaymentStatusDialog}
+                handleClosePaymentStatusDialog={handleClosePaymentStatusDialog}
+                handleConfirmPaymentStatus={handleConfirmPaymentStatus}
+                navigateToCustomer={(customerId) => navigate(`/customers/${customerId}`)}
             />
         </div>
     )
