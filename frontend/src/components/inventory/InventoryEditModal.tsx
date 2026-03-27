@@ -103,12 +103,12 @@ export default function InventoryEditModal({
             title="Editar Pieza"
             maxWidth="md"
             footer={
-                <div className="flex space-x-3">
-                    <Button variant="secondary" className="flex-1" onClick={onClose}>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <Button variant="secondary" className="w-full sm:flex-1 h-10" onClick={onClose}>
                         Cancelar
                     </Button>
                     <Button
-                        className="flex-1"
+                        className="w-full sm:flex-1 h-10"
                         onClick={onSave}
                         disabled={!editingItem?.carId || isSaving}
                     >
@@ -118,9 +118,9 @@ export default function InventoryEditModal({
             }
         >
             {editingItem && (
-                <div className="space-y-4">
+                <div className="space-y-4 sm:space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Código/ID del auto a escala
                         </label>
                         <input
@@ -133,7 +133,7 @@ export default function InventoryEditModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Cantidad
                         </label>
                         <input
@@ -155,7 +155,7 @@ export default function InventoryEditModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Precio de Compra
                         </label>
                         <input
@@ -177,7 +177,7 @@ export default function InventoryEditModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Precio Sugerido
                         </label>
                         <input
@@ -199,7 +199,7 @@ export default function InventoryEditModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Precio Actual (Opcional)
                         </label>
                         <input
@@ -232,7 +232,7 @@ export default function InventoryEditModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Ubicación Física (Opcional)
                         </label>
                         <input
@@ -325,18 +325,18 @@ export default function InventoryEditModal({
 
                     {((editingItem.brand && ['mini gt', 'kaido house', 'm2 machines'].includes(editingItem.brand.toLowerCase())) ||
                         (editingItem.brand?.toLowerCase() === 'hot wheels' && editingItem.pieceType === 'premium')) && (
-                        <div>
-                            <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
-                                <input
-                                    type="checkbox"
-                                    checked={editingItem.isChase || false}
-                                    onChange={(e) => set({ isChase: e.target.checked })}
-                                    className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
-                                />
-                                <span className="text-sm font-medium">🌟 Chase</span>
-                            </label>
-                        </div>
-                    )}
+                            <div>
+                                <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={editingItem.isChase || false}
+                                        onChange={(e) => set({ isChase: e.target.checked })}
+                                        className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
+                                    />
+                                    <span className="text-sm font-medium">🌟 Chase</span>
+                                </label>
+                            </div>
+                        )}
 
                     <div>
                         <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
@@ -358,28 +358,28 @@ export default function InventoryEditModal({
                                 onChange={(e) => set({ isCamioneta: e.target.checked })}
                                 className="rounded"
                             />
-                            <span className="text-sm font-medium text-gray-700">🚚 Camioneta</span>
+                            <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>🚚 Camioneta</span>
                         </label>
                     </div>
 
                     <div>
-                        <label className="flex items-center gap-2">
+                        <label className={`flex items-center gap-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             <input
                                 type="checkbox"
                                 checked={editingItem.isFastFurious || false}
                                 onChange={(e) => set({ isFastFurious: e.target.checked })}
                                 className="rounded"
                             />
-                            <span className="text-sm font-medium text-gray-700">🏎️ Fast and Furious</span>
+                            <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>🏎️ Fast and Furious</span>
                         </label>
                     </div>
 
-                    <div className="pt-4 border-t border-slate-700">
-                        <h3 className="text-sm font-semibold text-white mb-3">Información de Serie (Opcional)</h3>
+                    <div className={`pt-4 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+                        <h3 className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Información de Serie (Opcional)</h3>
                         <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">ID de Serie</label>
+                                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>ID de Serie</label>
                                     <input
                                         type="text"
                                         className="input w-full text-sm"
@@ -389,7 +389,7 @@ export default function InventoryEditModal({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de Serie</label>
+                                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Nombre de Serie</label>
                                     <input
                                         type="text"
                                         className="input w-full text-sm"
@@ -401,7 +401,7 @@ export default function InventoryEditModal({
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tamaño Serie</label>
+                                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Tamaño Serie</label>
                                     <input
                                         type="number"
                                         inputMode="numeric"
@@ -418,7 +418,7 @@ export default function InventoryEditModal({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Posición</label>
+                                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Posición</label>
                                     <input
                                         type="number"
                                         inputMode="numeric"
@@ -435,7 +435,7 @@ export default function InventoryEditModal({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio Serie</label>
+                                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Precio Serie</label>
                                     <input
                                         type="text"
                                         inputMode="decimal"
@@ -452,7 +452,7 @@ export default function InventoryEditModal({
                                 </div>
                             </div>
                             {editingItem.seriesId && (
-                                <div className="text-xs text-gray-500 bg-slate-700/30 p-2 rounded">
+                                <div className={`text-xs p-2 rounded ${isDark ? 'text-slate-300 bg-slate-700/30' : 'text-slate-600 bg-slate-100'}`}>
                                     💡 Los items con el mismo ID de serie se pueden vender como set completo
                                 </div>
                             )}
@@ -460,7 +460,7 @@ export default function InventoryEditModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Notas (Opcional)</label>
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Notas (Opcional)</label>
                         <textarea
                             className="input w-full h-20 resize-none"
                             placeholder="Notas adicionales..."
@@ -470,7 +470,7 @@ export default function InventoryEditModal({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Fotos</label>
+                        <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>Fotos</label>
                         <div className="mb-3 space-y-2">
                             <input
                                 type="file"
@@ -520,7 +520,7 @@ export default function InventoryEditModal({
                                 </div>
                                 {editingItem.photos.length > 1 && (
                                     <div>
-                                        <p className="text-xs text-gray-600 font-semibold mb-2">Doble click para cambiar foto destacada:</p>
+                                        <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Doble click para cambiar foto destacada:</p>
                                         <div className="grid grid-cols-4 gap-2">
                                             {editingItem.photos.map((photo: string, index: number) => (
                                                 <div
@@ -535,7 +535,7 @@ export default function InventoryEditModal({
                                                         className={`w-full h-20 object-cover rounded border-2 transition-all ${(editingItem.primaryPhotoIndex || 0) === index
                                                             ? 'border-blue-500 ring-2 ring-blue-300'
                                                             : 'border-gray-300 hover:border-blue-400'
-                                                        }`}
+                                                            }`}
                                                     />
                                                     {(editingItem.primaryPhotoIndex || 0) === index && (
                                                         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded">

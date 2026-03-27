@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import { useTheme } from '@/contexts/ThemeContext'
 import toast from 'react-hot-toast'
 import type { InventoryItem } from '@shared/types'
 
@@ -30,6 +31,8 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
     selectedItems,
     onSave
 }) => {
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const [editType, setEditType] = useState<'price' | 'brand' | 'condition' | 'notes' | null>(null)
     const [editValue, setEditValue] = useState('')
     const [isSaving, setIsSaving] = useState(false)
@@ -89,15 +92,15 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
             title={`Editar ${selectedItems.length} ${selectedItems.length === 1 ? 'pieza' : 'piezas'}`}
             maxWidth="md"
         >
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
                 {/* Selection Summary */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-sm text-blue-900 mb-2">Piezas seleccionadas:</h3>
+                <div className={`border rounded-lg p-4 ${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
+                    <h3 className={`font-semibold text-sm mb-2 ${isDark ? 'text-blue-200' : 'text-blue-900'}`}>Piezas seleccionadas:</h3>
                     <div className="max-h-40 overflow-y-auto space-y-1">
                         {selectedItems.map(item => (
-                            <div key={item._id} className="text-xs text-blue-700 flex justify-between">
+                            <div key={item._id} className={`text-xs flex justify-between ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                                 <span>{item.carId || item._id}</span>
-                                <span className="text-blue-600">
+                                <span className={isDark ? 'text-blue-300' : 'text-blue-600'}>
                                     {item.brand && `${item.brand} - `}
                                     ${item.actualPrice?.toFixed(2) || '0.00'}
                                 </span>
@@ -111,40 +114,40 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
                     <div className="grid grid-cols-2 gap-2">
                         <button
                             onClick={() => setEditType('price')}
-                            className="p-3 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-left"
+                            className={`p-3 border-2 rounded-lg transition text-left ${isDark ? 'border-slate-600 hover:border-primary-500 hover:bg-slate-700/40' : 'border-gray-200 hover:border-primary-500 hover:bg-primary-50'}`}
                         >
-                            <div className="font-semibold text-gray-900">💰 Precio</div>
-                            <div className="text-xs text-gray-600">Cambiar precio de venta</div>
+                            <div className={`font-semibold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>💰 Precio</div>
+                            <div className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Cambiar precio de venta</div>
                         </button>
 
                         <button
                             onClick={() => setEditType('brand')}
-                            className="p-3 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-left"
+                            className={`p-3 border-2 rounded-lg transition text-left ${isDark ? 'border-slate-600 hover:border-primary-500 hover:bg-slate-700/40' : 'border-gray-200 hover:border-primary-500 hover:bg-primary-50'}`}
                         >
-                            <div className="font-semibold text-gray-900">🏷️ Marca</div>
-                            <div className="text-xs text-gray-600">Cambiar marca</div>
+                            <div className={`font-semibold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>🏷️ Marca</div>
+                            <div className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Cambiar marca</div>
                         </button>
 
                         <button
                             onClick={() => setEditType('condition')}
-                            className="p-3 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-left"
+                            className={`p-3 border-2 rounded-lg transition text-left ${isDark ? 'border-slate-600 hover:border-primary-500 hover:bg-slate-700/40' : 'border-gray-200 hover:border-primary-500 hover:bg-primary-50'}`}
                         >
-                            <div className="font-semibold text-gray-900">✨ Condición</div>
-                            <div className="text-xs text-gray-600">Cambiar estado</div>
+                            <div className={`font-semibold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>✨ Condición</div>
+                            <div className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Cambiar estado</div>
                         </button>
 
                         <button
                             onClick={() => setEditType('notes')}
-                            className="p-3 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition text-left"
+                            className={`p-3 border-2 rounded-lg transition text-left ${isDark ? 'border-slate-600 hover:border-primary-500 hover:bg-slate-700/40' : 'border-gray-200 hover:border-primary-500 hover:bg-primary-50'}`}
                         >
-                            <div className="font-semibold text-gray-900">📝 Notas</div>
-                            <div className="text-xs text-gray-600">Agregar notas</div>
+                            <div className={`font-semibold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>📝 Notas</div>
+                            <div className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Agregar notas</div>
                         </button>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-semibold text-gray-900">
+                            <h4 className={`font-semibold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
                                 {editType === 'price' && '💰 Nuevo Precio'}
                                 {editType === 'brand' && '🏷️ Nueva Marca'}
                                 {editType === 'condition' && '✨ Nueva Condición'}
@@ -178,14 +181,14 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
                                 <select
                                     value={editValue}
                                     onChange={(e) => setEditValue(e.target.value)}
-                                    className="input w-full"
+                                    className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 >
                                     <option value="">Selecciona una marca</option>
                                     {PREDEFINED_BRANDS.map(brand => (
                                         <option key={brand} value={brand}>{brand}</option>
                                     ))}
                                 </select>
-                                <p className="text-xs text-gray-500">O escribir una marca personalizada:</p>
+                                <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>O escribir una marca personalizada:</p>
                                 <Input
                                     type="text"
                                     placeholder="Marca personalizada"
@@ -200,7 +203,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
                             <select
                                 value={editValue}
                                 onChange={(e) => setEditValue(e.target.value)}
-                                className="input w-full"
+                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
                                 autoFocus
                             >
                                 <option value="">Selecciona condición</option>
@@ -221,10 +224,10 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
                             />
                         )}
 
-                        <div className="flex gap-2 pt-4">
+                        <div className="flex flex-col sm:flex-row gap-2 pt-4">
                             <Button
                                 variant="secondary"
-                                className="flex-1"
+                                className="w-full sm:flex-1 h-10"
                                 onClick={() => {
                                     setEditType(null)
                                     setEditValue('')
@@ -235,7 +238,7 @@ export const BulkEditModal: React.FC<BulkEditModalProps> = ({
                             </Button>
                             <Button
                                 variant="primary"
-                                className="flex-1"
+                                className="w-full sm:flex-1 h-10"
                                 onClick={handleSave}
                                 disabled={isSaving || !editValue.trim()}
                             >

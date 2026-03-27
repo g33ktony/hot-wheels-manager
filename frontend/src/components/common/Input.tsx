@@ -1,4 +1,5 @@
 import { forwardRef, InputHTMLAttributes } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string
@@ -7,15 +8,21 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, error, helperText, className = '', ...props }, ref) => {
-        // iOS-optimized input classes with 16px font-size to prevent zoom
+    ({ label, error, helperText, className = '', disabled, ...props }, ref) => {
+        const { mode } = useTheme()
+        const isDark = mode === 'dark'
+
         const inputClasses = `
-      block w-full rounded-lg border px-4 py-3 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors
-      touch-manipulation min-h-[44px]
+            input
       ${error
                 ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500'
-                : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500'
+                : ''
             }
+            ${isDark
+                ? 'bg-slate-700 text-white border-slate-600 placeholder:text-slate-400'
+                : 'bg-white text-slate-900 border-slate-300 placeholder:text-slate-400'
+            }
+            ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
       ${className}
     `
 
@@ -29,7 +36,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         return (
             <div>
                 {label && (
-                    <label className="block text-sm font-medium text-gray-700 mb-2 select-none">
+                    <label className={`block text-sm font-medium mb-2 select-none ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                         {label}
                     </label>
                 )}
@@ -37,13 +44,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                     ref={ref}
                     className={inputClasses}
                     style={iosStyles}
+                    disabled={disabled}
                     {...props}
                 />
                 {error && (
                     <p className="mt-1.5 text-sm text-danger-600 select-none">{error}</p>
                 )}
                 {helperText && !error && (
-                    <p className="mt-1.5 text-sm text-gray-500 select-none">{helperText}</p>
+                    <p className={`mt-1.5 text-sm select-none ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{helperText}</p>
                 )}
             </div>
         )

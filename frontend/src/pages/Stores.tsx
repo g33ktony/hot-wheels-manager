@@ -302,14 +302,14 @@ const StoresPage: React.FC = () => {
             onChange={(e) => setNewStoreDescription(e.target.value)}
             placeholder="Descripción de la tienda..."
           />
-          <div className="flex gap-3">
-            <Button onClick={handleCreateStore} className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button onClick={handleCreateStore} className="w-full sm:flex-1 h-10">
               Crear Tienda
             </Button>
             <Button
               variant="secondary"
               onClick={() => setShowCreateModal(false)}
-              className="flex-1"
+              className="w-full sm:flex-1 h-10"
             >
               Cancelar
             </Button>
@@ -330,7 +330,7 @@ const StoresPage: React.FC = () => {
           <div className="space-y-6">
             {/* Info de la Tienda */}
             <div>
-              <h3 className="font-bold mb-2">Información de la Tienda</h3>
+              <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Información de la Tienda</h3>
               <p className={isDark ? 'text-slate-300' : 'text-gray-700'}>
                 <strong>Nombre:</strong> {selectedStore.name}
               </p>
@@ -346,7 +346,7 @@ const StoresPage: React.FC = () => {
 
             {/* Lista de Usuarios */}
             <div>
-              <h3 className="font-bold mb-3">Usuarios de la Tienda</h3>
+              <h3 className={`font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>Usuarios de la Tienda</h3>
               {selectedStore.users.total === 0 ? (
                 <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
                   No hay usuarios en esta tienda
@@ -356,7 +356,7 @@ const StoresPage: React.FC = () => {
                   {selectedStore.users.userDetails.map((user: any) => (
                     <div
                       key={user._id}
-                      className={`p-3 rounded-lg flex items-center justify-between ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}
+                      className={`p-3 rounded-lg flex flex-col sm:flex-row gap-3 sm:gap-2 sm:items-center sm:justify-between ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}
                     >
                       <div className="flex-1">
                         <p className={`font-medium ${isDark ? 'text-white' : ''}`}>
@@ -380,7 +380,7 @@ const StoresPage: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 self-end sm:self-auto">
                         <Button
                           variant="secondary"
                           size="sm"
@@ -459,8 +459,8 @@ const StoresPage: React.FC = () => {
                 <option value="analyst">Analyst</option>
               </select>
             </div>
-            <div className="flex gap-3">
-              <Button onClick={handleUpdateUserRole} className="flex-1">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Button onClick={handleUpdateUserRole} className="w-full sm:flex-1 h-10">
                 Actualizar Rol
               </Button>
               <Button
@@ -469,7 +469,7 @@ const StoresPage: React.FC = () => {
                   setShowUserModal(false)
                   setSelectedUser(null)
                 }}
-                className="flex-1"
+                className="w-full sm:flex-1 h-10"
               >
                 Cancelar
               </Button>

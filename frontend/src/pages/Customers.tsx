@@ -7,10 +7,13 @@ import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
+import { useTheme } from '@/contexts/ThemeContext'
 
 export default function Customers() {
     const navigate = useNavigate()
     const { selectedStore } = useStore()
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [editingCustomer, setEditingCustomer] = useState<any>(null)
@@ -212,12 +215,12 @@ export default function Customers() {
                     title={editingCustomer ? 'Editar Cliente' : 'Nuevo Cliente'}
                     maxWidth="md"
                     footer={
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                             <Button
                                 type="button"
                                 onClick={closeModal}
                                 variant="secondary"
-                                className="flex-1"
+                                className="w-full sm:flex-1 h-10"
                             >
                                 Cancelar
                             </Button>
@@ -225,7 +228,7 @@ export default function Customers() {
                                 type="submit"
                                 onClick={handleSubmit}
                                 disabled={createCustomerMutation.isLoading || updateCustomerMutation.isLoading}
-                                className="flex-1"
+                                className="w-full sm:flex-1 h-10"
                             >
                                 {createCustomerMutation.isLoading || updateCustomerMutation.isLoading
                                     ? 'Guardando...'
@@ -265,7 +268,7 @@ export default function Customers() {
                             <select
                                 value={formData.contactMethod}
                                 onChange={(e) => setFormData({ ...formData, contactMethod: e.target.value as any })}
-                                className="w-full px-3 py-2 border border-slate-600 rounded-md"
+                                className={`w-full px-3 py-2 border rounded-md ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
                             >
                                 <option value="email">Email</option>
                                 <option value="phone">Teléfono</option>

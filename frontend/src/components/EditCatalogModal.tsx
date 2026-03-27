@@ -78,13 +78,13 @@ export default function EditCatalogModal({ isOpen, onClose, item, onSuccess, inl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     try {
       await editMutation.mutateAsync({
         toyNum: item.toy_num,
         data: formData
       })
-      
+
       if (onSuccess) {
         onSuccess()
       }
@@ -101,9 +101,9 @@ export default function EditCatalogModal({ isOpen, onClose, item, onSuccess, inl
         <label className="block text-sm font-medium text-gray-700 mb-2">Foto del Auto</label>
         <div className="flex gap-4">
           {photoPreview && (
-            <img 
-              src={photoPreview} 
-              alt="Preview" 
+            <img
+              src={photoPreview}
+              alt="Preview"
               className="w-24 h-24 object-cover rounded border"
             />
           )}
@@ -290,17 +290,17 @@ export default function EditCatalogModal({ isOpen, onClose, item, onSuccess, inl
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           {modalContent}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Button
               variant="secondary"
-              className="flex-1"
+              className="w-full sm:flex-1 h-10"
               onClick={onClose}
               type="button"
             >
               Cancelar
             </Button>
             <Button
-              className="flex-1"
+              className="w-full sm:flex-1 h-10"
               onClick={handleSubmit}
               disabled={editMutation.isLoading}
             >
@@ -319,16 +319,16 @@ export default function EditCatalogModal({ isOpen, onClose, item, onSuccess, inl
       title={`Editar: ${item?.carModel || item?.model || 'Auto'}`}
       maxWidth="lg"
       footer={
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             variant="secondary"
-            className="flex-1"
+            className="w-full sm:flex-1 h-10"
             onClick={onClose}
           >
             Cancelar
           </Button>
           <Button
-            className="flex-1"
+            className="w-full sm:flex-1 h-10"
             onClick={handleSubmit}
             disabled={editMutation.isLoading}
           >
