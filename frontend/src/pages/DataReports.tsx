@@ -5,6 +5,8 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { dataReportsApi, DataReport } from '@/services/dataReports'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
+import PageHeader from '@/components/common/PageHeader'
+import StatusBadge from '@/components/common/StatusBadge'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import {
@@ -33,6 +35,12 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
     pending: { label: 'Pendiente', color: 'text-yellow-600', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
     reviewed: { label: 'Revisado', color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30' },
     resolved: { label: 'Resuelto', color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30' }
+}
+
+const STATUS_TONE: Record<string, 'warning' | 'info' | 'success'> = {
+    pending: 'warning',
+    reviewed: 'info',
+    resolved: 'success',
 }
 
 export default function DataReports() {
@@ -109,18 +117,11 @@ export default function DataReports() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        <Flag className="inline mr-2 mb-1" size={24} />
-                        Reportes de Datos
-                    </h1>
-                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                        Reportes enviados por usuarios del catálogo público
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Reportes de Datos"
+                subtitle="Reportes enviados por usuarios del catálogo público"
+                icon={<Flag size={24} />}
+            />
 
             {/* Summary Cards */}
             <div className="grid grid-cols-3 gap-4">
@@ -211,10 +212,10 @@ export default function DataReports() {
                                                 <span className={`inline-flex items-center gap-1 text-xs font-medium ${typeInfo.color}`}>
                                                     {typeInfo.icon} {typeInfo.label}
                                                 </span>
-                                                {/* Status badge */}
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.color} ${statusInfo.bg}`}>
-                                                    {statusInfo.label}
-                                                </span>
+                                                <StatusBadge
+                                                    label={statusInfo.label}
+                                                    tone={STATUS_TONE[report.status] || 'warning'}
+                                                />
                                             </div>
 
                                             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>

@@ -6,6 +6,7 @@ import { useSales, useDeleteSale } from '@/hooks/useSales'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import PageHeader from '@/components/common/PageHeader'
 import SaleCard from '@/components/SaleCard'
 import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import { Loading } from '@/components/common/Loading'
@@ -100,13 +101,10 @@ export default function Sales() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">Ventas</h1>
-                    <p className="text-slate-400">Todas las ventas se realizan a través del POS</p>
-                </div>
-            </div>
+            <PageHeader
+                title="Ventas"
+                subtitle="Todas las ventas se realizan a través del POS"
+            />
 
             {/* Filters */}
             <Card>

@@ -11,6 +11,7 @@ import { useCreatePaymentPlan } from '@/hooks/usePaymentPlans'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import PageHeader from '@/components/common/PageHeader'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import DeliveryCard from '@/components/DeliveryCard'
@@ -823,28 +824,28 @@ export default function Deliveries() {
 
     return (
         <div className="space-y-4 lg:space-y-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                <div>
-                    <h1 className="text-xl lg:text-2xl font-bold text-white">Entregas</h1>
-                    <p className="text-sm lg:text-base text-slate-400">Calendario y gestión de entregas</p>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <Button
-                        onClick={() => navigate('/delivery-analytics')}
-                        className="flex items-center justify-center gap-2 flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                    >
-                        <TrendingUp size={20} />
-                        <span className="hidden sm:inline">Analíticas</span>
-                    </Button>
-                    <Button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
-                    >
-                        <Plus size={20} />
-                        <span className="sm:inline">Nueva</span>
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Entregas"
+                subtitle="Calendario y gestión de entregas"
+                actions={
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Button
+                            onClick={() => navigate('/delivery-analytics')}
+                            className="flex items-center justify-center gap-2 flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                        >
+                            <TrendingUp size={20} />
+                            <span className="hidden sm:inline">Analíticas</span>
+                        </Button>
+                        <Button
+                            onClick={() => setShowCreateModal(true)}
+                            className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
+                        >
+                            <Plus size={20} />
+                            <span className="sm:inline">Nueva</span>
+                        </Button>
+                    </div>
+                }
+            />
 
             {/* Stats Cards - 2 columns on mobile, 4 on desktop - Clickable to filter */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">

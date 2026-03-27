@@ -5,6 +5,7 @@ import { useStores } from '@/hooks/useStores'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import PageHeader from '@/components/common/PageHeader'
 import Modal from '@/components/common/Modal'
 import { Loading } from '@/components/common/Loading'
 import {
@@ -136,24 +137,20 @@ const StoresPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Building2 className={`${isDark ? 'text-blue-400' : 'text-blue-600'}`} size={32} />
-              <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : ''}`}>
-                Administración de Tiendas
-              </h1>
-            </div>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus size={20} />
-              Nueva Tienda
-            </Button>
-          </div>
-          <p className={isDark ? 'text-slate-400 mt-2' : 'text-gray-600 mt-2'}>
-            Gestiona todas las tiendas, usuarios y configuraciones
-          </p>
+          <PageHeader
+            title="Administración de Tiendas"
+            subtitle="Gestiona todas las tiendas, usuarios y configuraciones"
+            icon={<Building2 className={`${isDark ? 'text-blue-400' : 'text-blue-600'}`} size={32} />}
+            actions={
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus size={20} />
+                Nueva Tienda
+              </Button>
+            }
+          />
         </div>
 
         {/* Búsqueda */}
@@ -171,8 +168,8 @@ const StoresPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('active')}
             className={`px-4 py-2 font-medium transition ${activeTab === 'active'
-                ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
-                : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-gray-600 hover:text-gray-700'}`
+              ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
+              : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-gray-600 hover:text-gray-700'}`
               }`}
           >
             Tiendas Activas ({stores.filter(s => !s.isArchived).length})
@@ -180,8 +177,8 @@ const StoresPage: React.FC = () => {
           <button
             onClick={() => setActiveTab('archived')}
             className={`px-4 py-2 font-medium transition ${activeTab === 'archived'
-                ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
-                : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-gray-600 hover:text-gray-700'}`
+              ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
+              : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-gray-600 hover:text-gray-700'}`
               }`}
           >
             Tiendas Archivadas ({stores.filter(s => s.isArchived).length})

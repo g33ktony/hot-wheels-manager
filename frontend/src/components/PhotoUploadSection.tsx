@@ -57,7 +57,8 @@ export default function PhotoUploadSection({ itemId, onPhotoUploaded }: PhotoUpl
             )
 
             // 2. Save Cloudinary URL to backend (MongoDB + JSON cache)
-            const res = await fetch(`/api/catalog/items/${itemId}/photos`, {
+            const encodedItemId = encodeURIComponent(itemId)
+            const res = await fetch(`/api/catalog/items/${encodedItemId}/photos`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

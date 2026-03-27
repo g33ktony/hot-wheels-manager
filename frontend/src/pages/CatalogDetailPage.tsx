@@ -100,12 +100,38 @@ export default function CatalogDetailPage() {
         setFailedImages(prev => new Set([...prev, imageKey]))
     }
 
+    const getImageHref = (url: string | undefined): string | null => {
+        if (!url) {
+            return null
+        }
+
+        return convertImageUrl(url)
+    }
+
+    const proxyImageUrl = (url: string): string => {
+        if (
+            url.startsWith('data:') ||
+            url.includes('res.cloudinary.com') ||
+            url.includes('images.weserv.nl') ||
+            url.startsWith('http://localhost') ||
+            url.startsWith('https://localhost')
+        ) {
+            return url
+        }
+
+        return `https://images.weserv.nl/?url=${encodeURIComponent(url)}&w=1200&fit=contain`
+    }
+
     const getImageSrc = (url: string | undefined, imageKey: string): string => {
         if (!url || failedImages.has(imageKey)) {
             return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e0e0e0" width="400" height="300"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="%23999"%3E📷 No disponible%3C/text%3E%3C/svg%3E'
         }
         const converted = convertImageUrl(url)
-        return converted || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e0e0e0" width="400" height="300"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="%23999"%3E📷 No disponible%3C/text%3E%3C/svg%3E'
+        if (!converted) {
+            return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e0e0e0" width="400" height="300"/%3E%3Ctext x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="%23999"%3E📷 No disponible%3C/text%3E%3C/svg%3E'
+        }
+
+        return proxyImageUrl(converted)
     }
 
     const handleSave = async () => {
@@ -199,7 +225,7 @@ export default function CatalogDetailPage() {
 
                     <div className="photo-thumbnails">
                         {item.photo_url_carded && (
-                            <a href={getImageSrc(item.photo_url_carded, 'photo_carded') || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
+                            <a href={getImageHref(item.photo_url_carded) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
                                 <img
                                     src={getImageSrc(item.photo_url_carded, 'photo_carded')}
                                     alt="Carded"
@@ -210,7 +236,7 @@ export default function CatalogDetailPage() {
                         )}
                         {Array.isArray(item.photo_gallery) &&
                             item.photo_gallery.map((url, idx) => (
-                                <a key={idx} href={getImageSrc(url, `photo_gallery_${idx}`) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
+                                <a key={idx} href={getImageHref(url) || '#'} target="_blank" rel="noopener noreferrer" className="thumb">
                                     <img
                                         src={getImageSrc(url, `photo_gallery_${idx}`)}
                                         alt={`Gallery ${idx}`}

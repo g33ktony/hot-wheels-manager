@@ -5,6 +5,8 @@ import { leadsApi } from '@/services/leads'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import PageHeader from '@/components/common/PageHeader'
+import StatusBadge from '@/components/common/StatusBadge'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import {
@@ -129,57 +131,43 @@ export default function Leads() {
 
   const getStatusBadge = (status: string) => {
     const config = {
-      new: { label: 'Nuevo', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: Clock },
-      contacted: { label: 'Contactado', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: UserCheck },
-      converted: { label: 'Convertido', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: CheckCircle },
-      not_interested: { label: 'No Interesado', color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300', icon: XCircle }
+      new: { label: 'Nuevo', tone: 'info' as const, icon: Clock },
+      contacted: { label: 'Contactado', tone: 'warning' as const, icon: UserCheck },
+      converted: { label: 'Convertido', tone: 'success' as const, icon: CheckCircle },
+      not_interested: { label: 'No Interesado', tone: 'neutral' as const, icon: XCircle }
     }
-    const { label, color, icon: Icon } = config[status as keyof typeof config] || config.new
+    const { label, tone, icon: Icon } = config[status as keyof typeof config] || config.new
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
-        <Icon size={12} className="mr-1" />
-        {label}
-      </span>
+      <StatusBadge label={label} tone={tone} icon={<Icon size={12} />} />
     )
   }
 
   const getRequestTypeBadge = (type: string) => {
     if (type === 'notify') {
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-          <Bell size={12} className="mr-1" />
-          Notificar
-        </span>
+        <StatusBadge label="Notificar" tone="info" icon={<Bell size={12} />} className="dark:bg-purple-900/40 dark:text-purple-200 bg-purple-100 text-purple-800" />
       )
     }
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-        <CheckCircle size={12} className="mr-1" />
-        Disponible
-      </span>
+      <StatusBadge label="Disponible" tone="success" icon={<CheckCircle size={12} />} />
     )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Gestión de Leads
-          </h1>
-          <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Administra los leads del catálogo público
-          </p>
-        </div>
-        <Button
-          variant="primary"
-          icon={<Download size={18} />}
-          onClick={handleExport}
-        >
-          Exportar CSV
-        </Button>
-      </div>
+      <PageHeader
+        title="Gestión de Leads"
+        subtitle="Administra los leads del catálogo público"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Download size={18} />}
+            onClick={handleExport}
+          >
+            Exportar CSV
+          </Button>
+        }
+      />
 
       {/* Statistics Cards */}
       {statistics && (
@@ -279,8 +267,8 @@ export default function Leads() {
                 setPage(1)
               }}
               className={`w-full px-4 py-2 rounded-lg border ${isDark
-                  ? 'bg-slate-700 border-slate-600 text-white'
-                  : 'bg-white border-slate-300 text-slate-900'
+                ? 'bg-slate-700 border-slate-600 text-white'
+                : 'bg-white border-slate-300 text-slate-900'
                 } focus:outline-none focus:ring-2 focus:ring-primary-500`}
             >
               <option value="">Todos</option>
@@ -301,8 +289,8 @@ export default function Leads() {
                 setPage(1)
               }}
               className={`w-full px-4 py-2 rounded-lg border ${isDark
-                  ? 'bg-slate-700 border-slate-600 text-white'
-                  : 'bg-white border-slate-300 text-slate-900'
+                ? 'bg-slate-700 border-slate-600 text-white'
+                : 'bg-white border-slate-300 text-slate-900'
                 } focus:outline-none focus:ring-2 focus:ring-primary-500`}
             >
               <option value="">Todos</option>
@@ -324,8 +312,8 @@ export default function Leads() {
                 setPage(1)
               }}
               className={`w-full px-4 py-2 rounded-lg border ${isDark
-                  ? 'bg-slate-700 border-slate-600 text-white'
-                  : 'bg-white border-slate-300 text-slate-900'
+                ? 'bg-slate-700 border-slate-600 text-white'
+                : 'bg-white border-slate-300 text-slate-900'
                 } focus:outline-none focus:ring-2 focus:ring-primary-500`}
             >
               <option value="">Todos</option>
@@ -672,8 +660,8 @@ export default function Leads() {
                   value={editFormData.contactStatus}
                   onChange={(e) => setEditFormData({ ...editFormData, contactStatus: e.target.value })}
                   className={`w-full px-4 py-2 rounded-lg border ${isDark
-                      ? 'bg-slate-700 border-slate-600 text-white'
-                      : 'bg-white border-slate-300 text-slate-900'
+                    ? 'bg-slate-700 border-slate-600 text-white'
+                    : 'bg-white border-slate-300 text-slate-900'
                     } focus:outline-none focus:ring-2 focus:ring-primary-500`}
                 >
                   <option value="new">Nuevo</option>
@@ -693,8 +681,8 @@ export default function Leads() {
                   rows={4}
                   placeholder="Agrega notas sobre este lead..."
                   className={`w-full px-4 py-2 rounded-lg border ${isDark
-                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
-                      : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
+                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400'
+                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
                     } focus:outline-none focus:ring-2 focus:ring-primary-500`}
                 />
               </div>

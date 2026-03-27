@@ -7,6 +7,37 @@ import { getAllCars, refreshCache } from '../services/hotWheelsCacheService'
 
 const router = express.Router()
 
+const mergePhotosFromCache = (item: any) => {
+  if (!item || !item.toy_num) {
+    return item
+  }
+
+  const hasMainPhoto = Boolean(item.photo_url)
+  const hasCardedPhoto = Boolean(item.photo_url_carded)
+  const hasGalleryPhotos = Array.isArray(item.photo_gallery) && item.photo_gallery.length > 0
+
+  if (hasMainPhoto && hasCardedPhoto && hasGalleryPhotos) {
+    return item
+  }
+
+  const cachedItem = getAllCars().find((car: any) => car.toy_num === item.toy_num)
+  if (!cachedItem) {
+    return item
+  }
+
+  return {
+    ...item,
+    photo_url: item.photo_url || cachedItem.photo_url || '',
+    photo_url_carded: item.photo_url_carded || cachedItem.photo_url_carded || '',
+    photo_gallery:
+      Array.isArray(item.photo_gallery) && item.photo_gallery.length > 0
+        ? item.photo_gallery
+        : Array.isArray(cachedItem.photo_gallery)
+          ? cachedItem.photo_gallery
+          : [],
+  }
+}
+
 /**
  * GET /api/catalog/items
  * Lista items con búsqueda, filtrado y paginación
@@ -101,6 +132,8 @@ router.get('/items/:id', async (req: Request, res: Response) => {
         error: 'Item not found',
       })
     }
+
+    item = mergePhotosFromCache(item)
 
     res.json({
       success: true,
@@ -307,7 +340,7 @@ router.post('/items/:id/photos', async (req: Request, res: Response) => {
 
     // Sync photos back to JSON cache so public catalog can see them
     try {
-      const cacheDataPath = path.join(__dirname, '../../../backend/data/hotwheels_database.json')
+      const cacheDataPath = path.join(__dirname, '../../data/hotwheels_database.json')
       if (fs.existsSync(cacheDataPath)) {
         const cacheData = JSON.parse(fs.readFileSync(cacheDataPath, 'utf8'))
         const cacheItem = cacheData.find((c: any) => c.toy_num === item.toy_num)
