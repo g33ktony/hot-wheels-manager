@@ -13,10 +13,15 @@ import { deliveriesService } from '@/services/deliveries'
 import { Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTheme } from '@/contexts/ThemeContext'
+import type { CreateDeliveryDto, Customer } from '@shared/types'
 
 interface DeliveryCartModalProps {
     isOpen: boolean
     onClose: () => void
+}
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+    return error instanceof Error ? error.message : fallback
 }
 
 export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModalProps) {
@@ -43,7 +48,7 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
 
     // Create delivery mutation
     const createDeliveryMutation = useMutation(
-        (deliveryData: any) => deliveriesService.create(deliveryData),
+        (deliveryData: CreateDeliveryDto) => deliveriesService.create(deliveryData),
         {
             onSuccess: () => {
                 toast.success('Entrega creada exitosamente')
@@ -53,8 +58,8 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                 onClose()
                 navigate('/deliveries')
             },
-            onError: (error: any) => {
-                toast.error(error.response?.data?.message || 'Error al crear la entrega')
+            onError: (error: unknown) => {
+                toast.error(getErrorMessage(error, 'Error al crear la entrega'))
             }
         }
     )
@@ -80,7 +85,7 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
             return
         }
 
-        const deliveryData = {
+        const deliveryData: CreateDeliveryDto = {
             customerId,
             items: deliveryCartItems.map(item => ({
                 inventoryItemId: item.inventoryItemId,
@@ -89,11 +94,11 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                 quantity: item.quantity,
                 unitPrice: item.unitPrice
             })),
-            scheduledDate,
+            scheduledDate: new Date(scheduledDate),
             scheduledTime,
             location,
             totalAmount,
-            notes
+            notes: notes || undefined
         }
 
         await createDeliveryMutation.mutateAsync(deliveryData)
@@ -148,7 +153,7 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                             required
                         >
                             <option value="">Seleccionar cliente</option>
-                            {customers?.map((customer: any) => (
+                            {customers?.map((customer: Customer) => (
                                 <option key={customer._id} value={customer._id}>
                                     {customer.name} {customer.email ? `- ${customer.email}` : ''}
                                 </option>

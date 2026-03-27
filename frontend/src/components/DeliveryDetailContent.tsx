@@ -1,9 +1,19 @@
 import React from 'react'
 import { MapPin } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import type { Delivery, DeliveryItem } from '@shared/types'
+
+type DeliveryItemWithExtras = Omit<DeliveryItem, 'inventoryItemId'> & {
+    profit?: number
+    inventoryItemId?: string | { photos?: string[] }
+}
+
+type DeliveryWithDetailContent = Omit<Delivery, 'items'> & {
+    items?: DeliveryItemWithExtras[]
+}
 
 interface DeliveryDetailContentProps {
-    delivery: any
+    delivery: DeliveryWithDetailContent
     onOpenImageModal?: (photos: string[]) => void
 }
 
@@ -18,12 +28,12 @@ export const DeliveryDetailContent: React.FC<DeliveryDetailContentProps> = ({
     const textSecondary = colors.text.secondary
     const textMuted = colors.text.tertiary
 
-    const totalProfit = delivery.items?.reduce((total: number, item: any) => {
+    const totalProfit = delivery.items?.reduce((total: number, item: DeliveryItemWithExtras) => {
         const profit = item.profit !== undefined && item.profit !== null ? item.profit : (item.quantity * (item.unitPrice || 0) - (item.costPrice || 0) * item.quantity)
         return total + profit
     }, 0) || 0
 
-    const totalCost = delivery.items?.reduce((total: number, item: any) => {
+    const totalCost = delivery.items?.reduce((total: number, item: DeliveryItemWithExtras) => {
         return total + ((item.costPrice || 0) * item.quantity)
     }, 0) || 0
 
@@ -129,7 +139,7 @@ export const DeliveryDetailContent: React.FC<DeliveryDetailContentProps> = ({
                     📦 Piezas en Entrega ({delivery.items?.length || 0})
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {delivery.items?.map((item: any, idx: number) => {
+                    {delivery.items?.map((item: DeliveryItemWithExtras, idx: number) => {
                         const inventoryItem = item.inventoryItemId ? (typeof item.inventoryItemId === 'object' ? item.inventoryItemId : null) : null
                         const photos = item.photos || inventoryItem?.photos || []
 

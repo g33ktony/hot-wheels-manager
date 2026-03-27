@@ -3,6 +3,10 @@ import { deliveriesService } from '@/services/deliveries'
 import type { CreateDeliveryDto } from '@shared/types'
 import toast from 'react-hot-toast'
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  return error instanceof Error ? error.message : fallback
+}
+
 // Always fetch all deliveries (without status filter) for counting widget stats
 export const useAllDeliveries = (fromDate?: string, storeId?: string) => {
   return useQuery(['deliveries-all', fromDate, storeId], () => deliveriesService.getAll(undefined, fromDate, true, undefined, storeId), {
@@ -47,8 +51,8 @@ export const useCreateDelivery = () => {
         queryClient.invalidateQueries('deliveries')
         toast.success('Entrega creada exitosamente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al crear entrega')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al crear entrega'))
       },
     }
   )
@@ -67,8 +71,8 @@ export const useUpdateDelivery = () => {
         queryClient.invalidateQueries('inventory') // Invalidar inventario porque se reduce
         toast.success('Entrega actualizada exitosamente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al actualizar entrega')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al actualizar entrega'))
       },
     }
   )
@@ -86,8 +90,8 @@ export const useDeleteDelivery = () => {
         queryClient.invalidateQueries('inventory')
         toast.success('Entrega eliminada exitosamente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al eliminar entrega')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al eliminar entrega'))
       },
     }
   )
@@ -112,8 +116,8 @@ export const useMarkDeliveryAsCompleted = () => {
         
         toast.success(paymentMsg)
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al completar entrega')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al completar entrega'))
       },
     }
   )
@@ -129,8 +133,8 @@ export const useMarkDeliveryAsPrepared = () => {
         queryClient.invalidateQueries('deliveries')
         toast.success('Entrega marcada como preparada')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al marcar entrega como preparada')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al marcar entrega como preparada'))
       },
     }
   )
@@ -148,8 +152,8 @@ export const useMarkDeliveryAsPending = () => {
         queryClient.invalidateQueries('inventory') // Invalidar inventario porque se restaura
         toast.success('Entrega vuelta a pendiente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al volver entrega a pendiente')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al volver entrega a pendiente'))
       },
     }
   )
@@ -170,8 +174,8 @@ export const useAddPayment = () => {
         queryClient.invalidateQueries('deliveries')
         toast.success('Pago registrado exitosamente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al registrar pago')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al registrar pago'))
       },
     }
   )
@@ -188,8 +192,8 @@ export const useDeletePayment = () => {
         queryClient.invalidateQueries('deliveries')
         toast.success('Pago eliminado exitosamente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al eliminar pago')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al eliminar pago'))
       },
     }
   )
