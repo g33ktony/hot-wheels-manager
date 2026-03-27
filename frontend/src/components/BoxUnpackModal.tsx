@@ -3,6 +3,8 @@ import { X, Plus, Trash2, Camera, Save, CheckCircle, AlertTriangle, Edit2 } from
 import { InventoryItem } from '../../../shared/types'
 import { useBoxById, useRegisterBoxPieces, useCompleteBox, useDeleteBoxPiece, useUpdateBoxPieceQuantity } from '../hooks/useBoxes'
 import imageCompression from 'browser-image-compression'
+import toast from 'react-hot-toast'
+import { uploadImageToCloudinary } from '../services/cloudinary'
 
 interface BoxUnpackModalProps {
     isOpen: boolean
@@ -94,20 +96,14 @@ export default function BoxUnpackModal({ isOpen, onClose, box }: BoxUnpackModalP
                 fileType: 'image/jpeg'
             }
             const compressedFile = await imageCompression(file, options)
-            const reader = new FileReader()
-
-            reader.onloadend = () => {
-                const base64String = reader.result as string
-                const updated = [...newPieces]
-                updated[index].photos = [...updated[index].photos, base64String]
-                setNewPieces(updated)
-                setUploadingPhoto(false)
-            }
-
-            reader.readAsDataURL(compressedFile)
+            const url = await uploadImageToCloudinary(compressedFile, 'hot-wheels-manager/inventory')
+            const updated = [...newPieces]
+            updated[index].photos = [...updated[index].photos, url]
+            setNewPieces(updated)
         } catch (error) {
             console.error('Error uploading photo:', error)
-            alert('Error al cargar la foto')
+            toast.error('Error al subir la foto a Cloudinary')
+        } finally {
             setUploadingPhoto(false)
         }
     }

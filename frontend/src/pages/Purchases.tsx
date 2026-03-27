@@ -12,6 +12,7 @@ import { Plus, ShoppingBag, Calendar, DollarSign, X, UserPlus, Trash2, Edit, Upl
 import imageCompression from 'browser-image-compression'
 import ReceiveVerificationModal from '@/components/ReceiveVerificationModal'
 import AutocompleteCarId from '@/components/AutocompleteCarId'
+import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 
 const PREDEFINED_BRANDS = [
     'Hot Wheels',
@@ -125,6 +126,7 @@ export default function Purchases() {
     const updateStatusMutation = useUpdatePurchaseStatus()
     const deletePurchaseMutation = useDeletePurchase()
     const createCustomBrandMutation = useCreateCustomBrand()
+    const { uploadImage } = useCloudinaryUpload()
 
     // Combine predefined and custom brands
     const allBrands = [
@@ -550,23 +552,17 @@ export default function Purchases() {
             if (file.type.startsWith('image/')) {
                 try {
                     const compressedFile = await imageCompression(file, compressionOptions)
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                        const result = e.target?.result as string
-                        const currentPhotos = newPurchase.items[index].photos || []
-                        handleItemChange(index, 'photos', [...currentPhotos, result])
+                    const result = await uploadImage(compressedFile)
+                    if (!result) {
+                        alert('Error al subir imagen a Cloudinary')
+                        continue
                     }
-                    reader.readAsDataURL(compressedFile)
+                    const currentPhotos = newPurchase.items[index].photos || []
+                    handleItemChange(index, 'photos', [...currentPhotos, result.url])
                     console.log(`📸 Imagen comprimida: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
                 } catch (error) {
-                    console.error('Error al comprimir imagen:', error)
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                        const result = e.target?.result as string
-                        const currentPhotos = newPurchase.items[index].photos || []
-                        handleItemChange(index, 'photos', [...currentPhotos, result])
-                    }
-                    reader.readAsDataURL(file)
+                    console.error('Error al subir imagen:', error)
+                    alert('Error al subir imagen a Cloudinary')
                 }
             }
         }
@@ -592,23 +588,17 @@ export default function Purchases() {
             if (file.type.startsWith('image/')) {
                 try {
                     const compressedFile = await imageCompression(file, compressionOptions)
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                        const result = e.target?.result as string
-                        const currentPhotos = seriesData.pieces[pieceIndex].photos || []
-                        handleSeriesPieceChange(pieceIndex, 'photos', [...currentPhotos, result])
+                    const result = await uploadImage(compressedFile)
+                    if (!result) {
+                        alert('Error al subir imagen de la serie a Cloudinary')
+                        continue
                     }
-                    reader.readAsDataURL(compressedFile)
+                    const currentPhotos = seriesData.pieces[pieceIndex].photos || []
+                    handleSeriesPieceChange(pieceIndex, 'photos', [...currentPhotos, result.url])
                     console.log(`📸 Imagen comprimida (Serie): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`)
                 } catch (error) {
-                    console.error('Error al comprimir imagen:', error)
-                    const reader = new FileReader()
-                    reader.onload = (e) => {
-                        const result = e.target?.result as string
-                        const currentPhotos = seriesData.pieces[pieceIndex].photos || []
-                        handleSeriesPieceChange(pieceIndex, 'photos', [...currentPhotos, result])
-                    }
-                    reader.readAsDataURL(file)
+                    console.error('Error al subir imagen de serie:', error)
+                    alert('Error al subir imagen de la serie a Cloudinary')
                 }
             }
         }

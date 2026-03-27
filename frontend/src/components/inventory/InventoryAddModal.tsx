@@ -924,11 +924,11 @@ export default function InventoryAddModal({
                                             console.log('✅ OCR photo uploaded to Cloudinary:', result.url)
                                         } else {
                                             console.error('Failed to upload OCR photo to Cloudinary')
-                                            setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
+                                            // Do not fall back to base64 — backend rejects it
                                         }
                                     } catch (error) {
                                         console.error('Error uploading OCR photo:', error)
-                                        setNewItem(prev => ({ ...prev, photos: [...prev.photos, imageBase64] }))
+                                        // Do not fall back to base64 — backend rejects it
                                     }
                                 }}
                                 buttonText="📷 Escanear"
