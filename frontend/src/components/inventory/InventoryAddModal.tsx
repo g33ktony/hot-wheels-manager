@@ -922,12 +922,15 @@ export default function InventoryAddModal({
                                         if (result) {
                                             setNewItem(prev => ({ ...prev, photos: [...prev.photos, result.url] }))
                                             console.log('✅ OCR photo uploaded to Cloudinary:', result.url)
+                                            toast.success('Foto escaneada adjuntada automáticamente')
                                         } else {
                                             console.error('Failed to upload OCR photo to Cloudinary')
+                                            toast.error('No se pudo adjuntar la foto escaneada automáticamente. Intenta escanear de nuevo.')
                                             // Do not fall back to base64 — backend rejects it
                                         }
                                     } catch (error) {
                                         console.error('Error uploading OCR photo:', error)
+                                        toast.error('Error al adjuntar la foto escaneada. Intenta de nuevo.')
                                         // Do not fall back to base64 — backend rejects it
                                     }
                                 }}

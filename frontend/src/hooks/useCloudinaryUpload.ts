@@ -19,7 +19,7 @@ export const useCloudinaryUpload = () => {
   const uploadImage = async (file: File): Promise<UploadResponse | null> => {
     try {
       // Verify environment variables
-      if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'hot-wheels-manager') {
+      if (!CLOUDINARY_CLOUD_NAME) {
         console.error('❌ CLOUDINARY_CLOUD_NAME not configured')
         toast.error('Cloudinary no está configurado')
         return null
