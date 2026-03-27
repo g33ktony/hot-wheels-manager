@@ -7,17 +7,13 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
-import jsPDF from 'jspdf'
 import imageCompression from 'browser-image-compression'
 import type { InventoryItem } from '../../../shared/types'
 import {
     ArrowLeft,
     Share2,
-    MapPin,
     DollarSign,
     Package,
-    Tag,
-    Info,
     Edit,
     Trash2,
     Image as ImageIcon,
@@ -66,6 +62,7 @@ export default function ItemDetail() {
     const [croppedImageData, setCroppedImageData] = useState<string | null>(null)
     const [shareMode, setShareMode] = useState<'image' | 'pdf' | null>(null)
     const [uploadingPhotos, setUploadingPhotos] = useState(0)
+    const [floatingButtonBottom, setFloatingButtonBottom] = useState(16)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
         width: 90,
@@ -79,6 +76,37 @@ export default function ItemDetail() {
     useEffect(() => {
         loadItem()
     }, [id])
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.visualViewport) return
+
+        const updateFloatingButtonPosition = () => {
+            const viewport = window.visualViewport
+            if (!viewport) return
+
+            const keyboardHeight = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+
+            if (keyboardHeight > 120) {
+                setFloatingButtonBottom(Math.min(420, keyboardHeight + 12))
+            } else {
+                setFloatingButtonBottom(16)
+            }
+        }
+
+        updateFloatingButtonPosition()
+
+        window.visualViewport.addEventListener('resize', updateFloatingButtonPosition)
+        window.visualViewport.addEventListener('scroll', updateFloatingButtonPosition)
+        window.addEventListener('focusin', updateFloatingButtonPosition)
+        window.addEventListener('focusout', updateFloatingButtonPosition)
+
+        return () => {
+            window.visualViewport?.removeEventListener('resize', updateFloatingButtonPosition)
+            window.visualViewport?.removeEventListener('scroll', updateFloatingButtonPosition)
+            window.removeEventListener('focusin', updateFloatingButtonPosition)
+            window.removeEventListener('focusout', updateFloatingButtonPosition)
+        }
+    }, [])
 
     const loadItem = async () => {
         if (!id) return
@@ -732,6 +760,8 @@ export default function ItemDetail() {
 
     const generateAndSharePDF = async () => {
         try {
+            const { default: jsPDF } = await import('jspdf')
+
             const carName = getCarName()
             const price = sharePrice
 
@@ -999,12 +1029,100 @@ export default function ItemDetail() {
 
     const carName = getCarName()
     const finalPrice = getFinalPrice()
+    const reservedQuantity = item.reservedQuantity || 0
+    const availableQuantity = Math.max(0, item.quantity - reservedQuantity)
+    const purchasePrice = item.purchasePrice || 0
+    const profit = finalPrice - purchasePrice
+    const margin = purchasePrice > 0 ? (profit / purchasePrice) * 100 : 0
+
+    const inventoryPhotos = item.photos || []
+    const galleryPhotos = Array.isArray(item.hotWheelsCar?.photo_gallery)
+        ? item.hotWheelsCar.photo_gallery.filter(
+            (url: string) => url && !inventoryPhotos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded
+        )
+        : []
+
+    const displayPhotos = [
+        ...inventoryPhotos.map((url, index) => ({
+            url,
+            source: 'L' as const,
+            title: `Foto local ${index + 1}`,
+            isPrimary: index === (item.primaryPhotoIndex || 0),
+        })),
+        ...(item.hotWheelsCar?.photo_url_carded
+            ? [{
+                url: item.hotWheelsCar.photo_url_carded,
+                source: 'C' as const,
+                title: 'Foto carded catálogo',
+                isPrimary: false,
+            }]
+            : []),
+        ...galleryPhotos.map((url: string, index: number) => ({
+            url,
+            source: 'G' as const,
+            title: `Galería catálogo ${index + 1}`,
+            isPrimary: false,
+        })),
+    ]
+
+    const safeSelectedPhotoIndex = displayPhotos.length > 0
+        ? Math.min(selectedPhotoIndex, displayPhotos.length - 1)
+        : 0
+
+    const selectedPhoto = displayPhotos[safeSelectedPhotoIndex]
+
+    const technicalRows: Array<{ label: string; value: string | number | null | undefined }> = [
+        { label: 'ID del item', value: item._id },
+        { label: 'Car ID', value: item.carId },
+        { label: 'Modelo catálogo', value: item.hotWheelsCar?.model || item.carName },
+        { label: 'Marca', value: item.brand || item.hotWheelsCar?.brand },
+        { label: 'Tipo de pieza', value: item.pieceType },
+        { label: 'Serie', value: item.hotWheelsCar?.series || item.series },
+        { label: 'Año', value: item.hotWheelsCar?.year || item.year },
+        { label: 'Color', value: item.hotWheelsCar?.color || item.color },
+        { label: 'Toy #', value: item.hotWheelsCar?.toy_num },
+        { label: 'Col #', value: item.hotWheelsCar?.col_num },
+        { label: 'Condición', value: item.condition },
+        { label: 'Cantidad total', value: item.quantity },
+        { label: 'Reservadas', value: reservedQuantity },
+        { label: 'Disponibles', value: availableQuantity },
+        { label: 'Ubicación', value: item.location },
+        { label: 'Fecha alta', value: item.dateAdded ? new Date(item.dateAdded).toLocaleDateString('es-MX') : null },
+        { label: 'Última actualización', value: item.lastUpdated ? new Date(item.lastUpdated).toLocaleDateString('es-MX') : null },
+        { label: 'Serie ID', value: item.seriesId },
+        { label: 'Serie nombre', value: item.seriesName },
+        { label: 'Serie tamaño', value: item.seriesSize },
+        { label: 'Serie posición', value: item.seriesPosition },
+        { label: 'Precio de serie', value: item.seriesPrice ? `$${item.seriesPrice.toFixed(2)}` : null },
+        { label: 'Caja origen', value: item.sourceBox },
+        { label: 'ID caja origen', value: item.sourceBoxId },
+        { label: 'Es caja', value: item.isBox ? 'Sí' : 'No' },
+        { label: 'Nombre caja', value: item.boxName },
+        { label: 'Tamaño caja', value: item.boxSize },
+        { label: 'Precio caja', value: item.boxPrice ? `$${item.boxPrice.toFixed(2)}` : null },
+        { label: 'Estado caja', value: item.boxStatus },
+        { label: 'Piezas registradas', value: item.registeredPieces },
+        { label: 'Fotos locales', value: inventoryPhotos.length },
+        { label: 'Foto carded catálogo', value: item.hotWheelsCar?.photo_url_carded ? 'Sí' : 'No' },
+        { label: 'Fotos galería catálogo', value: galleryPhotos.length },
+    ]
+
+    const visibleTechnicalRows = technicalRows.filter((row) => row.value !== undefined && row.value !== null && row.value !== '')
+
+    const specialTags = [
+        item.isSuperTreasureHunt ? 'Super Treasure Hunt' : null,
+        item.isTreasureHunt ? 'Treasure Hunt' : null,
+        item.isChase ? 'Chase' : null,
+        item.isFantasy ? 'Fantasy' : null,
+        item.isMoto ? 'Moto' : null,
+        item.isCamioneta ? 'Camioneta' : null,
+        item.isFastFurious ? 'Fast & Furious' : null,
+    ].filter(Boolean) as string[]
 
     return (
-        <div className={`min-h-screen pb-24 ${isDark ? 'bg-slate-700/30' : 'bg-slate-50'}`}>
-            {/* Header */}
+        <div className={`min-h-screen pb-20 sm:pb-24 ${isDark ? 'bg-slate-700/30' : 'bg-slate-50'}`}>
             <div className={`border-b sticky top-0 z-10 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
-                <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+                <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
                     <Button
                         variant="secondary"
                         size="sm"
@@ -1013,369 +1131,251 @@ export default function ItemDetail() {
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
-                    <h1 className={`text-lg font-bold truncate flex-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{carName}</h1>
+                    <h1 className={`text-base sm:text-lg font-bold truncate flex-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{carName}</h1>
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-                {/* Main Image Gallery - including catalog carded photo */}
-                <Card className="overflow-hidden">
-                    {item.photos && item.photos.length > 0 ? (
-                        <div>
-                            <div className="relative group h-[500px] flex items-center justify-center">
-                                <img
-                                    src={proxifyImageUrl(item.photos[selectedPhotoIndex])}
-                                    alt={carName}
-                                    crossOrigin="anonymous"
-                                    onClick={() => setShowGalleryModal(true)}
-                                    className={`max-h-full max-w-full object-contain cursor-pointer hover:opacity-90 transition-opacity ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}
-                                />
-                            </div>
+            <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <div className="lg:col-span-3 space-y-3 sm:space-y-4">
+                        <Card className="overflow-hidden p-0">
+                            {selectedPhoto ? (
+                                <div>
+                                    <div className="relative group h-[48vh] min-h-[280px] max-h-[520px] sm:h-[58vh] sm:min-h-[360px] sm:max-h-[680px] bg-black flex items-center justify-center">
+                                        <img
+                                            src={proxifyImageUrl(selectedPhoto.url)}
+                                            alt={carName}
+                                            crossOrigin="anonymous"
+                                            onClick={() => setShowGalleryModal(true)}
+                                            className="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                                        />
+                                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-1 rounded bg-black/70 text-white text-xs font-semibold">
+                                            {selectedPhoto.source === 'L' ? 'Local' : selectedPhoto.source === 'C' ? 'Carded' : 'Galería'}
+                                        </div>
+                                    </div>
 
-                            {/* Thumbnails - inventory photos + catalog carded photo + gallery */}
-                            {(item.photos.length > 1 || item.hotWheelsCar?.photo_url_carded || (Array.isArray(item.hotWheelsCar?.photo_gallery) && item.hotWheelsCar.photo_gallery.length > 0)) && (
-                                <div className="flex gap-2 p-3 overflow-x-auto">
-                                    {/* Inventory photos */}
-                                    {item.photos.map((photo, index) => (
-                                        <button
-                                            key={`inv-${index}`}
-                                            onClick={() => setSelectedPhotoIndex(index)}
-                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative flex flex-col items-center justify-center ${selectedPhotoIndex === index
-                                                ? 'border-primary-600'
-                                                : 'border-slate-700'
-                                                }`}
-                                        >
-                                            <img
-                                                src={proxifyImageUrl(photo)}
-                                                alt={`${carName} ${index + 1}`}
-                                                crossOrigin="anonymous"
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute bottom-0.5 left-0.5 bg-gray-900/80 text-white text-xs px-1 rounded">L</div>
-                                            {/* Destaca la foto principal */}
-                                            {index === (item.primaryPhotoIndex || 0) && (
-                                                <div className="absolute top-1 right-1 text-lg">⭐</div>
-                                            )}
-                                        </button>
-                                    ))}
-
-                                    {/* Catalog carded photo (if exists) */}
-                                    {item.hotWheelsCar?.photo_url_carded && (
-                                        <button
-                                            onClick={() => setSelectedPhotoIndex(item.photos!.length)}
-                                            className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative flex flex-col items-center justify-center ${selectedPhotoIndex === item.photos!.length
-                                                ? 'border-primary-600'
-                                                : 'border-slate-700'
-                                                }`}
-                                            title="Foto Carded del Catálogo"
-                                        >
-                                            <img
-                                                src={proxifyImageUrl(item.hotWheelsCar.photo_url_carded)}
-                                                alt="Foto Carded del Catálogo"
-                                                crossOrigin="anonymous"
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute bottom-0.5 left-0.5 bg-amber-900/80 text-white text-xs px-1 rounded">C</div>
-                                        </button>
-                                    )}
-
-                                    {/* Gallery photos (if exists and not duplicates) */}
-                                    {Array.isArray(item.hotWheelsCar?.photo_gallery) && item.hotWheelsCar.photo_gallery
-                                        .filter((url: string) => url && !item.photos.includes(url) && url !== item.hotWheelsCar?.photo_url_carded)
-                                        .map((url: string, idx: number) => {
-                                            const baseIndex = item.photos!.length + (item.hotWheelsCar?.photo_url_carded ? 1 : 0)
-                                            return (
+                                    {displayPhotos.length > 1 && (
+                                        <div className="flex gap-2 p-2 sm:p-3 overflow-x-auto">
+                                            {displayPhotos.map((photo, index) => (
                                                 <button
-                                                    key={`gallery-${idx}`}
-                                                    onClick={() => setSelectedPhotoIndex(baseIndex + idx)}
-                                                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 relative flex flex-col items-center justify-center ${selectedPhotoIndex === baseIndex + idx
-                                                        ? 'border-primary-600'
-                                                        : 'border-slate-700'
-                                                        }`}
-                                                    title="Foto de Galería"
+                                                    key={`${photo.source}-${index}`}
+                                                    onClick={() => setSelectedPhotoIndex(index)}
+                                                    title={photo.title}
+                                                    className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 relative ${safeSelectedPhotoIndex === index ? 'border-primary-600' : 'border-slate-700'}`}
                                                 >
                                                     <img
-                                                        src={proxifyImageUrl(url)}
-                                                        alt={`Gallery ${idx + 1}`}
+                                                        src={proxifyImageUrl(photo.url)}
+                                                        alt={`${carName} ${index + 1}`}
                                                         crossOrigin="anonymous"
                                                         className="w-full h-full object-cover"
                                                     />
-                                                    <div className="absolute bottom-0.5 left-0.5 bg-emerald-900/80 text-white text-xs px-1 rounded">G</div>
+                                                    <div className="absolute bottom-0.5 left-0.5 bg-gray-900/80 text-white text-xs px-1 rounded">
+                                                        {photo.source}
+                                                    </div>
+                                                    {photo.isPrimary && (
+                                                        <div className="absolute top-1 right-1 text-lg">⭐</div>
+                                                    )}
                                                 </button>
-                                            )
-                                        })
-                                    }
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className={`h-80 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}>
+                                    <Package className="w-16 h-16 text-gray-400" />
                                 </div>
                             )}
-                        </div>
-                    ) : (
-                        <div className={`h-64 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}>
-                            <Package className="w-16 h-16 text-gray-400" />
-                        </div>
-                    )}
-                </Card>
-
-                {/* Price Card */}
-                <Card className="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-                    <div className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm opacity-90 mb-1">Precio al Cliente</p>
-                                <p className="text-4xl font-bold">${finalPrice.toFixed(2)}</p>
-                            </div>
-                            <DollarSign className="w-12 h-12 opacity-50" />
-                        </div>
-                        {item.purchasePrice && (
-                            <div className="mt-4 pt-4 border-t border-white/20">
-                                <div className="flex justify-between text-sm">
-                                    <span className="opacity-90">Precio de Compra:</span>
-                                    <span className="font-semibold">${item.purchasePrice.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm mt-1">
-                                    <span className="opacity-90">Ganancia:</span>
-                                    <span className="font-semibold">
-                                        ${(finalPrice - item.purchasePrice).toFixed(2)}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
+                        </Card>
                     </div>
-                </Card>
 
-                {/* Details Section */}
-                <Card>
-                    <div className="p-5 space-y-4">
-                        <h2 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            <Info className="w-5 h-5" />
-                            Detalles
-                        </h2>
-
-                        <div className="space-y-3">
-                            {item.brand && (
-                                <div className="flex items-center gap-3">
-                                    <Tag className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
-                                    <div className="flex-1">
-                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Marca</p>
-                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.brand}</p>
+                    <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+                        <Card className="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+                            <div className="p-4 sm:p-5">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm opacity-90 mb-1">Precio al Cliente</p>
+                                        <p className="text-3xl sm:text-4xl font-bold">${finalPrice.toFixed(2)}</p>
+                                    </div>
+                                    <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 opacity-50" />
+                                </div>
+                                <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-white/20 space-y-1 text-sm">
+                                    <div className="flex justify-between">
+                                        <span className="opacity-90">Compra:</span>
+                                        <span className="font-semibold">${purchasePrice.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="opacity-90">Ganancia:</span>
+                                        <span className="font-semibold">${profit.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="opacity-90">Margen:</span>
+                                        <span className="font-semibold">{margin.toFixed(1)}%</span>
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                        </Card>
 
-                            {item.quantity !== undefined && (
-                                <div className="flex items-center gap-3">
-                                    <Package className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
-                                    <div className="flex-1">
-                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Cantidad Disponible</p>
-                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.quantity} unidades</p>
+                        <Card>
+                            <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                                <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Resumen rápido</h2>
+                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Disponibles</p>
+                                        <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{availableQuantity}</p>
+                                    </div>
+                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Reservadas</p>
+                                        <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{reservedQuantity}</p>
+                                    </div>
+                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Condición</p>
+                                        <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.condition}</p>
+                                    </div>
+                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Ubicación</p>
+                                        <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.location || 'Sin ubicación'}</p>
                                     </div>
                                 </div>
-                            )}
 
-                            {item.condition && (
-                                <div className="flex items-center gap-3">
-                                    <Info className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
-                                    <div className="flex-1">
-                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Condición</p>
-                                        <p className={`font-medium capitalize ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.condition}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {item.location && (
-                                <div className="flex items-center gap-3">
-                                    <MapPin className={`w-5 h-5 ${isDark ? 'text-slate-300' : 'text-gray-400'}`} />
-                                    <div className="flex-1">
-                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Ubicación</p>
-                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.location}</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {(item.isTreasureHunt || item.isSuperTreasureHunt || item.isChase) && (
-                                <div className="flex items-center gap-3">
-                                    <Tag className="w-5 h-5 text-yellow-500" />
-                                    <div className="flex-1">
-                                        <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Tipo Especial</p>
-                                        <div className="flex gap-2 mt-1">
-                                            {item.isSuperTreasureHunt && (
-                                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                                                    STH
+                                {specialTags.length > 0 && (
+                                    <div>
+                                        <p className={`text-xs mb-1.5 sm:mb-2 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Etiquetas especiales</p>
+                                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                                            {specialTags.map((tag) => (
+                                                <span key={tag} className="px-2 py-0.5 sm:py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                                                    {tag}
                                                 </span>
-                                            )}
-                                            {item.isTreasureHunt && (
-                                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                                    TH
-                                                </span>
-                                            )}
-                                            {item.isChase && (
-                                                <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                                                    Chase
-                                                </span>
-                                            )}
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
+                        </Card>
 
-                            {item.notes && (
-                                <div className="pt-3 border-t">
-                                    <p className={`text-sm mb-1 ${isDark ? 'text-slate-300' : 'text-gray-500'}`}>Notas</p>
-                                    <p className={isDark ? 'text-slate-200' : 'text-gray-700'}>{item.notes}</p>
-                                </div>
-                            )}
-                        </div>
+                        <Card>
+                            <div className="p-3 sm:p-4 space-y-2">
+                                <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Acciones</h2>
+                                <Button
+                                    className="w-full justify-center gap-2 h-9 sm:h-10"
+                                    onClick={() => item && handleEditItem(item)}
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Editar Item
+                                </Button>
+                                {canEditCatalog && item && (
+                                    <Button
+                                        className="w-full justify-center gap-2 h-9 sm:h-10 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                        variant="secondary"
+                                        onClick={() => setShowEditCatalogModal(true)}
+                                    >
+                                        <Pencil className="w-4 h-4" />
+                                        Editar Catálogo
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="secondary"
+                                    className="w-full justify-center gap-2 h-9 sm:h-10 text-red-600 border-red-200 hover:bg-red-50"
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    disabled={isDeleting}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    {isDeleting ? 'Eliminando...' : 'Eliminar Item'}
+                                </Button>
+                            </div>
+                        </Card>
                     </div>
-                </Card>
+                </div>
 
-                {/* Action Buttons */}
                 <Card>
-                    <div className="p-4 space-y-2">
-                        <Button
-                            className="w-full justify-center gap-2"
-                            onClick={() => item && handleEditItem(item)}
-                        >
-                            <Edit className="w-4 h-4" />
-                            Editar Item
-                        </Button>
-                        {canEditCatalog && item && (
-                            <Button
-                                className="w-full justify-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                                variant="secondary"
-                                onClick={() => setShowEditCatalogModal(true)}
-                            >
-                                <Pencil className="w-4 h-4" />
-                                Editar Catálogo
-                            </Button>
+                    <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
+                        <h2 className={`text-base sm:text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                            Ficha técnica completa
+                        </h2>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                            {visibleTechnicalRows.map((row) => (
+                                <div
+                                    key={row.label}
+                                    className={`rounded-lg p-2.5 sm:p-3 ${isDark ? 'bg-slate-700/40 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}
+                                >
+                                    <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>{row.label}</p>
+                                    <p className={`text-sm sm:text-base font-medium break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{String(row.value)}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {item.notes && (
+                            <div className={`rounded-lg p-2.5 sm:p-3 ${isDark ? 'bg-slate-700/40 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}>
+                                <p className={`text-xs uppercase tracking-wide mb-1 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Notas</p>
+                                <p className={`${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{item.notes}</p>
+                            </div>
                         )}
-                        <Button
-                            variant="secondary"
-                            className="w-full justify-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => setShowDeleteConfirm(true)}
-                            disabled={isDeleting}
-                        >
-                            <Trash2 className="w-4 h-4" />
-                            {isDeleting ? 'Eliminando...' : 'Eliminar Item'}
-                        </Button>
                     </div>
                 </Card>
             </div>
 
-            {/* Floating Share Button */}
             <button
                 onClick={handleOpenShareModal}
-                className="fixed bottom-6 right-6 bg-primary-600 hover:bg-primary-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-110 z-20"
+                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-primary-600 hover:bg-primary-700 text-white rounded-full p-3 sm:p-4 shadow-lg transition-all hover:scale-110 z-20"
+                style={{
+                    bottom: `calc(env(safe-area-inset-bottom, 0px) + ${floatingButtonBottom}px)`
+                }}
             >
-                <Share2 className="w-6 h-6" />
+                <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
-            {/* Share Modal */}
             <Modal
                 isOpen={showShareModal}
                 onClose={() => setShowShareModal(false)}
-                title="📤 Compartir con Cliente"
+                title="Compartir pieza"
                 maxWidth="md"
             >
                 <div className="space-y-4">
-                    {/* Preview Card */}
-                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-xl border-2 border-blue-200">
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                            <p className="text-sm font-medium text-gray-700">Vista Previa Moderna</p>
-                        </div>
-                        <div className="bg-slate-800 rounded-lg p-3 shadow-sm">
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="text-2xl">🏎️</span>
-                                <p className="font-semibold text-sm line-clamp-2">{carName}</p>
-                            </div>
-                            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold tracking-wide">PRECIO</p>
-                                <p className="text-2xl font-bold">${sharePrice.toFixed(2)}</p>
-                            </div>
-                            <div className="mt-2 bg-slate-700/30 rounded-lg p-2 text-xs space-y-1">
-                                <p className={`font-semibold text-center ${isDark ? 'text-blue-300' : 'text-blue-900'}`}>📋 ESPECIFICACIONES</p>
-                                {item?.brand && <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>🏷️ <span className="font-medium">{item.brand}</span></p>}
-                                {item?.condition && <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>✨ <span className="font-medium">{item.condition}</span></p>}
-                                {showQuantityInShare && item?.quantity !== undefined && <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>📦 <span className="font-medium">{item.quantity} disponibles</span></p>}
-                            </div>
-                        </div>
-                        <p className={`text-xs mt-2 text-center ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                            ✨ Diseño profesional con gradientes y efectos modernos
+                    <div className={`rounded-lg p-3 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                        <p className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                            Elige cómo quieres compartir esta pieza con tu cliente.
                         </p>
                     </div>
 
-                    <div className="bg-slate-700/30 p-4 rounded-lg">
-                        <p className="font-semibold text-lg mb-3">{carName}</p>
-                        <div className="space-y-3">
-                            <div>
-                                <label className="text-sm font-medium text-gray-700">Precio para compartir:</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={sharePrice}
-                                        onChange={(e) => setSharePrice(parseFloat(e.target.value) || 0)}
-                                        className="w-full pl-8 pr-4 py-2 border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-600 focus:border-transparent text-xl font-bold text-primary-600"
-                                    />
-                                </div>
-                            </div>
-                            {item?.quantity !== undefined && (
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={showQuantityInShare}
-                                        onChange={(e) => setShowQuantityInShare(e.target.checked)}
-                                        className="w-4 h-4 accent-primary-600 rounded"
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">
-                                        Mostrar disponibilidad ({item.quantity} unidades)
-                                    </span>
-                                </label>
-                            )}
-                        </div>
+                    <div>
+                        <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                            Precio para compartir
+                        </label>
+                        <input
+                            type="number"
+                            inputMode="decimal"
+                            step="0.01"
+                            min="0"
+                            className="input w-full"
+                            value={sharePrice}
+                            onChange={(e) => setSharePrice(Number(e.target.value) || 0)}
+                        />
                     </div>
 
-                    <p className="text-sm text-gray-700 font-medium">
-                        Selecciona el formato para compartir:
-                    </p>
+                    <label className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                        <input
+                            type="checkbox"
+                            checked={showQuantityInShare}
+                            onChange={(e) => setShowQuantityInShare(e.target.checked)}
+                            className="w-4 h-4 accent-primary-600"
+                        />
+                        Mostrar cantidad disponible en el reporte
+                    </label>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <button
-                            onClick={handleShareImage}
-                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-slate-700 hover:border-blue-500 hover:shadow-lg bg-slate-800 hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50"
-                        >
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">Popular</span>
-                            </div>
-                            <ImageIcon className="w-10 h-10 mx-auto mb-2 text-blue-600 group-hover:scale-110 transition-transform" />
-                            <p className="font-bold text-white">Imagen</p>
-                            <p className="text-xs text-slate-400 mt-1">Recortar y compartir</p>
-                            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                <span>Rápido</span>
-                            </div>
-                        </button>
-
-                        <button
-                            onClick={handleSharePDF}
-                            className="group relative overflow-hidden p-5 border-2 rounded-xl transition-all border-slate-700 hover:border-red-500 hover:shadow-lg bg-slate-800 hover:bg-gradient-to-br hover:from-red-50 hover:to-orange-50"
-                        >
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full">Pro</span>
-                            </div>
-                            <FileText className="w-10 h-10 mx-auto mb-2 text-red-600 group-hover:scale-110 transition-transform" />
-                            <p className="font-bold text-white">PDF</p>
-                            <p className="text-xs text-slate-400 mt-1">Documento completo</p>
-                            <div className="mt-2 flex items-center justify-center gap-1 text-xs text-gray-500">
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                                <span>Profesional</span>
-                            </div>
-                        </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Button className="w-full justify-center gap-2" onClick={handleShareImage}>
+                            <ImageIcon className="w-4 h-4" />
+                            Compartir imagen
+                        </Button>
+                        <Button className="w-full justify-center gap-2" variant="secondary" onClick={handleSharePDF}>
+                            <FileText className="w-4 h-4" />
+                            Compartir PDF
+                        </Button>
                     </div>
                 </div>
             </Modal>
 
-            {/* Crop Modal */}
             <Modal
                 isOpen={showCropModal}
                 onClose={() => {
@@ -1383,10 +1383,10 @@ export default function ItemDetail() {
                     setShareMode(null)
                     setCompletedCrop(null)
                 }}
-                title="✂️ Recortar Imagen"
-                maxWidth="4xl"
+                title={shareMode === 'pdf' ? 'Recortar imagen para PDF' : 'Recortar imagen para compartir'}
+                maxWidth="lg"
                 footer={
-                    <div className="flex gap-2 w-full">
+                    <div className="flex space-x-3">
                         <Button
                             variant="secondary"
                             className="flex-1"
@@ -1399,10 +1399,7 @@ export default function ItemDetail() {
                             <X className="w-4 h-4 mr-1" />
                             Cancelar
                         </Button>
-                        <Button
-                            className="flex-1"
-                            onClick={handleConfirmCrop}
-                        >
+                        <Button className="flex-1" onClick={handleConfirmCrop}>
                             <Share2 className="w-4 h-4 mr-1" />
                             Compartir
                         </Button>
@@ -1411,12 +1408,10 @@ export default function ItemDetail() {
             >
                 <div className="space-y-3">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-blue-900">
-                            Ajusta el área que quieres compartir con el cliente
-                        </p>
+                        <p className="text-sm text-blue-900">Ajusta el área que quieres compartir con el cliente.</p>
                     </div>
 
-                    {item.photos && item.photos[selectedPhotoIndex] && (
+                    {selectedPhoto && (
                         <div className="w-full bg-slate-700 rounded-lg overflow-auto" style={{ maxHeight: '70vh', minHeight: '400px' }}>
                             <ReactCrop
                                 crop={crop}
@@ -1426,12 +1421,11 @@ export default function ItemDetail() {
                             >
                                 <img
                                     ref={imageRef}
-                                    src={item.photos[selectedPhotoIndex]}
+                                    src={proxifyImageUrl(selectedPhoto.url)}
                                     alt={carName}
                                     crossOrigin="anonymous"
                                     style={{ width: '100%', height: 'auto', display: 'block' }}
                                     onLoad={() => {
-                                        // Set initial completedCrop when image loads
                                         if (!completedCrop) {
                                             setCompletedCrop(crop)
                                         }

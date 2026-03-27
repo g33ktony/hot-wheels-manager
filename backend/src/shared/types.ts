@@ -297,6 +297,27 @@ export interface Payment {
   updatedAt?: Date;
 }
 
+export interface DeliveryStatusStats {
+  count: number;
+  totalAmount: number;
+}
+
+export interface DeliveryStats {
+  scheduled: DeliveryStatusStats;
+  prepared: DeliveryStatusStats;
+  completed: DeliveryStatusStats;
+  cancelled: DeliveryStatusStats;
+  rescheduled: DeliveryStatusStats;
+}
+
+export interface DeliveryPaymentHistory {
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  paymentStatus: 'pending' | 'partial' | 'paid';
+  payments: Payment[];
+}
+
 export interface DeliveryItem {
   inventoryItemId?: string; // Optional for catalog items
   hotWheelsCarId?: string; // For catalog items

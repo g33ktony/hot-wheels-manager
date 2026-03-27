@@ -268,8 +268,6 @@ export default function Inventory() {
         handleDeselectAllItems,
         handleAddToCart,
         handleCreateDeliveryFromInventory,
-        handleLongPressStart,
-        handleLongPressEnd,
     } = useInventorySelectionActions({
         reduxSelection,
         filteredItems,
@@ -392,8 +390,6 @@ export default function Inventory() {
                 getPlaceholderLogo={getPlaceholderLogo}
                 onShowAddModal={() => setShowAddModal(true)}
                 onToggleItemSelection={handleToggleItemSelection}
-                onLongPressStart={handleLongPressStart}
-                onLongPressEnd={handleLongPressEnd}
                 onImageClick={handleImageClick}
                 onNavigateToDetail={(id) => navigate(`/inventory/${id}`)}
                 onAddToDelivery={(item) => {

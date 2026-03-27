@@ -4,7 +4,6 @@ import Button from './common/Button'
 import Modal from './common/Modal'
 import ReactCrop, { Crop as CropType, PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
-import jsPDF from 'jspdf'
 import type { InventoryItem } from '@shared/types'
 
 interface CollageItem {
@@ -457,6 +456,8 @@ export default function CollageGenerator({
     const generatePDF = async () => {
         setIsGeneratingPDF(true)
         try {
+            const { default: jsPDF } = await import('jspdf')
+
             // Create PDF in landscape orientation to fit collages better
             const pdf = new jsPDF({
                 orientation: 'landscape',

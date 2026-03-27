@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { addMultipleToCart } from '@/store/slices/cartSlice'
 import { addMultipleToDeliveryCart } from '@/store/slices/deliveryCartSlice'
@@ -89,28 +89,6 @@ export const useInventorySelectionActions = ({
         toast.success(`${deliveryCartItems.length} items agregados al carrito de entrega`)
     }, [dispatch, getSelectedItems, selectedItems.size])
 
-    const longPressTimers = useRef<{ [key: string]: ReturnType<typeof setTimeout> }>({})
-    const LONG_PRESS_DURATION = 500
-
-    const handleLongPressStart = useCallback((itemId: string) => {
-        if (isSelectionMode) return
-
-        longPressTimers.current[itemId] = setTimeout(() => {
-            dispatch(setSelectionMode(true))
-            dispatch(toggleItemSelection(itemId))
-            if (navigator.vibrate) {
-                navigator.vibrate(100)
-            }
-        }, LONG_PRESS_DURATION)
-    }, [dispatch, isSelectionMode])
-
-    const handleLongPressEnd = useCallback((itemId: string) => {
-        if (longPressTimers.current[itemId]) {
-            clearTimeout(longPressTimers.current[itemId])
-            delete longPressTimers.current[itemId]
-        }
-    }, [])
-
     return {
         isSelectionMode,
         selectedItems,
@@ -121,7 +99,5 @@ export const useInventorySelectionActions = ({
         handleDeselectAllItems,
         handleAddToCart,
         handleCreateDeliveryFromInventory,
-        handleLongPressStart,
-        handleLongPressEnd,
     }
 }

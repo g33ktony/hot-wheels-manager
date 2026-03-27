@@ -3,7 +3,7 @@ import type { Delivery } from '@shared/types'
 
 type PaymentMethod = 'cash' | 'transfer' | 'card' | 'other'
 
-type PaymentStatus = 'paid' | 'unpaid' | 'partial'
+type PaymentStatus = 'paid' | 'pending' | 'partial'
 
 interface PaymentData {
   amount: number

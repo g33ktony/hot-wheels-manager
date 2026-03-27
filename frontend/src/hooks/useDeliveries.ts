@@ -101,7 +101,7 @@ export const useMarkDeliveryAsCompleted = () => {
   const queryClient = useQueryClient()
 
   return useMutation(
-    ({ id, paymentStatus }: { id: string; paymentStatus?: 'paid' | 'unpaid' | 'partial' }) => 
+    ({ id, paymentStatus }: { id: string; paymentStatus?: 'paid' | 'pending' | 'partial' }) => 
       deliveriesService.markAsCompleted(id, paymentStatus),
     {
       onSuccess: (data) => {

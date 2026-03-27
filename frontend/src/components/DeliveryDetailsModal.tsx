@@ -6,7 +6,7 @@ import { deliveriesService } from '../services/deliveries'
 import type { CreateDeliveryDto, Delivery, InventoryItem, Payment } from '@shared/types'
 import type { PreSaleItem } from '@/services/presale'
 
-type PaymentStatus = 'paid' | 'unpaid' | 'partial'
+type PaymentStatus = 'paid' | 'pending' | 'partial'
 
 type InventoryRef = { _id?: string; purchasePrice?: number; photos?: string[] }
 
@@ -62,7 +62,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
 }) => {
     const [isEditingDelivery, setIsEditingDelivery] = useState(false)
     const [showPaymentStatusDialog, setShowPaymentStatusDialog] = useState(false)
-    const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<PaymentStatus>('unpaid')
+    const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<PaymentStatus>('pending')
 
     if (!isOpen || !delivery) return null
 
@@ -563,15 +563,15 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
 
                                 <label className="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all"
                                     style={{
-                                        borderColor: selectedPaymentStatus === 'unpaid' ? '#ef4444' : '#e5e7eb',
-                                        backgroundColor: selectedPaymentStatus === 'unpaid' ? '#fef2f2' : '#ffffff'
+                                        borderColor: selectedPaymentStatus === 'pending' ? '#ef4444' : '#e5e7eb',
+                                        backgroundColor: selectedPaymentStatus === 'pending' ? '#fef2f2' : '#ffffff'
                                     }}>
                                     <input
                                         type="radio"
                                         name="paymentStatus"
-                                        value="unpaid"
-                                        checked={selectedPaymentStatus === 'unpaid'}
-                                        onChange={() => setSelectedPaymentStatus('unpaid')}
+                                        value="pending"
+                                        checked={selectedPaymentStatus === 'pending'}
+                                        onChange={() => setSelectedPaymentStatus('pending')}
                                         className="w-4 h-4 cursor-pointer"
                                     />
                                     <div className="ml-3">

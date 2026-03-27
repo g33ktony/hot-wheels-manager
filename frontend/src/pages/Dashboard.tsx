@@ -19,10 +19,7 @@ import toast from 'react-hot-toast'
 
 export default function Dashboard() {
     const navigate = useNavigate()
-    const { selectedStore, userStore } = useStore()
-
-    // Log EVERY render along with selectedStore value
-    console.log('🎯 [Dashboard] RENDER - selectedStore:', selectedStore, 'userStore:', userStore)
+    const { selectedStore } = useStore()
 
     const [showUpdateModal, setShowUpdateModal] = React.useState(false)
     const [showSearchModal, setShowSearchModal] = React.useState(false)
@@ -31,17 +28,9 @@ export default function Dashboard() {
     const [selectedUnpaidDelivery, setSelectedUnpaidDelivery] = React.useState<any>(null)
     const [isInitiatingUpdate, setIsInitiatingUpdate] = React.useState(false)
 
-    // Log when selectedStore changes
-    React.useEffect(() => {
-        console.log('🔍 [Dashboard] selectedStore CHANGED (effect):', selectedStore)
-    }, [selectedStore])
-
     const { data: metrics, isLoading, error } = useQuery(
         ['dashboard-metrics', selectedStore],
-        () => {
-            console.log('📊 [Dashboard] useQuery fetching metrics for:', selectedStore)
-            return dashboardService.getMetrics(selectedStore ?? undefined)
-        },
+        () => dashboardService.getMetrics(selectedStore ?? undefined),
         {
             refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
             staleTime: 0, // Treat as stale immediately so changes are visible
@@ -49,10 +38,7 @@ export default function Dashboard() {
     )
     const { data: unpaidDeliveries = [] } = useQuery(
         ['unpaid-deliveries', selectedStore],
-        () => {
-            console.log('📊 [Dashboard] useQuery fetching unpaid deliveries for:', selectedStore)
-            return dashboardService.getUnpaidDeliveries(selectedStore ?? undefined)
-        },
+        () => dashboardService.getUnpaidDeliveries(selectedStore ?? undefined),
         {
             refetchInterval: 5 * 60 * 1000, // Refrescar cada 5 minutos
             staleTime: 0,
@@ -746,9 +732,6 @@ export default function Dashboard() {
                                                     alt={item.model}
                                                     className="w-full h-full object-contain bg-slate-800"
                                                     crossOrigin="anonymous"
-                                                    onLoad={() => {
-                                                        console.log('✅ Imagen cargada:', item.model, item.photo_url)
-                                                    }}
                                                     onError={(e) => {
                                                         console.warn('❌ Error cargando imagen:', {
                                                             model: item.model,

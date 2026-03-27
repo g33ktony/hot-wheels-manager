@@ -11,12 +11,11 @@ import { createStoreFilter } from '../utils/storeAccess';
 export const getDeliveries = async (req: Request, res: Response) => {
   try {
     // Get status filter from query params
-    const { status, fromDate, includeCompleted, includeUnpaidCompleted } = req.query;
+    const { status, fromDate, includeCompleted, includeUnpaidCompleted, paymentStatus } = req.query;
 
     // Check if storeId is provided as query parameter (for sys_admin viewing other stores)
     const queryStoreId = (req.query.storeId as string)
     const finalStoreId = queryStoreId || req.storeId
-    console.log('🔍 [getDeliveries] Fetching deliveries for store:', finalStoreId, '(query param:', queryStoreId, ', user store:', req.storeId, ')')
 
     // Build filter
     const filter: any = {};
@@ -39,7 +38,7 @@ export const getDeliveries = async (req: Request, res: Response) => {
           { status: { $in: ['scheduled', 'prepared'] } },
           { 
             status: 'completed',
-            paymentStatus: { $in: ['unpaid', 'partial'] }
+            paymentStatus: { $in: ['pending', 'partial'] }
           }
         ];
       } else {
@@ -47,6 +46,20 @@ export const getDeliveries = async (req: Request, res: Response) => {
       }
     }
     // else: no filter, show all deliveries (including completed)
+
+    if (typeof paymentStatus === 'string') {
+      const normalizedPaymentStatuses = paymentStatus
+        .split(',')
+        .map((value) => value.trim())
+        .map((value) => (value === 'unpaid' ? 'pending' : value))
+        .filter((value): value is 'pending' | 'partial' | 'paid' => ['pending', 'partial', 'paid'].includes(value));
+
+      if (normalizedPaymentStatuses.length === 1) {
+        filter.paymentStatus = normalizedPaymentStatuses[0];
+      } else if (normalizedPaymentStatuses.length > 1) {
+        filter.paymentStatus = { $in: normalizedPaymentStatuses };
+      }
+    }
     
     // Handle date filtering - only apply if fromDate is provided
     if (fromDate) {
@@ -171,13 +184,6 @@ export const getDeliveryById = async (req: Request, res: Response) => {
 
     // Enrich items with photos and cost data from inventory
     const enrichedDelivery = delivery.toObject();
-    
-    console.log('🔍 DELIVERY BEFORE ENRICHMENT - First item:', {
-      carName: enrichedDelivery.items[0]?.carName,
-      hasPhotos: !!enrichedDelivery.items[0]?.photos,
-      hasCostPrice: !!enrichedDelivery.items[0]?.costPrice,
-      inventoryId: enrichedDelivery.items[0]?.inventoryItemId
-    });
 
     enrichedDelivery.items = enrichedDelivery.items.map((item: any) => {
       const inventory = item.inventoryItemId as any;
@@ -199,13 +205,6 @@ export const getDeliveryById = async (req: Request, res: Response) => {
       return item;
     });
 
-    console.log('✅ DELIVERY AFTER ENRICHMENT - First item:', {
-      carName: enrichedDelivery.items[0]?.carName,
-      hasPhotos: !!enrichedDelivery.items[0]?.photos,
-      photosCount: enrichedDelivery.items[0]?.photos?.length || 0,
-      costPrice: enrichedDelivery.items[0]?.costPrice
-    });
-
     res.json({
       success: true,
       data: enrichedDelivery,
@@ -225,15 +224,6 @@ export const getDeliveryById = async (req: Request, res: Response) => {
 export const createDelivery = async (req: Request, res: Response) => {
   try {
     const { customerId, items, scheduledDate, scheduledTime, location, notes, forPreSale, totalAmount: requestTotalAmount } = req.body;
-
-    console.log('📦 CREATE DELIVERY REQUEST:', {
-      customerId,
-      itemsCount: items?.length || 0,
-      requestTotalAmount,
-      forPreSale,
-      location,
-      scheduledDate
-    });
 
     // Validate required fields
     // Allow empty items array if creating for PreSale (items will be added during assignment)
@@ -375,14 +365,6 @@ export const createDelivery = async (req: Request, res: Response) => {
       parsedScheduledDate = startDate;
     }
 
-    console.log('📦 DELIVERY CREATION DETAILS:', {
-      calculatedTotalAmount: totalAmount,
-      resolvedTotalAmount,
-      hasPresaleItems,
-      location: resolvedLocation,
-      scheduledDate: parsedScheduledDate.toISOString()
-    });
-
     const delivery = new DeliveryModel({
       customerId,
       customer,
@@ -398,13 +380,6 @@ export const createDelivery = async (req: Request, res: Response) => {
     });
 
     await delivery.save();
-
-    console.log('✅ DELIVERY SAVED:', {
-      _id: delivery._id,
-      totalAmount: delivery.totalAmount,
-      paidAmount: delivery.paidAmount,
-      paymentStatus: delivery.paymentStatus
-    });
 
     res.status(201).json({
       success: true,
@@ -606,7 +581,8 @@ export const deleteDelivery = async (req: Request, res: Response) => {
 export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { paymentStatus } = req.body; // 'unpaid', 'partial', or 'paid'
+    const { paymentStatus } = req.body; // 'pending', 'partial', or 'paid' (legacy: 'unpaid')
+    const normalizedPaymentStatus = paymentStatus === 'unpaid' ? 'pending' : paymentStatus;
 
     const delivery = await DeliveryModel.findById(id);
     if (!delivery) {
@@ -631,7 +607,7 @@ export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
     delivery.completedDate = new Date();
     
     // Handle payment status
-    if (paymentStatus === 'paid') {
+    if (normalizedPaymentStatus === 'paid') {
       // If marking as fully paid, auto-complete remaining amount (if any)
       const currentPaidAmount = delivery.paidAmount || 0;
       if (currentPaidAmount < delivery.totalAmount) {
@@ -667,8 +643,9 @@ export const markDeliveryAsCompleted = async (req: Request, res: Response) => {
         message: 'Entrega completada y marcada como pagada. Venta creada.'
       });
     } else {
-      // For 'unpaid' or 'partial' or no explicit status, just mark as completed without auto-payment
-      // Keep the current paymentStatus
+      if (normalizedPaymentStatus === 'pending' || normalizedPaymentStatus === 'partial') {
+        delivery.paymentStatus = normalizedPaymentStatus;
+      }
       
       await delivery.save();
       

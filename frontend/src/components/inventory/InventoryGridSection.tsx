@@ -4,7 +4,6 @@ import { LazyImage } from '@/components/LazyImage'
 import type { InventoryItem } from '@shared/types'
 import {
     Edit,
-    Info,
     MapPin,
     Maximize2,
     Package,
@@ -35,8 +34,6 @@ interface InventoryGridSectionProps {
     getPlaceholderLogo: (series?: string) => string
     onShowAddModal: () => void
     onToggleItemSelection: (id: string) => void
-    onLongPressStart: (id: string) => void
-    onLongPressEnd: (id: string) => void
     onImageClick: (photos: string[], index?: number) => void
     onNavigateToDetail: (id: string) => void
     onAddToDelivery: (item: InventoryItem) => void
@@ -67,8 +64,6 @@ export default function InventoryGridSection({
     getPlaceholderLogo,
     onShowAddModal,
     onToggleItemSelection,
-    onLongPressStart,
-    onLongPressEnd,
     onImageClick,
     onNavigateToDetail,
     onAddToDelivery,
@@ -123,16 +118,11 @@ export default function InventoryGridSection({
                             <Card
                                 key={item._id}
                                 hover={!isSelectionMode && isAvailable}
-                                className={`relative ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`relative overflow-hidden p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <div
-                                    className={`${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
+                                    className={`h-full ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
                                     onClick={() => isSelectionMode && isAvailable && item._id && onToggleItemSelection(item._id)}
-                                    onMouseDown={() => item._id && isAvailable && onLongPressStart(item._id)}
-                                    onMouseUp={() => item._id && onLongPressEnd(item._id)}
-                                    onMouseLeave={() => item._id && onLongPressEnd(item._id)}
-                                    onTouchStart={() => item._id && isAvailable && onLongPressStart(item._id)}
-                                    onTouchEnd={() => item._id && onLongPressEnd(item._id)}
                                 >
                                     {isSelectionMode && (
                                         <div className="absolute top-3 left-3 z-10">
@@ -156,24 +146,24 @@ export default function InventoryGridSection({
                                         </div>
                                     )}
 
-                                    <div className="space-y-4">
+                                    <div className="space-y-0 h-full flex flex-col">
                                         <div
-                                            className="bg-slate-700 rounded-lg flex items-center justify-center h-32 relative group cursor-pointer"
+                                            className="bg-slate-700 h-60 sm:h-72 relative group cursor-pointer touch-manipulation overflow-hidden"
                                             onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && onImageClick(item.photos, item.primaryPhotoIndex || 0)}
                                         >
                                             {item.photos && item.photos.length > 0 ? (
                                                 <>
                                                     <LazyImage
-                                                        src={item.photos[item.primaryPhotoIndex || 0].includes('weserv') ? item.photos[item.primaryPhotoIndex || 0] : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[item.primaryPhotoIndex || 0])}&w=300&h=200&fit=contain`}
+                                                        src={item.photos[item.primaryPhotoIndex || 0].includes('weserv') ? item.photos[item.primaryPhotoIndex || 0] : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[item.primaryPhotoIndex || 0])}&w=1200&h=1600&fit=cover`}
                                                         alt="Auto a Escala"
-                                                        className={`w-full h-full object-cover rounded-lg transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'}`}
+                                                        className={`w-full h-full object-cover transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'}`}
                                                         onError={(e) => {
-                                                            ;(e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                                                            ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
                                                         }}
                                                         onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && onImageClick(item.photos, item.primaryPhotoIndex || 0)}
                                                     />
                                                     {!isSelectionMode && (
-                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20 rounded-lg">
+                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20">
                                                             <Maximize2 size={32} className="text-white drop-shadow-lg" />
                                                         </div>
                                                     )}
@@ -224,8 +214,15 @@ export default function InventoryGridSection({
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <h3 className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                        <div className="space-y-1 px-3 sm:px-4 pt-3 sm:pt-4">
+                                            <h3
+                                                className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'} ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-400 transition-colors' : ''}`}
+                                                onClick={() => {
+                                                    if (!isSelectionMode && item._id) {
+                                                        onNavigateToDetail(item._id)
+                                                    }
+                                                }}
+                                            >
                                                 {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
                                             </h3>
                                             <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -276,22 +273,26 @@ export default function InventoryGridSection({
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-sm">
-                                                <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Costo:</span>
-                                                <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>${item.purchasePrice.toFixed(2)}</span>
+                                        <div className={`mx-3 sm:mx-4 rounded-lg p-2 ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
+                                            <div className="grid grid-cols-3 gap-2 text-xs">
+                                                <div>
+                                                    <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Costo</p>
+                                                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>${item.purchasePrice.toFixed(2)}</p>
+                                                </div>
+                                                <div>
+                                                    <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Sugerido</p>
+                                                    <p className="font-semibold text-emerald-400">${item.suggestedPrice.toFixed(2)}</p>
+                                                </div>
+                                                <div>
+                                                    <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Ganancia</p>
+                                                    <p className="font-semibold text-primary-600">
+                                                        ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Sugerido:</span>
-                                                <span className="font-medium text-emerald-400">${item.suggestedPrice.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm border-t pt-1">
-                                                <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Ganancia:</span>
-                                                <span className="font-semibold text-primary-600">
-                                                    ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
-                                                    <span className="text-xs ml-1">
-                                                        (+{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%)
-                                                    </span>
+                                            <div className="text-right mt-1">
+                                                <span className="text-xs text-primary-600 font-medium">
+                                                    +{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%
                                                 </span>
                                             </div>
                                             {item.location && (
@@ -303,51 +304,53 @@ export default function InventoryGridSection({
                                         </div>
 
                                         {!isSelectionMode && (
-                                            <div className="grid grid-cols-2 gap-2 pt-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="primary"
-                                                    className="col-span-2"
-                                                    onClick={() => item._id && onNavigateToDetail(item._id)}
-                                                >
-                                                    <Info size={16} className="mr-1" />
-                                                    Detalle
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="primary"
-                                                    onClick={() => onAddToDelivery(item)}
-                                                    disabled={!isAvailable || !canCreate}
-                                                    title="Agregar a entrega"
-                                                >
-                                                    <Truck size={16} />
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="primary"
-                                                    onClick={() => onAddToPos(item)}
-                                                    disabled={!isAvailable || !canCreate}
-                                                    title="Agregar a POS"
-                                                >
-                                                    <ShoppingCart size={16} />
-                                                </Button>
-                                                {canEdit && (
+                                            <div className="space-y-2 p-3 sm:p-4 pb-4">
+                                                <div className="grid grid-cols-2 gap-2">
                                                     <Button
                                                         size="sm"
-                                                        variant="secondary"
-                                                        onClick={() => onEditItem(item)}
+                                                        variant="primary"
+                                                        onClick={() => onAddToDelivery(item)}
+                                                        disabled={!isAvailable || !canCreate}
+                                                        title="Agregar a entrega"
                                                     >
-                                                        <Edit size={16} />
+                                                        <Truck size={16} className="mr-1" />
+                                                        Entrega
                                                     </Button>
-                                                )}
-                                                {canDelete && (
                                                     <Button
                                                         size="sm"
-                                                        variant="danger"
-                                                        onClick={() => item._id && onDeleteItem(item._id)}
+                                                        variant="primary"
+                                                        onClick={() => onAddToPos(item)}
+                                                        disabled={!isAvailable || !canCreate}
+                                                        title="Agregar a POS"
                                                     >
-                                                        <Trash2 size={16} />
+                                                        <ShoppingCart size={16} className="mr-1" />
+                                                        POS
                                                     </Button>
+                                                </div>
+
+                                                {(canEdit || canDelete) && (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {canEdit && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="secondary"
+                                                                onClick={() => onEditItem(item)}
+                                                            >
+                                                                <Edit size={16} className="mr-1" />
+                                                                Editar
+                                                            </Button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="danger"
+                                                                onClick={() => item._id && onDeleteItem(item._id)}
+                                                            >
+                                                                <Trash2 size={16} className="mr-1" />
+                                                                Eliminar
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
                                         )}

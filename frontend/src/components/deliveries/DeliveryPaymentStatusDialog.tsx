@@ -5,7 +5,7 @@ interface DeliveryPaymentStatusDialogProps {
   isOpen: boolean
   isLoading: boolean
   onClose: () => void
-  onConfirm: (paymentStatus: 'unpaid' | 'partial' | 'paid') => void
+  onConfirm: (paymentStatus: 'pending' | 'partial' | 'paid') => void
 }
 
 export default function DeliveryPaymentStatusDialog({
@@ -41,7 +41,7 @@ export default function DeliveryPaymentStatusDialog({
           <Button
             type="button"
             variant="secondary"
-            onClick={() => onConfirm('unpaid')}
+            onClick={() => onConfirm('pending')}
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 text-white"
           >

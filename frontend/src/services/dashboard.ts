@@ -1,14 +1,12 @@
 import api from './api'
-import type { DashboardMetrics, ApiResponse } from '@shared/types'
+import type { DashboardMetrics, ApiResponse, Delivery } from '@shared/types'
 
 export const dashboardService = {
   // Obtener métricas del dashboard
   getMetrics: async (selectedStore?: string): Promise<DashboardMetrics> => {
     const params = selectedStore ? `?storeId=${selectedStore}` : ''
     const fullUrl = `/dashboard/metrics${params}`
-    console.log('📊 [dashboardService.getMetrics] Fetching:', fullUrl, 'selectedStore:', selectedStore)
     const response = await api.get<ApiResponse<DashboardMetrics>>(fullUrl)
-    console.log('📊 [dashboardService.getMetrics] Response received, data keys:', Object.keys(response.data.data || {}))
     if (!response.data.data) {
       throw new Error('Failed to fetch dashboard metrics')
     }
@@ -87,7 +85,7 @@ export const dashboardService = {
   // Obtener entregas completadas pero sin pagar
   getUnpaidDeliveries: async (selectedStore?: string) => {
     const params = selectedStore ? `?storeId=${selectedStore}` : ''
-    const response = await api.get<ApiResponse<any[]>>(`/deliveries?status=completed&paymentStatus=unpaid,partial${params ? '&' + params.substring(1) : ''}`)
+    const response = await api.get<ApiResponse<Delivery[]>>(`/deliveries?status=completed&paymentStatus=pending,partial${params ? '&' + params.substring(1) : ''}`)
     return response.data.data || []
   }
 }

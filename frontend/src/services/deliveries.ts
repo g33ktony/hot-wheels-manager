@@ -2,13 +2,23 @@ import api from './api'
 import type { 
   Delivery, 
   CreateDeliveryDto,
-  ApiResponse 
+  ApiResponse,
+  DeliveryStats,
+  DeliveryPaymentHistory
 } from '@shared/types'
+
+const emptyDeliveryStats: DeliveryStats = {
+  scheduled: { count: 0, totalAmount: 0 },
+  prepared: { count: 0, totalAmount: 0 },
+  completed: { count: 0, totalAmount: 0 },
+  cancelled: { count: 0, totalAmount: 0 },
+  rescheduled: { count: 0, totalAmount: 0 },
+}
 
 export const deliveriesService = {
   // Obtener todas las entregas
   getAll: async (status?: string, fromDate?: string, includeCompleted?: boolean, includeUnpaidCompleted?: boolean, storeId?: string): Promise<Delivery[]> => {
-    const params: any = {};
+    const params: Record<string, string> = {};
     if (status) params.status = status;
     if (fromDate) params.fromDate = fromDate;
     if (includeCompleted) params.includeCompleted = 'true';
@@ -19,9 +29,9 @@ export const deliveriesService = {
   },
 
   // Obtener estadísticas de entregas
-  getStats: async (): Promise<any> => {
-    const response = await api.get<ApiResponse<any>>('/deliveries/stats')
-    return response.data.data || {}
+  getStats: async (): Promise<DeliveryStats> => {
+    const response = await api.get<ApiResponse<DeliveryStats>>('/deliveries/stats')
+    return response.data.data || emptyDeliveryStats
   },
 
   // Obtener entrega por ID
@@ -57,9 +67,9 @@ export const deliveriesService = {
   },
 
   // Marcar entrega como completada
-  markAsCompleted: async (id: string, paymentStatus?: 'paid' | 'unpaid' | 'partial'): Promise<Delivery> => {
+  markAsCompleted: async (id: string, paymentStatus?: 'paid' | 'pending' | 'partial'): Promise<Delivery> => {
     const response = await api.patch<ApiResponse<Delivery>>(`/deliveries/${id}/completed`, {
-      paymentStatus: paymentStatus || 'unpaid'
+      paymentStatus: paymentStatus || 'pending'
     })
     if (!response.data.data) {
       throw new Error('Failed to mark delivery as completed')
@@ -163,10 +173,16 @@ export const deliveriesService = {
   },
 
   // Obtener historial de pagos de una entrega
-  getPaymentHistory: async (deliveryId: string): Promise<any> => {
-    const response = await api.get<ApiResponse<any>>(
+  getPaymentHistory: async (deliveryId: string): Promise<DeliveryPaymentHistory> => {
+    const response = await api.get<ApiResponse<DeliveryPaymentHistory>>(
       `/deliveries/${deliveryId}/payments`
     )
-    return response.data.data
+    return response.data.data || {
+      totalAmount: 0,
+      paidAmount: 0,
+      remainingAmount: 0,
+      paymentStatus: 'pending',
+      payments: [],
+    }
   }
 }
