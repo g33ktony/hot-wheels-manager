@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Camera, X, Check, Loader, Edit3, Crop } from 'lucide-react'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
@@ -16,19 +16,12 @@ interface OCRScannerProps {
     buttonClassName?: string
 }
 
-// Detect if device is mobile
-const isMobileDevice = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        (window.innerWidth <= 768)
-}
-
 export default function OCRScanner({
     onTextExtracted,
     buttonText = 'Escanear nombre',
     buttonClassName = '',
     onImageCaptured
 }: OCRScannerProps) {
-    const [isMobile, setIsMobile] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
     const [showCropModal, setShowCropModal] = useState(false)
     const [showConfirmModal, setShowConfirmModal] = useState(false)
@@ -46,19 +39,6 @@ export default function OCRScanner({
     })
     const imageRef = useRef<HTMLImageElement>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
-
-    // Check if mobile on mount and window resize
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(isMobileDevice())
-        checkMobile()
-        window.addEventListener('resize', checkMobile)
-        return () => window.removeEventListener('resize', checkMobile)
-    }, [])
-
-    // Don't render on desktop
-    if (!isMobile) {
-        return null
-    }
 
     const processImage = async (imageData: string) => {
         setIsProcessing(true)
