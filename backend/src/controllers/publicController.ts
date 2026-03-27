@@ -758,6 +758,10 @@ export const getRandomCatalogItem = async (_req: Request, res: Response): Promis
         photo_url: car.photo_url,
         photo_url_carded: car.photo_url_carded,
         ebay_avg_price: car.ebay_avg_price || null,
+        availability: {
+          available: false,
+          ebayPrice: car.ebay_avg_price || undefined
+        }
       }
     })
   } catch (error) {

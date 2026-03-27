@@ -49,3 +49,18 @@ export const calculateSimilarity = (str1: string, str2: string): number => {
     
     return Math.round(((maxLength - distance) / maxLength) * 100);
 };
+
+/**
+ * Format piece type code to display label
+ */
+export const formatPieceType = (pieceType: string | undefined): string => {
+    if (!pieceType) return '';
+    const typeMap: Record<string, string> = {
+        'basic': 'Básico',
+        'premium': 'Premium',
+        'rlc': 'RLC',
+        'silver_series': 'Silver Series',
+        'elite_64': 'Elite 64'
+    };
+    return typeMap[pieceType] || pieceType;
+};
