@@ -44,7 +44,16 @@ export function useDeliveriesPageComputed<T extends DeliveryLike>({
 
   const allDeliveriesFiltered = useMemo(() => {
     return allDeliveriesData.filter((delivery) => {
-      const deliveryDate = delivery.scheduledDate.toString().split('T')[0]
+      const scheduledDate =
+        delivery.scheduledDate instanceof Date
+          ? delivery.scheduledDate
+          : new Date(delivery.scheduledDate)
+
+      if (Number.isNaN(scheduledDate.getTime())) {
+        return !selectedDate
+      }
+
+      const deliveryDate = scheduledDate.toISOString().split('T')[0]
       return !selectedDate || deliveryDate >= selectedDate
     })
   }, [allDeliveriesData, selectedDate])

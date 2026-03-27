@@ -2,6 +2,10 @@ import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { deliveryLocationsService } from '@/services/deliveryLocations'
 import toast from 'react-hot-toast'
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  return error instanceof Error ? error.message : fallback
+}
+
 export const useDeliveryLocations = () => {
   return useQuery('deliveryLocations', deliveryLocationsService.getAll, {
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -18,8 +22,8 @@ export const useCreateDeliveryLocation = () => {
         queryClient.invalidateQueries('deliveryLocations')
         toast.success('Ubicación agregada exitosamente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al agregar ubicación')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al agregar ubicación'))
       },
     }
   )
@@ -35,8 +39,8 @@ export const useDeleteDeliveryLocation = () => {
         queryClient.invalidateQueries('deliveryLocations')
         toast.success('Ubicación eliminada exitosamente')
       },
-      onError: (error: any) => {
-        toast.error(error.message || 'Error al eliminar ubicación')
+      onError: (error: unknown) => {
+        toast.error(getErrorMessage(error, 'Error al eliminar ubicación'))
       },
     }
   )

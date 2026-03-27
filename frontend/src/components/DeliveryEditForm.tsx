@@ -1,27 +1,44 @@
 import { useState } from 'react'
 import { Save, X } from 'lucide-react'
+import type { Delivery } from '@shared/types'
 
-interface DeliveryEditFormProps {
-    delivery: any
-    onCancel: () => void
-    onSave: (updatedDelivery: any) => Promise<void>
-    onChange?: (field: string, value: any) => void
+interface EditableDeliveryFormData {
+    scheduledDate?: string | Date
+    scheduledTime?: string
+    location?: string
+    notes?: string
+    status?: Delivery['status']
 }
 
-const DeliveryEditForm: React.FC<DeliveryEditFormProps> = ({
+interface DeliveryEditFormProps {
+    delivery: EditableDeliveryFormData
+    onCancel: () => void
+    onSave: (updatedDelivery: EditableDeliveryFormData) => Promise<void>
+    onChange?: (field: keyof EditableDeliveryFormData, value: unknown) => void
+}
+
+const DeliveryEditForm = ({
     delivery,
     onCancel,
     onSave,
     onChange,
-}) => {
-    const [editingDelivery, setEditingDelivery] = useState(delivery)
+}: DeliveryEditFormProps) => {
+    const [editingDelivery, setEditingDelivery] = useState<EditableDeliveryFormData>(delivery)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const handleFieldChange = (field: string, value: any) => {
+    const handleFieldChange = (field: keyof EditableDeliveryFormData, value: unknown) => {
         const updated = { ...editingDelivery, [field]: value }
         setEditingDelivery(updated)
         onChange?.(field, value)
+    }
+
+    const getDateInputValue = (dateValue?: string | Date) => {
+        if (!dateValue) return ''
+        if (dateValue instanceof Date) {
+            return Number.isNaN(dateValue.getTime()) ? '' : dateValue.toISOString().split('T')[0]
+        }
+        return dateValue.split('T')[0] || ''
     }
 
     const handleSave = async () => {
@@ -30,8 +47,8 @@ const DeliveryEditForm: React.FC<DeliveryEditFormProps> = ({
             setError(null)
             await onSave(editingDelivery)
             onCancel() // Close form on success
-        } catch (err: any) {
-            setError(err.message || 'Error saving delivery')
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Error saving delivery')
         } finally {
             setIsLoading(false)
         }
@@ -63,7 +80,7 @@ const DeliveryEditForm: React.FC<DeliveryEditFormProps> = ({
                     </label>
                     <input
                         type="date"
-                        value={editingDelivery.scheduledDate?.split('T')[0] || ''}
+                        value={getDateInputValue(editingDelivery.scheduledDate)}
                         onChange={(e) => handleFieldChange('scheduledDate', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -122,8 +139,9 @@ const DeliveryEditForm: React.FC<DeliveryEditFormProps> = ({
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                     <option value="scheduled">Programada</option>
-                    <option value="in_progress">En Progreso</option>
+                    <option value="prepared">Preparada</option>
                     <option value="completed">Completada</option>
+                    <option value="rescheduled">Reprogramada</option>
                     <option value="cancelled">Cancelada</option>
                 </select>
             </div>

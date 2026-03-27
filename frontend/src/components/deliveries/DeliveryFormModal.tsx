@@ -5,6 +5,48 @@ import Input from '@/components/common/Input'
 import Modal from '@/components/common/Modal'
 import InventoryItemSelector from '@/components/InventoryItemSelector'
 import PreSaleItemAutocomplete from '@/components/PreSaleItemAutocomplete'
+import type { Customer, DeliveryLocation } from '@shared/types'
+import type { PreSaleItem } from '@/services/presale'
+
+type PreSaleAutocompleteItem = PreSaleItem & {
+  carModel?: string
+}
+
+interface DeliveryFormItem {
+  inventoryItemId?: string
+  hotWheelsCarId?: string
+  carId: string
+  carName: string
+  quantity: number
+  unitPrice: number
+  basePricePerUnit?: number
+  seriesId?: string
+  seriesName?: string
+  seriesSize?: number
+  seriesPrice?: number
+  isSoldAsSeries?: boolean
+}
+
+interface NewDeliveryForm {
+  customerId: string
+  items: DeliveryFormItem[]
+  scheduledDate: string
+  scheduledTime: string
+  location: string
+  totalAmount: number
+  notes: string
+  isThirdPartyDelivery: boolean
+  thirdPartyRecipient: string
+  thirdPartyPhone: string
+}
+
+interface PaymentPlanConfig {
+  enabled: boolean
+  numberOfPayments: number
+  paymentFrequency: 'weekly' | 'biweekly' | 'monthly'
+  startDate: string
+  earlyPaymentBonus: number
+}
 
 interface DeliveryFormModalProps {
   isOpen: boolean
@@ -14,23 +56,23 @@ interface DeliveryFormModalProps {
   handleCreateDelivery: () => void
   createLoading: boolean
   updateLoading: boolean
-  newDelivery: any
-  setNewDelivery: (delivery: any) => void
-  customers?: any[]
+  newDelivery: NewDeliveryForm
+  setNewDelivery: (delivery: NewDeliveryForm) => void
+  customers?: Customer[]
   onOpenCreateCustomer: () => void
-  deliveryLocations?: any[]
+  deliveryLocations?: DeliveryLocation[]
   showCustomLocationInput: boolean
   customLocation: string
   setCustomLocation: (value: string) => void
   handleCustomLocationBlur: () => void
   handleLocationChange: (value: string) => void
   setShowCustomLocationInput: (value: boolean) => void
-  updateDeliveryItem: (index: number, field: string, value: any) => void
+  updateDeliveryItem: (index: number, field: string, value: unknown) => void
   removeDeliveryItem: (index: number) => void
   completeSeries: (seriesId: string, seriesPrice: number, seriesSize: number) => void
   calculateTotal: () => number
-  paymentPlanConfig: any
-  setPaymentPlanConfig: (config: any) => void
+  paymentPlanConfig: PaymentPlanConfig
+  setPaymentPlanConfig: (config: PaymentPlanConfig) => void
 }
 
 export default function DeliveryFormModal({
@@ -215,20 +257,21 @@ export default function DeliveryFormModal({
             <PreSaleItemAutocomplete
               value=""
               onChange={(preSaleItem) => {
+                const selectedPreSaleItem = preSaleItem as PreSaleAutocompleteItem
                 setNewDelivery({
                   ...newDelivery,
                   items: [
                     ...newDelivery.items,
                     {
-                      carId: preSaleItem.carId,
-                      carName: preSaleItem.carModel || preSaleItem.carId,
+                      carId: selectedPreSaleItem.carId,
+                      carName: selectedPreSaleItem.carModel || selectedPreSaleItem.carId,
                       quantity: 1,
-                      unitPrice: preSaleItem.finalPricePerUnit,
-                      basePricePerUnit: (preSaleItem as any).basePricePerUnit || 0,
-                      inventoryItemId: `presale_${preSaleItem._id}`,
-                      hotWheelsCarId: preSaleItem._id,
-                      seriesId: preSaleItem._id,
-                      seriesName: preSaleItem.carModel || 'Pre-Sale Item',
+                      unitPrice: selectedPreSaleItem.finalPricePerUnit,
+                      basePricePerUnit: selectedPreSaleItem.basePricePerUnit || 0,
+                      inventoryItemId: `presale_${selectedPreSaleItem._id}`,
+                      hotWheelsCarId: selectedPreSaleItem._id,
+                      seriesId: selectedPreSaleItem._id,
+                      seriesName: selectedPreSaleItem.carModel || 'Pre-Sale Item',
                       isSoldAsSeries: true,
                     },
                   ],
@@ -240,7 +283,7 @@ export default function DeliveryFormModal({
           </div>
 
           <div className="space-y-4">
-            {newDelivery.items.map((item: any, index: number) => (
+            {newDelivery.items.map((item, index: number) => (
               <div key={index} className="space-y-2">
                 <div className={`flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 p-3 sm:p-4 border-2 rounded-lg ${item.isSoldAsSeries ? 'bg-purple-50 border-purple-300' : 'border-slate-600'}`}>
                   {item.isSoldAsSeries && (
@@ -263,8 +306,8 @@ export default function DeliveryFormModal({
                         value={item.inventoryItemId || ''}
                         onChange={(itemId) => updateDeliveryItem(index, 'inventoryItemId', itemId)}
                         excludeIds={newDelivery.items
-                          .filter((_: any, i: number) => i !== index)
-                          .map((it: any) => it.inventoryItemId)
+                          .filter((_, i: number) => i !== index)
+                          .map((it) => it.inventoryItemId)
                           .filter(Boolean) as string[]}
                         placeholder="Buscar pieza en inventario..."
                         required
@@ -337,29 +380,12 @@ export default function DeliveryFormModal({
                 </div>
 
                 {(() => {
-                  console.log('🔍 Item debug:', {
-                    carName: item.carName,
-                    seriesId: item.seriesId,
-                    seriesName: item.seriesName,
-                    seriesSize: item.seriesSize,
-                    seriesPrice: item.seriesPrice,
-                    isSoldAsSeries: item.isSoldAsSeries,
-                    shouldShowButton: !!item.seriesId && !item.isSoldAsSeries,
-                  })
-
                   if (!item.seriesId || item.isSoldAsSeries) {
                     return null
                   }
 
-                  const seriesItemsInDelivery = newDelivery.items.filter((i: any) => i.seriesId === item.seriesId).length
+                  const seriesItemsInDelivery = newDelivery.items.filter((i) => i.seriesId === item.seriesId).length
                   const missingPieces = (item.seriesSize || 0) - seriesItemsInDelivery
-
-                  console.log('🔍 Series calculation:', {
-                    seriesId: item.seriesId,
-                    seriesItemsInDelivery,
-                    seriesSize: item.seriesSize,
-                    missingPieces,
-                  })
 
                   if (missingPieces > 0) {
                     return (
@@ -451,7 +477,7 @@ export default function DeliveryFormModal({
           )}
         </div>
 
-        {!isEditMode && newDelivery.items.some((item: any) => item.inventoryItemId?.startsWith('presale_')) && (
+        {!isEditMode && newDelivery.items.some((item) => item.inventoryItemId?.startsWith('presale_')) && (
           <div className="border-t pt-4 mt-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium text-white">Plan de Pagos (Preventa)</h3>
@@ -485,7 +511,7 @@ export default function DeliveryFormModal({
                       onChange={(e) => {
                         const val = e.target.value
                         if (val === '') {
-                          setPaymentPlanConfig({ ...paymentPlanConfig, numberOfPayments: '' as any })
+                          setPaymentPlanConfig({ ...paymentPlanConfig, numberOfPayments: 2 })
                         } else {
                           const num = parseInt(val)
                           setPaymentPlanConfig({ ...paymentPlanConfig, numberOfPayments: isNaN(num) ? 2 : Math.max(2, Math.min(12, num)) })
@@ -547,7 +573,7 @@ export default function DeliveryFormModal({
                       onChange={(e) => {
                         const val = e.target.value
                         if (val === '') {
-                          setPaymentPlanConfig({ ...paymentPlanConfig, earlyPaymentBonus: '' as any })
+                          setPaymentPlanConfig({ ...paymentPlanConfig, earlyPaymentBonus: 0 })
                         } else {
                           const num = parseFloat(val)
                           setPaymentPlanConfig({ ...paymentPlanConfig, earlyPaymentBonus: isNaN(num) ? 0 : Math.max(0, Math.min(20, num)) })

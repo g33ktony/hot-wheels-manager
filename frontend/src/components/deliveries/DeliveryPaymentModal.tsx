@@ -1,6 +1,7 @@
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import type { Delivery } from '@shared/types'
 
 interface NewPaymentState {
   amount: number
@@ -10,7 +11,7 @@ interface NewPaymentState {
 
 interface DeliveryPaymentModalProps {
   isOpen: boolean
-  selectedDelivery: any
+  selectedDelivery: Delivery | null
   newPayment: NewPaymentState
   isLoading: boolean
   onClose: () => void
@@ -108,7 +109,12 @@ export default function DeliveryPaymentModal({
             <select
               className="w-full px-4 py-3 text-base border border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] touch-manipulation"
               value={newPayment.paymentMethod}
-              onChange={(e) => onPaymentChange({ ...newPayment, paymentMethod: e.target.value as any })}
+              onChange={(e) =>
+                onPaymentChange({
+                  ...newPayment,
+                  paymentMethod: e.target.value as NewPaymentState['paymentMethod'],
+                })
+              }
             >
               <option value="cash">Efectivo</option>
               <option value="transfer">Transferencia</option>

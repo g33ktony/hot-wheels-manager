@@ -5,6 +5,15 @@ import Button from '@/components/common/Button'
 import { DEFAULT_PLACEHOLDER } from '@/utils/placeholderLogo'
 import type { Delivery } from '@shared/types'
 
+type ShareDataWithFiles = ShareData & {
+  files?: File[]
+}
+
+type NavigatorShare = Navigator & {
+  share?: (data?: ShareDataWithFiles) => Promise<void>
+  canShare?: (data?: ShareDataWithFiles) => boolean
+}
+
 interface DeliveryReportProps {
   delivery: Delivery
   onClose: () => void
@@ -138,13 +147,13 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
     setIsGenerating(true)
     let capturedContainer: HTMLElement | null = null
     try {
-      const nav: any = navigator
+      const nav = navigator as NavigatorShare
       const { blob, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
       capturedContainer = c
       if (!blob) throw new Error('No se pudo generar la imagen')
 
       const file = new File([blob], `reporte-entrega-${delivery._id || 'sin-id'}.png`, { type: 'image/png' })
-      const shareMeta: any = { title: 'Reporte de Entrega', text: `Entrega para ${delivery.customer?.name || ''}` }
+      const shareMeta: ShareDataWithFiles = { title: 'Reporte de Entrega', text: `Entrega para ${delivery.customer?.name || ''}` }
 
       // Prefer file-based share
       if (nav.canShare && nav.canShare({ files: [file] }) && nav.share) {
@@ -213,7 +222,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
       capturedContainer = c
       if (!canvas) throw new Error('no canvas')
       const imgData = canvas.toDataURL('image/png')
-      const jspdfModule: any = await import('jspdf')
+      const jspdfModule: typeof import('jspdf') = await import('jspdf')
       const { jsPDF } = jspdfModule
       const pdf = new jsPDF('p', 'pt', 'a4')
       const pdfWidth = pdf.internal.pageSize.getWidth()
@@ -280,7 +289,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             lineHeight: '1',
             padding: '0 24px'
           }}>
-          Estado: {statusToSpanish(delivery.status as any)}
+          Estado: {statusToSpanish(delivery.status)}
         </div>
       </div>
 

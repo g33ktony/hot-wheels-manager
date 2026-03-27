@@ -15,6 +15,9 @@ import { useInventory } from '@/hooks/useInventory'
 import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
 import { usePreSaleItems } from '@/hooks/usePresale'
 import { useCreatePaymentPlan } from '@/hooks/usePaymentPlans'
+import { useMemo } from 'react'
+import type { Customer, Delivery, DeliveryLocation, InventoryItem } from '@shared/types'
+import type { PreSaleItem } from '@/services/presale'
 
 interface UseDeliveriesPageDataParams {
   selectedStore?: string
@@ -51,15 +54,24 @@ export function useDeliveriesPageData({
   const createPaymentPlanMutation = useCreatePaymentPlan()
   const queryClient = useQueryClient()
 
+  const deliveriesData = useMemo<Delivery[]>(() => deliveries || [], [deliveries])
+  const allDeliveriesData = useMemo<Delivery[]>(() => allDeliveries || [], [allDeliveries])
+  const customersData = useMemo<Customer[]>(() => customers || [], [customers])
+  const inventoryItems = useMemo<InventoryItem[]>(() => inventoryData?.items || [], [inventoryData?.items])
+  const deliveryLocationsData = useMemo<DeliveryLocation[]>(() => deliveryLocations || [], [deliveryLocations])
+  const preSaleItemsData = useMemo<PreSaleItem[]>(() => preSaleItems || [], [preSaleItems])
+  const errorMessage = error instanceof Error ? error.message : null
+
   return {
-    deliveries,
-    allDeliveries,
-    customers,
-    inventoryItems: inventoryData?.items || [],
-    deliveryLocations,
-    preSaleItems,
+    deliveries: deliveriesData,
+    allDeliveries: allDeliveriesData,
+    customers: customersData,
+    inventoryItems,
+    deliveryLocations: deliveryLocationsData,
+    preSaleItems: preSaleItemsData,
     isLoading,
     error,
+    errorMessage,
     createDeliveryMutation,
     updateDeliveryMutation,
     createCustomerMutation,

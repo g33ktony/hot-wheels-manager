@@ -42,6 +42,7 @@ export default function Deliveries() {
         preSaleItems,
         isLoading,
         error,
+        errorMessage,
         createDeliveryMutation,
         updateDeliveryMutation,
         createCustomerMutation,
@@ -154,7 +155,7 @@ export default function Deliveries() {
     })
 
     // Show loading only on initial load, not when filter changes or data is being refetched
-    if (isLoading && !deliveries) {
+    if (isLoading && deliveries.length === 0) {
         return <Loading text="Cargando entregas..." />
     }
 
@@ -165,7 +166,7 @@ export default function Deliveries() {
                     <Truck size={64} className="mx-auto text-slate-400 mb-4" />
                     <p className="text-danger-600 text-lg font-semibold mb-2">Error al cargar las entregas</p>
                     <p className="text-slate-400 text-sm mb-4">
-                        {(error as any)?.message || 'No se pudo conectar con el servidor'}
+                        {errorMessage || 'No se pudo conectar con el servidor'}
                     </p>
                 </div>
                 <Button

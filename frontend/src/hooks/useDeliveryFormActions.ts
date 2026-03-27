@@ -1,34 +1,87 @@
 import { useState } from 'react'
 import { dateToString } from '@/utils/dateUtils'
-import type { InventoryItem } from '../../../shared/types'
+import type { CreateDeliveryDto, Delivery, InventoryItem } from '../../../shared/types'
+import type { PaymentPlanCreate } from '@/hooks/usePaymentPlans'
+
+interface DeliveryFormItem {
+  inventoryItemId?: string
+  hotWheelsCarId?: string
+  carId: string
+  carName: string
+  quantity: number
+  unitPrice: number
+  basePricePerUnit?: number
+  seriesId?: string
+  seriesName?: string
+  seriesSize?: number
+  seriesPrice?: number
+  isSoldAsSeries?: boolean
+}
+
+interface NewDeliveryForm {
+  customerId: string
+  items: DeliveryFormItem[]
+  scheduledDate: string
+  scheduledTime: string
+  location: string
+  totalAmount: number
+  notes: string
+  isThirdPartyDelivery: boolean
+  thirdPartyRecipient: string
+  thirdPartyPhone: string
+}
+
+interface PaymentPlanConfig {
+  enabled: boolean
+  numberOfPayments: number
+  paymentFrequency: 'weekly' | 'biweekly' | 'monthly'
+  startDate: string
+  earlyPaymentBonus: number
+}
+
+interface EditableDeliveryItemRaw {
+  inventoryItemId?: string | { _id?: string }
+  hotWheelsCarId?: string | { _id?: string }
+  carId: string
+  carName: string
+  quantity: number
+  unitPrice: number
+  seriesId?: string
+  seriesName?: string
+  seriesSize?: number
+  seriesPrice?: number
+  isSoldAsSeries?: boolean
+}
+
+interface EditableDelivery {
+  _id?: string
+  customerId?: string | { _id?: string }
+  customer?: string | { _id?: string }
+  items?: EditableDeliveryItemRaw[]
+  scheduledDate?: string | Date
+  scheduledTime?: string
+  location?: string
+  totalAmount?: number
+  notes?: string
+  isThirdPartyDelivery?: boolean
+  thirdPartyRecipient?: string
+  thirdPartyPhone?: string
+}
 
 interface UseDeliveryFormActionsParams {
   setShowCreateModal: (v: boolean) => void
   inventoryItems: InventoryItem[]
   deliveryLocations?: Array<{ _id?: string; name: string }>
-  createDelivery: (data: any) => Promise<any>
-  updateDelivery: (params: { id: string; data: any }) => Promise<any>
-  createPaymentPlan: (data: any) => Promise<any>
-  createLocation: (name: string) => Promise<any>
+  createDelivery: (data: CreateDeliveryDto) => Promise<{ _id?: string }>
+  updateDelivery: (params: { id: string; data: Partial<CreateDeliveryDto> }) => Promise<unknown>
+  createPaymentPlan: (data: PaymentPlanCreate) => Promise<unknown>
+  createLocation: (name: string) => Promise<unknown>
   invalidateInventory: () => void
 }
 
-const getInitialDelivery = () => ({
+const getInitialDelivery = (): NewDeliveryForm => ({
   customerId: '',
-  items: [] as {
-    inventoryItemId?: string
-    hotWheelsCarId?: string
-    carId: string
-    carName: string
-    quantity: number
-    unitPrice: number
-    basePricePerUnit?: number
-    seriesId?: string
-    seriesName?: string
-    seriesSize?: number
-    seriesPrice?: number
-    isSoldAsSeries?: boolean
-  }[],
+  items: [],
   scheduledDate: dateToString(new Date()),
   scheduledTime: '09:00',
   location: '',
@@ -39,10 +92,10 @@ const getInitialDelivery = () => ({
   thirdPartyPhone: '',
 })
 
-const getInitialPaymentPlanConfig = () => ({
+const getInitialPaymentPlanConfig = (): PaymentPlanConfig => ({
   enabled: false,
   numberOfPayments: 4,
-  paymentFrequency: 'weekly' as 'weekly' | 'biweekly' | 'monthly',
+  paymentFrequency: 'weekly',
   startDate: dateToString(new Date()),
   earlyPaymentBonus: 0,
 })
@@ -57,7 +110,7 @@ export function useDeliveryFormActions({
   createLocation,
   invalidateInventory,
 }: UseDeliveryFormActionsParams) {
-  const [editingDelivery, setEditingDelivery] = useState<any>(null)
+  const [editingDelivery, setEditingDelivery] = useState<EditableDelivery | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [newDelivery, setNewDelivery] = useState(getInitialDelivery)
   const [paymentPlanConfig, setPaymentPlanConfig] = useState(getInitialPaymentPlanConfig)
@@ -103,9 +156,9 @@ export function useDeliveryFormActions({
         let availableQuantity = inventoryItem.quantity - (inventoryItem.reservedQuantity || 0)
 
         if (isEditMode && editingDelivery) {
-          let originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+          let originalItem = editingDelivery.items?.find((i) => i.inventoryItemId === item.inventoryItemId)
           if (!originalItem && item.carId) {
-            originalItem = editingDelivery.items.find((i: any) => i.carId === item.carId)
+            originalItem = editingDelivery.items?.find((i) => i.carId === item.carId)
           }
           if (originalItem) {
             availableQuantity += originalItem.quantity
@@ -122,9 +175,9 @@ export function useDeliveryFormActions({
             let availableQuantity = inventoryItem ? inventoryItem.quantity - (inventoryItem.reservedQuantity || 0) : 0
 
             if (isEditMode && editingDelivery) {
-              let originalItem = editingDelivery.items.find((i: any) => i.inventoryItemId === item.inventoryItemId)
+              let originalItem = editingDelivery.items?.find((i) => i.inventoryItemId === item.inventoryItemId)
               if (!originalItem && item.carId) {
-                originalItem = editingDelivery.items.find((i: any) => i.carId === item.carId)
+                originalItem = editingDelivery.items?.find((i) => i.carId === item.carId)
               }
               if (originalItem) {
                 availableQuantity += originalItem.quantity
@@ -141,9 +194,13 @@ export function useDeliveryFormActions({
 
     try {
       const hasPresaleItems = newDelivery.items.some((item) => item.inventoryItemId?.startsWith('presale_'))
-      let createdDelivery: any
+      let createdDelivery: { _id?: string } | undefined
 
       if (isEditMode && editingDelivery) {
+        if (!editingDelivery._id) {
+          throw new Error('Delivery ID is required for update')
+        }
+
         await updateDelivery({
           id: editingDelivery._id,
           data: {
@@ -200,7 +257,7 @@ export function useDeliveryFormActions({
     }
   }
 
-  const handleEditDelivery = (delivery: any) => {
+  const handleEditDelivery = (delivery: Delivery | EditableDelivery) => {
     let customerId = ''
     if (delivery.customerId) {
       if (typeof delivery.customerId === 'object' && delivery.customerId._id) {
@@ -219,14 +276,7 @@ export function useDeliveryFormActions({
     const formattedDelivery = {
       customerId,
       items:
-        delivery.items?.map((item: any) => {
-          console.log('🔍 Formatting item for edit:', {
-            inventoryItemId: item.inventoryItemId,
-            hotWheelsCarId: item.hotWheelsCarId,
-            carId: item.carId,
-            carName: item.carName,
-          })
-
+        delivery.items?.map((item) => {
           let inventoryItemId = ''
           if (item.inventoryItemId) {
             if (typeof item.inventoryItemId === 'string') {
@@ -248,20 +298,29 @@ export function useDeliveryFormActions({
             }
           }
 
-          console.log('✅ Final inventoryItemId:', inventoryItemId)
+          const normalizedHotWheelsCarId =
+            typeof item.hotWheelsCarId === 'string'
+              ? item.hotWheelsCarId
+              : item.hotWheelsCarId?._id
+
+          const seriesId = 'seriesId' in item ? item.seriesId : undefined
+          const seriesName = 'seriesName' in item ? item.seriesName : undefined
+          const seriesSize = 'seriesSize' in item ? item.seriesSize : undefined
+          const seriesPrice = 'seriesPrice' in item ? item.seriesPrice : undefined
+          const isSoldAsSeries = 'isSoldAsSeries' in item ? item.isSoldAsSeries : undefined
 
           return {
             inventoryItemId,
-            hotWheelsCarId: item.hotWheelsCarId,
+            hotWheelsCarId: normalizedHotWheelsCarId,
             carId: item.carId,
             carName: item.carName,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            seriesId: item.seriesId,
-            seriesName: item.seriesName,
-            seriesSize: item.seriesSize,
-            seriesPrice: item.seriesPrice,
-            isSoldAsSeries: item.isSoldAsSeries,
+            seriesId,
+            seriesName,
+            seriesSize,
+            seriesPrice,
+            isSoldAsSeries,
           }
         }) || [],
       scheduledDate: delivery.scheduledDate ? new Date(delivery.scheduledDate).toISOString().split('T')[0] : dateToString(new Date()),
@@ -321,18 +380,18 @@ export function useDeliveryFormActions({
     })
   }
 
-  const updateDeliveryItem = (index: number, field: string, value: any) => {
+  const updateDeliveryItem = (index: number, field: string, value: unknown) => {
     const updatedItems = [...newDelivery.items]
-    updatedItems[index] = { ...updatedItems[index], [field]: value }
+    updatedItems[index] = { ...updatedItems[index], [field]: value as DeliveryFormItem[keyof DeliveryFormItem] }
 
     if (field === 'inventoryItemId' && value) {
       const inventoryItem = inventoryItems?.find((item: InventoryItem) => item._id === value)
       if (inventoryItem) {
         if (inventoryItem.quantity === 0) {
-          updatedItems[index].hotWheelsCarId = value
+          updatedItems[index].hotWheelsCarId = String(value)
           updatedItems[index].inventoryItemId = undefined
         } else {
-          updatedItems[index].inventoryItemId = value
+          updatedItems[index].inventoryItemId = String(value)
           updatedItems[index].hotWheelsCarId = undefined
         }
         updatedItems[index].carId = inventoryItem.carId
@@ -353,14 +412,7 @@ export function useDeliveryFormActions({
 
   const completeSeries = async (seriesId: string, seriesPrice: number, seriesSize: number) => {
     try {
-      console.log('🎁 Completing series:', { seriesId, seriesPrice, seriesSize })
       const seriesItems = inventoryItems?.filter((item: InventoryItem) => item.seriesId === seriesId) || []
-
-      console.log('📦 Series items found:', seriesItems.length, seriesItems.map((i: InventoryItem) => ({
-        carId: i.carId,
-        suggestedPrice: i.suggestedPrice,
-        seriesPrice: i.seriesPrice,
-      })))
 
       const unavailableItems = seriesItems.filter((item: InventoryItem) => {
         const availableQuantity = item.quantity - (item.reservedQuantity || 0)
@@ -382,7 +434,6 @@ export function useDeliveryFormActions({
       }
 
       const pricePerPiece = seriesPrice / seriesSize
-      console.log('💰 Price calculation:', { seriesPrice, seriesSize, pricePerPiece })
 
       const updatedItems = [...newDelivery.items]
 
@@ -392,7 +443,6 @@ export function useDeliveryFormActions({
         if (existingIndex >= 0) {
           updatedItems[existingIndex].unitPrice = pricePerPiece
           updatedItems[existingIndex].isSoldAsSeries = true
-          console.log('✏️ Updated existing item:', updatedItems[existingIndex].carName, 'to', pricePerPiece)
         } else {
           updatedItems.push({
             inventoryItemId: seriesItem._id,
@@ -407,7 +457,6 @@ export function useDeliveryFormActions({
             seriesPrice: seriesItem.seriesPrice,
             isSoldAsSeries: true,
           })
-          console.log('➕ Added new item:', seriesItem.carId, 'with price', pricePerPiece)
         }
       })
 

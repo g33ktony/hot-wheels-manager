@@ -1,9 +1,10 @@
 import { X } from 'lucide-react'
 import DeliveryReport from '@/components/DeliveryReport'
+import type { Delivery } from '@shared/types'
 
 interface DeliveryReportModalProps {
   isOpen: boolean
-  selectedDelivery: any
+  selectedDelivery: Delivery | null
   onClose: () => void
 }
 

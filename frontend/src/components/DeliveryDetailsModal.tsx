@@ -3,22 +3,39 @@ import { X, Package, CheckCircle, Edit, User, Share2, DollarSign, Trash2 } from 
 import Button from './common/Button'
 import DeliveryEditForm from './DeliveryEditForm'
 import { deliveriesService } from '../services/deliveries'
+import type { CreateDeliveryDto, Delivery, InventoryItem, Payment } from '@shared/types'
+import type { PreSaleItem } from '@/services/presale'
+
+type PaymentStatus = 'paid' | 'unpaid' | 'partial'
+
+type InventoryRef = { _id?: string; purchasePrice?: number; photos?: string[] }
+
+interface DeliveryDetailsItem {
+    inventoryItemId?: string | InventoryRef
+    hotWheelsCarId?: string | { _id?: string }
+    carId: string
+    carName: string
+    quantity: number
+    unitPrice: number
+    photos?: string[]
+    basePricePerUnit?: number
+}
 
 interface DeliveryDetailsModalProps {
-    delivery: any | null
+    delivery: Delivery | null
     isOpen: boolean
     onClose: () => void
     onMarkAsPrepared?: (id: string) => void
-    onMarkAsCompleted?: (id: string, paymentStatus?: 'paid' | 'unpaid' | 'partial') => void
-    onEdit?: (delivery: any) => void
+    onMarkAsCompleted?: (id: string, paymentStatus?: PaymentStatus) => void
+    onEdit?: (delivery: Delivery) => void
     onViewCustomer?: (customerId: string) => void
     onShareReport?: () => void
     onRegisterPayment?: () => void
     onDeletePayment?: (paymentId: string) => void
     onDelete?: (id: string) => void
     onOpenImageModal?: (photos: string[]) => void
-    inventoryItems?: any[]
-    preSaleItems?: any[]
+    inventoryItems?: InventoryItem[]
+    preSaleItems?: PreSaleItem[]
     markPreparedLoading?: boolean
     markCompletedLoading?: boolean
     readonly?: boolean
@@ -45,12 +62,12 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
 }) => {
     const [isEditingDelivery, setIsEditingDelivery] = useState(false)
     const [showPaymentStatusDialog, setShowPaymentStatusDialog] = useState(false)
-    const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<'paid' | 'unpaid' | 'partial'>('unpaid')
+    const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<PaymentStatus>('unpaid')
 
     if (!isOpen || !delivery) return null
 
     // Helper function to safely format dates
-    const formatDate = (dateValue: any): string => {
+    const formatDate = (dateValue: unknown): string => {
         try {
             const date = typeof dateValue === 'string'
                 ? new Date(dateValue)
@@ -67,7 +84,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
         }
     }
 
-    const formatDateTime = (dateValue: any): string => {
+    const formatDateTime = (dateValue: unknown): string => {
         try {
             const date = typeof dateValue === 'string'
                 ? new Date(dateValue)
@@ -87,13 +104,16 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
     // Check if delivery is active (not completed)
     const isDeliveryActive = delivery.status !== 'completed'
 
-    const handleSaveDelivery = async (updatedDelivery: any) => {
+    const handleSaveDelivery = async (updatedDelivery: unknown) => {
         try {
-            await deliveriesService.update(delivery._id, updatedDelivery)
+            if (!delivery._id) {
+                throw new Error('Delivery ID is required')
+            }
+            await deliveriesService.update(delivery._id, updatedDelivery as Partial<CreateDeliveryDto>)
             setIsEditingDelivery(false)
             // Optionally refresh or call a callback
             if (onEdit) {
-                onEdit(updatedDelivery)
+                onEdit(updatedDelivery as Delivery)
             }
             onClose()
         } catch (error) {
@@ -109,8 +129,8 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
     }
 
     const handleConfirmPaymentStatus = () => {
-        if (onMarkAsCompleted) {
-            onMarkAsCompleted(delivery._id!, selectedPaymentStatus)
+        if (onMarkAsCompleted && delivery._id) {
+            onMarkAsCompleted(delivery._id, selectedPaymentStatus)
             onClose()
         }
         setShowPaymentStatusDialog(false)
@@ -149,7 +169,8 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                         <Button
                                             size="sm"
                                             onClick={() => {
-                                                onMarkAsPrepared(delivery._id!)
+                                                if (!delivery._id) return
+                                                onMarkAsPrepared(delivery._id)
                                                 onClose()
                                             }}
                                             disabled={markPreparedLoading}
@@ -187,9 +208,20 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                             size="sm"
                                             variant="secondary"
                                             onClick={() => {
-                                                const customerId = typeof delivery.customerId === 'string'
-                                                    ? delivery.customerId
-                                                    : delivery.customerId?._id
+                                                const rawCustomerId = (delivery as { customerId?: unknown }).customerId
+                                                let customerId: string | undefined
+
+                                                if (typeof rawCustomerId === 'string') {
+                                                    customerId = rawCustomerId
+                                                } else if (
+                                                    rawCustomerId &&
+                                                    typeof rawCustomerId === 'object' &&
+                                                    '_id' in rawCustomerId &&
+                                                    typeof (rawCustomerId as { _id?: unknown })._id === 'string'
+                                                ) {
+                                                    customerId = (rawCustomerId as { _id: string })._id
+                                                }
+
                                                 if (customerId) {
                                                     onViewCustomer(customerId)
                                                 }
@@ -216,8 +248,9 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                             size="sm"
                                             variant="danger"
                                             onClick={() => {
+                                                if (!delivery._id) return
                                                 if (confirm('⚠️ ¿Estás seguro de que quieres eliminar esta entrega completada? Se restaurarán todos los items al inventario.')) {
-                                                    onDelete(delivery._id!)
+                                                    onDelete(delivery._id)
                                                     onClose()
                                                 }
                                             }}
@@ -264,11 +297,11 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                             let totalCost = 0
                                             let itemsWithCost = 0
                                             let itemsWithoutCost = 0
-                                            delivery.items?.forEach((item: any) => {
+                                            delivery.items?.forEach((item: DeliveryDetailsItem) => {
                                                 if (item.inventoryItemId) {
-                                                    let inventoryItem
+                                                    let inventoryItem: InventoryItem | InventoryRef | undefined
                                                     let isPresaleItem = false
-                                                    let preSaleItemData = null
+                                                    let preSaleItemData: PreSaleItem | undefined
 
                                                     if (typeof item.inventoryItemId === 'string') {
                                                         if (item.inventoryItemId.startsWith('presale_')) {
@@ -276,7 +309,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                                             const preSaleId = item.inventoryItemId.replace('presale_', '')
                                                             preSaleItemData = preSaleItems?.find(ps => ps._id === preSaleId)
                                                         } else {
-                                                            inventoryItem = inventoryItems?.find((inv: any) => inv._id === item.inventoryItemId)
+                                                            inventoryItem = inventoryItems?.find((inv) => inv._id === item.inventoryItemId)
                                                         }
                                                     } else {
                                                         inventoryItem = item.inventoryItemId
@@ -367,7 +400,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                 <div className="mb-6">
                                     <h3 className="font-medium text-gray-900 mb-3">Historial de Pagos</h3>
                                     <div className="space-y-2">
-                                        {delivery.payments.map((payment: any) => (
+                                        {delivery.payments.map((payment: Payment) => (
                                             <div key={payment._id} className="flex items-center justify-between p-3 border rounded-lg bg-gray-50">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3">
@@ -392,7 +425,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                                         type="button"
                                                         size="sm"
                                                         variant="danger"
-                                                        onClick={() => onDeletePayment(payment._id)}
+                                                        onClick={() => payment._id && onDeletePayment(payment._id)}
                                                         className="ml-3"
                                                     >
                                                         <Trash2 size={14} />
@@ -408,10 +441,10 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                             <div>
                                 <h3 className="font-medium text-gray-900 mb-4">Piezas en la Entrega</h3>
                                 <div className="space-y-4">
-                                    {delivery.items?.map((item: any, index: number) => {
-                                        let inventoryItem
+                                    {delivery.items?.map((item: DeliveryDetailsItem, index: number) => {
+                                        let inventoryItem: InventoryItem | InventoryRef | null | undefined
                                         let isPresaleItem = false
-                                        let preSaleItemData = null
+                                        let preSaleItemData: PreSaleItem | undefined
 
                                         if (typeof item.inventoryItemId === 'string') {
                                             if (item.inventoryItemId.startsWith('presale_')) {
@@ -420,7 +453,7 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
                                                 preSaleItemData = preSaleItems?.find(ps => ps._id === preSaleId)
                                                 inventoryItem = null
                                             } else {
-                                                inventoryItem = inventoryItems?.find((inv: any) => inv._id === item.inventoryItemId)
+                                                inventoryItem = inventoryItems?.find((inv) => inv._id === item.inventoryItemId)
                                             }
                                         } else if (typeof item.inventoryItemId === 'object' && item.inventoryItemId) {
                                             inventoryItem = item.inventoryItemId

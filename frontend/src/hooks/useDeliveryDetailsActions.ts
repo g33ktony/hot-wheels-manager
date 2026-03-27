@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { Delivery } from '@shared/types'
 
 type PaymentMethod = 'cash' | 'transfer' | 'card' | 'other'
 
@@ -11,16 +12,16 @@ interface PaymentData {
 }
 
 interface UseDeliveryDetailsActionsParams {
-  deliveries?: any[]
-  markCompleted: (params: { id: string; paymentStatus?: PaymentStatus }) => Promise<any>
-  markPrepared: (deliveryId: string) => Promise<any>
+  deliveries?: Delivery[]
+  markCompleted: (params: { id: string; paymentStatus?: PaymentStatus }) => Promise<unknown>
+  markPrepared: (deliveryId: string) => Promise<unknown>
   addPayment: (params: {
     deliveryId: string
     amount: number
     paymentMethod: PaymentMethod
     notes?: string
-  }) => Promise<any>
-  deletePayment: (params: { deliveryId: string; paymentId: string }) => Promise<any>
+  }) => Promise<unknown>
+  deletePayment: (params: { deliveryId: string; paymentId: string }) => Promise<unknown>
 }
 
 export function useDeliveryDetailsActions({
@@ -38,7 +39,7 @@ export function useDeliveryDetailsActions({
   const [deliveryToCompleteId, setDeliveryToCompleteId] = useState<string | null>(null)
   const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [selectedDelivery, setSelectedDelivery] = useState<any>(null)
+  const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null)
   const [newPayment, setNewPayment] = useState<PaymentData>({
     amount: 0,
     paymentMethod: 'cash',
@@ -73,12 +74,12 @@ export function useDeliveryDetailsActions({
     await markPrepared(deliveryId)
   }
 
-  const handleViewDetails = (delivery: any) => {
+  const handleViewDetails = (delivery: Delivery) => {
     setSelectedDelivery(delivery)
     setShowDetailsModal(true)
   }
 
-  const handleShowReport = (delivery: any) => {
+  const handleShowReport = (delivery: Delivery) => {
     setSelectedDelivery(delivery)
     setShowReportModal(true)
   }
@@ -136,7 +137,7 @@ export function useDeliveryDetailsActions({
   }
 
   const handleAddPayment = async () => {
-    if (!selectedDelivery || newPayment.amount <= 0) {
+    if (!selectedDelivery || !selectedDelivery._id || newPayment.amount <= 0) {
       alert('El monto debe ser mayor a 0')
       return
     }
@@ -166,7 +167,7 @@ export function useDeliveryDetailsActions({
   }
 
   const handleDeletePayment = async (paymentId: string) => {
-    if (!selectedDelivery || !confirm('¿Estás seguro de eliminar este pago?')) {
+    if (!selectedDelivery || !selectedDelivery._id || !confirm('¿Estás seguro de eliminar este pago?')) {
       return
     }
 
