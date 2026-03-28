@@ -220,37 +220,37 @@ export default function Dashboard() {
                     <p className="text-sm lg:text-base text-slate-400">Resumen general de tu negocio de autos a escala</p>
                 </div>
                 {canManageCatalog && (
-                <div className="flex gap-2 flex-wrap">
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={handleDownload}
-                        className="flex items-center gap-2 whitespace-nowrap"
-                        disabled={isDownloading}
-                    >
-                        <Download size={16} />
-                        {isDownloading ? 'Descargando...' : 'Descargar JSON'}
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setShowSearchModal(true)}
-                        className="flex items-center gap-2 whitespace-nowrap"
-                    >
-                        <Search size={16} />
-                        Buscar
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setShowUpdateModal(true)}
-                        className="flex items-center gap-2 whitespace-nowrap"
-                        disabled={updateStatus?.progress?.isUpdating}
-                    >
-                        <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin' : ''} />
-                        {updateStatus?.progress?.isUpdating ? 'Actualizando...' : 'Actualizar Catálogo'}
-                    </Button>
-                </div>
+                    <div className="flex gap-2 flex-wrap">
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={handleDownload}
+                            className="flex items-center gap-2 whitespace-nowrap"
+                            disabled={isDownloading}
+                        >
+                            <Download size={16} />
+                            {isDownloading ? 'Descargando...' : 'Descargar JSON'}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setShowSearchModal(true)}
+                            className="flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <Search size={16} />
+                            Buscar
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setShowUpdateModal(true)}
+                            className="flex items-center gap-2 whitespace-nowrap"
+                            disabled={updateStatus?.progress?.isUpdating}
+                        >
+                            <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin' : ''} />
+                            {updateStatus?.progress?.isUpdating ? 'Actualizando...' : 'Actualizar Catálogo'}
+                        </Button>
+                    </div>
                 )}
             </div>
 

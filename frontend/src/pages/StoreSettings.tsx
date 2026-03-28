@@ -197,7 +197,7 @@ const StoreSettingsPage: React.FC = () => {
             setIsLoading(true)
             await updateUserRole(userId, newRole)
             // Actualizar la lista local
-            setTeamUsers(teamUsers.map(u => 
+            setTeamUsers(teamUsers.map(u =>
                 u._id === userId ? { ...u, role: newRole } : u
             ))
         } catch (error) {
