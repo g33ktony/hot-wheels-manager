@@ -22,7 +22,7 @@ const StoreSettingsPage: React.FC = () => {
     const { mode } = useTheme()
     const { user } = useAuth()
     const { isSysAdmin } = usePermissions()
-    const { createUserInStore } = useUserManagement()
+    const { createUserInStore, updateUserRole, deleteUser } = useUserManagement()
     const { stores, refetch } = useStores()
     const isDark = mode === 'dark'
 
@@ -187,6 +187,48 @@ const StoreSettingsPage: React.FC = () => {
         toast.success('Copiado al portapapeles')
     }
 
+    const handleUpdateUserRole = async (userId: string, newRole: 'admin' | 'editor' | 'analyst') => {
+        if (userId === user?.id) {
+            toast.error('No puedes cambiar tu propio rol')
+            return
+        }
+
+        try {
+            setIsLoading(true)
+            await updateUserRole(userId, newRole)
+            // Actualizar la lista local
+            setTeamUsers(teamUsers.map(u => 
+                u._id === userId ? { ...u, role: newRole } : u
+            ))
+        } catch (error) {
+            console.error('Error updating user role:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleDeleteTeamUser = async (userId: string, userName: string) => {
+        if (userId === user?.id) {
+            toast.error('No puedes eliminarte a ti mismo')
+            return
+        }
+
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar a ${userName}?`)) {
+            return
+        }
+
+        try {
+            setIsLoading(true)
+            await deleteUser(userId)
+            // Actualizar la lista local
+            setTeamUsers(teamUsers.filter(u => u._id !== userId))
+        } catch (error) {
+            console.error('Error deleting user:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     return (
         <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
             <div className="max-w-4xl mx-auto px-4 py-8">
@@ -218,7 +260,7 @@ const StoreSettingsPage: React.FC = () => {
                     {[
                         { id: 'profile', label: 'Perfil y Tienda' },
                         { id: 'team', label: 'Mi Equipo' },
-                        ...(user?.role === 'admin' ? [{ id: 'create-user', label: 'Crear Usuario' }] : []),
+                        ...((user?.role === 'admin' || user?.role === 'sys_admin') ? [{ id: 'create-user', label: 'Crear Usuario' }] : []),
                         ...(isSysAdmin() ? [{ id: 'public-catalog', label: '🌍 Catálogo Público' }] : [])
                     ].map(tab => (
                         <button
@@ -309,34 +351,64 @@ const StoreSettingsPage: React.FC = () => {
                             </p>
                         ) : (
                             <div className="space-y-3">
-                                {teamUsers.map(user => (
+                                {teamUsers.map(teamUser => (
                                     <div
-                                        key={user._id}
+                                        key={teamUser._id}
                                         className={`p-4 rounded-lg flex items-center justify-between ${isDark ? 'bg-slate-700' : 'bg-gray-100'
                                             }`}
                                     >
                                         <div>
-                                            <p className={`font-medium ${isDark ? 'text-white' : ''}`}>
-                                                {user.name}
-                                            </p>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <p className={`font-medium ${isDark ? 'text-white' : ''}`}>
+                                                    {teamUser.name}
+                                                </p>
+                                                {teamUser.email === user?.email && (
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isDark ? 'bg-blue-600 text-blue-100' : 'bg-blue-100 text-blue-700'}`}>
+                                                        Mi cuenta
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                                                {user.email}
+                                                {teamUser.email}
                                             </p>
                                             <div className="flex gap-3 mt-2 text-xs">
-                                                <span className={`px-2 py-1 rounded ${user.role === 'admin' ? 'bg-blue-100 text-blue-800' :
-                                                    user.role === 'editor' ? 'bg-green-100 text-green-800' :
-                                                        'bg-purple-100 text-purple-800'
-                                                    }`}>
-                                                    {user.role}
-                                                </span>
-                                                <span className={`px-2 py-1 rounded ${user.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                    user.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-red-100 text-red-800'
-                                                    }`}>
-                                                    {user.status}
-                                                </span>
+                                                {user?.role === 'admin' && teamUser.email !== user?.email ? (
+                                                    <select
+                                                        value={teamUser.role}
+                                                        onChange={(e) => handleUpdateUserRole(teamUser._id, e.target.value as 'admin' | 'editor' | 'analyst')}
+                                                        disabled={isLoading}
+                                                        className={`px-2 py-1 rounded text-xs font-medium cursor-pointer ${isDark
+                                                            ? 'bg-slate-600 border border-slate-500 text-white'
+                                                            : 'bg-white border border-gray-300 text-gray-900'
+                                                            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    >
+                                                        <option value="admin">Admin</option>
+                                                        <option value="editor">Editor</option>
+                                                        <option value="analyst">Analista</option>
+                                                    </select>
+                                                ) : (
+                                                    <span className={`px-2 py-1 rounded ${teamUser.role === 'admin' ? 'bg-blue-100 text-blue-800' :
+                                                        teamUser.role === 'editor' ? 'bg-green-100 text-green-800' :
+                                                            'bg-purple-100 text-purple-800'
+                                                        }`}>
+                                                        {teamUser.role}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
+
+                                        {user?.role === 'admin' && teamUser.email !== user?.email && (
+                                            <button
+                                                onClick={() => handleDeleteTeamUser(teamUser._id, teamUser.name)}
+                                                disabled={isLoading}
+                                                className={`px-3 py-2 rounded text-sm font-medium transition ${isDark
+                                                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                                                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                            >
+                                                Eliminar
+                                            </button>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -349,6 +421,11 @@ const StoreSettingsPage: React.FC = () => {
                         <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : ''}`}>
                             Crear Nuevo Usuario
                         </h2>
+                        <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                            {user?.role === 'sys_admin'
+                                ? `Como sys admin, este usuario se creará en la tienda actual: ${currentStore?.name || user?.storeId || 'sin tienda'}`
+                                : `Este usuario se creará en tu tienda actual: ${currentStore?.name || user?.storeId || 'sin tienda'}`}
+                        </p>
                         <div className="space-y-4">
                             <Input
                                 label="Nombre del Usuario"

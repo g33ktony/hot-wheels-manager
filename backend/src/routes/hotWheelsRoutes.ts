@@ -19,13 +19,13 @@ const router = Router()
 
 // Las rutas más específicas deben venir ANTES que las parametrizadas
 // POST /api/hotwheels/update-catalog - Update Hot Wheels catalog from Wiki
-router.post('/update-catalog', updateHotWheelsCatalog)
+router.post('/update-catalog', authMiddleware, requirePermission('catalog:sync'), updateHotWheelsCatalog)
 
 // GET /api/hotwheels/update-status - Get last update status
-router.get('/update-status', getUpdateStatus)
+router.get('/update-status', authMiddleware, requirePermission('catalog:sync'), getUpdateStatus)
 
 // GET /api/hotwheels/download - Download database as JSON
-router.get('/download', downloadDatabase)
+router.get('/download', authMiddleware, requirePermission('catalog:sync'), downloadDatabase)
 
 // GET /api/hotwheels/image - Proxy image URLs to handle CORS
 router.get('/image', proxyImage)

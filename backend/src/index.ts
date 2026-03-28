@@ -171,12 +171,6 @@ app.get('/api/hotwheels/image', async (req, res) => {
   return proxyImage(req, res)
 })
 
-// Búsqueda predictiva - pública (sin autenticación)
-app.get('/api/search/predictive', async (req, res) => {
-  const { predictiveSearch } = await import('./controllers/searchController')
-  return predictiveSearch(req, res)
-})
-
 // Rutas de autenticación (públicas, sin protección)
 app.use('/api/auth', authRoutes)
 

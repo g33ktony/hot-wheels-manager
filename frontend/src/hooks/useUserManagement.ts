@@ -92,9 +92,40 @@ export const useUserManagement = () => {
     }
   }
 
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'editor' | 'analyst') => {
+    try {
+      setIsLoading(true)
+      const data = await api.patch(`/users/${userId}/role`, { role: newRole })
+      toast.success('Rol actualizado exitosamente')
+      return data.data.data
+    } catch (error: any) {
+      const errorMessage = getErrorMessage(error, 'Error al actualizar rol')
+      toast.error(errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const deleteUser = async (userId: string) => {
+    try {
+      setIsLoading(true)
+      await api.delete(`/users/${userId}`)
+      toast.success('Usuario eliminado exitosamente')
+    } catch (error: any) {
+      const errorMessage = getErrorMessage(error, 'Error al eliminar usuario')
+      toast.error(errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     isLoading,
     createUserInStore,
-    updateProfile
+    updateProfile,
+    updateUserRole,
+    deleteUser
   }
 }

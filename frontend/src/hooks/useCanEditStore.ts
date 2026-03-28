@@ -5,14 +5,14 @@ import { useEffect } from 'react'
 /**
  * Hook que determina si el usuario puede editar contenido de una tienda específica.
  * Patrón: "Read All, Write Own" - Leer todas las tiendas, editar solo la propia.
- * Solo admin puede ELIMINAR items.
+ * Solo admin y sys_admin pueden ELIMINAR items.
  * 
  * @returns {canEdit, canDelete, isReadOnly}
  */
 export const useCanEditStore = () => {
   const { userStore, selectedStore, availableStores } = useStore()
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canDeleteByRole = user?.role === 'admin' || user?.role === 'sys_admin'
 
   // Debug logging
   useEffect(() => {
@@ -28,12 +28,12 @@ export const useCanEditStore = () => {
 
   // Si no hay tienda seleccionada (modo consolidado), se muestran solo los datos del userStore
   // Por lo tanto, el usuario PUEDE editar (solo ve sus propios datos)
-  // Pero solo admin puede ELIMINAR
+  // Pero solo admin/sys_admin pueden ELIMINAR
   if (!selectedStore) {
     console.log('🔐 [useCanEditStore] No selectedStore - consolidated view (only own data) - CAN EDIT')
     return {
       canEdit: true,
-      canDelete: isAdmin, // Only admin can delete
+      canDelete: canDeleteByRole, // Only admin/sys_admin can delete
       canCreate: true,
       isReadOnly: false,
       reason: null
@@ -42,7 +42,7 @@ export const useCanEditStore = () => {
 
   // Comparación simple ahora que ambos están normalizados
   const canEdit = selectedStore === userStore
-  const canDelete = selectedStore === userStore && isAdmin // Must be admin AND own store to delete
+  const canDelete = selectedStore === userStore && canDeleteByRole // Must be admin/sys_admin AND own store to delete
   const canCreate = selectedStore === userStore
 
   // Obtener nombre de tienda para el mensaje

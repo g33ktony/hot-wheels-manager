@@ -198,6 +198,7 @@ export const globalSearch = async (req: Request, res: Response) => {
       // Don't count deliveries because when a delivery is completed, it creates a sale
       const customerSales = await SaleModel.find({
         customerId: customer._id,
+        storeId,
         status: 'completed'
       });
 
@@ -227,6 +228,7 @@ export const globalSearch = async (req: Request, res: Response) => {
 
     // 5. Buscar en ENTREGAS - ITEMS PENDIENTES (PREVENTAS)
     const preventaItems = await DeliveryModel.find({
+      storeId,
       status: { $in: ['scheduled', 'prepared'] },
       'items.carName': searchRegex,
       preSaleStatus: { $exists: true }
@@ -301,6 +303,7 @@ export const globalSearch = async (req: Request, res: Response) => {
         if (matches) {
           // Verificar si este car ya está en el inventario
           const existsInInventory = await InventoryItemModel.findOne({
+            storeId,
             carName: car.carModel || car.model
           });
 

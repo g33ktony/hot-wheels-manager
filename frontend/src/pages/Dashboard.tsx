@@ -7,6 +7,7 @@ import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
 import { useDownloadHotWheelsDatabase } from '@/hooks/useDownloadHotWheels'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '@/contexts/StoreContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/common/Card'
 import { Loading } from '@/components/common/Loading'
 import Button from '@/components/common/Button'
@@ -20,6 +21,8 @@ import toast from 'react-hot-toast'
 export default function Dashboard() {
     const navigate = useNavigate()
     const { selectedStore } = useStore()
+    const { isSysAdmin } = usePermissions()
+    const canManageCatalog = isSysAdmin()
 
     const [showUpdateModal, setShowUpdateModal] = React.useState(false)
     const [showSearchModal, setShowSearchModal] = React.useState(false)
@@ -46,16 +49,16 @@ export default function Dashboard() {
     )
     const { data: pendingItemsStats } = usePendingItemsStats()
     const updateCatalogMutation = useUpdateHotWheelsCatalog()
-    const { data: updateStatus } = useGetUpdateStatus()
+    const { data: updateStatus } = useGetUpdateStatus(canManageCatalog)
     const { results: searchResults, isLoading: isSearching, searchByName, loadAll } = useSearchHotWheels()
     const { download: downloadDatabase } = useDownloadHotWheelsDatabase()
 
     // Cargar todos los items cuando se abre el modal de búsqueda
     React.useEffect(() => {
-        if (showSearchModal && searchResults.length === 0 && !isSearching) {
+        if (canManageCatalog && showSearchModal && searchResults.length === 0 && !isSearching) {
             loadAll()
         }
-    }, [showSearchModal, searchResults.length, isSearching, loadAll])
+    }, [canManageCatalog, showSearchModal, searchResults.length, isSearching, loadAll])
 
     // Reset isInitiatingUpdate cuando la actualización comienza realmente
     React.useEffect(() => {
@@ -65,6 +68,11 @@ export default function Dashboard() {
     }, [updateStatus?.progress?.isUpdating, isInitiatingUpdate])
 
     const handleDownload = async () => {
+        if (!canManageCatalog) {
+            toast.error('Solo el sys admin puede descargar el catálogo JSON')
+            return
+        }
+
         setIsDownloading(true)
         try {
             await downloadDatabase()
@@ -211,6 +219,7 @@ export default function Dashboard() {
                     <h1 className="text-xl lg:text-2xl font-bold text-white">Dashboard</h1>
                     <p className="text-sm lg:text-base text-slate-400">Resumen general de tu negocio de autos a escala</p>
                 </div>
+                {canManageCatalog && (
                 <div className="flex gap-2 flex-wrap">
                     <Button
                         size="sm"
@@ -242,6 +251,7 @@ export default function Dashboard() {
                         {updateStatus?.progress?.isUpdating ? 'Actualizando...' : 'Actualizar Catálogo'}
                     </Button>
                 </div>
+                )}
             </div>
 
             {/* Metrics Grid - 2 columns on mobile, 3 on desktop */}
@@ -492,7 +502,7 @@ export default function Dashboard() {
 
             {/* Update Catalog Modal */}
             <Modal
-                isOpen={showUpdateModal}
+                isOpen={showUpdateModal && canManageCatalog}
                 onClose={() => {
                     setShowUpdateModal(false)
                     setIsInitiatingUpdate(false)
@@ -648,7 +658,7 @@ export default function Dashboard() {
 
             {/* Search Modal */}
             <Modal
-                isOpen={showSearchModal}
+                isOpen={showSearchModal && canManageCatalog}
                 onClose={() => {
                     setShowSearchModal(false)
                     setSearchQuery('')

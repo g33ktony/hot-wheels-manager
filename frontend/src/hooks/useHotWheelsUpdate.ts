@@ -20,7 +20,7 @@ export const useUpdateHotWheelsCatalog = () => {
   );
 };
 
-export const useGetUpdateStatus = () => {
+export const useGetUpdateStatus = (enabled = true) => {
   return useQuery(
     'hotwheels-update-status',
     async () => {
@@ -28,6 +28,7 @@ export const useGetUpdateStatus = () => {
       return response.data
     },
     {
+      enabled,
       staleTime: 0,
       refetchInterval: (data: any) => {
         // Si hay una actualización en curso, poll cada 2 segundos
