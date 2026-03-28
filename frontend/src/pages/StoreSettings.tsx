@@ -130,7 +130,12 @@ const StoreSettingsPage: React.FC = () => {
             setNewUserEmail('')
             setNewUserRole('editor')
 
-            await refetch()
+            try {
+                await refetch()
+            } catch (refetchError) {
+                console.warn('User created but stores refresh failed:', refetchError)
+            }
+
             toast.success('Usuario creado exitosamente')
         } catch (error) {
             console.error('Error creating user:', error)

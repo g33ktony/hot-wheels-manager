@@ -1,7 +1,53 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { toast } from 'react-hot-toast'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+const sanitizeToken = (rawToken: string | null) => {
+  if (!rawToken) return ''
+  return rawToken
+    .trim()
+    .replace(/^['\"]|['\"]$/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+}
+
+const normalizeApiUrl = (rawUrl?: string) => {
+  const fallback = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api'
+  const trimmed = rawUrl?.trim()
+
+  if (!trimmed) {
+    return fallback
+  }
+
+  if (trimmed.startsWith('/')) {
+    const cleanPath = trimmed.replace(/\/+$/, '')
+    if (cleanPath.endsWith('/api') || cleanPath.includes('/api/')) {
+      return cleanPath || '/api'
+    }
+    return `${cleanPath || ''}/api`
+  }
+
+  let candidate = trimmed
+  if (!/^https?:\/\//i.test(candidate)) {
+    candidate = `https://${candidate}`
+  }
+
+  try {
+    const parsed = new URL(candidate)
+    const path = parsed.pathname.replace(/\/+$/, '')
+    if (!path || path === '/') {
+      parsed.pathname = '/api'
+    } else if (!path.endsWith('/api') && !path.includes('/api/')) {
+      parsed.pathname = `${path}/api`
+    } else {
+      parsed.pathname = path
+    }
+
+    return parsed.toString().replace(/\/$/, '')
+  } catch {
+    return fallback
+  }
+}
+
+const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL)
 
 // Asegurar que siempre termine con /api si no lo tiene
 const normalizedAPI_URL = API_URL.endsWith('/api') ? API_URL : API_URL.includes('/api') ? API_URL : `${API_URL}/api`
@@ -41,13 +87,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const initAuth = async () => {
       const storedToken = localStorage.getItem('token')
       const storedUser = localStorage.getItem('user')
+      const sanitizedStoredToken = sanitizeToken(storedToken)
 
-      if (storedToken && storedUser) {
-        setToken(storedToken)
+      if (sanitizedStoredToken && storedUser) {
+        setToken(sanitizedStoredToken)
         setUser(JSON.parse(storedUser))
 
         // Verificar si el token aún es válido
-        const isValid = await verifyTokenAPI(storedToken)
+        const isValid = await verifyTokenAPI(sanitizedStoredToken)
         if (!isValid) {
           // Token expirado, limpiar
           logout()
@@ -62,9 +109,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const verifyTokenAPI = async (tokenToVerify: string): Promise<boolean> => {
     try {
+      const safeToken = sanitizeToken(tokenToVerify)
+      if (!safeToken) return false
+
       const response = await fetch(`${normalizedAPI_URL}/auth/verify`, {
         headers: {
-          Authorization: `Bearer ${tokenToVerify}`,
+          Authorization: `Bearer ${safeToken}`,
         },
       })
 
@@ -122,14 +172,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // Guardar token y usuario
       if (data.data && data.data.token) {
+        const safeToken = sanitizeToken(data.data.token)
+        if (!safeToken) {
+          throw new Error('Token inválido recibido del servidor')
+        }
+
         console.log('💾 Guardando token en localStorage')
-        localStorage.setItem('token', data.data.token)
+        localStorage.setItem('token', safeToken)
         localStorage.setItem('user', JSON.stringify(data.data.user))
 
-        console.log('📍 Token guardado:', data.data.token.substring(0, 20) + '...')
+        console.log('📍 Token guardado:', safeToken.substring(0, 20) + '...')
         console.log('👤 Usuario guardado:', data.data.user.email)
 
-        setToken(data.data.token)
+        setToken(safeToken)
         setUser(data.data.user)
 
         toast.success('¡Bienvenido!')

@@ -36,9 +36,19 @@ export const useStores = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const sanitizeToken = (rawToken: string | null) => {
+    if (!rawToken) return ''
+    return rawToken
+      .trim()
+      .replace(/^['\"]|['\"]$/g, '')
+      .replace(/[\u0000-\u001F\u007F]/g, '')
+  }
+
+  const safeToken = sanitizeToken(token)
+
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` })
+    ...(safeToken && { 'Authorization': `Bearer ${safeToken}` })
   })
 
   const fetchStores = async () => {
@@ -65,10 +75,10 @@ export const useStores = () => {
   }
 
   useEffect(() => {
-    if (token) {
+    if (safeToken) {
       fetchStores()
     }
-  }, [token])
+  }, [safeToken])
 
   const createStore = async (name: string, description?: string) => {
     try {
