@@ -312,6 +312,7 @@ export default function Inventory() {
                 selectedItemsCount={selectedItems.size}
                 filteredItemsCount={filteredItems.length}
                 canCreate={canCreate}
+                canDelete={canDelete}
                 onToggleSelectionMode={handleToggleSelectionMode}
                 onDeselectAllItems={handleDeselectAllItems}
                 onAddToCart={handleAddToCart}

@@ -566,3 +566,63 @@ export const restoreStore = async (req: Request, res: Response) => {
     })
   }
 }
+
+/**
+ * GET /api/stores/my - Get current user's store with team members
+ * Accessible to all authenticated users
+ */
+export const getMyStore = async (req: Request, res: Response) => {
+  try {
+    const userStoreId = req.storeId
+
+    if (!userStoreId) {
+      return res.status(400).json({
+        success: false,
+        error: 'No store found for user'
+      })
+    }
+
+    const store = await Store.findById(userStoreId)
+    if (!store) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tienda no encontrada'
+      })
+    }
+
+    // Get all users in this store
+    const users = await UserModel.find({ storeId: userStoreId })
+
+    const storeUsers = {
+      admin: users.filter((u: any) => u.role === 'admin').length,
+      editor: users.filter((u: any) => u.role === 'editor').length,
+      analyst: users.filter((u: any) => u.role === 'analyst').length,
+      sys_admin: users.filter((u: any) => u.role === 'sys_admin').length,
+      total: users.length,
+      userDetails: users.map((u: any) => ({
+        _id: u._id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: u.status
+      }))
+    }
+
+    res.json({
+      success: true,
+      data: {
+        _id: store._id,
+        name: store.name,
+        description: store.description,
+        createdAt: store.createdAt,
+        users: storeUsers
+      }
+    })
+  } catch (error: any) {
+    console.error('Error getting my store:', error)
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to get store'
+    })
+  }
+}

@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express'
 import {
   getStores,
+  getMyStore,
   getStoreDetails,
   createStore,
   updateStore,
@@ -14,6 +15,9 @@ import {
 const router = express.Router()
 
 // All routes require authentication (applied in index.ts)
+
+// GET /api/stores/my - Get current user's store with team members
+router.get('/my', getMyStore)
 
 // GET /api/stores - Get all stores (sys_admin only)
 router.get('/', getStores)

@@ -1272,15 +1272,17 @@ export default function ItemDetail() {
                                         Editar Catálogo
                                     </Button>
                                 )}
-                                <Button
-                                    variant="secondary"
-                                    className="w-full justify-center gap-2 h-9 sm:h-10 text-red-600 border-red-200 hover:bg-red-50"
-                                    onClick={() => setShowDeleteConfirm(true)}
-                                    disabled={isDeleting}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    {isDeleting ? 'Eliminando...' : 'Eliminar Item'}
-                                </Button>
+                                {user?.role === 'admin' && (
+                                    <Button
+                                        variant="secondary"
+                                        className="w-full justify-center gap-2 h-9 sm:h-10 text-red-600 border-red-200 hover:bg-red-50"
+                                        onClick={() => setShowDeleteConfirm(true)}
+                                        disabled={isDeleting}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        {isDeleting ? 'Eliminando...' : 'Eliminar Item'}
+                                    </Button>
+                                )}
                             </div>
                         </Card>
                     </div>

@@ -31,7 +31,7 @@ interface Store {
 }
 
 export const useStores = () => {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const [stores, setStores] = useState<Store[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -55,7 +55,11 @@ export const useStores = () => {
     try {
       setIsLoading(true)
       setError(null)
-      const response = await fetch('/api/stores', {
+
+      // If user is sys_admin, fetch all stores; otherwise fetch user's store
+      const endpoint = user?.role === 'sys_admin' ? '/api/stores' : '/api/stores/my'
+
+      const response = await fetch(endpoint, {
         headers: getAuthHeaders()
       })
       if (!response.ok) {
@@ -65,7 +69,13 @@ export const useStores = () => {
         throw new Error('Failed to fetch stores')
       }
       const data = await response.json()
-      setStores(data.data || [])
+
+      // If endpoint is /api/stores/my, wrap single store in array
+      if (endpoint === '/api/stores/my') {
+        setStores(data.data ? [data.data] : [])
+      } else {
+        setStores(data.data || [])
+      }
     } catch (err: any) {
       setError(err.message)
       console.error('Error fetching stores:', err)

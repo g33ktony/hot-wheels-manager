@@ -218,7 +218,7 @@ const StoreSettingsPage: React.FC = () => {
                     {[
                         { id: 'profile', label: 'Perfil y Tienda' },
                         { id: 'team', label: 'Mi Equipo' },
-                        { id: 'create-user', label: 'Crear Usuario' },
+                        ...(user?.role === 'admin' ? [{ id: 'create-user', label: 'Crear Usuario' }] : []),
                         ...(isSysAdmin() ? [{ id: 'public-catalog', label: '🌍 Catálogo Público' }] : [])
                     ].map(tab => (
                         <button

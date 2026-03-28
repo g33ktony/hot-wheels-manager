@@ -17,6 +17,7 @@ interface InventoryHeaderProps {
     selectedItemsCount: number
     filteredItemsCount: number
     canCreate: boolean
+    canDelete: boolean
     onToggleSelectionMode: () => void
     onDeselectAllItems: () => void
     onAddToCart: () => void
@@ -35,6 +36,7 @@ export default function InventoryHeader({
     selectedItemsCount,
     filteredItemsCount,
     canCreate,
+    canDelete,
     onToggleSelectionMode,
     onDeselectAllItems,
     onAddToCart,
@@ -111,14 +113,16 @@ export default function InventoryHeader({
                                     >
                                         Publicar en Facebook
                                     </Button>
-                                    <Button
-                                        variant="danger"
-                                        icon={<Trash2 size={18} />}
-                                        onClick={onBulkDelete}
-                                        size="sm"
-                                    >
-                                        Eliminar ({selectedItemsCount})
-                                    </Button>
+                                    {canDelete && (
+                                        <Button
+                                            variant="danger"
+                                            icon={<Trash2 size={18} />}
+                                            onClick={onBulkDelete}
+                                            size="sm"
+                                        >
+                                            Eliminar ({selectedItemsCount})
+                                        </Button>
+                                    )}
                                 </>
                             )}
                             {selectedItemsCount === 0 && filteredItemsCount > 0 && (
