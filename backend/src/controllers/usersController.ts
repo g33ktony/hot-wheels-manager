@@ -453,6 +453,15 @@ export const createUserInStore = async (req: Request, res: Response) => {
     const requesterRole = req.userRole as string
     const requesterStoreId = req.storeId as string
 
+    console.log('📥 [createUserInStore] Request received', {
+      requesterRole,
+      requesterStoreId,
+      role,
+      storeId,
+      email,
+      nameLength: typeof name === 'string' ? name.trim().length : 0
+    })
+
     // Verify auth properties exist
     // sys_admin can work without storeId (superuser), but others need it
     if (!requesterRole) {

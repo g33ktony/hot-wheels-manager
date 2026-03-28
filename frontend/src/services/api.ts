@@ -1,6 +1,45 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+const normalizeApiBaseUrl = (rawUrl?: string) => {
+  const fallback = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api'
+  const trimmed = rawUrl?.trim()
+
+  if (!trimmed) {
+    return fallback
+  }
+
+  if (trimmed.startsWith('/')) {
+    const cleanPath = trimmed.replace(/\/+$/, '')
+    if (cleanPath.endsWith('/api') || cleanPath.includes('/api/')) {
+      return cleanPath || '/api'
+    }
+    return `${cleanPath || ''}/api`
+  }
+
+  let candidate = trimmed
+  if (!/^https?:\/\//i.test(candidate)) {
+    candidate = `https://${candidate}`
+  }
+
+  try {
+    const parsed = new URL(candidate)
+    const path = parsed.pathname.replace(/\/+$/, '')
+
+    if (!path || path === '/') {
+      parsed.pathname = '/api'
+    } else if (!path.endsWith('/api') && !path.includes('/api/')) {
+      parsed.pathname = `${path}/api`
+    } else {
+      parsed.pathname = path
+    }
+
+    return parsed.toString().replace(/\/$/, '')
+  } catch {
+    return fallback
+  }
+}
+
 // Debug environment variables
 console.log('🔧 Environment Debug:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
@@ -11,12 +50,7 @@ console.log('🔧 Environment Debug:', {
 // Use absolute URL for both development and production
 // In development, this will be http://localhost:3001/api
 // In production, this will be from VITE_API_URL or the Railway/Vercel backend URL
-let baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
-
-// Asegurar que siempre termine con /api si no lo tiene
-if (!baseURL.endsWith('/api') && !baseURL.includes('/api')) {
-  baseURL = `${baseURL}/api`
-}
+const baseURL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL)
 
 console.log('🔧 Axios baseURL Debug:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
