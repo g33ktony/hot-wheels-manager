@@ -1,6 +1,15 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+const sanitizeAuthToken = (rawToken: string | null) => {
+  if (!rawToken) return ''
+
+  return rawToken
+    .trim()
+    .replace(/^['\"]|['\"]$/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+}
+
 const normalizeApiBaseUrl = (rawUrl?: string) => {
   const fallback = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api'
   const trimmed = rawUrl?.trim()
@@ -70,7 +79,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Agregar token de autenticación
-    const token = localStorage.getItem('token')
+    const token = sanitizeAuthToken(localStorage.getItem('token'))
     try {
       console.log('➡️ API Request:', config.method, config.url, 'tokenPresent:', !!token)
     } catch (e) {

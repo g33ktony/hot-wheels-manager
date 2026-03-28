@@ -12,6 +12,14 @@ interface CreateUserPayload {
 export const useUserManagement = () => {
   const [isLoading, setIsLoading] = useState(false)
 
+  const sanitizeToken = (rawToken: string | null) => {
+    if (!rawToken) return ''
+    return rawToken
+      .trim()
+      .replace(/^['\"]|['\"]$/g, '')
+      .replace(/[\u0000-\u001F\u007F]/g, '')
+  }
+
   const getErrorMessage = (error: any, fallback = 'Error desconocido') => {
     return error?.response?.data?.error || error?.response?.data?.message || error?.message || fallback
   }
@@ -28,12 +36,13 @@ export const useUserManagement = () => {
 
       if (shouldFallbackToFetch) {
         try {
+          const sanitizedToken = sanitizeToken(localStorage.getItem('token'))
           console.warn('⚠️ Axios URL error detected, falling back to fetch /api path')
           const response = await fetch('/api/users/create-in-store', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+              ...(sanitizedToken ? { 'Authorization': `Bearer ${sanitizedToken}` } : {})
             },
             body: JSON.stringify(payload)
           })
