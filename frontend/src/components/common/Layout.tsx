@@ -28,6 +28,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useBoxes } from '@/hooks/useBoxes'
 import { useLeadStatistics } from '@/hooks/useLeads'
 import { useDataReportsSummary } from '@/hooks/useDataReports'
+import { usePendingUsersCount } from '@/hooks/usePendingUsers'
 import { useAppSelector } from '@/hooks/redux'
 import FloatingActionButton from './FloatingActionButton'
 import DeliveryCartModal from '../DeliveryCartModal'
@@ -56,6 +57,7 @@ export default function Layout({ children }: LayoutProps) {
     const { data: boxes } = useBoxes()
     const { data: leadStats } = useLeadStatistics()
     const { data: reportsSummary } = useDataReportsSummary()
+    const pendingUsersCount = usePendingUsersCount()
     const cartItems = useAppSelector(state => state.cart.items)
     const deliveryCartItems = useAppSelector(state => state.deliveryCart.items)
     const cartItemCount = cartItems.length
@@ -156,16 +158,21 @@ export default function Layout({ children }: LayoutProps) {
                 name: 'Gestión de Usuarios',
                 href: '/admin/users',
                 icon: Users,
-                highlight: true
+                highlight: true,
+                ...(pendingUsersCount > 0 && { badge: pendingUsersCount })
             },
             {
                 name: 'Administración de Tiendas',
                 href: '/admin/stores',
                 icon: Building2,
                 highlight: true
+            },
+            {
+                name: '📋 Gestión de Catálogo',
+                href: '/catalog',
+                icon: Package
             }
         ] : []),
-        { name: '📋 Gestión de Catálogo', href: '/catalog', icon: Package },
         { name: 'Catálogo Público', href: '/browse?adminView=true', icon: SearchIcon },
         { name: 'Proveedores', href: '/suppliers', icon: Building2 },
         { name: 'Configuración de Tienda', href: '/store-settings', icon: Store },

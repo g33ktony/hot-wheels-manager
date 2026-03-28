@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePermissions } from '@/hooks/usePermissions'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -20,6 +21,7 @@ import { storeSettingsService } from '@/services/storeSettings'
 const StoreSettingsPage: React.FC = () => {
     const { mode } = useTheme()
     const { user } = useAuth()
+    const { isSysAdmin } = usePermissions()
     const { createUserInStore } = useUserManagement()
     const { stores, refetch } = useStores()
     const isDark = mode === 'dark'
@@ -217,7 +219,7 @@ const StoreSettingsPage: React.FC = () => {
                         { id: 'profile', label: 'Perfil y Tienda' },
                         { id: 'team', label: 'Mi Equipo' },
                         { id: 'create-user', label: 'Crear Usuario' },
-                        { id: 'public-catalog', label: '🌍 Catálogo Público' }
+                        ...(isSysAdmin() ? [{ id: 'public-catalog', label: '🌍 Catálogo Público' }] : [])
                     ].map(tab => (
                         <button
                             key={tab.id}
