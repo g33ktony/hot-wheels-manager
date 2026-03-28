@@ -178,11 +178,18 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     const onTouchStart = (e: React.TouchEvent) => {
+        const target = e.target as HTMLElement
+        if (target.closest('[role="dialog"]')) {
+            setTouchStart(null)
+            setTouchEnd(null)
+            return
+        }
         setTouchEnd(null)
         setTouchStart(e.targetTouches[0].clientX)
     }
 
     const onTouchMove = (e: React.TouchEvent) => {
+        if (touchStart === null) return
         setTouchEnd(e.targetTouches[0].clientX)
     }
 
@@ -237,15 +244,11 @@ export default function Layout({ children }: LayoutProps) {
       `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className={`flex items-center justify-between h-16 px-4 border-b flex-shrink-0 z-10 backdrop-blur ${mode === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-gray-50/80 border-gray-200'}`}>
+                <div className={`flex items-center h-16 border-b flex-shrink-0 z-10 backdrop-blur ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-4'} ${mode === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-gray-50/80 border-gray-200'}`}>
                     {/* Logo/Title - ocultar texto cuando está colapsado en desktop */}
                     <h1 className={`text-lg lg:text-xl font-bold select-none transition-all ${mode === 'dark' ? 'text-white' : 'text-gray-900'} ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
                         🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}
                     </h1>
-                    {/* Solo emoji cuando colapsado */}
-                    {sidebarCollapsed && (
-                        <div className="hidden lg:block text-2xl">🏎️</div>
-                    )}
 
                     {/* Botón toggle collapse (solo desktop) */}
                     <button

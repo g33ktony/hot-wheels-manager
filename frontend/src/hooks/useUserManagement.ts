@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
+import api from '@/services/api'
 
 interface CreateUserPayload {
   name: string
@@ -14,31 +15,11 @@ export const useUserManagement = () => {
   const createUserInStore = async (payload: CreateUserPayload) => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/users/create-in-store', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) {
-        let errorMsg = 'Error al crear usuario'
-        try {
-          const errorData = await response.json()
-          errorMsg = errorData.error || errorData.message || errorMsg
-        } catch {
-          errorMsg = `Error ${response.status}: ${response.statusText}`
-        }
-        throw new Error(errorMsg)
-      }
-
-      const data = await response.json()
+      const data = await api.post('/users/create-in-store', payload)
       toast.success('Usuario creado exitosamente')
-      return data.data
+      return data.data.data
     } catch (error: any) {
-      const errorMessage = error.message || 'Error desconocido'
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error.message || 'Error desconocido'
       console.error('❌ Error creating user:', error)
       toast.error(errorMessage)
       throw error
@@ -50,25 +31,12 @@ export const useUserManagement = () => {
   const updateProfile = async (updates: any) => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/users/profile', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(updates)
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Error al actualizar perfil')
-      }
-
-      const data = await response.json()
+      const data = await api.patch('/users/profile', updates)
       toast.success('Perfil actualizado')
-      return data.data
+      return data.data.data
     } catch (error: any) {
-      toast.error(error.message)
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || error.message || 'Error al actualizar perfil'
+      toast.error(errorMessage)
       throw error
     } finally {
       setIsLoading(false)

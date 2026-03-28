@@ -99,6 +99,14 @@ const StoreSettingsPage: React.FC = () => {
             return
         }
 
+        const normalizedEmail = newUserEmail.trim().toLowerCase()
+        const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+
+        if (!isValidEmail) {
+            toast.error('Ingresa un email válido')
+            return
+        }
+
         if (!user?.storeId) {
             toast.error('No se detectó tu tienda. Por favor cierra sesión y vuelve a entrar.')
             return
@@ -107,8 +115,8 @@ const StoreSettingsPage: React.FC = () => {
         try {
             setIsLoading(true)
             const result = await createUserInStore({
-                name: newUserName,
-                email: newUserEmail,
+                name: newUserName.trim(),
+                email: normalizedEmail,
                 role: newUserRole,
                 storeId: user.storeId
             })
