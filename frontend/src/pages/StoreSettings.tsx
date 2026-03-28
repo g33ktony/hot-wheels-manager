@@ -351,7 +351,11 @@ const StoreSettingsPage: React.FC = () => {
                             />
                             <Input
                                 label="Email"
-                                type="email"
+                                type="text"
+                                inputMode="email"
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                autoComplete="email"
                                 value={newUserEmail}
                                 onChange={(e) => setNewUserEmail(e.target.value)}
                                 placeholder="usuario@example.com"
