@@ -18,6 +18,7 @@ import {
 import { TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { deliveriesService } from '../services/deliveries';
 import Card from '../components/common/Card';
+import { Loading } from '../components/common/Loading';
 import type { Delivery } from '@shared/types';
 
 interface CompletionTrendData {
@@ -49,7 +50,7 @@ export const DeliveryAnalytics: React.FC = () => {
     // Calculate delivery status breakdown (ONLY ACTIVE - excluding completed)
     const deliveryStatusData = useMemo(() => {
         const activeDeliveries = deliveries.filter((d: Delivery) => d.status !== 'completed');
-        
+
         const statusCounts = activeDeliveries.reduce(
             (acc: Record<string, number>, delivery: Delivery) => {
                 const status = delivery.status || 'unknown';
@@ -72,7 +73,7 @@ export const DeliveryAnalytics: React.FC = () => {
     // Calculate payment status breakdown (ONLY ACTIVE - excluding completed)
     const paymentStatusData = useMemo(() => {
         const activeDeliveries = deliveries.filter((d: Delivery) => d.status !== 'completed');
-        
+
         const paymentCounts = activeDeliveries.reduce(
             (acc: Record<string, number>, delivery: Delivery) => {
                 const status = delivery.paymentStatus || 'unknown';
@@ -162,11 +163,7 @@ export const DeliveryAnalytics: React.FC = () => {
     }, [deliveries]);
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <div className="text-lg text-slate-400">Cargando analíticas...</div>
-            </div>
-        );
+        return <Loading text="Cargando analiticas..." />;
     }
 
     if (error) {

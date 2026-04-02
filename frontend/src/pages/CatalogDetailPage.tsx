@@ -1,3 +1,5 @@
+import { Loading } from '@/components/common/Loading'
+
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import PhotoUploadSection from '../components/PhotoUploadSection'
@@ -170,7 +172,7 @@ export default function CatalogDetailPage() {
     }
 
     if (loading) {
-        return <div className="detail-loading">⏳ Cargando...</div>
+        return <Loading text="Cargando detalle..." />
     }
 
     if (!item) {

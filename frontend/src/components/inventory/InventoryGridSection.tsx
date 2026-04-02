@@ -1,5 +1,6 @@
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
+import { Loading } from '@/components/common/Loading'
 import { LazyImage } from '@/components/LazyImage'
 import type { InventoryItem } from '@shared/types'
 import {
@@ -88,10 +89,7 @@ export default function InventoryGridSection({
             )}
 
             {isLoading && inventoryItemsCount === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-600 border-t-primary-600"></div>
-                    <p className="mt-4 text-slate-400">Cargando inventario...</p>
-                </div>
+                <Loading text="Cargando inventario..." />
             ) : filteredItems.length === 0 ? (
                 <Card>
                     <div className="text-center py-12">

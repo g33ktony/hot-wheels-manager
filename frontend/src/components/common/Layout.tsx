@@ -5,6 +5,10 @@ import {
     Package,
     ShoppingCart,
     ShoppingBag,
+    CreditCard,
+    DollarSign,
+    ClipboardList,
+    BookOpen,
     Truck,
     Menu,
     X,
@@ -38,6 +42,8 @@ interface LayoutProps {
     children: ReactNode
 }
 
+type SidebarDensity = 'compact' | 'normal'
+
 export default function Layout({ children }: LayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -48,6 +54,10 @@ export default function Layout({ children }: LayoutProps) {
     const [touchEnd, setTouchEnd] = useState<number | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [showDeliveryCartModal, setShowDeliveryCartModal] = useState(false)
+    const [sidebarDensity, setSidebarDensity] = useState<SidebarDensity>(() => {
+        const saved = localStorage.getItem('sidebarDensity')
+        return saved === 'normal' ? 'normal' : 'compact'
+    })
     const sidebarRef = useRef<HTMLDivElement>(null)
     const location = useLocation()
     const navigate = useNavigate()
@@ -68,10 +78,27 @@ export default function Layout({ children }: LayoutProps) {
         localStorage.setItem('sidebarCollapsed', sidebarCollapsed.toString())
     }, [sidebarCollapsed])
 
+    // Persist sidebar density preference
+    useEffect(() => {
+        localStorage.setItem('sidebarDensity', sidebarDensity)
+    }, [sidebarDensity])
+
     // Toggle sidebar collapse
     const toggleSidebarCollapse = () => {
         setSidebarCollapsed(!sidebarCollapsed)
     }
+
+    const toggleSidebarDensity = () => {
+        setSidebarDensity(prev => (prev === 'compact' ? 'normal' : 'compact'))
+    }
+    const collapsedWidthClass = sidebarDensity === 'normal' ? 'lg:w-20' : 'lg:w-16'
+    const collapsedHeaderOffsetClass = sidebarDensity === 'normal' ? 'lg:left-20' : 'lg:left-16'
+    const collapsedItemLayoutClass = sidebarDensity === 'normal'
+        ? 'lg:flex-col lg:justify-center lg:gap-1 lg:px-1.5 lg:py-2'
+        : 'lg:flex-col lg:justify-center lg:gap-1 lg:px-1 lg:py-2'
+    const collapsedLabelClass = sidebarDensity === 'normal'
+        ? 'hidden lg:block text-[11px] leading-tight font-semibold text-center w-full px-0.5'
+        : 'hidden lg:block text-[9px] leading-none font-semibold uppercase text-center w-full px-0.5'
 
     // Handle navigation item click
     const handleNavClick = () => {
@@ -111,17 +138,18 @@ export default function Layout({ children }: LayoutProps) {
     const pendingReportsCount = reportsSummary?.pending || 0
 
     const navigationItems = [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-        { name: 'Inventario', href: '/inventory', icon: Package },
+        { name: 'Dashboard', shortName: 'Dash', href: '/dashboard', icon: LayoutDashboard },
+        { name: 'Inventario', shortName: 'Inv', href: '/inventory', icon: Package },
         {
             name: '🛒 POS',
+            shortName: 'POS',
             href: '/pos',
-            icon: ShoppingCart,
+            icon: CreditCard,
             ...(cartItemCount > 0 && { badge: cartItemCount })
         },
-        { name: 'Ventas', href: '/sales', icon: ShoppingCart },
-        { name: 'Compras', href: '/purchases', icon: ShoppingBag },
-        { name: 'Pre-Ventas', href: '/presale', icon: Package },
+        { name: 'Ventas', shortName: 'Vta', href: '/sales', icon: DollarSign },
+        { name: 'Compras', shortName: 'Comp', href: '/purchases', icon: ShoppingBag },
+        { name: 'Pre-Ventas', shortName: 'PreV', href: '/presale', icon: ClipboardList },
         // Conditional: Only show if there are pending items
         // HIDDEN: Items Pendientes (pending items) - TODO: improve in the future
         // ...(pendingItemsStats && pendingItemsStats.totalCount > 0 ? [{
@@ -134,22 +162,25 @@ export default function Layout({ children }: LayoutProps) {
         // Conditional: Only show if there are active boxes (sealed or unpacking)
         ...(activeBoxes.length > 0 ? [{
             name: 'Cajas',
+            shortName: 'Caja',
             href: '/boxes',
             icon: PackageOpen,
             badge: activeBoxes.length
         }] : []),
-        { name: 'Entregas', href: '/deliveries', icon: Truck },
-        { name: 'Clientes', href: '/customers', icon: Users },
+        { name: 'Entregas', shortName: 'Ent', href: '/deliveries', icon: Truck },
+        { name: 'Clientes', shortName: 'Clie', href: '/customers', icon: Users },
         // Conditional: Only show for sys_admin
         ...(isSysAdmin() ? [
             {
                 name: 'Leads',
+                shortName: 'Lead',
                 href: '/leads',
                 icon: Mail,
                 ...(newLeadsCount > 0 && { badge: newLeadsCount })
             },
             {
                 name: 'Reportes de Datos',
+                shortName: 'Rpt',
                 href: '/data-reports',
                 icon: Flag,
                 ...(pendingReportsCount > 0 && { badge: pendingReportsCount })
@@ -157,26 +188,38 @@ export default function Layout({ children }: LayoutProps) {
             {
                 name: 'Gestión de Usuarios',
                 href: '/admin/users',
-                icon: Users,
+                shortName: 'Usr',
+                icon: Lock,
                 highlight: true,
                 ...(pendingUsersCount > 0 && { badge: pendingUsersCount })
             },
             {
                 name: 'Administración de Tiendas',
+                shortName: 'Tda',
                 href: '/admin/stores',
                 icon: Building2,
                 highlight: true
             },
             {
                 name: '📋 Gestión de Catálogo',
+                shortName: 'Cat',
                 href: '/catalog',
-                icon: Package
+                icon: BookOpen
             }
         ] : []),
-        { name: 'Catálogo Público', href: '/browse?adminView=true', icon: SearchIcon },
-        { name: 'Proveedores', href: '/suppliers', icon: Building2 },
-        { name: 'Configuración de Tienda', href: '/store-settings', icon: Store },
-        { name: 'Tema', href: '/theme-settings', icon: Settings },
+        ...(!isSysAdmin() && isAdmin() ? [
+            {
+                name: 'Administración de Tiendas',
+                shortName: 'Tda',
+                href: '/admin/stores',
+                icon: Building2,
+                highlight: true
+            }
+        ] : []),
+        { name: 'Catálogo Público', shortName: 'Pub', href: '/browse?adminView=true', icon: SearchIcon },
+        { name: 'Proveedores', shortName: 'Prov', href: '/suppliers', icon: Building2 },
+        { name: 'Configuración de Tienda', shortName: 'Cfg', href: '/store-settings', icon: Store },
+        { name: 'Tema', shortName: 'Tema', href: '/theme-settings', icon: Settings },
     ]
 
     const handleLogout = () => {
@@ -245,7 +288,7 @@ export default function Layout({ children }: LayoutProps) {
                 ref={sidebarRef}
                 className={`
         fixed inset-y-0 left-0 z-50 shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r backdrop-blur
-        ${sidebarCollapsed && window.innerWidth >= 1024 ? 'lg:w-16' : 'w-64'}
+                ${sidebarCollapsed && window.innerWidth >= 1024 ? collapsedWidthClass : 'w-64'}
         ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
@@ -293,7 +336,7 @@ export default function Layout({ children }: LayoutProps) {
                                     className={`
                   flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200
                   min-h-[44px] touch-manipulation relative select-none
-                  ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'px-4'}
+                  ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'}
                   ${isActive
                                             ? item.highlight
                                                 ? (mode === 'dark' ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30' : 'bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200')
@@ -311,11 +354,12 @@ export default function Layout({ children }: LayoutProps) {
                                     title={sidebarCollapsed ? item.name : undefined}
                                 >
                                     <item.icon size={22} className={`flex-shrink-0 ${!sidebarCollapsed ? 'mr-3' : ''}`} />
-                                    <span className={`flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.name}</span>
+                                    {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
+                                    {sidebarCollapsed && <span className={collapsedLabelClass}>{item.shortName || item.name}</span>}
                                     {item.badge && item.badge > 0 && (
                                         <span className={`
                     px-2 py-0.5 text-xs font-semibold rounded-full
-                    ${sidebarCollapsed ? 'lg:absolute lg:top-1 lg:right-1' : ''}
+                    ${sidebarCollapsed ? 'lg:absolute lg:top-0.5 lg:right-0.5' : ''}
                     ${isActive
                                                 ? 'bg-emerald-500 text-white'
                                                 : 'bg-orange-500 text-white'
@@ -332,27 +376,40 @@ export default function Layout({ children }: LayoutProps) {
                         <Link
                             to="/change-password"
                             onClick={handleNavClick}
-                            className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 ${mode === 'dark' ? 'text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 active:bg-blue-500/20' : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100'}`}
+                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark' ? 'text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 active:bg-blue-500/20' : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100'}`}
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',
                             }}
+                            title={sidebarCollapsed ? 'Cambiar contraseña' : undefined}
                         >
-                            <Lock size={22} className="mr-3 flex-shrink-0" />
-                            <span className="flex-1 select-none">Cambiar contraseña</span>
+                            <Lock size={22} className={`flex-shrink-0 ${!sidebarCollapsed ? 'mr-3' : ''}`} />
+                            {!sidebarCollapsed && <span className="flex-1 select-none">Cambiar contraseña</span>}
+                            {sidebarCollapsed && <span className={collapsedLabelClass}>Clave</span>}
                         </Link>
 
                         {/* Logout button */}
                         <button
                             onClick={handleLogout}
-                            className={`w-full flex items-center px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation ${mode === 'dark' ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20' : 'text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100'}`}
+                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark' ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20' : 'text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100'}`}
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',
                             }}
+                            title={sidebarCollapsed ? 'Cerrar sesión' : undefined}
                         >
-                            <LogOut size={22} className="mr-3 flex-shrink-0" />
-                            <span className="flex-1 select-none">Cerrar sesión</span>
+                            <LogOut size={22} className={`flex-shrink-0 ${!sidebarCollapsed ? 'mr-3' : ''}`} />
+                            {!sidebarCollapsed && <span className="flex-1 select-none">Cerrar sesión</span>}
+                            {sidebarCollapsed && <span className={collapsedLabelClass}>Salir</span>}
+                        </button>
+
+                        {/* Density toggle (desktop only) */}
+                        <button
+                            onClick={toggleSidebarDensity}
+                            className={`hidden lg:flex w-full items-center justify-center py-2 mt-1 rounded-lg text-xs font-semibold transition-all duration-200 ${mode === 'dark' ? 'text-slate-300 hover:bg-slate-700 active:bg-slate-600' : 'text-gray-600 hover:bg-gray-100 active:bg-gray-200'}`}
+                            title={`Cambiar a modo ${sidebarDensity === 'compact' ? 'normal' : 'compacto'}`}
+                        >
+                            {sidebarDensity === 'compact' ? 'Normal' : 'Compacto'}
                         </button>
                     </nav>
                 </div>
@@ -361,7 +418,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className={`h-16 border-b px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto shadow-sm backdrop-blur transition-all duration-300 ${sidebarCollapsed ? 'lg:left-16' : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}`}>
+                <div className={`h-16 border-b px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto shadow-sm backdrop-blur transition-all duration-300 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}`}>
                     <button
                         className={`lg:hidden p-2 -ml-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                         onClick={() => setSidebarOpen(true)}

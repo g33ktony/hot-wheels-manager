@@ -8,6 +8,7 @@ import {
     Plus, TrendingUp, MapPin, Phone, Mail, X, Edit, Save, Trash2
 } from 'lucide-react'
 import Button from '@/components/common/Button'
+import { Loading } from '@/components/common/Loading'
 import { getPlaceholderLogo } from '@/utils/placeholderLogo'
 import ImageModal from '@/components/ImageModal'
 import toast from 'react-hot-toast'
@@ -1459,12 +1460,7 @@ function GenericDetailModal({
 
                     {/* Loading state */}
                     {((type === 'inventory' && !inventoryData) || (type === 'customer' && !customerData)) && (
-                        <div className="text-center py-8">
-                            <div className="inline-flex items-center gap-2">
-                                <div className="animate-spin h-5 w-5 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
-                                <span className="text-slate-300">Cargando...</span>
-                            </div>
-                        </div>
+                        <Loading text="Cargando..." />
                     )}
                 </div>
             </div>

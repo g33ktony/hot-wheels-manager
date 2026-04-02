@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
+import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import EditCatalogModal from '@/components/EditCatalogModal'
 import toast from 'react-hot-toast'
@@ -1004,14 +1005,7 @@ export default function ItemDetail() {
     }
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-                    <p className="text-slate-400">Cargando detalle...</p>
-                </div>
-            </div>
-        )
+        return <Loading text="Cargando detalle..." />
     }
 
     if (!item) {

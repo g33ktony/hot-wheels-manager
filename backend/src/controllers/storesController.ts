@@ -286,7 +286,14 @@ export const updateUserRole = async (req: Request, res: Response) => {
     const userRole = req.userRole
     const currentUserStoreId = req.storeId
 
-    // Permission check
+    // Permission check: must be admin/sys_admin and belong to the store unless sys_admin
+    if (userRole !== 'sys_admin' && userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo admin y sys_admin pueden modificar roles de usuarios'
+      })
+    }
+
     if (userRole !== 'sys_admin' && currentUserStoreId !== storeId) {
       return res.status(403).json({
         success: false,
@@ -299,6 +306,14 @@ export const updateUserRole = async (req: Request, res: Response) => {
       return res.status(404).json({
         success: false,
         error: 'Usuario no encontrado en esta tienda'
+      })
+    }
+
+    // Only sys_admin can modify sys_admin users
+    if (user.role === 'sys_admin' && userRole !== 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo sys_admin puede modificar usuarios con rol sys_admin'
       })
     }
 
@@ -330,7 +345,14 @@ export const removeUserFromStore = async (req: Request, res: Response) => {
     const userRole = req.userRole
     const currentUserStoreId = req.storeId
 
-    // Permission check
+    // Permission check: must be admin/sys_admin and belong to the store unless sys_admin
+    if (userRole !== 'sys_admin' && userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo admin y sys_admin pueden eliminar usuarios de la tienda'
+      })
+    }
+
     if (userRole !== 'sys_admin' && currentUserStoreId !== storeId) {
       return res.status(403).json({
         success: false,
@@ -380,7 +402,14 @@ export const assignUserToStore = async (req: Request, res: Response) => {
     const userRole = req.userRole
     const currentUserStoreId = req.storeId
 
-    // Permission check
+    // Permission check: must be admin/sys_admin and belong to the store unless sys_admin
+    if (userRole !== 'sys_admin' && userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo admin y sys_admin pueden asignar usuarios a tiendas'
+      })
+    }
+
     if (userRole !== 'sys_admin' && currentUserStoreId !== storeId) {
       return res.status(403).json({
         success: false,

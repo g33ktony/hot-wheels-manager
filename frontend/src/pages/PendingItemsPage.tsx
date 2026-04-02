@@ -3,6 +3,7 @@ import { AlertCircle, Package, DollarSign, Filter } from 'lucide-react'
 import PendingItemCard from '../components/PendingItemCard'
 import LinkToPurchaseModal from '../components/LinkToPurchaseModal'
 import MarkRefundedModal from '../components/MarkRefundedModal'
+import { Loading } from '../components/common/Loading'
 import {
     usePendingItems,
     usePendingItemsStats,
@@ -200,10 +201,7 @@ export default function PendingItemsPage() {
 
             {/* Items List */}
             {isLoading ? (
-                <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-                    <p className="text-slate-400 mt-4">Cargando items pendientes...</p>
-                </div>
+                <Loading text="Cargando items pendientes..." />
             ) : error ? (
                 <div className="bg-red-50 border-2 border-red-300 rounded-lg p-8 text-center">
                     <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />

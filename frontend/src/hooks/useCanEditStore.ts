@@ -12,6 +12,7 @@ import { useEffect } from 'react'
 export const useCanEditStore = () => {
   const { userStore, selectedStore, availableStores } = useStore()
   const { user } = useAuth()
+  const canWriteByRole = user?.role === 'admin' || user?.role === 'sys_admin' || user?.role === 'editor'
   const canDeleteByRole = user?.role === 'admin' || user?.role === 'sys_admin'
 
   // Debug logging
@@ -19,31 +20,41 @@ export const useCanEditStore = () => {
     console.log('🔐 [useCanEditStore] Comparison values:', {
       userStore: userStore,
       selectedStore: selectedStore,
+      role: user?.role,
+      canWriteByRole,
       isEqual: userStore === selectedStore,
       userStoreType: typeof userStore,
       selectedStoreType: typeof selectedStore,
       availableStoresCount: availableStores?.length || 0
     })
-  }, [userStore, selectedStore, availableStores])
+  }, [userStore, selectedStore, availableStores, user?.role, canWriteByRole])
 
   // Si no hay tienda seleccionada (modo consolidado), se muestran solo los datos del userStore
   // Por lo tanto, el usuario PUEDE editar (solo ve sus propios datos)
-  // Pero solo admin/sys_admin pueden ELIMINAR
+  // Pero el rol debe tener permisos de escritura y solo admin/sys_admin pueden ELIMINAR
   if (!selectedStore) {
-    console.log('🔐 [useCanEditStore] No selectedStore - consolidated view (only own data) - CAN EDIT')
+    console.log('🔐 [useCanEditStore] No selectedStore - consolidated view', {
+      canWriteByRole,
+      role: user?.role
+    })
+
+    const roleReadOnlyReason = !canWriteByRole
+      ? `Solo lectura - tu rol (${user?.role || 'desconocido'}) no puede editar`
+      : null
+
     return {
-      canEdit: true,
+      canEdit: canWriteByRole,
       canDelete: canDeleteByRole, // Only admin/sys_admin can delete
-      canCreate: true,
-      isReadOnly: false,
-      reason: null
+      canCreate: canWriteByRole,
+      isReadOnly: !canWriteByRole,
+      reason: roleReadOnlyReason
     }
   }
 
   // Comparación simple ahora que ambos están normalizados
-  const canEdit = selectedStore === userStore
+  const canEdit = selectedStore === userStore && canWriteByRole
   const canDelete = selectedStore === userStore && canDeleteByRole // Must be admin/sys_admin AND own store to delete
-  const canCreate = selectedStore === userStore
+  const canCreate = selectedStore === userStore && canWriteByRole
 
   // Obtener nombre de tienda para el mensaje
   const selectedStoreInfo = availableStores.find(s => s.storeId === selectedStore)
@@ -59,6 +70,10 @@ export const useCanEditStore = () => {
     canDelete,
     canCreate,
     isReadOnly: !canEdit,
-    reason: canEdit ? null : `Solo lectura - seleccionaste: ${selectedStoreInfo?.storeName || selectedStore}`
+    reason: canEdit
+      ? null
+      : !canWriteByRole
+        ? `Solo lectura - tu rol (${user?.role || 'desconocido'}) no puede editar`
+        : `Solo lectura - seleccionaste: ${selectedStoreInfo?.storeName || selectedStore}`
   }
 }

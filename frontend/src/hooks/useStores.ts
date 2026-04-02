@@ -51,6 +51,58 @@ export const useStores = () => {
     ...(safeToken && { 'Authorization': `Bearer ${safeToken}` })
   })
 
+  const normalizeStore = (store: any): Store => {
+    const users = store?.users || {}
+    const userDetails = Array.isArray(users.userDetails)
+      ? users.userDetails
+      : Array.isArray(store?.users)
+        ? store.users
+        : []
+
+    return {
+      _id: store?._id || '',
+      name: store?.name || store?.storeName || 'Tienda sin nombre',
+      description: store?.description,
+      createdAt: store?.createdAt || new Date(0).toISOString(),
+      isArchived: !!store?.isArchived,
+      archivedAt: store?.archivedAt,
+      archivedBy: store?.archivedBy,
+      isSysAdminStore: !!store?.isSysAdminStore,
+      canDelete: store?.canDelete,
+      users: {
+        admin: Number(users.admin || 0),
+        editor: Number(users.editor || 0),
+        analyst: Number(users.analyst || 0),
+        total: Number(users.total || userDetails.length || 0),
+        userDetails: userDetails.map((u: any) => ({
+          _id: u?._id || '',
+          name: u?.name || 'Usuario sin nombre',
+          email: u?.email || '',
+          role: u?.role || 'analyst',
+          status: u?.status || 'unknown'
+        }))
+      }
+    }
+  }
+
+  const normalizeStoresPayload = (payload: any): Store[] => {
+    if (Array.isArray(payload)) {
+      return payload.map(normalizeStore)
+    }
+
+    if (payload && typeof payload === 'object') {
+      if (Array.isArray(payload.stores)) {
+        return payload.stores.map(normalizeStore)
+      }
+
+      if (payload._id || payload.name || payload.storeName) {
+        return [normalizeStore(payload)]
+      }
+    }
+
+    return []
+  }
+
   const fetchStores = async () => {
     try {
       setIsLoading(true)
@@ -70,12 +122,7 @@ export const useStores = () => {
       }
       const data = await response.json()
 
-      // If endpoint is /api/stores/my, wrap single store in array
-      if (endpoint === '/api/stores/my') {
-        setStores(data.data ? [data.data] : [])
-      } else {
-        setStores(data.data || [])
-      }
+      setStores(normalizeStoresPayload(data?.data))
     } catch (err: any) {
       setError(err.message)
       console.error('Error fetching stores:', err)
@@ -87,8 +134,12 @@ export const useStores = () => {
   useEffect(() => {
     if (safeToken) {
       fetchStores()
+      return
     }
-  }, [safeToken])
+
+    setStores([])
+    setIsLoading(false)
+  }, [safeToken, user?.role])
 
   const createStore = async (name: string, description?: string) => {
     try {

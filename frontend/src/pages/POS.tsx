@@ -9,6 +9,7 @@ import { setInventoryItems, setLoading, setError } from '@/store/slices/inventor
 import { addToCart as addToCartAction, removeFromCart as removeFromCartAction, updateCartQuantity as updateCartQuantityAction, updateCartPrice, clearCart } from '@/store/slices/cartSlice';
 import { calculateSimilarity } from '@/utils/searchUtils';
 import { inventoryService } from '@/services/inventory';
+import { Loading } from '@/components/common/Loading';
 import type { InventoryItem as ReduxInventoryItem } from '@/store/slices/inventorySlice';
 
 // Helper para formatear el tipo de pieza
@@ -565,15 +566,7 @@ const POS: React.FC = () => {
 
   // Loading state
   if (!initialLoadDone || reduxInventory.isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-600 border-t-emerald-500 mx-auto mb-4"></div>
-          <div className="text-lg font-semibold mb-2 text-white">Cargando inventario...</div>
-          <p className="text-sm text-slate-400">Sincronizando datos desde el servidor</p>
-        </div>
-      </div>
-    );
+    return <Loading text="Cargando inventario..." />;
   }
 
   // Error state

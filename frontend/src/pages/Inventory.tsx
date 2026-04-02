@@ -288,13 +288,6 @@ export default function Inventory() {
 
     return (
         <div className="space-y-6 w-full">
-            {/* Debug: Show loading status */}
-            {isLoading && inventoryItems.length === 0 && (
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm text-blue-700">
-                    🔄 Loading... (isLoading: {isLoading ? 'true' : 'false'}, items: {inventoryItems.length})
-                </div>
-            )}
-
             {/* Error display */}
             {error && (
                 <div className="bg-red-50 border border-red-200 p-4 rounded-lg">

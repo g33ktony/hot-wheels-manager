@@ -22,9 +22,9 @@ import toast from 'react-hot-toast'
 
 const StoresPage: React.FC = () => {
   const { mode } = useTheme()
-  const { isSysAdmin } = usePermissions()
+  const { isSysAdmin, isAdmin } = usePermissions()
   const isDark = mode === 'dark'
-  const { stores, isLoading, createStore, updateUserRole, removeUser, archiveStore, restoreStore } = useStores()
+  const { stores, isLoading, error, refetch, createStore, updateUserRole, removeUser, archiveStore, restoreStore } = useStores()
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -35,10 +35,10 @@ const StoresPage: React.FC = () => {
   const [newStoreDescription, setNewStoreDescription] = useState('')
   const [newUserRole, setNewUserRole] = useState('editor')
   const [searchTerm, setSearchTerm] = useState('')
-  const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active')
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('active')
 
   // Verificar permisos
-  if (!isSysAdmin()) {
+  if (!isSysAdmin() && !isAdmin()) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
         <Card className="p-8 text-center">
@@ -47,7 +47,7 @@ const StoresPage: React.FC = () => {
             Acceso Denegado
           </h2>
           <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
-            Solo sys_admin puede gestionar tiendas
+            Solo admin y sys_admin pueden gestionar su equipo
           </p>
         </Card>
       </div>
@@ -128,7 +128,11 @@ const StoresPage: React.FC = () => {
   const filteredStores = stores
     .filter(store => {
       const matchesSearch = store.name.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesTab = activeTab === 'active' ? !store.isArchived : store.isArchived
+      const matchesTab = activeTab === 'all'
+        ? true
+        : activeTab === 'active'
+          ? !store.isArchived
+          : store.isArchived
       return matchesSearch && matchesTab
     })
 
@@ -142,13 +146,15 @@ const StoresPage: React.FC = () => {
             subtitle="Gestiona todas las tiendas, usuarios y configuraciones"
             icon={<Building2 className={`${isDark ? 'text-blue-400' : 'text-blue-600'}`} size={32} />}
             actions={
-              <Button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus size={20} />
-                Nueva Tienda
-              </Button>
+              isSysAdmin() ? (
+                <Button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus size={20} />
+                  Nueva Tienda
+                </Button>
+              ) : undefined
             }
           />
         </div>
@@ -165,6 +171,15 @@ const StoresPage: React.FC = () => {
 
         {/* Tabs */}
         <div className="mb-6 flex gap-2 border-b" style={{ borderColor: isDark ? '#334155' : '#e5e7eb' }}>
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`px-4 py-2 font-medium transition ${activeTab === 'all'
+              ? `${isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'}`
+              : `${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-gray-600 hover:text-gray-700'}`
+              }`}
+          >
+            Todas ({stores.length})
+          </button>
           <button
             onClick={() => setActiveTab('active')}
             className={`px-4 py-2 font-medium transition ${activeTab === 'active'
@@ -187,13 +202,31 @@ const StoresPage: React.FC = () => {
 
         {/* Lista de Tiendas */}
         {isLoading ? (
-          <Loading />
+          <Loading text="Cargando tiendas..." />
+        ) : error ? (
+          <Card className="text-center py-10">
+            <AlertCircle className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
+            <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              No se pudo cargar Administracion de Tiendas
+            </h3>
+            <p className={isDark ? 'text-slate-400 mb-5' : 'text-gray-600 mb-5'}>
+              {error}
+            </p>
+            <Button onClick={refetch} className="mx-auto">
+              Reintentar
+            </Button>
+          </Card>
         ) : filteredStores.length === 0 ? (
           <Card className="text-center py-12">
             <Building2 className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
             <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
-              No hay tiendas disponibles
+              No hay tiendas para el filtro seleccionado
             </p>
+            {stores.length > 0 && (
+              <p className={`mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                Se cargaron {stores.length} tienda(s). Prueba la pestaña "Todas" o limpia la busqueda.
+              </p>
+            )}
           </Card>
         ) : (
           <div className="grid gap-4">
@@ -249,7 +282,7 @@ const StoresPage: React.FC = () => {
                     >
                       <Edit size={18} />
                     </Button>
-                    {activeTab === 'active' && (
+                    {activeTab === 'active' && isSysAdmin() && (
                       <Button
                         variant="secondary"
                         size="sm"
@@ -262,7 +295,7 @@ const StoresPage: React.FC = () => {
                         <Archive size={18} />
                       </Button>
                     )}
-                    {activeTab === 'archived' && (
+                    {activeTab === 'archived' && isSysAdmin() && (
                       <Button
                         variant="secondary"
                         size="sm"

@@ -1,3 +1,5 @@
+import { Loading } from '@/components/common/Loading'
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getImageUrl } from '../utils/imageUtils'
@@ -194,7 +196,7 @@ export default function CatalogBrowserPage() {
                 </div>
 
                 {loading ? (
-                    <div className="loading">⏳ Cargando...</div>
+                    <Loading text="Cargando catalogo..." />
                 ) : items.length === 0 ? (
                     <div className="no-results">No hay items que coincidan con los filtros</div>
                 ) : (

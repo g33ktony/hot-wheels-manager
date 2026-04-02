@@ -1,3 +1,5 @@
+import { useTheme } from '@/contexts/ThemeContext'
+
 interface LoadingSpinnerProps {
     size?: 'sm' | 'md' | 'lg'
     className?: string
@@ -40,15 +42,29 @@ interface LoadingProps {
 }
 
 export function Loading({ text = 'Cargando...', fullScreen = false }: LoadingProps) {
+    const { mode } = useTheme()
+
     const containerClasses = fullScreen
-        ? 'fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50'
+        ? `fixed inset-0 flex items-center justify-center z-50 transition-colors ${mode === 'dark'
+            ? 'bg-slate-950/92'
+            : 'bg-white/92'
+        }`
         : 'flex items-center justify-center py-12'
+
+    const cardClasses = fullScreen
+        ? `px-6 py-5 rounded-2xl shadow-xl border backdrop-blur ${mode === 'dark'
+            ? 'bg-slate-900/80 border-slate-700 text-slate-200'
+            : 'bg-white/90 border-gray-200 text-gray-800'
+        }`
+        : 'text-center'
+
+    const textClasses = mode === 'dark' ? 'text-slate-400' : 'text-gray-600'
 
     return (
         <div className={containerClasses}>
-            <div className="text-center">
+            <div className={cardClasses}>
                 <LoadingSpinner size="lg" className="text-primary-600 mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">{text}</p>
+                <p className={`mt-4 text-sm ${textClasses}`}>{text}</p>
             </div>
         </div>
     )

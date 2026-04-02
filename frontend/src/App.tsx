@@ -6,8 +6,10 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { StoreProvider } from './contexts/StoreContext'
 import PrivateRoute from './components/PrivateRoute'
 import SysAdminRoute from './components/SysAdminRoute'
+import AdminOrSysAdminRoute from './components/AdminOrSysAdminRoute'
 import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/common/Layout'
+import { Loading } from './components/common/Loading'
 
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
@@ -41,11 +43,7 @@ const StoreSettings = lazy(() => import('./pages/StoreSettings'))
 const CatalogBrowserPage = lazy(() => import('./pages/CatalogBrowserPage'))
 const CatalogDetailPage = lazy(() => import('./pages/CatalogDetailPage'))
 
-const routeFallback = (
-    <div className="min-h-screen flex items-center justify-center text-slate-600 dark:text-slate-300">
-        Cargando...
-    </div>
-)
+const routeFallback = <Loading fullScreen text="Cargando pagina..." />
 
 // Test: Deployment optimization - only frontend changes
 function App() {
@@ -97,7 +95,7 @@ function App() {
                                                         <Route path="/catalog" element={<CatalogBrowserPage />} />
                                                         <Route path="/catalog/items/:id" element={<CatalogDetailPage />} />
                                                         <Route path="/admin/users" element={<SysAdminRoute><Users /></SysAdminRoute>} />
-                                                        <Route path="/admin/stores" element={<SysAdminRoute><Stores /></SysAdminRoute>} />
+                                                        <Route path="/admin/stores" element={<AdminOrSysAdminRoute><Stores /></AdminOrSysAdminRoute>} />
                                                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                                     </Routes>
                                                 </Layout>
