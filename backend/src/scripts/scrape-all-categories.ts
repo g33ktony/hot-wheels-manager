@@ -1,7 +1,7 @@
 /**
  * Comprehensive Fandom Scraper - Imports ALL available Hot Wheels categories
- * Specifically scrapes RLC, Elite 64, and Mainline across ALL YEARS
- * Includes: Team Transport, Silver Series, RLC, Elite 64, Treasure Hunts, and everything else
+ * Dynamically discovers and scrapes every category from the Fandom wiki
+ * Includes: Team Transport, Silver Series, RLC, Elite 64, and everything else
  */
 import axios from 'axios'
 import { HotWheelsCarModel } from '../models/HotWheelsCar'
@@ -14,9 +14,6 @@ const FANDOM_API = 'https://hotwheels.fandom.com/api.php'
 const DELAY_MS = 600 // Rate limiting
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-// Años a scrapear para categorías específicas
-const YEARS_TO_SCRAPE = Array.from({ length: 2026 - 1968 + 1 }, (_, i) => 1968 + i)
 
 interface ParsedVehicle {
   toy_num: string
@@ -341,15 +338,26 @@ function isMainline(series: string): boolean {
 }
 
 /**
- * Scraper principal - Scrape RLC, Elite 64, Mainline de TODOS los años
+ * Scraper principal - todos los categorías
  */
 async function scrapeAllCategories() {
   try {
-    console.log('🚀 Iniciando Scraper COMPLETO (RLC, Elite 64, Mainline - TODOS LOS AÑOS)...\n')
+    console.log('🚀 Iniciando Scraper COMPLETO de Fandom (Todas las categorías)...\n')
 
     const mongoURI = process.env.MONGODB_URI!
     await mongoose.connect(mongoURI)
     console.log('✅ Conectado a MongoDB\n')
+
+    // Get all categories
+    const allCategories = await getAllCategories()
+    if (allCategories.length === 0) {
+      console.log('❌ No se pudieron obtener categorías')
+      await mongoose.disconnect()
+      return
+    }
+
+    // Filter to relevant ones
+    const relevantCategories = filterRelevantCategories(allCategories)
 
     let totalVehicles = 0
     let successCount = 0
@@ -357,29 +365,36 @@ async function scrapeAllCategories() {
     let errorCount = 0
     let premiumCount = 0
     let mainlineCount = 0
-    let processedPages = 0
+    let processedCategories = 0
+    let emptyCategories = 0
     const seriesCounts: Record<string, number> = {}
 
-    console.log(`${'='.repeat(70)}`)
-    console.log('FASE 1: Scraping RLC (Red Line Club) - TODOS LOS AÑOS')
-    console.log(`${'='.repeat(70)}\n`)
+    console.log(`\n${'='.repeat(60)}`)
+    console.log('Iniciando procesamiento de categorías...')
+    console.log('='.repeat(60))
+    console.log('')
 
-    // Scrape RLC for all years
-    const rlcCategories = YEARS_TO_SCRAPE.map(year => `RLC ${year}`)
-    for (const category of rlcCategories) {
+    // Process each category
+    for (let i = 0; i < relevantCategories.length; i++) {
+      const category = relevantCategories[i]
+
       const members = await getCategoryMembers(category)
       await sleep(DELAY_MS)
 
       if (members.length === 0) {
-        console.log(`  ⏭️  ${category}: 0 vehículos`)
+        emptyCategories++
         continue
       }
 
-      let yearCount = 0
+      processedCategories++
+      if (processedCategories % 10 === 0) {
+        console.log(`\n[${processedCategories}/${relevantCategories.length}] Procesadas ${processedCategories} categorías no vacías...`)
+      }
+
+      // Parse each page in category
       for (const member of members) {
         const vehicles = await parsePage(member.pageid, member.title)
         await sleep(DELAY_MS)
-        processedPages++
 
         for (const vehicle of vehicles) {
           if (!validateVehicle(vehicle)) continue
@@ -388,10 +403,16 @@ async function scrapeAllCategories() {
             await HotWheelsCarModel.create(vehicle)
             successCount++
             totalVehicles++
-            yearCount++
+
+            // Track series
             seriesCounts[vehicle.series] = (seriesCounts[vehicle.series] || 0) + 1
-            if (isPremiumSeries(vehicle.series)) premiumCount++
-            if (isMainline(vehicle.series)) mainlineCount++
+
+            if (isPremiumSeries(vehicle.series)) {
+              premiumCount++
+            }
+            if (isMainline(vehicle.series)) {
+              mainlineCount++
+            }
           } catch (error: any) {
             if (error.code === 11000) {
               skipCount++
@@ -401,178 +422,39 @@ async function scrapeAllCategories() {
           }
         }
       }
-      console.log(`  ✅ ${category}: ${yearCount} vehículos`)
     }
 
-    console.log(`\n${'='.repeat(70)}`)
-    console.log('FASE 2: Scraping Elite 64 - TODOS LOS AÑOS')
-    console.log(`${'='.repeat(70)}\n`)
-
-    // Scrape Elite 64 for all years
-    const elite64Categories = YEARS_TO_SCRAPE.map(year => `Elite 64 ${year}`)
-    for (const category of elite64Categories) {
-      const members = await getCategoryMembers(category)
-      await sleep(DELAY_MS)
-
-      if (members.length === 0) {
-        console.log(`  ⏭️  ${category}: 0 vehículos`)
-        continue
-      }
-
-      let yearCount = 0
-      for (const member of members) {
-        const vehicles = await parsePage(member.pageid, member.title)
-        await sleep(DELAY_MS)
-        processedPages++
-
-        for (const vehicle of vehicles) {
-          if (!validateVehicle(vehicle)) continue
-
-          try {
-            await HotWheelsCarModel.create(vehicle)
-            successCount++
-            totalVehicles++
-            yearCount++
-            seriesCounts[vehicle.series] = (seriesCounts[vehicle.series] || 0) + 1
-            if (isPremiumSeries(vehicle.series)) premiumCount++
-            if (isMainline(vehicle.series)) mainlineCount++
-          } catch (error: any) {
-            if (error.code === 11000) {
-              skipCount++
-              continue
-            }
-            errorCount++
-          }
-        }
-      }
-      console.log(`  ✅ ${category}: ${yearCount} vehículos`)
-    }
-
-    console.log(`\n${'='.repeat(70)}`)
-    console.log('FASE 3: Scraping Mainline - TODOS LOS AÑOS')
-    console.log(`${'='.repeat(70)}\n`)
-
-    // Scrape Mainline for all years
-    const mainlineCategories = YEARS_TO_SCRAPE.map(year => `Mainline ${year}`)
-    for (const category of mainlineCategories) {
-      const members = await getCategoryMembers(category)
-      await sleep(DELAY_MS)
-
-      if (members.length === 0) {
-        console.log(`  ⏭️  ${category}: 0 vehículos`)
-        continue
-      }
-
-      let yearCount = 0
-      for (const member of members) {
-        const vehicles = await parsePage(member.pageid, member.title)
-        await sleep(DELAY_MS)
-        processedPages++
-
-        for (const vehicle of vehicles) {
-          if (!validateVehicle(vehicle)) continue
-
-          try {
-            await HotWheelsCarModel.create(vehicle)
-            successCount++
-            totalVehicles++
-            yearCount++
-            seriesCounts[vehicle.series] = (seriesCounts[vehicle.series] || 0) + 1
-            if (isPremiumSeries(vehicle.series)) premiumCount++
-            if (isMainline(vehicle.series)) mainlineCount++
-          } catch (error: any) {
-            if (error.code === 11000) {
-              skipCount++
-              continue
-            }
-            errorCount++
-          }
-        }
-      }
-      console.log(`  ✅ ${category}: ${yearCount} vehículos`)
-    }
-
-    console.log(`\n${'='.repeat(70)}`)
-    console.log('FASE 4: Scraping Series Premium adicionales')
-    console.log(`${'='.repeat(70)}\n`)
-
-    // Also scrape other premium series
-    const premiumSeriesPatterns = [
-      'Super Treasure Hunt',
-      'Treasure Hunt',
-      'HWC',
-      'Hot Wheels Collector',
-      'Team Transport',
-      'Silver Series',
-      'Collector Edition',
-      'Exclusive'
-    ]
-
-    for (const series of premiumSeriesPatterns) {
-      const members = await getCategoryMembers(series)
-      await sleep(DELAY_MS)
-
-      if (members.length === 0) {
-        console.log(`  ⏭️  ${series}: 0 vehículos`)
-        continue
-      }
-
-      let seriesCount = 0
-      for (const member of members) {
-        const vehicles = await parsePage(member.pageid, member.title)
-        await sleep(DELAY_MS)
-        processedPages++
-
-        for (const vehicle of vehicles) {
-          if (!validateVehicle(vehicle)) continue
-
-          try {
-            await HotWheelsCarModel.create(vehicle)
-            successCount++
-            totalVehicles++
-            seriesCount++
-            seriesCounts[vehicle.series] = (seriesCounts[vehicle.series] || 0) + 1
-            if (isPremiumSeries(vehicle.series)) premiumCount++
-            if (isMainline(vehicle.series)) mainlineCount++
-          } catch (error: any) {
-            if (error.code === 11000) {
-              skipCount++
-              continue
-            }
-            errorCount++
-          }
-        }
-      }
-      console.log(`  ✅ ${series}: ${seriesCount} vehículos`)
-    }
-
-    console.log('\n' + '='.repeat(70))
-    console.log('🎉 ¡Scraping COMPLETO!')
-    console.log('='.repeat(70))
+    console.log('\n' + '='.repeat(60))
+    console.log('🎉 ¡Scraping completado!')
+    console.log('='.repeat(60))
     console.log(`📊 Estadísticas Generales:`)
     console.log(`   Total vehículos procesados: ${totalVehicles}`)
     console.log(`   ✅ Guardados exitosamente: ${successCount}`)
     console.log(`   ⏭️  Duplicados saltados: ${skipCount}`)
     console.log(`   ❌ Errores: ${errorCount}`)
     console.log(`   📍 Mainline: ${mainlineCount}`)
-    console.log(`   🏆 Premium/RLC/Elite64: ${premiumCount}`)
-    console.log(`   📄 Páginas procesadas: ${processedPages}`)
+    console.log(`   🏆 Premium: ${premiumCount}`)
     console.log(`   📦 Total en BD: ${await HotWheelsCarModel.countDocuments()}`)
+    console.log(`\n📁 Categorías:`)
+    console.log(`   Total encontradas: ${allCategories.length}`)
+    console.log(`   Relevantes (filtradas): ${relevantCategories.length}`)
+    console.log(`   Procesadas (no vacías): ${processedCategories}`)
+    console.log(`   Vacías: ${emptyCategories}`)
 
-    // Show series imported
-    console.log(`\n${'='.repeat(70)}`)
-    console.log(`Series Importadas (${Object.keys(seriesCounts).length} series únicas):`)
-    console.log('='.repeat(70))
+    // Show top series
+    console.log(`\n${'='.repeat(60)}`)
+    console.log('Top 30 Series Importadas:')
+    console.log('='.repeat(60))
 
     const sortedSeries = Object.entries(seriesCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 50)
+      .slice(0, 30)
 
     sortedSeries.forEach((s, i) => {
       let badge = ''
-      if (isMainline(s[0])) badge = ' 📍 MAINLINE'
-      else if (isPremiumSeries(s[0])) badge = ' 🏆 PREMIUM'
-      console.log(`${(i + 1).toString().padStart(2)}. ${s[0]}: ${s[1].toString().padStart(4)} autos${badge}`)
+      if (isMainline(s[0])) badge = ' 📍'
+      else if (isPremiumSeries(s[0])) badge = ' 🏆'
+      console.log(`${(i + 1).toString().padStart(2)}. ${s[0]}: ${s[1]} autos${badge}`)
     })
 
   } catch (error) {

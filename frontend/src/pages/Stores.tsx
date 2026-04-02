@@ -425,16 +425,18 @@ const StoresPage: React.FC = () => {
                         >
                           Editar
                         </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleRemoveUser(user._id)}
-                          disabled={user.role === 'sys_admin'}
-                          className={`${user.role === 'sys_admin' ? 'opacity-50 cursor-not-allowed' : 'text-red-600'}`}
-                          title={user.role === 'sys_admin' ? 'No se puede eliminar administradores del sistema' : 'Eliminar usuario'}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
+                        {isSysAdmin() && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleRemoveUser(user._id)}
+                            disabled={user.role === 'sys_admin'}
+                            className={`${user.role === 'sys_admin' ? 'opacity-50 cursor-not-allowed' : 'text-red-600'}`}
+                            title={user.role === 'sys_admin' ? 'No se puede eliminar administradores del sistema' : 'Eliminar usuario'}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}

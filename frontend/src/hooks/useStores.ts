@@ -6,7 +6,7 @@ interface StoreUser {
   name: string
   email: string
   role: string
-  status: string
+  status: 'pending' | 'approved' | 'rejected' | 'inactive' | string
 }
 
 interface StoreUsers {
@@ -222,6 +222,32 @@ export const useStores = () => {
     }
   }
 
+  const updateUserStatus = async (storeId: string, userId: string, status: 'approved' | 'inactive') => {
+    try {
+      const response = await fetch(`/api/stores/${storeId}/users/${userId}/status`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status })
+      })
+      if (!response.ok) {
+        let message = 'Failed to update user status'
+        try {
+          const data = await response.json()
+          message = data?.error || data?.message || message
+        } catch {
+          // ignore parse errors
+        }
+        throw new Error(message)
+      }
+
+      await fetchStores()
+      return true
+    } catch (err: any) {
+      setError(err.message)
+      throw err
+    }
+  }
+
   const archiveStore = async (storeId: string) => {
     try {
       const response = await fetch(`/api/stores/${storeId}/archive`, {
@@ -266,6 +292,7 @@ export const useStores = () => {
     createStore,
     updateStore,
     updateUserRole,
+    updateUserStatus,
     removeUser,
     assignUser,
     archiveStore,

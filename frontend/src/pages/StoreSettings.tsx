@@ -21,9 +21,9 @@ import { storeSettingsService } from '@/services/storeSettings'
 const StoreSettingsPage: React.FC = () => {
     const { mode } = useTheme()
     const { user } = useAuth()
-    const { isSysAdmin } = usePermissions()
-    const { createUserInStore, updateUserRole, deleteUser } = useUserManagement()
-    const { stores, refetch } = useStores()
+    const { isSysAdmin, isAdmin } = usePermissions()
+    const { createUserInStore } = useUserManagement()
+    const { stores, refetch, updateUserRole: updateStoreUserRole, updateUserStatus, removeUser: removeStoreUser } = useStores()
     const isDark = mode === 'dark'
 
     const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user' | 'public-catalog'>('profile')
@@ -52,7 +52,17 @@ const StoreSettingsPage: React.FC = () => {
 
     // Team data
     const [teamUsers, setTeamUsers] = useState<any[]>([])
+    const [teamFilter, setTeamFilter] = useState<'all' | 'active' | 'inactive'>('all')
     const [isLoading, setIsLoading] = useState(false)
+
+    const filteredTeamUsers = teamUsers.filter((teamUser) => {
+        if (teamFilter === 'active') return teamUser.status !== 'inactive'
+        if (teamFilter === 'inactive') return teamUser.status === 'inactive'
+        return true
+    })
+
+    const activeTeamCount = teamUsers.filter((u) => u.status !== 'inactive').length
+    const inactiveTeamCount = teamUsers.filter((u) => u.status === 'inactive').length
 
     const currentStore = stores.find(s => s._id === user?.storeId)
 
@@ -195,7 +205,11 @@ const StoreSettingsPage: React.FC = () => {
 
         try {
             setIsLoading(true)
-            await updateUserRole(userId, newRole)
+            if (!user?.storeId) {
+                throw new Error('No se detectó la tienda actual del usuario')
+            }
+
+            await updateStoreUserRole(user.storeId, userId, newRole)
             // Actualizar la lista local
             setTeamUsers(teamUsers.map(u =>
                 u._id === userId ? { ...u, role: newRole } : u
@@ -219,11 +233,45 @@ const StoreSettingsPage: React.FC = () => {
 
         try {
             setIsLoading(true)
-            await deleteUser(userId)
+            if (!user?.storeId) {
+                throw new Error('No se detectó la tienda actual del usuario')
+            }
+
+            await removeStoreUser(user.storeId, userId)
             // Actualizar la lista local
             setTeamUsers(teamUsers.filter(u => u._id !== userId))
         } catch (error) {
             console.error('Error deleting user:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleToggleTeamUserActive = async (targetUser: any) => {
+        if (!user?.storeId) {
+            toast.error('No se detectó la tienda actual del usuario')
+            return
+        }
+
+        if (targetUser._id === user?.id) {
+            toast.error('No puedes cambiar tu propio estado')
+            return
+        }
+
+        const nextStatus = targetUser.status === 'inactive' ? 'approved' : 'inactive'
+        const actionLabel = nextStatus === 'inactive' ? 'inactivar' : 'reactivar'
+
+        if (!window.confirm(`¿Seguro que deseas ${actionLabel} a ${targetUser.name}?`)) {
+            return
+        }
+
+        try {
+            setIsLoading(true)
+            await updateUserStatus(user.storeId, targetUser._id, nextStatus)
+            setTeamUsers(prev => prev.map(u => u._id === targetUser._id ? { ...u, status: nextStatus } : u))
+            toast.success(nextStatus === 'inactive' ? 'Usuario inactivado' : 'Usuario reactivado')
+        } catch (error: any) {
+            toast.error(error?.message || 'No se pudo cambiar el estado del usuario')
         } finally {
             setIsLoading(false)
         }
@@ -343,73 +391,143 @@ const StoreSettingsPage: React.FC = () => {
                 {activeTab === 'team' && (
                     <Card>
                         <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : ''}`}>
-                            Mi Equipo ({teamUsers.length} usuarios)
+                            Mi Equipo ({filteredTeamUsers.length}/{teamUsers.length} usuarios)
                         </h2>
+
+                        <div className="mb-4 flex flex-wrap gap-2">
+                            <button
+                                onClick={() => setTeamFilter('all')}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${teamFilter === 'all'
+                                    ? (isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white')
+                                    : (isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                                    }`}
+                            >
+                                Todos ({teamUsers.length})
+                            </button>
+                            <button
+                                onClick={() => setTeamFilter('active')}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${teamFilter === 'active'
+                                    ? (isDark ? 'bg-emerald-600 text-white' : 'bg-emerald-600 text-white')
+                                    : (isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                                    }`}
+                            >
+                                Activos ({activeTeamCount})
+                            </button>
+                            <button
+                                onClick={() => setTeamFilter('inactive')}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${teamFilter === 'inactive'
+                                    ? (isDark ? 'bg-amber-600 text-white' : 'bg-amber-600 text-white')
+                                    : (isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                                    }`}
+                            >
+                                Inactivos ({inactiveTeamCount})
+                            </button>
+                        </div>
+
                         {teamUsers.length === 0 ? (
                             <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
                                 No hay usuarios en tu tienda. Crea uno desde la pestaña "Crear Usuario"
                             </p>
+                        ) : filteredTeamUsers.length === 0 ? (
+                            <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
+                                No hay usuarios para este filtro.
+                            </p>
                         ) : (
                             <div className="space-y-3">
-                                {teamUsers.map(teamUser => (
-                                    <div
-                                        key={teamUser._id}
-                                        className={`p-4 rounded-lg flex items-center justify-between ${isDark ? 'bg-slate-700' : 'bg-gray-100'
-                                            }`}
-                                    >
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <p className={`font-medium ${isDark ? 'text-white' : ''}`}>
-                                                    {teamUser.name}
-                                                </p>
-                                                {teamUser.email === user?.email && (
-                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isDark ? 'bg-blue-600 text-blue-100' : 'bg-blue-100 text-blue-700'}`}>
-                                                        Mi cuenta
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                                                {teamUser.email}
-                                            </p>
-                                            <div className="flex gap-3 mt-2 text-xs">
-                                                {user?.role === 'admin' && teamUser.email !== user?.email ? (
-                                                    <select
-                                                        value={teamUser.role}
-                                                        onChange={(e) => handleUpdateUserRole(teamUser._id, e.target.value as 'admin' | 'editor' | 'analyst')}
-                                                        disabled={isLoading}
-                                                        className={`px-2 py-1 rounded text-xs font-medium cursor-pointer ${isDark
-                                                            ? 'bg-slate-600 border border-slate-500 text-white'
-                                                            : 'bg-white border border-gray-300 text-gray-900'
-                                                            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    >
-                                                        <option value="admin">Admin</option>
-                                                        <option value="editor">Editor</option>
-                                                        <option value="analyst">Analista</option>
-                                                    </select>
-                                                ) : (
-                                                    <span className={`px-2 py-1 rounded ${teamUser.role === 'admin' ? 'bg-blue-100 text-blue-800' :
-                                                        teamUser.role === 'editor' ? 'bg-green-100 text-green-800' :
-                                                            'bg-purple-100 text-purple-800'
-                                                        }`}>
-                                                        {teamUser.role}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
+                                {filteredTeamUsers.map(teamUser => (
+                                    (() => {
+                                        const isSelf = teamUser.email === user?.email
+                                        const canManageTeamUser = (isAdmin() || isSysAdmin())
+                                            && !isSelf
+                                            && (isSysAdmin() || teamUser.role !== 'sys_admin')
+                                        const isInactive = teamUser.status === 'inactive'
+                                        const roleBadgeClass = teamUser.role === 'admin'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : teamUser.role === 'editor'
+                                                ? 'bg-green-100 text-green-800'
+                                                : teamUser.role === 'sys_admin'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : 'bg-purple-100 text-purple-800'
 
-                                        {user?.role === 'admin' && teamUser.email !== user?.email && (
-                                            <button
-                                                onClick={() => handleDeleteTeamUser(teamUser._id, teamUser.name)}
-                                                disabled={isLoading}
-                                                className={`px-3 py-2 rounded text-sm font-medium transition ${isDark
-                                                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                                                    : 'bg-red-100 text-red-700 hover:bg-red-200'
-                                                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                        return (
+                                            <div
+                                                key={teamUser._id}
+                                                className={`p-4 rounded-lg flex items-center justify-between transition ${isDark ? 'bg-slate-700' : 'bg-gray-100'
+                                                    }`}
+                                                style={{ opacity: isInactive ? 0.55 : 1 }}
                                             >
-                                                Eliminar
-                                            </button>
-                                        )}
-                                    </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <p className={`font-medium ${isDark ? 'text-white' : ''}`}>
+                                                            {teamUser.name}
+                                                        </p>
+                                                        {isSelf && (
+                                                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isDark ? 'bg-blue-600 text-blue-100' : 'bg-blue-100 text-blue-700'}`}>
+                                                                Mi cuenta
+                                                            </span>
+                                                        )}
+                                                        {isInactive && (
+                                                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${isDark ? 'bg-amber-900/50 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
+                                                                Inactivo
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                                                        {teamUser.email}
+                                                    </p>
+                                                    <div className="flex gap-3 mt-2 text-xs">
+                                                        {canManageTeamUser && !isInactive ? (
+                                                            <select
+                                                                value={teamUser.role}
+                                                                onChange={(e) => handleUpdateUserRole(teamUser._id, e.target.value as 'admin' | 'editor' | 'analyst')}
+                                                                disabled={isLoading}
+                                                                className={`px-2 py-1 rounded text-xs font-medium cursor-pointer ${isDark
+                                                                    ? 'bg-slate-600 border border-slate-500 text-white'
+                                                                    : 'bg-white border border-gray-300 text-gray-900'
+                                                                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            >
+                                                                <option value="admin">Admin</option>
+                                                                <option value="editor">Editor</option>
+                                                                <option value="analyst">Analista</option>
+                                                            </select>
+                                                        ) : (
+                                                            <span className={`px-2 py-1 rounded ${roleBadgeClass}`}>
+                                                                {teamUser.role}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {canManageTeamUser && (
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleToggleTeamUserActive(teamUser)}
+                                                            disabled={isLoading}
+                                                            className={`px-3 py-2 rounded text-sm font-medium transition ${teamUser.status === 'inactive'
+                                                                ? (isDark ? 'bg-emerald-900/30 text-emerald-300 hover:bg-emerald-900/50' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200')
+                                                                : (isDark ? 'bg-amber-900/30 text-amber-300 hover:bg-amber-900/50' : 'bg-amber-100 text-amber-700 hover:bg-amber-200')
+                                                                } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                        >
+                                                            {teamUser.status === 'inactive' ? 'Reactivar' : 'Inactivar'}
+                                                        </button>
+
+                                                        {isSysAdmin() && (
+                                                            <button
+                                                                onClick={() => handleDeleteTeamUser(teamUser._id, teamUser.name)}
+                                                                disabled={isLoading}
+                                                                className={`px-3 py-2 rounded text-sm font-medium transition ${isDark
+                                                                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                                                                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    })()
                                 ))}
                             </div>
                         )}

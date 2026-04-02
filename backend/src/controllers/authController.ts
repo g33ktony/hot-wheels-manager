@@ -70,9 +70,11 @@ export const login = async (req: Request, res: Response) => {
       console.log('❌ Login failed: User not approved. Status:', (user as any).status)
       return res.status(403).json({
         success: false,
-        message: (user as any).status === 'pending' 
+        message: (user as any).status === 'pending'
           ? 'Tu cuenta está pendiente de aprobación por el administrador'
-          : 'Tu cuenta ha sido rechazada'
+          : (user as any).status === 'inactive'
+            ? 'Tu cuenta está inactiva. Contacta a tu administrador para reactivarla'
+            : 'Tu cuenta ha sido rechazada'
       })
     }
 

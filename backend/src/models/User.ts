@@ -7,7 +7,7 @@ export interface IUser extends Document {
   phone?: string
   role: 'sys_admin' | 'admin' | 'editor' | 'analyst'
   storeId: string  // Cada usuario pertenece a una tienda
-  status: 'pending' | 'approved' | 'rejected'  // Aprobación por sys_admin
+  status: 'pending' | 'approved' | 'rejected' | 'inactive'  // Aprobación por sys_admin y activación operativa
   approvedBy?: string  // Email de quien aprobó
   approvedAt?: Date
   rejectionReason?: string  // Si fue rechazado, por qué
@@ -48,7 +48,7 @@ const userSchema = new Schema<IUser>({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'approved', 'rejected', 'inactive'],
     default: 'pending'
   },
   approvedBy: {

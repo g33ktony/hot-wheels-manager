@@ -34,7 +34,6 @@ const ensureSysAdminStore = async (userEmail: string) => {
       { storeId: sysAdminStore._id.toString() }
     )
     console.log(`✅ Updated user storeId to: ${sysAdminStore._id}`)
-    
     return sysAdminStore
   } catch (error: any) {
     console.error('Error ensuring sys_admin store:', error)
@@ -343,20 +342,12 @@ export const removeUserFromStore = async (req: Request, res: Response) => {
   try {
     const { storeId, userId } = req.params
     const userRole = req.userRole
-    const currentUserStoreId = req.storeId
 
-    // Permission check: must be admin/sys_admin and belong to the store unless sys_admin
-    if (userRole !== 'sys_admin' && userRole !== 'admin') {
+    // Business rule: only sys_admin can permanently delete users
+    if (userRole !== 'sys_admin') {
       return res.status(403).json({
         success: false,
-        error: 'Solo admin y sys_admin pueden eliminar usuarios de la tienda'
-      })
-    }
-
-    if (userRole !== 'sys_admin' && currentUserStoreId !== storeId) {
-      return res.status(403).json({
-        success: false,
-        error: 'No tienes permiso para eliminar usuarios de esta tienda'
+        error: 'Solo sys_admin puede eliminar usuarios de forma permanente'
       })
     }
 
@@ -387,6 +378,85 @@ export const removeUserFromStore = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to remove user'
+    })
+  }
+}
+
+/**
+ * PATCH /api/stores/:storeId/users/:userId/status - Activate/Inactivate user in store
+ * admin: can inactivate/reactivate active team members
+ * sys_admin: can inactivate/reactivate and can target any store
+ */
+export const updateUserStatusInStore = async (req: Request, res: Response) => {
+  try {
+    const { storeId, userId } = req.params
+    const { status } = req.body
+    const actorRole = req.userRole
+    const currentUserStoreId = req.storeId
+    const currentUserId = req.userId
+
+    if (actorRole !== 'sys_admin' && actorRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo admin y sys_admin pueden cambiar estado de usuarios'
+      })
+    }
+
+    if (actorRole !== 'sys_admin' && currentUserStoreId !== storeId) {
+      return res.status(403).json({
+        success: false,
+        error: 'No tienes permiso para gestionar usuarios de esta tienda'
+      })
+    }
+
+    if (!['approved', 'inactive'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Estado inválido. Solo se permite approved o inactive'
+      })
+    }
+
+    const targetUser = await UserModel.findOne({ _id: userId, storeId })
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado en esta tienda'
+      })
+    }
+
+    if ((targetUser as any)._id?.toString() === currentUserId) {
+      return res.status(400).json({
+        success: false,
+        error: 'No puedes cambiar tu propio estado'
+      })
+    }
+
+    if (targetUser.role === 'sys_admin' && actorRole !== 'sys_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo sys_admin puede cambiar estado de usuarios sys_admin'
+      })
+    }
+
+    targetUser.status = status
+    await targetUser.save()
+
+    res.json({
+      success: true,
+      message: status === 'inactive' ? 'Usuario inactivado' : 'Usuario reactivado',
+      data: {
+        _id: targetUser._id,
+        name: targetUser.name,
+        email: targetUser.email,
+        role: targetUser.role,
+        status: targetUser.status
+      }
+    })
+  } catch (error: any) {
+    console.error('Error updating user status:', error)
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update user status'
     })
   }
 }

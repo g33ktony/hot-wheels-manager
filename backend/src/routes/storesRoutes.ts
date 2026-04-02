@@ -7,6 +7,7 @@ import {
   updateStore,
   updateUserRole,
   removeUserFromStore,
+  updateUserStatusInStore,
   assignUserToStore,
   archiveStore,
   restoreStore
@@ -36,6 +37,9 @@ router.put('/:storeId/users/:userId/role', updateUserRole)
 
 // DELETE /api/stores/:storeId/users/:userId - Remove user from store
 router.delete('/:storeId/users/:userId', removeUserFromStore)
+
+// PATCH /api/stores/:storeId/users/:userId/status - Activate/inactivate user in store
+router.patch('/:storeId/users/:userId/status', updateUserStatusInStore)
 
 // POST /api/stores/:storeId/assign-user - Assign user to store
 router.post('/:storeId/assign-user', assignUserToStore)
