@@ -39,6 +39,13 @@ const sanitizeToken = (rawToken: string | null) => {
     return normalized.replace(/\s+/g, '')
 }
 
+const normalizeStoreId = (rawStoreId?: string | null) => {
+    if (!rawStoreId) return ''
+    return String(rawStoreId)
+        .trim()
+        .replace(/^['\"]+|['\"]+$/g, '')
+}
+
 const StoreSettingsPage: React.FC = () => {
     const { mode } = useTheme()
     const { user } = useAuth()
@@ -85,10 +92,54 @@ const StoreSettingsPage: React.FC = () => {
     const activeTeamCount = teamUsers.filter((u) => u.status !== 'inactive').length
     const inactiveTeamCount = teamUsers.filter((u) => u.status === 'inactive').length
 
-    const currentStore = stores.find(s => s._id === user?.storeId)
+    const normalizedUserStoreId = normalizeStoreId(user?.storeId)
+    const currentStore = stores.find(s => normalizeStoreId(s._id) === normalizedUserStoreId)
+
+    const normalizeTeamUsers = (users: any[]) => {
+        return users.map((u: any) => ({
+            _id: u?._id,
+            name: u?.name || 'Usuario',
+            email: u?.email || '',
+            role: u?.role || 'analyst',
+            status: u?.status || 'approved',
+            storeId: u?.storeId
+        }))
+    }
+
+    const loadTeamUsersFromStoreDetail = async (storeId: string) => {
+        const token = sanitizeToken(localStorage.getItem('token'))
+        const response = await fetch(`/api/stores/${storeId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+            }
+        })
+
+        if (!response.ok) return []
+
+        const payload = await response.json()
+        const detail = payload?.data
+        const usersFromDetail = Array.isArray(detail?.users)
+            ? detail.users
+            : Array.isArray(detail?.users?.userDetails)
+                ? detail.users.userDetails
+                : []
+
+        return normalizeTeamUsers(usersFromDetail)
+    }
 
     const loadTeamUsersFallback = async (storeId: string) => {
         try {
+            const normalizedStoreId = normalizeStoreId(storeId)
+
+            // Preferred fallback: /api/stores/:id is available for admin and sys_admin
+            const usersFromStoreDetail = await loadTeamUsersFromStoreDetail(normalizedStoreId)
+            if (usersFromStoreDetail.length > 0) {
+                setTeamUsers(usersFromStoreDetail)
+                return
+            }
+
+            // Secondary fallback for environments where admins can access /api/users
             const token = sanitizeToken(localStorage.getItem('token'))
             const response = await fetch('/api/users', {
                 headers: {
@@ -101,16 +152,8 @@ const StoreSettingsPage: React.FC = () => {
 
             const payload = await response.json()
             const users = Array.isArray(payload?.data) ? payload.data : []
-            const normalized = users
-                .filter((u: any) => !storeId || u?.storeId === storeId)
-                .map((u: any) => ({
-                    _id: u?._id,
-                    name: u?.name || 'Usuario',
-                    email: u?.email || '',
-                    role: u?.role || 'analyst',
-                    status: u?.status || 'approved',
-                    storeId: u?.storeId
-                }))
+            const normalized = normalizeTeamUsers(users)
+                .filter((u: any) => !normalizedStoreId || normalizeStoreId(u?.storeId) === normalizedStoreId)
 
             if (normalized.length > 0) {
                 setTeamUsers(normalized)
@@ -130,8 +173,10 @@ const StoreSettingsPage: React.FC = () => {
             if (fromStorePayload.length === 0 && currentStore._id) {
                 loadTeamUsersFallback(currentStore._id)
             }
+        } else if (normalizedUserStoreId) {
+            loadTeamUsersFallback(normalizedUserStoreId)
         }
-    }, [currentStore])
+    }, [currentStore, normalizedUserStoreId])
 
     // Load public catalog settings
     useEffect(() => {

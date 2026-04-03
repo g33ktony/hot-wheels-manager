@@ -115,19 +115,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
                 setLoading(true)
                 setError(null)
 
-                const response = await fetch('/api/stores', {
-                    headers: {
-                        ...(safeToken ? (() => {
-                            try {
-                                const authValue = `Bearer ${safeToken}`
-                                new Headers({ Authorization: authValue })
-                                return { 'Authorization': authValue }
-                            } catch (error) {
-                                console.warn('Invalid auth token format detected in StoreContext headers', error)
-                                return {}
-                            }
-                        })() : {})
+                const headers: Record<string, string> = {}
+                if (safeToken) {
+                    try {
+                        const authValue = `Bearer ${safeToken}`
+                        new Headers({ Authorization: authValue })
+                        headers.Authorization = authValue
+                    } catch (error) {
+                        console.warn('Invalid auth token format detected in StoreContext headers', error)
                     }
+                }
+
+                const response = await fetch('/api/stores', {
+                    headers
                 })
 
                 if (!response.ok) {
