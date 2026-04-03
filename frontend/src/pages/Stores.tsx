@@ -37,6 +37,41 @@ const StoresPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('active')
 
+  const loadStoreDetails = async (storeId: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/stores/${storeId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('No se pudo cargar el detalle de la tienda')
+      }
+
+      const payload = await response.json()
+      const detail = payload?.data
+      const usersFromDetail = Array.isArray(detail?.users) ? detail.users : []
+
+      setSelectedStore((prev: any) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          ...detail,
+          users: {
+            ...(prev.users || {}),
+            total: usersFromDetail.length,
+            userDetails: usersFromDetail
+          }
+        }
+      })
+    } catch (error: any) {
+      console.warn('Store details fallback failed:', error)
+    }
+  }
+
   // Verificar permisos
   if (!isSysAdmin() && !isAdmin()) {
     return (
@@ -237,6 +272,9 @@ const StoresPage: React.FC = () => {
                 onClick={() => {
                   setSelectedStore(store)
                   setShowDetailModal(true)
+                  if (!store?.users?.userDetails?.length) {
+                    loadStoreDetails(store._id)
+                  }
                 }}
               >
                 <div className="flex items-start justify-between">
@@ -278,6 +316,9 @@ const StoresPage: React.FC = () => {
                         e.stopPropagation()
                         setSelectedStore(store)
                         setShowDetailModal(true)
+                        if (!store?.users?.userDetails?.length) {
+                          loadStoreDetails(store._id)
+                        }
                       }}
                     >
                       <Edit size={18} />

@@ -66,10 +66,49 @@ const StoreSettingsPage: React.FC = () => {
 
     const currentStore = stores.find(s => s._id === user?.storeId)
 
+    const loadTeamUsersFallback = async (storeId: string) => {
+        try {
+            const token = localStorage.getItem('token')
+            const response = await fetch('/api/users', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            })
+
+            if (!response.ok) return
+
+            const payload = await response.json()
+            const users = Array.isArray(payload?.data) ? payload.data : []
+            const normalized = users
+                .filter((u: any) => !storeId || u?.storeId === storeId)
+                .map((u: any) => ({
+                    _id: u?._id,
+                    name: u?.name || 'Usuario',
+                    email: u?.email || '',
+                    role: u?.role || 'analyst',
+                    status: u?.status || 'approved',
+                    storeId: u?.storeId
+                }))
+
+            if (normalized.length > 0) {
+                setTeamUsers(normalized)
+            }
+        } catch (error) {
+            console.warn('Fallback team users failed:', error)
+        }
+    }
+
     useEffect(() => {
         if (currentStore) {
             setStoreDescription(currentStore.description || '')
             setTeamUsers(currentStore.users.userDetails || [])
+
+            // Fallback for production environments where /api/stores may not include userDetails
+            const fromStorePayload = currentStore.users.userDetails || []
+            if (fromStorePayload.length === 0 && currentStore._id) {
+                loadTeamUsersFallback(currentStore._id)
+            }
         }
     }, [currentStore])
 
