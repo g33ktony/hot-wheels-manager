@@ -18,6 +18,14 @@ import {
 import toast from 'react-hot-toast'
 import { storeSettingsService } from '@/services/storeSettings'
 
+const sanitizeToken = (rawToken: string | null) => {
+    if (!rawToken) return ''
+    return rawToken
+        .trim()
+        .replace(/^['\"]|['\"]$/g, '')
+        .replace(/[\u0000-\u001F\u007F]/g, '')
+}
+
 const StoreSettingsPage: React.FC = () => {
     const { mode } = useTheme()
     const { user } = useAuth()
@@ -68,7 +76,7 @@ const StoreSettingsPage: React.FC = () => {
 
     const loadTeamUsersFallback = async (storeId: string) => {
         try {
-            const token = localStorage.getItem('token')
+            const token = sanitizeToken(localStorage.getItem('token'))
             const response = await fetch('/api/users', {
                 headers: {
                     'Content-Type': 'application/json',

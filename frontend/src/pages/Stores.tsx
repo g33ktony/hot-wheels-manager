@@ -20,6 +20,14 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const sanitizeToken = (rawToken: string | null) => {
+  if (!rawToken) return ''
+  return rawToken
+    .trim()
+    .replace(/^['\"]|['\"]$/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+}
+
 const StoresPage: React.FC = () => {
   const { mode } = useTheme()
   const { isSysAdmin, isAdmin } = usePermissions()
@@ -39,7 +47,7 @@ const StoresPage: React.FC = () => {
 
   const loadStoreDetails = async (storeId: string) => {
     try {
-      const token = localStorage.getItem('token')
+      const token = sanitizeToken(localStorage.getItem('token'))
       const response = await fetch(`/api/stores/${storeId}`, {
         headers: {
           'Content-Type': 'application/json',

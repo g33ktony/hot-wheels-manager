@@ -1,6 +1,14 @@
 import { createContext, ReactNode, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
 
+const sanitizeToken = (rawToken: string | null) => {
+    if (!rawToken) return ''
+    return rawToken
+        .trim()
+        .replace(/^['\"]|['\"]$/g, '')
+        .replace(/[\u0000-\u001F\u007F]/g, '')
+}
+
 interface Store {
     _id: string
     storeId: string
@@ -26,6 +34,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined)
 
 export function StoreProvider({ children }: { children: ReactNode }) {
     const { user, token } = useAuth()
+    const safeToken = sanitizeToken(token)
     const [userStore, setUserStore] = useState<string | null>(null)
     const [selectedStore, setSelectedStoreState] = useState<string | null>(null)
     const [availableStores, setAvailableStores] = useState<Store[]>([])
@@ -83,7 +92,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
     // Fetch all stores for sys_admin
     useEffect(() => {
-        if (!user || user.role !== 'sys_admin' || !token) {
+        if (!user || user.role !== 'sys_admin' || !safeToken) {
             return
         }
 
@@ -94,7 +103,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
                 const response = await fetch('/api/stores', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${safeToken}`
                     }
                 })
 
@@ -168,7 +177,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
 
         fetchStores()
-    }, [user, token])
+    }, [user, safeToken])
 
     return (
         <StoreContext.Provider value={{
