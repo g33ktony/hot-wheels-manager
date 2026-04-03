@@ -3,10 +3,24 @@ import { useAuth } from './AuthContext'
 
 const sanitizeToken = (rawToken: string | null) => {
     if (!rawToken) return ''
-    return rawToken
+
+    let normalized = rawToken
         .trim()
-        .replace(/^['\"]|['\"]$/g, '')
-        .replace(/[\u0000-\u001F\u007F]/g, '')
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+        .replace(/^['\"]+|['\"]+$/g, '')
+
+    if (/^bearer\s+/i.test(normalized)) {
+        normalized = normalized.replace(/^bearer\s+/i, '').trim()
+    }
+
+    normalized = normalized.replace(/^['\"]+|['\"]+$/g, '')
+
+    const jwtMatch = normalized.match(/[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/)
+    if (jwtMatch) {
+        return jwtMatch[0]
+    }
+
+    return normalized.replace(/\s+/g, '')
 }
 
 interface Store {
@@ -103,7 +117,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
                 const response = await fetch('/api/stores', {
                     headers: {
-                        'Authorization': `Bearer ${safeToken}`
+                        ...(safeToken ? (() => {
+                            try {
+                                const authValue = `Bearer ${safeToken}`
+                                new Headers({ Authorization: authValue })
+                                return { 'Authorization': authValue }
+                            } catch (error) {
+                                console.warn('Invalid auth token format detected in StoreContext headers', error)
+                                return {}
+                            }
+                        })() : {})
                     }
                 })
 

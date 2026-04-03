@@ -22,10 +22,23 @@ import toast from 'react-hot-toast'
 
 const sanitizeToken = (rawToken: string | null) => {
   if (!rawToken) return ''
-  return rawToken
+  let normalized = rawToken
     .trim()
-    .replace(/^['\"]|['\"]$/g, '')
-    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    .replace(/^['\"]+|['\"]+$/g, '')
+
+  if (/^bearer\s+/i.test(normalized)) {
+    normalized = normalized.replace(/^bearer\s+/i, '').trim()
+  }
+
+  normalized = normalized.replace(/^['\"]+|['\"]+$/g, '')
+
+  const jwtMatch = normalized.match(/[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/)
+  if (jwtMatch) {
+    return jwtMatch[0]
+  }
+
+  return normalized.replace(/\s+/g, '')
 }
 
 const StoresPage: React.FC = () => {
