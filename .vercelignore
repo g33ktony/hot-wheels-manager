@@ -1,0 +1,22 @@
+# Exclude local dependencies and caches
+node_modules
+**/node_modules
+
+# Backend is deployed on Railway
+backend
+
+# Large local/generated artifacts
+backend/backups
+**/*.log
+
+# VCS and docs not needed for frontend deployment
+.git
+.github
+docs
+tests
+
+# Local env and editor files
+.env
+.env.*
+.vscode
+.idea

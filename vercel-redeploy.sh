@@ -10,7 +10,7 @@
 # This script will trigger a production redeploy on Vercel
 ###############################################################################
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'
