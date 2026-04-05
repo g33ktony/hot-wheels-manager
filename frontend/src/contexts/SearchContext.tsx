@@ -55,36 +55,29 @@ interface SearchProviderProps {
 export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   const location = useLocation()
   const currentPage = location.pathname.split('/')[1] || 'dashboard'
+  const storageKey = `searchFilters:${currentPage}`
 
   const [filters, setFilters] = useState<SearchFilters>(() => {
-    // Only load searchTerm from localStorage (global), not page-specific filters
-    const saved = localStorage.getItem('globalSearchTerm')
-    return {
-      ...defaultFilters,
-      searchTerm: saved ? JSON.parse(saved) : ''
-    }
+    return defaultFilters
   })
 
-  // When page changes, reset all filters except search term (restore from localStorage)
+  // Load page-scoped filters when route page changes
   useEffect(() => {
     console.log('📄 Page changed to:', currentPage)
-    // Restore search term from localStorage to ensure it persists across pages
-    const savedSearchTerm = localStorage.getItem('globalSearchTerm')
-    const searchTermValue = savedSearchTerm ? JSON.parse(savedSearchTerm) : ''
+    try {
+      const saved = localStorage.getItem(storageKey)
+      const parsed = saved ? JSON.parse(saved) : null
+      setFilters(parsed ? { ...defaultFilters, ...parsed } : defaultFilters)
+      console.log('🔄 Loaded filters for page', currentPage, parsed || defaultFilters)
+    } catch {
+      setFilters(defaultFilters)
+    }
+  }, [currentPage, storageKey])
 
-    // Keep search term but reset all other filters when navigating to a different page
-    setFilters(prev => ({
-      ...defaultFilters,
-      searchTerm: searchTermValue || prev.searchTerm // Restore from localStorage or keep current
-    }))
-    console.log('🔄 Filters reset for page', currentPage, '- Search term preserved:', searchTermValue)
-  }, [currentPage])
-
-  // Save only searchTerm to localStorage (global across pages)
+  // Persist current page filters
   useEffect(() => {
-    localStorage.setItem('globalSearchTerm', JSON.stringify(filters.searchTerm))
-    console.log('🔍 Global search term updated:', filters.searchTerm)
-  }, [filters.searchTerm])
+    localStorage.setItem(storageKey, JSON.stringify(filters))
+  }, [filters, storageKey])
 
   const updateFilter = useCallback((key: keyof SearchFilters, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }))
@@ -92,8 +85,8 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters)
-    localStorage.removeItem('globalSearchTerm')
-  }, [])
+    localStorage.removeItem(storageKey)
+  }, [storageKey])
 
   return (
     <SearchContext.Provider value={{ filters, updateFilter, resetFilters, currentPage }}>
