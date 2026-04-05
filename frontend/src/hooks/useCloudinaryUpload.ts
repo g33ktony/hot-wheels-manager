@@ -11,6 +11,32 @@ interface UploadResponse {
   timestamp: number
 }
 
+const uploadToCloudinary = async (
+  uploadUrl: string,
+  uploadPreset: string,
+  fileValue: File | string,
+  signal: AbortSignal
+) => {
+  const formData = new FormData()
+  formData.append('file', fileValue)
+  formData.append('upload_preset', uploadPreset)
+
+  return fetch(uploadUrl, {
+    method: 'POST',
+    body: formData,
+    signal
+  })
+}
+
+const readFileAsDataUrl = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ''))
+    reader.onerror = () => reject(new Error('No se pudo convertir la imagen para reintento de subida'))
+    reader.readAsDataURL(file)
+  })
+}
+
 /**
  * Hook para manejar uploads de imágenes a Cloudinary con mejor compatibilidad Safari/iPhone
  * Las imágenes se guardan en la nube en lugar de la BD
@@ -76,15 +102,9 @@ export const useCloudinaryUpload = () => {
         size: `${(finalFile.size / 1024).toFixed(2)}KB`
       })
 
-      // Step 5: Build FormData - SIMPLE VERSION
-      console.log('📋 Step 5 - Building FormData')
-      const formData = new FormData()
-      
-      // CRITICAL: These are the ONLY two fields Cloudinary needs for unsigned upload
-      formData.append('file', finalFile)
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
-      
-      console.log('FormData fields:', {
+      // Step 5: Build payload
+      console.log('📋 Step 5 - Building upload payload')
+      console.log('Upload fields:', {
         file: `${finalFile.name} (${finalFile.type})`,
         upload_preset: CLOUDINARY_UPLOAD_PRESET,
         cloudName: CLOUDINARY_CLOUD_NAME
@@ -100,11 +120,12 @@ export const useCloudinaryUpload = () => {
         controller.abort()
       }, 60000)
 
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal
-      })
+      let response = await uploadToCloudinary(
+        uploadUrl,
+        CLOUDINARY_UPLOAD_PRESET,
+        finalFile,
+        controller.signal
+      )
 
       clearTimeout(timeoutId)
 
@@ -143,13 +164,62 @@ export const useCloudinaryUpload = () => {
           fullResponse: JSON.stringify(responseData).substring(0, 300)
         })
 
-        const msg = responseData?.error?.message || `HTTP ${response.status}`
+        const firstAttemptMsg = responseData?.error?.message || `HTTP ${response.status}`
 
-        if (response.status === 401) {
-          throw new Error('Cloudinary no autorizado. Revisa cloud name y upload preset (unsigned).')
+        // Retry once with Data URL when Cloudinary rejects file binary payload
+        if (response.status === 400) {
+          const lowMsg = String(firstAttemptMsg).toLowerCase()
+          const shouldRetryAsDataUrl =
+            lowMsg.includes('invalid image file') ||
+            lowMsg.includes('missing required parameter - file') ||
+            lowMsg.includes('empty file')
+
+          if (shouldRetryAsDataUrl) {
+            console.warn('⚠️ Cloudinary rejected binary file, retrying as Data URL')
+            const dataUrlFile = await readFileAsDataUrl(finalFile)
+            response = await uploadToCloudinary(
+              uploadUrl,
+              CLOUDINARY_UPLOAD_PRESET,
+              dataUrlFile,
+              controller.signal
+            )
+
+            const retryContentType = response.headers.get('content-type') || ''
+            if (retryContentType.includes('application/json')) {
+              responseData = await response.json()
+            } else {
+              const retryText = await response.text()
+              try {
+                responseData = JSON.parse(retryText)
+              } catch {
+                responseData = { error: { message: retryText || 'Cloudinary retry failed' } }
+              }
+            }
+
+            if (!response.ok) {
+              console.error('❌ CLOUDINARY RETRY ERROR:', {
+                status: response.status,
+                error: responseData?.error?.message || response.statusText
+              })
+            } else {
+              console.log('✅ Cloudinary retry as Data URL succeeded')
+            }
+          }
         }
 
-        throw new Error(`Cloudinary rejected upload: ${msg}`)
+        if (!response.ok) {
+          const msg = responseData?.error?.message || firstAttemptMsg
+
+          if (response.status === 401) {
+            throw new Error('Cloudinary no autorizado. Revisa cloud name y upload preset (unsigned).')
+          }
+
+          if (response.status === 400) {
+            throw new Error(`Cloudinary rechazó la imagen (${msg}). Verifica que el upload preset sea unsigned y activo.`)
+          }
+
+          throw new Error(`Cloudinary rejected upload: ${msg}`)
+        }
       }
 
       // Validate response
