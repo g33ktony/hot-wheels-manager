@@ -5,6 +5,67 @@ import Input from '../components/common/Input'
 import Button from '../components/common/Button'
 import { Lock, Mail, Car, User, Phone } from 'lucide-react'
 
+const normalizeApiUrl = (rawUrl?: string) => {
+    const fallback = import.meta.env.DEV ? 'http://localhost:3001/api' : '/api'
+    const trimmed = rawUrl?.trim()
+
+    if (!trimmed) {
+        return fallback
+    }
+
+    if (trimmed.startsWith('/')) {
+        const cleanPath = trimmed.replace(/\/+$/, '')
+        if (cleanPath.endsWith('/api') || cleanPath.includes('/api/')) {
+            return cleanPath || '/api'
+        }
+        return `${cleanPath || ''}/api`
+    }
+
+    let candidate = trimmed
+    if (!/^https?:\/\//i.test(candidate)) {
+        candidate = `https://${candidate}`
+    }
+
+    try {
+        const parsed = new URL(candidate)
+        const path = parsed.pathname.replace(/\/+$/, '')
+
+        if (!path || path === '/') {
+            parsed.pathname = '/api'
+        } else if (!path.endsWith('/api') && !path.includes('/api/')) {
+            parsed.pathname = `${path}/api`
+        } else {
+            parsed.pathname = path
+        }
+
+        return parsed.toString().replace(/\/$/, '')
+    } catch {
+        return fallback
+    }
+}
+
+const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL)
+
+const parseApiErrorMessage = async (response: Response, fallback: string) => {
+    const contentType = response.headers.get('content-type') || ''
+
+    if (contentType.includes('application/json')) {
+        try {
+            const data = await response.json()
+            return data?.message || fallback
+        } catch {
+            return fallback
+        }
+    }
+
+    try {
+        const text = await response.text()
+        return text?.trim() || fallback
+    } catch {
+        return fallback
+    }
+}
+
 const Signup: React.FC = () => {
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false)
@@ -46,7 +107,10 @@ const Signup: React.FC = () => {
         setIsLoading(true)
 
         try {
-            const response = await fetch('/api/auth/signup', {
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+            const response = await fetch(`${API_URL}/auth/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -56,14 +120,21 @@ const Signup: React.FC = () => {
                     password: formData.password,
                     name: formData.name.trim(),
                     phone: formData.phone.trim() || undefined
-                })
+                }),
+                signal: controller.signal
             })
 
-            const data = await response.json()
+            clearTimeout(timeoutId)
 
             if (!response.ok) {
-                throw new Error(data.message || 'Error al registrarse')
+                const fallbackMessage = response.status === 409
+                    ? 'Este email ya está registrado'
+                    : 'Error al registrarse'
+                const message = await parseApiErrorMessage(response, fallbackMessage)
+                throw new Error(message)
             }
+
+            await response.json()
 
             toast.success('¡Registro exitoso! El administrador revisará tu solicitud.')
 
@@ -73,7 +144,14 @@ const Signup: React.FC = () => {
             }, 2000)
         } catch (error) {
             console.error('Signup error:', error)
-            toast.error(error instanceof Error ? error.message : 'Error al registrarse')
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                toast.error('El servidor tardó demasiado en responder. Intenta nuevamente.')
+            } else if (error instanceof TypeError) {
+                toast.error('No se pudo conectar con el servidor. Verifica tu conexión e intenta otra vez.')
+            } else {
+                toast.error(error instanceof Error ? error.message : 'Error al registrarse')
+            }
         } finally {
             setIsLoading(false)
         }
