@@ -30,7 +30,7 @@ const POS: React.FC = () => {
   useInventorySyncInBackground();
 
   // Use global search context
-  const { filters, updateFilter, currentPage } = useSearch();
+  const { filters, updateFilter, currentPage, resetFilters } = useSearch();
   const {
     searchTerm,
     filterCondition,
@@ -70,6 +70,11 @@ const POS: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [processing, setProcessing] = useState(false);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+
+  // Always start POS with clean filters to avoid inheriting Inventory search context
+  useEffect(() => {
+    resetFilters();
+  }, [resetFilters]);
 
   // Initial load: fetch inventory on component mount if Redux is empty
   useEffect(() => {

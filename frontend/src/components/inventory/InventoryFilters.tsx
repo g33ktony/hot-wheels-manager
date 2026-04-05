@@ -162,7 +162,7 @@ export default function InventoryFilters({
         + (filterTreasureHunt !== 'all' ? 1 : 0)
 
     return (
-        <Card className="p-4 lg:p-4">
+        <Card className="p-4 lg:p-4 !border-transparent !shadow-none">
             <div className="space-y-4 w-full">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm">
@@ -247,11 +247,10 @@ export default function InventoryFilters({
                                 key={chip.key}
                                 type="button"
                                 onClick={() => clearSingleFilter(chip.key)}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                                    isDark
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${isDark
                                         ? 'bg-slate-700/80 border-slate-600 text-slate-200 hover:bg-slate-600'
                                         : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                                }`}
+                                    }`}
                             >
                                 <span>{chip.label}</span>
                                 <X size={12} />
