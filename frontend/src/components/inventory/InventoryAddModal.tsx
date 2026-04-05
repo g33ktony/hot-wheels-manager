@@ -89,17 +89,18 @@ function detectSeriesInfo(catalogItem: any): { isPartOfSeries: boolean; seriesNa
     return { isPartOfSeries: false, seriesName: '', seriesSize: 5, position: 1 }
 }
 
-function base64ToFile(base64: string, fileName: string): File {
-    const base64String = base64.includes(';base64,') ? base64.split(';base64,')[1] : base64
-    const byteCharacters = atob(base64String)
-    const byteArrays: (Uint8Array | number[])[] = []
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice = byteCharacters.slice(offset, offset + 512)
-        const byteNumbers = new Array(slice.length)
-        for (let i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i)
-        byteArrays.push(byteNumbers)
-    }
-    return new File(byteArrays as BlobPart[], fileName, { type: 'image/jpeg' })
+async function base64ToFile(base64: string, fileName: string): Promise<File> {
+    // Use browser decoding path to avoid malformed byte arrays from manual atob chunking
+    const response = await fetch(base64)
+    const blob = await response.blob()
+
+    // Keep original mime type when available; fallback to JPEG
+    const mimeType = blob.type || 'image/jpeg'
+
+    return new File([blob], fileName, {
+        type: mimeType,
+        lastModified: Date.now(),
+    })
 }
 
 // ─── Initial state ───────────────────────────────────────────────────────────
@@ -917,7 +918,7 @@ export default function InventoryAddModal({
                                 onTextExtracted={(text: string) => handleCarIdChange(text)}
                                 onImageCaptured={async (imageBase64: string) => {
                                     try {
-                                        const file = base64ToFile(imageBase64, 'ocr-capture.jpg')
+                                        const file = await base64ToFile(imageBase64, 'ocr-capture.jpg')
                                         const result = await uploadImage(file)
                                         if (result) {
                                             setNewItem(prev => ({ ...prev, photos: [...prev.photos, result.url] }))
