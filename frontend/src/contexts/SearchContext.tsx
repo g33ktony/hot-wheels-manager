@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 
 interface SearchFilters {
@@ -38,6 +38,17 @@ const defaultFilters: SearchFilters = {
   filterFastFurious: false
 }
 
+const getDefaultFiltersForPage = (page: string): SearchFilters => {
+  if (page === 'pos') {
+    return {
+      ...defaultFilters,
+      filterFantasy: false,
+    }
+  }
+
+  return defaultFilters
+}
+
 const SearchContext = createContext<SearchContextType | undefined>(undefined)
 
 export const useSearch = () => {
@@ -56,9 +67,10 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   const location = useLocation()
   const currentPage = location.pathname.split('/')[1] || 'dashboard'
   const storageKey = `searchFilters:${currentPage}`
+  const pageDefaults = useMemo(() => getDefaultFiltersForPage(currentPage), [currentPage])
 
   const [filters, setFilters] = useState<SearchFilters>(() => {
-    return defaultFilters
+    return getDefaultFiltersForPage(currentPage)
   })
 
   // Load page-scoped filters when route page changes
@@ -66,7 +78,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     console.log('📄 Page changed to:', currentPage)
 
     if (currentPage === 'pos') {
-      setFilters(defaultFilters)
+      setFilters(pageDefaults)
       localStorage.removeItem(storageKey)
       console.log('🔄 POS filters reset on entry')
       return
@@ -75,12 +87,12 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     try {
       const saved = localStorage.getItem(storageKey)
       const parsed = saved ? JSON.parse(saved) : null
-      setFilters(parsed ? { ...defaultFilters, ...parsed } : defaultFilters)
-      console.log('🔄 Loaded filters for page', currentPage, parsed || defaultFilters)
+      setFilters(parsed ? { ...pageDefaults, ...parsed } : pageDefaults)
+      console.log('🔄 Loaded filters for page', currentPage, parsed || pageDefaults)
     } catch {
-      setFilters(defaultFilters)
+      setFilters(pageDefaults)
     }
-  }, [currentPage, storageKey])
+  }, [currentPage, storageKey, pageDefaults])
 
   // Persist current page filters
   useEffect(() => {
@@ -95,9 +107,9 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   }, [])
 
   const resetFilters = useCallback(() => {
-    setFilters(defaultFilters)
+    setFilters(getDefaultFiltersForPage(currentPage))
     localStorage.removeItem(storageKey)
-  }, [storageKey])
+  }, [storageKey, currentPage])
 
   return (
     <SearchContext.Provider value={{ filters, updateFilter, resetFilters, currentPage }}>
