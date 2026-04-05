@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
@@ -7,6 +8,7 @@ import {
     Edit,
     MapPin,
     Maximize2,
+    MoreVertical,
     Package,
     ShoppingCart,
     Trash2,
@@ -72,6 +74,8 @@ export default function InventoryGridSection({
     onEditItem,
     onDeleteItem,
 }: InventoryGridSectionProps) {
+    const [openMenuItemId, setOpenMenuItemId] = useState<string | null>(null)
+
     return (
         <div className="relative">
             {isPrefetchingNext && !isLoading && (
@@ -111,12 +115,22 @@ export default function InventoryGridSection({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
                     {filteredItems.map((item: InventoryItem) => {
                         const isAvailable = item.quantity > (item.reservedQuantity || 0)
+                        const availableQty = Math.max(0, item.quantity - (item.reservedQuantity || 0))
+                        const modelName = item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'
+                        const secondaryLine = `${item.hotWheelsCar?.series || ''} ${item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}`.trim()
+                        const shouldShowSecondary = !!secondaryLine && !secondaryLine.toLowerCase().includes(modelName.toLowerCase())
+                        const referenceCode = item.hotWheelsCar?.toy_num || (item.carId && item.carId !== modelName ? item.carId : '')
+                        const operationalStatus = item.quantity <= 0
+                            ? 'Agotado'
+                            : availableQty <= 0
+                                ? 'Reservado'
+                                : 'Disponible'
 
                         return (
                             <Card
                                 key={item._id}
                                 hover={!isSelectionMode && isAvailable}
-                                className={`relative overflow-hidden p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`relative overflow-hidden !p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <div
                                     className={`h-full ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
@@ -165,6 +179,10 @@ export default function InventoryGridSection({
                                                             <Maximize2 size={32} className="text-white drop-shadow-lg" />
                                                         </div>
                                                     )}
+
+                                                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 text-white text-xs font-semibold rounded-md backdrop-blur-sm">
+                                                        {item.photos.length} foto{item.photos.length !== 1 ? 's' : ''}
+                                                    </div>
                                                 </>
                                             ) : (
                                                 <Package size={48} className="text-slate-400" />
@@ -212,23 +230,85 @@ export default function InventoryGridSection({
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1 px-3 sm:px-4 pt-3 sm:pt-4">
-                                            <h3
-                                                className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'} ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-400 transition-colors' : ''}`}
-                                                onClick={() => {
-                                                    if (!isSelectionMode && item._id) {
-                                                        onNavigateToDetail(item._id)
-                                                    }
-                                                }}
-                                            >
-                                                {item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'}
-                                            </h3>
-                                            <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                {item.hotWheelsCar?.series} {item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}
-                                            </p>
-                                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                {item.hotWheelsCar?.toy_num || item.carId}
-                                            </p>
+                                        <div className="space-y-1 px-3 sm:px-4 pt-2 sm:pt-3">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0 flex-1">
+                                                    <h3
+                                                        className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'} ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-400 transition-colors' : ''}`}
+                                                        onClick={() => {
+                                                            if (!isSelectionMode && item._id) {
+                                                                onNavigateToDetail(item._id)
+                                                            }
+                                                        }}
+                                                        title={modelName}
+                                                    >
+                                                        {modelName}
+                                                    </h3>
+                                                    {shouldShowSecondary && (
+                                                        <p
+                                                            className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                                                            title={secondaryLine}
+                                                        >
+                                                            {secondaryLine}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                {!isSelectionMode && (canEdit || canDelete) && item._id && (
+                                                    <div className="relative flex-shrink-0">
+                                                        <button
+                                                            type="button"
+                                                            className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200'}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setOpenMenuItemId(openMenuItemId === item._id ? null : item._id || null)
+                                                            }}
+                                                        >
+                                                            <MoreVertical size={16} />
+                                                        </button>
+
+                                                        {openMenuItemId === item._id && (
+                                                            <div
+                                                                className={`absolute right-0 mt-1 z-20 min-w-[120px] rounded-lg border shadow-lg p-1 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                {canEdit && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded ${isDark ? 'text-slate-200 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}
+                                                                        onClick={() => {
+                                                                            onEditItem(item)
+                                                                            setOpenMenuItemId(null)
+                                                                        }}
+                                                                    >
+                                                                        <Edit size={14} />
+                                                                        Editar
+                                                                    </button>
+                                                                )}
+                                                                {canDelete && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded text-red-500 hover:bg-red-500/10"
+                                                                        onClick={() => {
+                                                                            if (item._id) onDeleteItem(item._id)
+                                                                            setOpenMenuItemId(null)
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                        Eliminar
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {referenceCode && (
+                                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                    {referenceCode}
+                                                </p>
+                                            )}
 
                                             {item.seriesId && (
                                                 <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
@@ -262,12 +342,23 @@ export default function InventoryGridSection({
                                                 >
                                                     {item.condition === 'mint' ? 'Mint' : item.condition === 'good' ? 'Bueno' : item.condition === 'fair' ? 'Regular' : 'Malo'}
                                                 </span>
-                                                <span className={`text-xs font-medium text-right flex-shrink-0 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                                    {item.quantity - (item.reservedQuantity || 0)}/{item.quantity}
-                                                    {(item.reservedQuantity || 0) > 0 && (
-                                                        <span className="text-orange-600 block text-xs">({item.reservedQuantity} res.)</span>
-                                                    )}
+                                                <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${operationalStatus === 'Disponible'
+                                                    ? 'bg-emerald-500/20 text-emerald-400'
+                                                    : operationalStatus === 'Reservado'
+                                                        ? 'bg-amber-500/20 text-amber-400'
+                                                        : 'bg-red-500/20 text-red-400'}`}>
+                                                    {operationalStatus}
                                                 </span>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                                                    Stock: {availableQty} disponible{availableQty !== 1 ? 's' : ''}
+                                                </span>
+                                                {(item.reservedQuantity || 0) > 0 && (
+                                                    <span className="text-xs text-amber-500 font-medium">
+                                                        {item.reservedQuantity} reservado{item.reservedQuantity === 1 ? '' : 's'}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 
@@ -286,12 +377,10 @@ export default function InventoryGridSection({
                                                     <p className="font-semibold text-primary-600">
                                                         ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
                                                     </p>
+                                                    <p className="text-[11px] text-primary-600 font-medium mt-0.5">
+                                                        +{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%
+                                                    </p>
                                                 </div>
-                                            </div>
-                                            <div className="text-right mt-1">
-                                                <span className="text-xs text-primary-600 font-medium">
-                                                    +{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%
-                                                </span>
                                             </div>
                                             {item.location && (
                                                 <div className={`flex items-center gap-1 text-xs pt-1 border-t ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -303,17 +392,7 @@ export default function InventoryGridSection({
 
                                         {!isSelectionMode && (
                                             <div className="space-y-2 p-3 sm:p-4 pb-4">
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="primary"
-                                                        onClick={() => onAddToDelivery(item)}
-                                                        disabled={!isAvailable || !canCreate}
-                                                        title="Agregar a entrega"
-                                                    >
-                                                        <Truck size={16} className="mr-1" />
-                                                        Entrega
-                                                    </Button>
+                                                <div className="grid grid-cols-1 gap-2">
                                                     <Button
                                                         size="sm"
                                                         variant="primary"
@@ -324,32 +403,17 @@ export default function InventoryGridSection({
                                                         <ShoppingCart size={16} className="mr-1" />
                                                         POS
                                                     </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="secondary"
+                                                        onClick={() => onAddToDelivery(item)}
+                                                        disabled={!isAvailable || !canCreate}
+                                                        title="Agregar a entrega"
+                                                    >
+                                                        <Truck size={16} className="mr-1" />
+                                                        Entrega
+                                                    </Button>
                                                 </div>
-
-                                                {(canEdit || canDelete) && (
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        {canEdit && (
-                                                            <Button
-                                                                size="sm"
-                                                                variant="secondary"
-                                                                onClick={() => onEditItem(item)}
-                                                            >
-                                                                <Edit size={16} className="mr-1" />
-                                                                Editar
-                                                            </Button>
-                                                        )}
-                                                        {canDelete && (
-                                                            <Button
-                                                                size="sm"
-                                                                variant="danger"
-                                                                onClick={() => item._id && onDeleteItem(item._id)}
-                                                            >
-                                                                <Trash2 size={16} className="mr-1" />
-                                                                Eliminar
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                )}
                                             </div>
                                         )}
                                     </div>
