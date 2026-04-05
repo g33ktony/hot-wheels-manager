@@ -1,9 +1,9 @@
 import toast from 'react-hot-toast'
 
-// Cloudinary configuration (using unsigned upload - no backend needed)
-// Get your cloud name from https://cloudinary.com/console
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'hot-wheels-manager'
-const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_upload'
+// Cloudinary configuration (unsigned upload)
+// Fallback values align with current production setup to avoid broken uploads
+const CLOUDINARY_CLOUD_NAME = (import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'deyzkucre').trim()
+const CLOUDINARY_UPLOAD_PRESET = (import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'unsigned_upload').trim()
 
 interface UploadResponse {
   url: string
@@ -19,9 +19,12 @@ export const useCloudinaryUpload = () => {
   const uploadImage = async (file: File): Promise<UploadResponse | null> => {
     try {
       // Verify environment variables
-      if (!CLOUDINARY_CLOUD_NAME) {
-        console.error('❌ CLOUDINARY_CLOUD_NAME not configured')
-        toast.error('Cloudinary no está configurado')
+      if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+        console.error('❌ Cloudinary config missing', {
+          cloudName: CLOUDINARY_CLOUD_NAME,
+          uploadPreset: CLOUDINARY_UPLOAD_PRESET
+        })
+        toast.error('Cloudinary no está configurado correctamente')
         return null
       }
 
@@ -141,6 +144,11 @@ export const useCloudinaryUpload = () => {
         })
 
         const msg = responseData?.error?.message || `HTTP ${response.status}`
+
+        if (response.status === 401) {
+          throw new Error('Cloudinary no autorizado. Revisa cloud name y upload preset (unsigned).')
+        }
+
         throw new Error(`Cloudinary rejected upload: ${msg}`)
       }
 
