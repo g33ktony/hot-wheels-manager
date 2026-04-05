@@ -64,6 +64,14 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
   // Load page-scoped filters when route page changes
   useEffect(() => {
     console.log('📄 Page changed to:', currentPage)
+
+    if (currentPage === 'pos') {
+      setFilters(defaultFilters)
+      localStorage.removeItem(storageKey)
+      console.log('🔄 POS filters reset on entry')
+      return
+    }
+
     try {
       const saved = localStorage.getItem(storageKey)
       const parsed = saved ? JSON.parse(saved) : null
@@ -76,8 +84,11 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
 
   // Persist current page filters
   useEffect(() => {
+    if (currentPage === 'pos') {
+      return
+    }
     localStorage.setItem(storageKey, JSON.stringify(filters))
-  }, [filters, storageKey])
+  }, [filters, storageKey, currentPage])
 
   const updateFilter = useCallback((key: keyof SearchFilters, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }))
