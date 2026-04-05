@@ -6,7 +6,6 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { StoreProvider } from './contexts/StoreContext'
 import PrivateRoute from './components/PrivateRoute'
 import SysAdminRoute from './components/SysAdminRoute'
-import AdminOrSysAdminRoute from './components/AdminOrSysAdminRoute'
 import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/common/Layout'
 import { Loading } from './components/common/Loading'
@@ -95,7 +94,7 @@ function App() {
                                                         <Route path="/catalog" element={<CatalogBrowserPage />} />
                                                         <Route path="/catalog/items/:id" element={<CatalogDetailPage />} />
                                                         <Route path="/admin/users" element={<SysAdminRoute><Users /></SysAdminRoute>} />
-                                                        <Route path="/admin/stores" element={<AdminOrSysAdminRoute><Stores /></AdminOrSysAdminRoute>} />
+                                                        <Route path="/admin/stores" element={<SysAdminRoute><Stores /></SysAdminRoute>} />
                                                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                                                     </Routes>
                                                 </Layout>

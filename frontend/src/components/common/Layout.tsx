@@ -207,15 +207,6 @@ export default function Layout({ children }: LayoutProps) {
                 icon: BookOpen
             }
         ] : []),
-        ...(!isSysAdmin() && isAdmin() ? [
-            {
-                name: 'Administración de Tiendas',
-                shortName: 'Tda',
-                href: '/admin/stores',
-                icon: Building2,
-                highlight: true
-            }
-        ] : []),
         { name: 'Catálogo Público', shortName: 'Pub', href: '/browse?adminView=true', icon: SearchIcon },
         { name: 'Proveedores', shortName: 'Prov', href: '/suppliers', icon: Building2 },
         { name: 'Configuración de Tienda', shortName: 'Cfg', href: '/store-settings', icon: Store },

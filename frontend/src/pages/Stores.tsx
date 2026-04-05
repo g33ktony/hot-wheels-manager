@@ -43,7 +43,7 @@ const sanitizeToken = (rawToken: string | null) => {
 
 const StoresPage: React.FC = () => {
   const { mode } = useTheme()
-  const { isSysAdmin, isAdmin } = usePermissions()
+  const { isSysAdmin } = usePermissions()
   const isDark = mode === 'dark'
   const { stores, isLoading, error, refetch, createStore, updateUserRole, removeUser, archiveStore, restoreStore } = useStores()
 
@@ -94,7 +94,7 @@ const StoresPage: React.FC = () => {
   }
 
   // Verificar permisos
-  if (!isSysAdmin() && !isAdmin()) {
+  if (!isSysAdmin()) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
         <Card className="p-8 text-center">
@@ -103,7 +103,7 @@ const StoresPage: React.FC = () => {
             Acceso Denegado
           </h2>
           <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
-            Solo admin y sys_admin pueden gestionar su equipo
+            Solo sys_admin puede administrar tiendas
           </p>
         </Card>
       </div>

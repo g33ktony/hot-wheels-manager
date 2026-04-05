@@ -306,9 +306,13 @@ export const changePassword = async (req: Request, res: Response) => {
 export const signup = async (req: Request, res: Response) => {
   try {
     const { email, password, name, phone, storeId } = req.body
+    const normalizedEmail = String(email || '').toLowerCase().trim()
+    const normalizedName = String(name || '').trim()
+    const normalizedPhone = phone ? String(phone).trim() : undefined
+    const normalizedStoreId = storeId ? String(storeId).trim() : ''
 
     // Validar campos
-    if (!email || !password || !name) {
+    if (!normalizedEmail || !password || !normalizedName) {
       return res.status(400).json({
         success: false,
         message: 'Email, password y nombre son requeridos'
@@ -317,7 +321,7 @@ export const signup = async (req: Request, res: Response) => {
 
     // Validar formato de email
     const emailRegex = /^\S+@\S+\.\S+$/
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return res.status(400).json({
         success: false,
         message: 'Email inválido'
@@ -333,9 +337,9 @@ export const signup = async (req: Request, res: Response) => {
     }
 
     // Verificar si el usuario ya existe
-    const existingUser = await UserModel.findOne({ email: email.toLowerCase().trim() })
+    const existingUser = await UserModel.findOne({ email: normalizedEmail })
     if (existingUser) {
-      return res.status(400).json({
+      return res.status(409).json({
         success: false,
         message: 'Este email ya está registrado'
       })
@@ -346,13 +350,13 @@ export const signup = async (req: Request, res: Response) => {
 
     // Crear nuevo usuario con estado 'pending'
     // El storeId será generado si no se proporciona, o usar uno existente
-    const finalStoreId = storeId || email.split('@')[0] // email prefix como store ID
+    const finalStoreId = normalizedStoreId || normalizedEmail.split('@')[0] // email prefix como store ID
     
     const newUser = new UserModel({
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       password: hashedPassword,
-      name: name.trim(),
-      phone: phone?.trim(),
+      name: normalizedName,
+      phone: normalizedPhone,
       storeId: finalStoreId,
       role: 'admin', // Default role para nuevos usuarios
       status: 'pending', // Requiere aprobación
@@ -379,9 +383,18 @@ export const signup = async (req: Request, res: Response) => {
     
     // Handle duplicate email error
     if (error.code === 11000) {
-      return res.status(400).json({
+      return res.status(409).json({
         success: false,
         message: 'Este email ya está registrado'
+      })
+    }
+
+    // Surface model validation details for easier client debugging
+    if (error.name === 'ValidationError') {
+      const firstValidationError = Object.values(error.errors || {})[0] as any
+      return res.status(400).json({
+        success: false,
+        message: firstValidationError?.message || 'Datos inválidos para registro'
       })
     }
 
