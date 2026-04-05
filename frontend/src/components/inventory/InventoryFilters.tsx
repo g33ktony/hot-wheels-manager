@@ -66,10 +66,119 @@ export default function InventoryFilters({
     onHandleFantasyOnlyChange,
     onHandleHideFantasyChange,
 }: InventoryFiltersProps) {
+    const activeFilterChips: Array<{ key: string; label: string }> = []
+
+    if (searchTerm) activeFilterChips.push({ key: 'search', label: `Busqueda: ${searchTerm}` })
+    if (filterBrand) activeFilterChips.push({ key: 'brand', label: `Marca: ${filterBrand}` })
+    if (filterCondition) activeFilterChips.push({ key: 'condition', label: `Condicion: ${filterCondition}` })
+    if (filterPieceType) activeFilterChips.push({ key: 'pieceType', label: `Tipo: ${filterPieceType}` })
+    if (filterTreasureHunt !== 'all') activeFilterChips.push({ key: 'treasureHunt', label: filterTreasureHunt === 'sth' ? 'Solo STH' : 'Solo TH' })
+    if (filterChase) activeFilterChips.push({ key: 'chase', label: 'Solo Chase' })
+    if (filterLocation) activeFilterChips.push({ key: 'location', label: `Ubicacion: ${filterLocation}` })
+    if (filterLowStock) activeFilterChips.push({ key: 'lowStock', label: 'Stock bajo' })
+    if (filterFantasyOnly) activeFilterChips.push({ key: 'fantasyOnly', label: 'Solo Fantasias' })
+    if (filterFantasy) activeFilterChips.push({ key: 'hideFantasy', label: 'Ocultar Fantasias' })
+    if (filterMoto) activeFilterChips.push({ key: 'moto', label: 'Solo Motos' })
+    if (filterCamioneta) activeFilterChips.push({ key: 'camioneta', label: 'Solo Camionetas' })
+    if (filterFastFurious) activeFilterChips.push({ key: 'fastFurious', label: 'Solo Fast and Furious' })
+    if (filterPriceMin) activeFilterChips.push({ key: 'priceMin', label: `Min: ${filterPriceMin}` })
+    if (filterPriceMax) activeFilterChips.push({ key: 'priceMax', label: `Max: ${filterPriceMax}` })
+
+    const clearSingleFilter = (key: string) => {
+        onSetCurrentPage(1)
+
+        switch (key) {
+            case 'search':
+                onHandleFilterChange('search', '')
+                break
+            case 'brand':
+                onHandleFilterChange('brand', '')
+                onHandleFilterChange('pieceType', '')
+                onHandleFilterChange('treasureHunt', 'all')
+                onHandleFilterChange('chase', false)
+                break
+            case 'condition':
+                onHandleFilterChange('condition', '')
+                break
+            case 'pieceType':
+                onHandleFilterChange('pieceType', '')
+                break
+            case 'treasureHunt':
+                onHandleFilterChange('treasureHunt', 'all')
+                break
+            case 'chase':
+                onHandleFilterChange('chase', false)
+                break
+            case 'location':
+                onUpdateFilter('filterLocation', '')
+                break
+            case 'lowStock':
+                onUpdateFilter('filterLowStock', false)
+                break
+            case 'fantasyOnly':
+                onSetFilterFantasyOnly(false)
+                break
+            case 'hideFantasy':
+                onHandleHideFantasyChange(false)
+                break
+            case 'moto':
+                onHandleFilterChange('moto', false)
+                break
+            case 'camioneta':
+                onHandleFilterChange('camioneta', false)
+                break
+            case 'fastFurious':
+                onHandleFilterChange('fastFurious', false)
+                break
+            case 'priceMin':
+                onSetFilterPriceMin('')
+                break
+            case 'priceMax':
+                onSetFilterPriceMax('')
+                break
+        }
+    }
+
+    const clearAllFilters = () => {
+        onSetCurrentPage(1)
+        onHandleFilterChange('search', '')
+        onHandleFilterChange('brand', '')
+        onHandleFilterChange('condition', '')
+        onHandleFilterChange('pieceType', '')
+        onHandleFilterChange('treasureHunt', 'all')
+        onHandleFilterChange('chase', false)
+        onHandleFilterChange('moto', false)
+        onHandleFilterChange('camioneta', false)
+        onHandleFilterChange('fastFurious', false)
+        onHandleHideFantasyChange(false)
+        onSetFilterFantasyOnly(false)
+        onUpdateFilter('filterLocation', '')
+        onUpdateFilter('filterLowStock', false)
+        onSetFilterPriceMin('')
+        onSetFilterPriceMax('')
+    }
+
+    const advancedFiltersCount = [filterCondition, filterPieceType, filterChase, filterFantasy, filterFantasyOnly, filterMoto, filterCamioneta, filterFastFurious, filterLocation, filterLowStock, filterPriceMin, filterPriceMax].filter(Boolean).length
+        + (filterTreasureHunt !== 'all' ? 1 : 0)
+
     return (
-        <Card>
-            <div className="space-y-3 w-full">
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+        <Card className="p-4 lg:p-4">
+            <div className="space-y-4 w-full">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm">
+                        <span className={`${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Resultados:</span>
+                        <span className="inline-flex items-center justify-center min-w-[32px] px-2 py-0.5 text-xs font-semibold rounded-full bg-primary-600 text-white">
+                            {filteredItemsCount}
+                        </span>
+                    </div>
+                    {activeFilterChips.length > 0 && (
+                        <Button variant="secondary" size="sm" onClick={clearAllFilters}>
+                            Limpiar todo
+                        </Button>
+                    )}
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-2 sm:gap-3 w-full">
                     <div className="relative flex-1 min-w-0">
                         <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
                         <Input
@@ -122,26 +231,34 @@ export default function InventoryFilters({
                     >
                         <SlidersHorizontal size={16} />
                         <span>Más filtros</span>
-                        {(() => {
-                            const count = [filterCondition, filterPieceType, filterChase, filterFantasy, filterFantasyOnly, filterMoto, filterCamioneta, filterFastFurious, filterLocation, filterLowStock, filterPriceMin, filterPriceMax].filter(Boolean).length
-                                + (filterTreasureHunt !== 'all' ? 1 : 0)
-                            return count > 0 ? (
-                                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-primary-500 text-white">
-                                    {count}
-                                </span>
-                            ) : null
-                        })()}
+                        {advancedFiltersCount > 0 && (
+                            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full bg-primary-500 text-white">
+                                {advancedFiltersCount}
+                            </span>
+                        )}
                         {showAdvancedFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
-
-                    <span className="hidden sm:flex items-center text-sm text-slate-400 select-none whitespace-nowrap">
-                        {filteredItemsCount} pieza{filteredItemsCount !== 1 ? 's' : ''}
-                    </span>
                 </div>
 
-                <span className="sm:hidden text-sm text-slate-400 select-none">
-                    {filteredItemsCount} pieza{filteredItemsCount !== 1 ? 's' : ''} encontrada{filteredItemsCount !== 1 ? 's' : ''}
-                </span>
+                {activeFilterChips.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                        {activeFilterChips.map((chip) => (
+                            <button
+                                key={chip.key}
+                                type="button"
+                                onClick={() => clearSingleFilter(chip.key)}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                                    isDark
+                                        ? 'bg-slate-700/80 border-slate-600 text-slate-200 hover:bg-slate-600'
+                                        : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                <span>{chip.label}</span>
+                                <X size={12} />
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 {showAdvancedFilters && (
                     <div className="space-y-3 pt-2 border-t border-slate-700/50">
@@ -353,22 +470,7 @@ export default function InventoryFilters({
                                 <Button
                                     variant="secondary"
                                     size="sm"
-                                    onClick={() => {
-                                        onSetCurrentPage(1)
-                                        onUpdateFilter('filterCondition', '')
-                                        onUpdateFilter('filterPieceType', '')
-                                        onUpdateFilter('filterTreasureHunt', 'all')
-                                        onUpdateFilter('filterChase', false)
-                                        onUpdateFilter('filterFantasy', false)
-                                        onSetFilterFantasyOnly(false)
-                                        onUpdateFilter('filterMoto', false)
-                                        onUpdateFilter('filterCamioneta', false)
-                                        onUpdateFilter('filterFastFurious', false)
-                                        onUpdateFilter('filterLocation', '')
-                                        onUpdateFilter('filterLowStock', false)
-                                        onSetFilterPriceMin('')
-                                        onSetFilterPriceMax('')
-                                    }}
+                                    onClick={clearAllFilters}
                                 >
                                     Limpiar filtros avanzados
                                 </Button>
@@ -379,18 +481,7 @@ export default function InventoryFilters({
 
                 {(searchTerm || filterBrand) && !showAdvancedFilters && (
                     <div className="flex justify-end">
-                        <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                                onSetCurrentPage(1)
-                                onUpdateFilter('searchTerm', '')
-                                onUpdateFilter('filterBrand', '')
-                                onUpdateFilter('filterPieceType', '')
-                                onUpdateFilter('filterTreasureHunt', 'all')
-                                onUpdateFilter('filterChase', false)
-                            }}
-                        >
+                        <Button variant="secondary" size="sm" onClick={clearAllFilters}>
                             Limpiar filtros
                         </Button>
                     </div>
