@@ -1,23 +1,22 @@
 #!/bin/bash
 
-# Script para Vercel - Solo hace build si hay cambios en frontend o shared
-# Uso: En Vercel Settings → Git → Ignored Build Step → bash frontend/ignore-build-step.sh
+# Script para Vercel - Ejecutar build solo con cambios de frontend.
+# Uso: En Vercel Settings → Git → Ignored Build Step → bash ignore-build-step.sh
 
-echo "🔍 Verificando si hay cambios en frontend o shared..."
+echo "🔍 Verificando cambios de frontend..."
 
 # Obtener el commit anterior
 if git rev-parse HEAD^ >/dev/null 2>&1; then
   PREVIOUS_COMMIT="HEAD^"
 else
-  # Si es el primer commit, comparar con un árbol vacío
   PREVIOUS_COMMIT="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 fi
 
-# Verificar cambios en frontend/ o shared/
-if git diff --name-only $PREVIOUS_COMMIT HEAD | grep -qE "^(frontend/|shared/)"; then
-  echo "✅ Cambios detectados en frontend o shared - Ejecutando build"
-  exit 1  # Exit code 1 = hacer build
+# Soportar rutas desde raíz (frontend/...) y desde Root Directory=frontend (src/...)
+if git diff --name-only "$PREVIOUS_COMMIT" HEAD | grep -qE "^(frontend/|shared/|src/|public/|index\.html|vite\.config\.|package\.json|tsconfig\.)"; then
+  echo "✅ Cambios de frontend detectados - Ejecutando build en Vercel"
+  exit 0
 else
-  echo "⏭️  No hay cambios en frontend - Saltando build"
-  exit 0  # Exit code 0 = saltar build
+  echo "⏭️  Sin cambios de frontend - Saltando build en Vercel"
+  exit 1
 fi
