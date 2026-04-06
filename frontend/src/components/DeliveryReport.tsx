@@ -407,10 +407,12 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
               </tbody>
               <tfoot className="bg-gradient-to-r from-green-50 to-green-100">
                 <tr>
-                  <td colSpan={4} className="px-4 py-4 text-left text-base font-bold text-gray-900" style={{ verticalAlign: 'middle' }}>Total a Pagar:</td>
-                  <td className="px-4 py-4 text-left" style={{ verticalAlign: 'middle' }}>
-                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg" style={{ lineHeight: '1', display: 'inline-block' }}>
-                      <span className="text-xl font-bold">{formatCurrency(delivery.totalAmount)}</span>
+                  <td colSpan={5} className="px-4 py-4" style={{ verticalAlign: 'middle' }}>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <span className="text-base font-bold text-gray-900">Total a Pagar:</span>
+                      <div className="inline-flex max-w-full bg-green-600 text-white px-4 py-2 rounded-lg" style={{ lineHeight: '1' }}>
+                        <span className="text-lg sm:text-xl font-bold whitespace-nowrap">{formatCurrency(delivery.totalAmount)}</span>
+                      </div>
                     </div>
                   </td>
                 </tr>
