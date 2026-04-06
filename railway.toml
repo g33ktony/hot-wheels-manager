@@ -1,7 +1,8 @@
 [build]
 builder = "NIXPACKS"
 buildCommand = "npm install --include=dev && npm run build:backend"
-# Deploy automático en cada push: sin watchPatterns.
+# Solo trigger de Railway cuando hay cambios en backend.
+watchPatterns = ["backend/**"]
 
 [deploy]
 startCommand = "./start.sh"
