@@ -5,12 +5,15 @@ interface CardProps {
     children: ReactNode
     className?: string
     hover?: boolean
+    pressEffect?: boolean
 }
 
-export default function Card({ children, className = '', hover = false }: CardProps) {
+export default function Card({ children, className = '', hover = false, pressEffect = true }: CardProps) {
     const { colors } = useTheme()
     const baseClasses = `rounded-lg border ${colors.border.primary} ${colors.bg.card} p-3 lg:p-6 ${colors.ui.shadowCard} w-full`
-    const hoverClasses = hover ? 'hover:shadow-card-hover transition-shadow cursor-pointer active:scale-[0.98]' : ''
+    const hoverClasses = hover
+        ? `hover:shadow-card-hover transition-shadow cursor-pointer ${pressEffect ? 'active:scale-[0.98]' : ''}`.trim()
+        : ''
 
     return (
         <div className={`${baseClasses} ${hoverClasses} ${className}`}>

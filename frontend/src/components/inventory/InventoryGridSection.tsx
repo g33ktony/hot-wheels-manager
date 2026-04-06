@@ -130,6 +130,7 @@ export default function InventoryGridSection({
                             <Card
                                 key={item._id}
                                 hover={!isSelectionMode && isAvailable}
+                                pressEffect={false}
                                 className={`relative overflow-hidden !p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <div

@@ -1,6 +1,13 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+let isRedirectingToLogin = false
+const SESSION_EXPIRED_TOAST_ID = 'session-expired-toast'
+
+type SessionWindow = Window & {
+  __sessionExpiredToastShown?: boolean
+}
+
 const sanitizeAuthToken = (rawToken: string | null) => {
   if (!rawToken) return ''
 
@@ -104,12 +111,31 @@ api.interceptors.response.use(
     // Manejo global de errores
     if (error.response?.status === 401) {
       // Token expirado o inválido - limpiar y redirigir a login
-      console.log('⚠️ Sesión expirada - redirigiendo al login')
-      toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', {
-        duration: 4000,
-      })
       localStorage.removeItem('token')
       localStorage.removeItem('user')
+
+      const sessionWindow = window as SessionWindow
+
+      if (!isRedirectingToLogin) {
+        isRedirectingToLogin = true
+        console.log('⚠️ Sesión expirada - redirigiendo al login')
+
+        if (!sessionWindow.__sessionExpiredToastShown) {
+          sessionWindow.__sessionExpiredToastShown = true
+          toast.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.', {
+            id: SESSION_EXPIRED_TOAST_ID,
+            duration: 2500,
+          })
+        }
+
+        // Redirección inmediata para evitar que el usuario quede en estado inválido
+        if (window.location.pathname !== '/login') {
+          window.location.replace('/login')
+        } else {
+          isRedirectingToLogin = false
+          sessionWindow.__sessionExpiredToastShown = false
+        }
+      }
     }
     return Promise.reject(error)
   }
