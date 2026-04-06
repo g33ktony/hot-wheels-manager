@@ -11,10 +11,13 @@ type SessionWindow = Window & {
 const sanitizeAuthToken = (rawToken: string | null) => {
   if (!rawToken) return ''
 
-  return rawToken
+  const normalized = rawToken
     .trim()
     .replace(/^['\"]|['\"]$/g, '')
     .replace(/[\u0000-\u001F\u007F]/g, '')
+
+  const jwtMatch = normalized.match(/[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/)
+  return jwtMatch ? jwtMatch[0] : ''
 }
 
 const normalizeApiBaseUrl = (rawUrl?: string) => {

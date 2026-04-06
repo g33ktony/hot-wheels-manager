@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import api from '../services/api'
 
 interface StoreUser {
   _id: string
@@ -55,30 +56,10 @@ export const useStores = () => {
       return jwtMatch[0]
     }
 
-    return normalized.replace(/\s+/g, '')
+    return ''
   }
 
   const safeToken = sanitizeToken(token)
-
-  const getAuthHeaders = () => {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    }
-
-    if (!safeToken) {
-      return headers
-    }
-
-    try {
-      const authValue = `Bearer ${safeToken}`
-      new Headers({ Authorization: authValue })
-      headers.Authorization = authValue
-    } catch (error) {
-      console.warn('Invalid auth token format detected in stores headers', error)
-    }
-
-    return headers
-  }
 
   const normalizeStore = (store: any): Store => {
     const users = store?.users || {}
@@ -140,20 +121,21 @@ export const useStores = () => {
       // If user is sys_admin, fetch all stores; otherwise fetch user's store
       const endpoint = user?.role === 'sys_admin' ? '/api/stores' : '/api/stores/my'
 
-      const response = await fetch(endpoint, {
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) {
+      const response = await api.get(endpoint)
+      if (response.status !== 200) {
         if (response.status === 401) {
           throw new Error('No autorizado. Se requiere ser administrador del sistema.')
         }
         throw new Error('Failed to fetch stores')
       }
-      const data = await response.json()
+      const data = response.data
 
       setStores(normalizeStoresPayload(data?.data))
     } catch (err: any) {
-      setError(err.message)
+      const backendMessage = err?.response?.data?.message || err?.response?.data?.error
+      const fallbackMessage = err?.message || 'No se pudieron cargar las tiendas'
+      const message = String(backendMessage || fallbackMessage)
+      setError(message.includes('expected pattern') ? 'Error de autenticacion. Inicia sesion nuevamente.' : message)
       console.error('Error fetching stores:', err)
     } finally {
       setIsLoading(false)
@@ -172,143 +154,105 @@ export const useStores = () => {
 
   const createStore = async (name: string, description?: string) => {
     try {
-      const response = await fetch('/api/stores', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ name, description })
-      })
-      if (!response.ok) throw new Error('Failed to create store')
-      const data = await response.json()
+      const response = await api.post('/api/stores', { name, description })
+      if (response.status !== 200 && response.status !== 201) throw new Error('Failed to create store')
+      const data = response.data
       setStores([...stores, data.data])
       return data.data
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
 
   const updateStore = async (id: string, updates: any) => {
     try {
-      const response = await fetch(`/api/stores/${id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(updates)
-      })
-      if (!response.ok) throw new Error('Failed to update store')
-      const data = await response.json()
+      const response = await api.put(`/api/stores/${id}`, updates)
+      if (response.status !== 200) throw new Error('Failed to update store')
+      const data = response.data
       setStores(stores.map(s => s._id === id ? data.data : s))
       return data.data
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
 
   const updateUserRole = async (storeId: string, userId: string, role: string) => {
     try {
-      const response = await fetch(`/api/stores/${storeId}/users/${userId}/role`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ role })
-      })
-      if (!response.ok) throw new Error('Failed to update user role')
+      const response = await api.put(`/api/stores/${storeId}/users/${userId}/role`, { role })
+      if (response.status !== 200) throw new Error('Failed to update user role')
       await fetchStores()
       return true
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
 
   const removeUser = async (storeId: string, userId: string) => {
     try {
-      const response = await fetch(`/api/stores/${storeId}/users/${userId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) throw new Error('Failed to remove user')
+      const response = await api.delete(`/api/stores/${storeId}/users/${userId}`)
+      if (response.status !== 200) throw new Error('Failed to remove user')
       await fetchStores()
       return true
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
 
   const assignUser = async (storeId: string, userId: string, role: string) => {
     try {
-      const response = await fetch(`/api/stores/${storeId}/assign-user`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ userId, role })
-      })
-      if (!response.ok) throw new Error('Failed to assign user')
+      const response = await api.post(`/api/stores/${storeId}/assign-user`, { userId, role })
+      if (response.status !== 200) throw new Error('Failed to assign user')
       await fetchStores()
       return true
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
 
   const updateUserStatus = async (storeId: string, userId: string, status: 'approved' | 'inactive') => {
     try {
-      const response = await fetch(`/api/stores/${storeId}/users/${userId}/status`, {
-        method: 'PATCH',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ status })
-      })
-      if (!response.ok) {
-        let message = 'Failed to update user status'
-        try {
-          const data = await response.json()
-          message = data?.error || data?.message || message
-        } catch {
-          // ignore parse errors
-        }
-        throw new Error(message)
+      const response = await api.patch(`/api/stores/${storeId}/users/${userId}/status`, { status })
+      if (response.status !== 200) {
+        throw new Error(response?.data?.error || response?.data?.message || 'Failed to update user status')
       }
 
       await fetchStores()
       return true
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
 
   const archiveStore = async (storeId: string) => {
     try {
-      const response = await fetch(`/api/stores/${storeId}/archive`, {
-        method: 'PATCH',
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to archive store')
+      const response = await api.patch(`/api/stores/${storeId}/archive`)
+      if (response.status !== 200) {
+        throw new Error(response?.data?.message || 'Failed to archive store')
       }
       await fetchStores()
       return true
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
 
   const restoreStore = async (storeId: string) => {
     try {
-      const response = await fetch(`/api/stores/${storeId}/restore`, {
-        method: 'PATCH',
-        headers: getAuthHeaders()
-      })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to restore store')
+      const response = await api.patch(`/api/stores/${storeId}/restore`)
+      if (response.status !== 200) {
+        throw new Error(response?.data?.message || 'Failed to restore store')
       }
       await fetchStores()
       return true
     } catch (err: any) {
-      setError(err.message)
+      setError(err?.response?.data?.message || err.message)
       throw err
     }
   }
