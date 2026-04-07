@@ -231,7 +231,7 @@ export default function InventoryGridSection({
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1 px-3 sm:px-4 pt-2 sm:pt-3">
+                                        <div className="px-3 sm:px-4 pt-2 sm:pt-3 h-[168px] flex flex-col">
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0 flex-1">
                                                     <h3
@@ -245,14 +245,12 @@ export default function InventoryGridSection({
                                                     >
                                                         {modelName}
                                                     </h3>
-                                                    {shouldShowSecondary && (
-                                                        <p
-                                                            className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
-                                                            title={secondaryLine}
-                                                        >
-                                                            {secondaryLine}
-                                                        </p>
-                                                    )}
+                                                    <p
+                                                        className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'} ${shouldShowSecondary ? '' : 'invisible'}`}
+                                                        title={shouldShowSecondary ? secondaryLine : ''}
+                                                    >
+                                                        {shouldShowSecondary ? secondaryLine : 'placeholder'}
+                                                    </p>
                                                 </div>
 
                                                 {!isSelectionMode && (canEdit || canDelete) && item._id && (
@@ -311,55 +309,57 @@ export default function InventoryGridSection({
                                                 </p>
                                             )}
 
-                                            {item.seriesId && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                                                    🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})
-                                                </div>
-                                            )}
-
-                                            {item.isBox && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                                                    📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas
-                                                    {item.boxStatus === 'sealed' && ' 🔒'}
-                                                    {item.boxStatus === 'unpacking' && ' ⏳'}
-                                                </div>
-                                            )}
-
-                                            {item.sourceBox && !item.isBox && (
-                                                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full">
-                                                    📦 De: {item.sourceBox}
-                                                </div>
-                                            )}
-
-                                            <div className="flex items-center justify-between mt-2 gap-2">
-                                                <span
-                                                    className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${item.condition === 'mint'
-                                                        ? 'bg-slate-700 text-emerald-400'
-                                                        : item.condition === 'good'
-                                                            ? 'bg-blue-100 text-blue-800'
-                                                            : item.condition === 'fair'
-                                                                ? 'bg-yellow-100 text-yellow-800'
-                                                                : 'bg-red-100 text-red-800'}`}
-                                                >
-                                                    {item.condition === 'mint' ? 'Mint' : item.condition === 'good' ? 'Bueno' : item.condition === 'fair' ? 'Regular' : 'Malo'}
-                                                </span>
-                                                <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${operationalStatus === 'Disponible'
-                                                    ? 'bg-emerald-500/20 text-emerald-400'
-                                                    : operationalStatus === 'Reservado'
-                                                        ? 'bg-amber-500/20 text-amber-400'
-                                                        : 'bg-red-500/20 text-red-400'}`}>
-                                                    {operationalStatus}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                                                    Stock: {availableQty} disponible{availableQty !== 1 ? 's' : ''}
-                                                </span>
-                                                {(item.reservedQuantity || 0) > 0 && (
-                                                    <span className="text-xs text-amber-500 font-medium">
-                                                        {item.reservedQuantity} reservado{item.reservedQuantity === 1 ? '' : 's'}
-                                                    </span>
+                                            <div className="mt-2 min-h-[24px] max-h-[24px] overflow-hidden">
+                                                {item.seriesId && (
+                                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full max-w-full">
+                                                        <span className="truncate">🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})</span>
+                                                    </div>
                                                 )}
+
+                                                {item.isBox && (
+                                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full max-w-full">
+                                                        <span className="truncate">📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas{item.boxStatus === 'sealed' ? ' 🔒' : item.boxStatus === 'unpacking' ? ' ⏳' : ''}</span>
+                                                    </div>
+                                                )}
+
+                                                {item.sourceBox && !item.isBox && (
+                                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full max-w-full">
+                                                        <span className="truncate">📦 De: {item.sourceBox}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-auto space-y-1">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span
+                                                        className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${item.condition === 'mint'
+                                                            ? 'bg-slate-700 text-emerald-400'
+                                                            : item.condition === 'good'
+                                                                ? 'bg-blue-100 text-blue-800'
+                                                                : item.condition === 'fair'
+                                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                                    : 'bg-red-100 text-red-800'}`}
+                                                    >
+                                                        {item.condition === 'mint' ? 'Mint' : item.condition === 'good' ? 'Bueno' : item.condition === 'fair' ? 'Regular' : 'Malo'}
+                                                    </span>
+                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${operationalStatus === 'Disponible'
+                                                        ? 'bg-emerald-500/20 text-emerald-400'
+                                                        : operationalStatus === 'Reservado'
+                                                            ? 'bg-amber-500/20 text-amber-400'
+                                                            : 'bg-red-500/20 text-red-400'}`}>
+                                                        {operationalStatus}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-2 min-h-[20px]">
+                                                    <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                                                        Stock: {availableQty} disponible{availableQty !== 1 ? 's' : ''}
+                                                    </span>
+                                                    {(item.reservedQuantity || 0) > 0 && (
+                                                        <span className="text-xs text-amber-500 font-medium">
+                                                            {item.reservedQuantity} reservado{item.reservedQuantity === 1 ? '' : 's'}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
