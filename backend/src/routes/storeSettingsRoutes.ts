@@ -6,6 +6,12 @@ const router = Router()
 // GET /api/store-settings/all - Get all stores (sys_admin only)
 router.get('/all', storeSettingsController.getAllStores)
 
+// GET /api/store-settings/:storeId/settings - Get settings for a specific store (sys_admin only)
+router.get('/:storeId/settings', storeSettingsController.getStoreSettingsByStoreId)
+
+// PUT /api/store-settings/:storeId/admin-visibility-control - Toggle admin visibility control (sys_admin only)
+router.put('/:storeId/admin-visibility-control', storeSettingsController.updateStoreAdminVisibilityControl)
+
 // GET /api/store-settings - Get store settings
 router.get('/', storeSettingsController.getStoreSettings)
 

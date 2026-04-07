@@ -24,6 +24,8 @@ export interface StoreSettings {
   }
   publicCatalog?: {
     showCustomInventory?: boolean
+    hideCostAndProfitInInventory?: boolean
+    allowStoreAdminInventoryVisibilityControl?: boolean
   }
   createdAt?: string
   updatedAt?: string
@@ -61,6 +63,18 @@ export const storeSettingsService = {
   // Eliminar mensaje personalizado
   deleteCustomMessage: async (index: number): Promise<StoreSettings> => {
     const response = await api.delete<any>(`/store-settings/messages/${index}`)
+    return response.data.data || {}
+  },
+
+  // Obtener settings de una tienda específica (sys_admin)
+  getByStoreId: async (storeId: string): Promise<StoreSettings | null> => {
+    const response = await api.get<any>(`/store-settings/${storeId}/settings`)
+    return response.data.data || null
+  },
+
+  // Toggle admin visibility control para una tienda (sys_admin)
+  updateAdminVisibilityControl: async (storeId: string, allowed: boolean): Promise<StoreSettings> => {
+    const response = await api.put<any>(`/store-settings/${storeId}/admin-visibility-control`, { allowed })
     return response.data.data || {}
   }
 }

@@ -30,6 +30,7 @@ import ImageViewerModal from '@/components/common/ImageViewerModal'
 import toast from 'react-hot-toast'
 import { formatPieceType } from '@/utils/searchUtils'
 import { useInventoryFiltering } from '@/hooks/useInventoryFiltering'
+import { storeSettingsService } from '@/services/storeSettings'
 
 // Predefined brands
 const PREDEFINED_BRANDS = [
@@ -108,6 +109,7 @@ export default function Inventory() {
     const [showBulkEditModal, setShowBulkEditModal] = useState(false)
     // Delivery creation modal from inventory
     const [showCreateDeliveryModal, setShowCreateDeliveryModal] = useState(false)
+    const [hideCostAndProfitInInventory, setHideCostAndProfitInInventory] = useState(false)
 
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
@@ -216,6 +218,19 @@ export default function Inventory() {
             finalItems: inventoryItems.length
         })
     }, [isLoading, error, inventoryData?.items?.length, reduxInventory.items.length, inventoryItems.length])
+
+    useEffect(() => {
+        const loadStoreVisibilitySettings = async () => {
+            try {
+                const settings = await storeSettingsService.get()
+                setHideCostAndProfitInInventory(settings.publicCatalog?.hideCostAndProfitInInventory ?? false)
+            } catch (err) {
+                console.warn('Inventory settings load failed:', err)
+            }
+        }
+
+        loadStoreVisibilitySettings()
+    }, [])
 
     // Combine predefined and custom brands
     const allBrands = [
@@ -380,6 +395,7 @@ export default function Inventory() {
                 isDark={isDark}
                 canEdit={canEdit}
                 canDelete={canDelete}
+                hideCostAndProfitInInventory={hideCostAndProfitInInventory}
                 formatPieceType={formatPieceType}
                 getPlaceholderLogo={getPlaceholderLogo}
                 onShowAddModal={() => setShowAddModal(true)}

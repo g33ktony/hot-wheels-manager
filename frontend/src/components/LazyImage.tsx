@@ -4,6 +4,7 @@ interface LazyImageProps {
   src: string
   alt: string
   className?: string
+  style?: React.CSSProperties
   onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void
   onClick?: () => void
 }
@@ -16,6 +17,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   src,
   alt,
   className = '',
+  style,
   onError,
   onClick
 }) => {
@@ -57,6 +59,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       onError={onError}
       onClick={onClick}
       style={{
+        ...style,
         backgroundColor: imageSrc ? 'transparent' : '#f3f4f6'
       }}
     />

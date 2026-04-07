@@ -59,6 +59,8 @@ const StoreSettingsPage: React.FC = () => {
 
     // Public catalog state
     const [showCustomInventory, setShowCustomInventory] = useState(false)
+    const [hideCostAndProfitInInventory, setHideCostAndProfitInInventory] = useState(false)
+    const [allowStoreAdminVisibility, setAllowStoreAdminVisibility] = useState(false)
     const [catalogSettingsLoading, setCatalogSettingsLoading] = useState(false)
 
     // Profile state
@@ -82,6 +84,8 @@ const StoreSettingsPage: React.FC = () => {
     const [teamUsers, setTeamUsers] = useState<any[]>([])
     const [teamFilter, setTeamFilter] = useState<'all' | 'active' | 'inactive'>('all')
     const [isLoading, setIsLoading] = useState(false)
+
+    const canManageCatalogVisibility = isSysAdmin() || (isAdmin() && allowStoreAdminVisibility)
 
     const filteredTeamUsers = teamUsers.filter((teamUser) => {
         if (teamFilter === 'active') return teamUser.status !== 'inactive'
@@ -184,6 +188,8 @@ const StoreSettingsPage: React.FC = () => {
             try {
                 const settings = await storeSettingsService.get()
                 setShowCustomInventory(settings.publicCatalog?.showCustomInventory ?? false)
+                setHideCostAndProfitInInventory(settings.publicCatalog?.hideCostAndProfitInInventory ?? false)
+                setAllowStoreAdminVisibility(settings.publicCatalog?.allowStoreAdminInventoryVisibilityControl ?? false)
             } catch (error) {
                 console.error('Error loading catalog settings:', error)
             }
@@ -195,7 +201,10 @@ const StoreSettingsPage: React.FC = () => {
         try {
             setCatalogSettingsLoading(true)
             await storeSettingsService.update({
-                publicCatalog: { showCustomInventory: checked }
+                publicCatalog: {
+                    showCustomInventory: checked,
+                    hideCostAndProfitInInventory
+                }
             })
             setShowCustomInventory(checked)
             toast.success(checked
@@ -204,6 +213,27 @@ const StoreSettingsPage: React.FC = () => {
             )
         } catch (error) {
             console.error('Error updating catalog settings:', error)
+            toast.error('Error al actualizar la configuración')
+        } finally {
+            setCatalogSettingsLoading(false)
+        }
+    }
+
+    const handleToggleHideCostsInInventory = async (checked: boolean) => {
+        try {
+            setCatalogSettingsLoading(true)
+            await storeSettingsService.update({
+                publicCatalog: {
+                    showCustomInventory,
+                    hideCostAndProfitInInventory: checked
+                }
+            })
+            setHideCostAndProfitInInventory(checked)
+            toast.success(checked
+                ? 'Costo y ganancia ocultos en inventario'
+                : 'Costo y ganancia visibles nuevamente en inventario')
+        } catch (error) {
+            console.error('Error updating inventory privacy settings:', error)
             toast.error('Error al actualizar la configuración')
         } finally {
             setCatalogSettingsLoading(false)
@@ -414,7 +444,7 @@ const StoreSettingsPage: React.FC = () => {
                         { id: 'profile', label: 'Perfil y Tienda' },
                         { id: 'team', label: 'Mi Equipo' },
                         ...((user?.role === 'admin' || user?.role === 'sys_admin') ? [{ id: 'create-user', label: 'Crear Usuario' }] : []),
-                        ...(isSysAdmin() ? [{ id: 'public-catalog', label: '🌍 Catálogo Público' }] : [])
+                        ...((isSysAdmin() || canManageCatalogVisibility) ? [{ id: 'public-catalog', label: '⚙️ Visibilidad y Privacidad' }] : [])
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -725,7 +755,7 @@ const StoreSettingsPage: React.FC = () => {
                         <div className="flex items-center gap-3 mb-6">
                             <Globe className={isDark ? 'text-emerald-400' : 'text-emerald-600'} size={24} />
                             <h2 className={`text-xl font-bold ${isDark ? 'text-white' : ''}`}>
-                                Configuración del Catálogo Público
+                                Opciones de Visibilidad y Privacidad
                             </h2>
                         </div>
 
@@ -735,7 +765,7 @@ const StoreSettingsPage: React.FC = () => {
                                     type="checkbox"
                                     checked={showCustomInventory}
                                     onChange={(e) => handleToggleShowInventory(e.target.checked)}
-                                    disabled={catalogSettingsLoading}
+                                    disabled={catalogSettingsLoading || !canManageCatalogVisibility}
                                     className={`mt-1 w-5 h-5 rounded border transition-colors cursor-pointer ${isDark
                                         ? 'bg-slate-600 border-slate-500 checked:bg-emerald-600'
                                         : 'border-gray-300 checked:bg-emerald-500'
@@ -752,12 +782,46 @@ const StoreSettingsPage: React.FC = () => {
                                     </p>
                                 </div>
                             </label>
+
+                            {!canManageCatalogVisibility && (
+                                <p className={`text-xs mt-3 ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+                                    Esta opción está bloqueada. Solo SysAdmin puede habilitarla desde Administración de Tiendas.
+                                </p>
+                            )}
+                        </div>
+
+                        <div className={`mt-4 p-4 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-gray-50'}`}>
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={hideCostAndProfitInInventory}
+                                    onChange={(e) => handleToggleHideCostsInInventory(e.target.checked)}
+                                    disabled={catalogSettingsLoading}
+                                    className={`mt-1 w-5 h-5 rounded border transition-colors cursor-pointer ${isDark
+                                        ? 'bg-slate-600 border-slate-500 checked:bg-blue-600'
+                                        : 'border-gray-300 checked:bg-blue-500'
+                                        }`}
+                                />
+                                <div className="flex-1">
+                                    <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                                        Ocultar costo real y ganancia en inventario
+                                    </span>
+                                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                                        Cuando está activado, en la lista de inventario y en el detalle del item solo se mostrará
+                                        el precio al cliente. No se verá costo de compra, ganancia ni margen.
+                                    </p>
+                                </div>
+                            </label>
                         </div>
 
                         <div className={`mt-4 p-3 rounded-lg text-sm ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-blue-50 text-blue-700'}`}>
                             <p>💡 <strong>Estado actual:</strong> {showCustomInventory
                                 ? '✅ Tu inventario ES visible en el catálogo público'
                                 : '❌ Tu inventario NO es visible en el catálogo público'}
+                            </p>
+                            <p className="mt-2">🔐 <strong>Privacidad de costos:</strong> {hideCostAndProfitInInventory
+                                ? '✅ Costo y ganancia ocultos en inventario'
+                                : '❌ Costo y ganancia visibles en inventario'}
                             </p>
                         </div>
                     </Card>

@@ -40,6 +40,9 @@ export const getStoreSettings = async (req: Request, res: Response) => {
 export const updateStoreSettings = async (req: Request, res: Response) => {
   try {
     const { storeName, logo, description, customMessages, colors, contact, publicCatalog } = req.body
+    const requestedPublicCatalog = publicCatalog && typeof publicCatalog === 'object'
+      ? { ...publicCatalog }
+      : undefined
 
     // Validaciones básicas
     if (storeName && typeof storeName !== 'string') {
@@ -53,6 +56,31 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
     // Obtener o crear settings
     const storeFilter = createStoreFilter(req.storeId!, req.userRole!)
     let settings = await StoreSettingsModel.findOne({ ...storeFilter })
+
+    // Restricciones de permisos para configuración de catálogo público
+    if (requestedPublicCatalog) {
+      const isSysAdmin = req.userRole === 'sys_admin'
+
+      // Solo sys_admin puede modificar este flag de política
+      if (!isSysAdmin && Object.prototype.hasOwnProperty.call(requestedPublicCatalog, 'allowStoreAdminInventoryVisibilityControl')) {
+        delete (requestedPublicCatalog as any).allowStoreAdminInventoryVisibilityControl
+      }
+
+      // showCustomInventory: solo sys_admin o admin habilitado por política de la tienda
+      if (
+        !isSysAdmin
+        && Object.prototype.hasOwnProperty.call(requestedPublicCatalog, 'showCustomInventory')
+      ) {
+        const allowAdminControl = settings?.publicCatalog?.allowStoreAdminInventoryVisibilityControl === true
+        if (!allowAdminControl) {
+          return res.status(403).json({
+            success: false,
+            data: null,
+            message: 'Solo sys_admin puede cambiar la visibilidad del inventario en catálogo público'
+          })
+        }
+      }
+    }
 
     if (!settings) {
       settings = await StoreSettingsModel.create({
@@ -69,7 +97,7 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
         },
         colors,
         contact,
-        publicCatalog
+        publicCatalog: requestedPublicCatalog
       })
     } else {
       // Check ownership: user can only edit their own store's settings
@@ -111,10 +139,10 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
         }
       }
 
-      if (publicCatalog) {
+      if (requestedPublicCatalog) {
         settings.publicCatalog = {
           ...settings.publicCatalog,
-          ...publicCatalog
+          ...requestedPublicCatalog
         }
       }
 
@@ -269,6 +297,69 @@ export const deleteCustomMessage = async (req: Request, res: Response) => {
       data: null,
       message: 'Error al eliminar mensaje: ' + error.message
     })
+  }
+}
+
+export const getStoreSettingsByStoreId = async (req: Request, res: Response) => {
+  try {
+    if (req.userRole !== 'sys_admin') {
+      return res.status(403).json({ success: false, data: null, message: 'Solo sys_admin puede acceder a settings de otra tienda' })
+    }
+
+    const { storeId } = req.params
+    const settings = await StoreSettingsModel.findOne({ storeId })
+
+    return res.status(200).json({
+      success: true,
+      data: settings || null,
+      message: settings ? 'Settings obtenidos' : 'No hay settings para esta tienda'
+    })
+  } catch (error: any) {
+    console.error('Error getting store settings by storeId:', error)
+    return res.status(500).json({ success: false, data: null, message: 'Error: ' + error.message })
+  }
+}
+
+export const updateStoreAdminVisibilityControl = async (req: Request, res: Response) => {
+  try {
+    if (req.userRole !== 'sys_admin') {
+      return res.status(403).json({ success: false, data: null, message: 'Solo sys_admin puede cambiar esta configuración' })
+    }
+
+    const { storeId } = req.params
+    const { allowed } = req.body
+
+    if (typeof allowed !== 'boolean') {
+      return res.status(400).json({ success: false, data: null, message: 'El campo "allowed" debe ser booleano' })
+    }
+
+    let settings = await StoreSettingsModel.findOne({ storeId })
+
+    if (!settings) {
+      settings = await StoreSettingsModel.create({
+        storeName: 'Mi Tienda',
+        storeId,
+        customMessages: { welcome: '', closing: '', invoice: '', delivery: '', custom: [] },
+        publicCatalog: { allowStoreAdminInventoryVisibilityControl: allowed }
+      })
+    } else {
+      if (!settings.publicCatalog) {
+        settings.publicCatalog = {} as any
+      }
+      settings.publicCatalog!.allowStoreAdminInventoryVisibilityControl = allowed
+      await settings.save()
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: settings,
+      message: allowed
+        ? 'Admin de tienda ahora puede gestionar visibilidad de inventario'
+        : 'Solo sys_admin puede gestionar visibilidad de inventario'
+    })
+  } catch (error: any) {
+    console.error('Error updating admin visibility control:', error)
+    return res.status(500).json({ success: false, data: null, message: 'Error: ' + error.message })
   }
 }
 

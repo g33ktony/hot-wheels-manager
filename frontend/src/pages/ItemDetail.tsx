@@ -31,6 +31,7 @@ import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
 import EditCatalogModal from '@/components/EditCatalogModal'
 import toast from 'react-hot-toast'
+import { storeSettingsService } from '@/services/storeSettings'
 
 export default function ItemDetail() {
     const { id } = useParams<{ id: string }>()
@@ -63,6 +64,7 @@ export default function ItemDetail() {
     const [croppedImageData, setCroppedImageData] = useState<string | null>(null)
     const [shareMode, setShareMode] = useState<'image' | 'pdf' | null>(null)
     const [uploadingPhotos, setUploadingPhotos] = useState(0)
+    const [hideCostAndProfitInInventory, setHideCostAndProfitInInventory] = useState(false)
     const [floatingButtonBottom, setFloatingButtonBottom] = useState(16)
     const [crop, setCrop] = useState<CropType>({
         unit: '%',
@@ -77,6 +79,19 @@ export default function ItemDetail() {
     useEffect(() => {
         loadItem()
     }, [id])
+
+    useEffect(() => {
+        const loadVisibilitySettings = async () => {
+            try {
+                const settings = await storeSettingsService.get()
+                setHideCostAndProfitInInventory(settings.publicCatalog?.hideCostAndProfitInInventory ?? false)
+            } catch (err) {
+                console.warn('Item detail settings load failed:', err)
+            }
+        }
+
+        loadVisibilitySettings()
+    }, [])
 
     useEffect(() => {
         if (typeof window === 'undefined' || !window.visualViewport) return
@@ -1065,18 +1080,43 @@ export default function ItemDetail() {
 
     const selectedPhoto = displayPhotos[safeSelectedPhotoIndex]
 
+    const formatPieceTypeLabel = (pieceType?: string) => {
+        if (!pieceType) return pieceType
+        return pieceType.toUpperCase()
+    }
+
+    const formatConditionLabel = (condition?: string) => {
+        if (!condition) return condition
+        return condition.charAt(0).toUpperCase() + condition.slice(1)
+    }
+
+    const getBoxStatusLabel = (status?: string) => {
+        if (!status) return status
+
+        switch (status) {
+            case 'sealed':
+                return 'Sellado'
+            case 'unpacking':
+                return 'Abierto'
+            case 'completed':
+                return 'Completado'
+            default:
+                return status
+        }
+    }
+
     const technicalRows: Array<{ label: string; value: string | number | null | undefined }> = [
         { label: 'ID del item', value: item._id },
         { label: 'Car ID', value: item.carId },
         { label: 'Modelo catálogo', value: item.hotWheelsCar?.model || item.carName },
         { label: 'Marca', value: item.brand || item.hotWheelsCar?.brand },
-        { label: 'Tipo de pieza', value: item.pieceType },
+        { label: 'Tipo de pieza', value: formatPieceTypeLabel(item.pieceType) },
         { label: 'Serie', value: item.hotWheelsCar?.series || item.series },
         { label: 'Año', value: item.hotWheelsCar?.year || item.year },
         { label: 'Color', value: item.hotWheelsCar?.color || item.color },
         { label: 'Toy #', value: item.hotWheelsCar?.toy_num },
         { label: 'Col #', value: item.hotWheelsCar?.col_num },
-        { label: 'Condición', value: item.condition },
+        { label: 'Condición', value: formatConditionLabel(item.condition) },
         { label: 'Cantidad total', value: item.quantity },
         { label: 'Reservadas', value: reservedQuantity },
         { label: 'Disponibles', value: availableQuantity },
@@ -1094,7 +1134,7 @@ export default function ItemDetail() {
         { label: 'Nombre caja', value: item.boxName },
         { label: 'Tamaño caja', value: item.boxSize },
         { label: 'Precio caja', value: item.boxPrice ? `$${item.boxPrice.toFixed(2)}` : null },
-        { label: 'Estado caja', value: item.boxStatus },
+        { label: 'Estado caja', value: getBoxStatusLabel(item.boxStatus) },
         { label: 'Piezas registradas', value: item.registeredPieces },
         { label: 'Fotos locales', value: inventoryPhotos.length },
         { label: 'Foto carded catálogo', value: item.hotWheelsCar?.photo_url_carded ? 'Sí' : 'No' },
@@ -1114,25 +1154,49 @@ export default function ItemDetail() {
     ].filter(Boolean) as string[]
 
     return (
-        <div className={`min-h-screen pb-20 sm:pb-24 ${isDark ? 'bg-slate-700/30' : 'bg-slate-50'}`}>
-            <div className={`border-b sticky top-0 z-10 ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+        <div className={`min-h-screen pb-20 sm:pb-24 ${isDark ? 'bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.28),_transparent_40%),linear-gradient(to_bottom,_rgb(2,6,23),_rgb(15,23,42),_rgb(2,6,23))' : 'bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.35),_transparent_45%),linear-gradient(to_bottom,_rgb(248,250,252),_rgb(224,242,254),_rgb(239,246,255))]'}`}>
+            <div className={`border-b sticky top-0 z-10 backdrop-blur-xl ${isDark ? 'bg-slate-900/75 border-slate-700/70' : 'bg-white/80 border-slate-200/80'}`}>
                 <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
                     <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => navigate('/inventory')}
-                        className="!p-2"
+                        className="!p-2 rounded-xl"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
-                    <h1 className={`text-base sm:text-lg font-bold truncate flex-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{carName}</h1>
+                    <div className="flex-1 min-w-0">
+                        <h1 className={`text-base sm:text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{carName}</h1>
+                    </div>
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-5 space-y-3 sm:space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="relative max-w-7xl mx-auto px-3 sm:px-5 py-4 sm:py-6 space-y-4 sm:space-y-5">
+                <div className="pointer-events-none absolute -top-6 right-10 w-36 h-36 rounded-full bg-blue-500/20 blur-3xl" />
+                <div className="pointer-events-none absolute top-1/3 -left-8 w-44 h-44 rounded-full bg-cyan-400/15 blur-3xl" />
+
+                <div className={`rounded-3xl p-[1px] ${isDark ? 'bg-gradient-to-r from-cyan-400/40 via-blue-400/30 to-slate-500/35' : 'bg-gradient-to-r from-cyan-400/40 via-blue-500/35 to-indigo-400/40'} shadow-lg`}>
+                    <div className={`rounded-[calc(1.5rem-1px)] px-3 py-3 sm:px-4 sm:py-4 ${isDark ? 'bg-slate-900/75 backdrop-blur-xl' : 'bg-white/85 backdrop-blur-xl'}`}>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs sm:text-sm">
+                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-400/35' : 'bg-cyan-100 text-cyan-800 border border-cyan-300/70'}`}>
+                                {formatPieceTypeLabel(item.pieceType) || 'Sin tipo'}
+                            </span>
+                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark ? 'bg-blue-500/20 text-blue-100 border border-blue-400/35' : 'bg-blue-100 text-blue-800 border border-blue-300/70'}`}>
+                                {formatConditionLabel(item.condition) || 'Sin condición'}
+                            </span>
+                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-400/35' : 'bg-emerald-100 text-emerald-800 border border-emerald-300/70'}`}>
+                                {availableQuantity} disponibles
+                            </span>
+                            <span className={`ml-auto text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                Vista premium del item
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5">
                     <div className="lg:col-span-3 space-y-3 sm:space-y-4">
-                        <Card className="overflow-hidden p-0">
+                        <Card className={`overflow-hidden p-0 rounded-3xl border ${isDark ? 'border-slate-400/80 bg-slate-900/60 shadow-2xl shadow-cyan-900/25' : 'border-sky-200/80 bg-white/90 shadow-2xl shadow-sky-200/65'} backdrop-blur-xl`}>
                             {selectedPhoto ? (
                                 <div>
                                     <div className="relative group h-[48vh] min-h-[280px] max-h-[520px] sm:h-[58vh] sm:min-h-[360px] sm:max-h-[680px] bg-black flex items-center justify-center">
@@ -1141,21 +1205,28 @@ export default function ItemDetail() {
                                             alt={carName}
                                             crossOrigin="anonymous"
                                             onClick={() => setShowGalleryModal(true)}
-                                            className="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                                            className="w-full h-full object-contain cursor-pointer hover:opacity-95 transition-opacity"
                                         />
-                                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-1 rounded bg-black/70 text-white text-xs font-semibold">
+                                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/18 via-transparent to-transparent" />
+                                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2.5 py-1 rounded-lg bg-slate-200/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold shadow-sm">
                                             {selectedPhoto.source === 'L' ? 'Local' : selectedPhoto.source === 'C' ? 'Carded' : 'Galería'}
+                                        </div>
+                                        <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-slate-900/45 backdrop-blur-md border border-white/20 text-white/90 text-xs font-medium">
+                                            Click en la imagen para ampliar
+                                        </div>
+                                        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-white/18 backdrop-blur-md border border-white/25 text-white text-xs font-semibold">
+                                            {displayPhotos.length} fotos totales
                                         </div>
                                     </div>
 
                                     {displayPhotos.length > 1 && (
-                                        <div className="flex gap-2 p-2 sm:p-3 overflow-x-auto">
+                                        <div className={`flex gap-2 p-2 sm:p-3 overflow-x-auto border-t ${isDark ? 'bg-slate-800/70 border-slate-700' : 'bg-white/85 border-slate-200'}`}>
                                             {displayPhotos.map((photo, index) => (
                                                 <button
                                                     key={`${photo.source}-${index}`}
                                                     onClick={() => setSelectedPhotoIndex(index)}
                                                     title={photo.title}
-                                                    className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 relative ${safeSelectedPhotoIndex === index ? 'border-primary-600' : 'border-slate-700'}`}
+                                                    className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 relative ${safeSelectedPhotoIndex === index ? 'border-primary-500 ring-2 ring-primary-300/40' : isDark ? 'border-slate-600' : 'border-slate-300'}`}
                                                 >
                                                     <img
                                                         src={proxifyImageUrl(photo.url)}
@@ -1183,7 +1254,7 @@ export default function ItemDetail() {
                     </div>
 
                     <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-                        <Card className="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+                        <Card className="bg-gradient-to-br from-primary-600 via-blue-600 to-cyan-600 text-white rounded-3xl border border-blue-100/35 shadow-2xl shadow-blue-900/40">
                             <div className="p-4 sm:p-5">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -1192,40 +1263,42 @@ export default function ItemDetail() {
                                     </div>
                                     <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 opacity-50" />
                                 </div>
-                                <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-white/20 space-y-1 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="opacity-90">Compra:</span>
-                                        <span className="font-semibold">${purchasePrice.toFixed(2)}</span>
+                                {!hideCostAndProfitInInventory && (
+                                    <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-white/20 space-y-1 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="opacity-90">Compra:</span>
+                                            <span className="font-semibold">${purchasePrice.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="opacity-90">Ganancia:</span>
+                                            <span className="font-semibold">${profit.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="opacity-90">Margen:</span>
+                                            <span className="font-semibold">{margin.toFixed(1)}%</span>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="opacity-90">Ganancia:</span>
-                                        <span className="font-semibold">${profit.toFixed(2)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="opacity-90">Margen:</span>
-                                        <span className="font-semibold">{margin.toFixed(1)}%</span>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </Card>
 
-                        <Card>
+                        <Card className={`rounded-3xl border ${isDark ? 'bg-slate-800/72 border-cyan-400/25 backdrop-blur-xl' : 'bg-white/88 border-cyan-200/80 backdrop-blur-xl'} shadow-lg`}>
                             <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
                                 <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Resumen rápido</h2>
                                 <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
-                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Disponibles</p>
                                         <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{availableQuantity}</p>
                                     </div>
-                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Reservadas</p>
                                         <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{reservedQuantity}</p>
                                     </div>
-                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Condición</p>
                                         <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.condition}</p>
                                     </div>
-                                    <div className={`rounded-lg p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Ubicación</p>
                                         <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.location || 'Sin ubicación'}</p>
                                     </div>
@@ -1246,7 +1319,7 @@ export default function ItemDetail() {
                             </div>
                         </Card>
 
-                        <Card>
+                        <Card className={`rounded-3xl border ${isDark ? 'bg-slate-800/72 border-blue-400/25 backdrop-blur-xl' : 'bg-white/88 border-blue-200/80 backdrop-blur-xl'} shadow-lg`}>
                             <div className="p-3 sm:p-4 space-y-2">
                                 <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Acciones</h2>
                                 <Button
@@ -1282,18 +1355,18 @@ export default function ItemDetail() {
                     </div>
                 </div>
 
-                <Card>
+                <Card className={`rounded-3xl border ${isDark ? 'bg-slate-800/72 border-indigo-400/25 backdrop-blur-xl' : 'bg-white/88 border-indigo-200/80 backdrop-blur-xl'} shadow-lg`}>
                     <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
                         <h2 className={`text-base sm:text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                             Ficha técnica completa
                         </h2>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-3">
                             {visibleTechnicalRows.map((row) => (
                                 <div
                                     key={row.label}
-                                    className={`rounded-lg p-2.5 sm:p-3 ${isDark ? 'bg-slate-700/40 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}
+                                    className={`rounded-2xl p-2.5 sm:p-3 ${isDark ? 'bg-gradient-to-br from-slate-700/65 to-slate-800/70 border border-slate-500/65' : 'bg-gradient-to-br from-white to-sky-50/85 border border-slate-200/90'} shadow-sm`}
                                 >
                                     <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>{row.label}</p>
                                     <p className={`text-sm sm:text-base font-medium break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{String(row.value)}</p>
@@ -1302,7 +1375,7 @@ export default function ItemDetail() {
                         </div>
 
                         {item.notes && (
-                            <div className={`rounded-lg p-2.5 sm:p-3 ${isDark ? 'bg-slate-700/40 border border-slate-600' : 'bg-slate-50 border border-slate-200'}`}>
+                            <div className={`rounded-xl p-2.5 sm:p-3 ${isDark ? 'bg-slate-700/50 border border-slate-600/80' : 'bg-slate-50/90 border border-slate-200/90'}`}>
                                 <p className={`text-xs uppercase tracking-wide mb-1 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Notas</p>
                                 <p className={`${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{item.notes}</p>
                             </div>
@@ -1313,7 +1386,7 @@ export default function ItemDetail() {
 
             <button
                 onClick={handleOpenShareModal}
-                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-primary-600 hover:bg-primary-700 text-white rounded-full p-3 sm:p-4 shadow-lg transition-all hover:scale-110 z-20"
+                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white rounded-full p-3 sm:p-4 shadow-xl shadow-blue-900/40 transition-all hover:scale-110 z-20 border border-white/20"
                 style={{
                     bottom: `calc(env(safe-area-inset-bottom, 0px) + ${floatingButtonBottom}px)`
                 }}

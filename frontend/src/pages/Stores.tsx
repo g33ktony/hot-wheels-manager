@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useStores } from '@/hooks/useStores'
+import { storeSettingsService } from '@/services/storeSettings'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -16,7 +17,8 @@ import {
   Archive,
   RotateCcw,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -57,6 +59,8 @@ const StoresPage: React.FC = () => {
   const [newUserRole, setNewUserRole] = useState('editor')
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'archived'>('active')
+  const [storeVisibilityControl, setStoreVisibilityControl] = useState<Record<string, boolean>>({})
+  const [visibilityControlLoading, setVisibilityControlLoading] = useState<string | null>(null)
 
   const loadStoreDetails = async (storeId: string) => {
     try {
@@ -75,6 +79,19 @@ const StoresPage: React.FC = () => {
       const payload = await response.json()
       const detail = payload?.data
       const usersFromDetail = Array.isArray(detail?.users) ? detail.users : []
+
+      // Load store settings for admin visibility control
+      try {
+        const storeSettings = await storeSettingsService.getByStoreId(storeId)
+        if (storeSettings) {
+          setStoreVisibilityControl(prev => ({
+            ...prev,
+            [storeId]: storeSettings.publicCatalog?.allowStoreAdminInventoryVisibilityControl ?? false
+          }))
+        }
+      } catch (err) {
+        console.warn('Could not load store settings for visibility control:', err)
+      }
 
       setSelectedStore((prev: any) => {
         if (!prev) return prev
@@ -504,6 +521,52 @@ const StoresPage: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Control de visibilidad por tienda */}
+            <div>
+              <h3 className={`font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <Eye size={16} className="inline mr-2" />
+                Control de Visibilidad
+              </h3>
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={storeVisibilityControl[selectedStore._id] ?? false}
+                    onChange={async (e) => {
+                      const checked = e.target.checked
+                      setVisibilityControlLoading(selectedStore._id)
+                      try {
+                        await storeSettingsService.updateAdminVisibilityControl(selectedStore._id, checked)
+                        setStoreVisibilityControl(prev => ({ ...prev, [selectedStore._id]: checked }))
+                        toast.success(checked
+                          ? `Admin de "${selectedStore.name}" ahora puede gestionar visibilidad pública`
+                          : `Solo SysAdmin puede gestionar visibilidad pública en "${selectedStore.name}"`
+                        )
+                      } catch (err: any) {
+                        toast.error(err?.message || 'Error al actualizar configuración')
+                      } finally {
+                        setVisibilityControlLoading(null)
+                      }
+                    }}
+                    disabled={visibilityControlLoading === selectedStore._id}
+                    className={`mt-1 w-5 h-5 rounded border transition-colors cursor-pointer ${isDark
+                      ? 'bg-slate-600 border-slate-500 checked:bg-purple-600'
+                      : 'border-gray-300 checked:bg-purple-500'
+                      }`}
+                  />
+                  <div className="flex-1">
+                    <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
+                      Permitir que Admin gestione visibilidad pública
+                    </span>
+                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                      Si está activado, el Admin de esta tienda podrá activar/desactivar
+                      "Mostrar inventario en catálogo público". Si no, solo SysAdmin puede hacerlo.
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
 
             <Button

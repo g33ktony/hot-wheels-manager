@@ -23,6 +23,8 @@ export interface IStoreSettings extends Document {
   }
   publicCatalog?: {
     showCustomInventory?: boolean  // Control para mostrar/ocultar inventario personalizado en búsqueda pública
+    hideCostAndProfitInInventory?: boolean // Oculta costo y ganancia en vistas de inventario
+    allowStoreAdminInventoryVisibilityControl?: boolean // Permite que admin de tienda gestione visibilidad del inventario
   }
   storeId: string
   createdAt: Date
@@ -96,6 +98,14 @@ const storeSettingsSchema = new Schema<IStoreSettings>({
     showCustomInventory: {
       type: Boolean,
       default: false  // Por defecto, NO mostrar inventario personalizado en búsqueda pública
+    },
+    hideCostAndProfitInInventory: {
+      type: Boolean,
+      default: false
+    },
+    allowStoreAdminInventoryVisibilityControl: {
+      type: Boolean,
+      default: false
     }
   },
   // Multi-tenancy field

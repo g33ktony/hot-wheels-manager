@@ -33,6 +33,7 @@ interface InventoryGridSectionProps {
     isDark: boolean
     canEdit: boolean
     canDelete: boolean
+    hideCostAndProfitInInventory: boolean
     formatPieceType: (pieceType: string | undefined) => string
     getPlaceholderLogo: (series?: string) => string
     onShowAddModal: () => void
@@ -63,6 +64,7 @@ export default function InventoryGridSection({
     isDark,
     canEdit,
     canDelete,
+    hideCostAndProfitInInventory,
     formatPieceType,
     getPlaceholderLogo,
     onShowAddModal,
@@ -116,10 +118,25 @@ export default function InventoryGridSection({
                     {filteredItems.map((item: InventoryItem) => {
                         const isAvailable = item.quantity > (item.reservedQuantity || 0)
                         const availableQty = Math.max(0, item.quantity - (item.reservedQuantity || 0))
+                        const hasPhotos = !!(item.photos && item.photos.length > 0)
+                        const primaryPhoto = hasPhotos
+                            ? (item.photos![item.primaryPhotoIndex || 0].includes('weserv')
+                                ? item.photos![item.primaryPhotoIndex || 0]
+                                : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos![item.primaryPhotoIndex || 0])}&w=1200&h=1600&fit=cover`)
+                            : getPlaceholderLogo(item.series)
+                        const imageObjectPosition = hasPhotos
+                            ? (item.pieceType === 'basic'
+                                ? '50% 18%'
+                                : item.pieceType === 'premium'
+                                    ? '50% 22%'
+                                    : '50% 20%')
+                            : '50% 18%'
                         const modelName = item.hotWheelsCar?.model || item.carId || 'Nombre no disponible'
+                        const customerPrice = item.actualPrice || item.suggestedPrice || 0
                         const secondaryLine = `${item.hotWheelsCar?.series || ''} ${item.hotWheelsCar?.year ? `(${item.hotWheelsCar.year})` : ''}`.trim()
                         const shouldShowSecondary = !!secondaryLine && !secondaryLine.toLowerCase().includes(modelName.toLowerCase())
                         const referenceCode = item.hotWheelsCar?.toy_num || (item.carId && item.carId !== modelName ? item.carId : '')
+                        const hasMetaBadge = !!(item.seriesId || item.isBox || (item.sourceBox && !item.isBox))
                         const operationalStatus = item.quantity <= 0
                             ? 'Agotado'
                             : availableQty <= 0
@@ -134,11 +151,11 @@ export default function InventoryGridSection({
                                 className={`relative overflow-hidden !p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <div
-                                    className={`h-full ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
+                                    className={`relative h-full min-h-[520px] ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
                                     onClick={() => isSelectionMode && isAvailable && item._id && onToggleItemSelection(item._id)}
                                 >
                                     {isSelectionMode && (
-                                        <div className="absolute top-3 left-3 z-10">
+                                        <div className="absolute top-3 left-3 z-20">
                                             <input
                                                 type="checkbox"
                                                 checked={selectedItems.has(item._id!)}
@@ -151,7 +168,7 @@ export default function InventoryGridSection({
                                     )}
 
                                     {!isAvailable && isSelectionMode && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/30 rounded-lg z-5">
+                                        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/45 rounded-lg z-30">
                                             <div className="text-white text-center">
                                                 <div className="text-2xl mb-1">🔒</div>
                                                 <div className="text-xs font-semibold">No disponible</div>
@@ -159,45 +176,52 @@ export default function InventoryGridSection({
                                         </div>
                                     )}
 
-                                    <div className="space-y-0 h-full flex flex-col">
-                                        <div
-                                            className="bg-slate-700 h-60 sm:h-72 relative group cursor-pointer touch-manipulation overflow-hidden"
-                                            onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && onImageClick(item.photos, item.primaryPhotoIndex || 0)}
-                                        >
-                                            {item.photos && item.photos.length > 0 ? (
-                                                <>
-                                                    <LazyImage
-                                                        src={item.photos[item.primaryPhotoIndex || 0].includes('weserv') ? item.photos[item.primaryPhotoIndex || 0] : `https://images.weserv.nl/?url=${encodeURIComponent(item.photos[item.primaryPhotoIndex || 0])}&w=1200&h=1600&fit=cover`}
-                                                        alt="Auto a Escala"
-                                                        className={`w-full h-full object-cover transition-all ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-75' : 'group-hover:opacity-90'}`}
-                                                        onError={(e) => {
-                                                            ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
-                                                        }}
-                                                        onClick={() => !isSelectionMode && item.photos && item.photos.length > 0 && onImageClick(item.photos, item.primaryPhotoIndex || 0)}
-                                                    />
-                                                    {!isSelectionMode && (
-                                                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-20">
-                                                            <Maximize2 size={32} className="text-white drop-shadow-lg" />
-                                                        </div>
-                                                    )}
+                                    <div className="absolute inset-0 group">
+                                        <LazyImage
+                                            src={primaryPhoto}
+                                            alt="Auto a Escala"
+                                            className={`w-full h-full object-cover transition-all duration-500 ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-70' : 'group-hover:scale-105'}`}
+                                            style={{ objectPosition: imageObjectPosition }}
+                                            onError={(e) => {
+                                                ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                                            }}
+                                            onClick={() => !isSelectionMode && hasPhotos && onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
+                                        />
 
-                                                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 text-white text-xs font-semibold rounded-md backdrop-blur-sm">
-                                                        {item.photos.length} foto{item.photos.length !== 1 ? 's' : ''}
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <Package size={48} className="text-slate-400" />
-                                            )}
+                                        {!isSelectionMode && hasPhotos && (
+                                            <button
+                                                type="button"
+                                                className="absolute top-3 right-3 z-20 p-2 rounded-xl bg-black/45 text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
+                                                title="Ver imagen"
+                                            >
+                                                <Maximize2 size={18} className="drop-shadow-lg" />
+                                            </button>
+                                        )}
+                                    </div>
 
-                                            {item.brand && (
-                                                <div className="absolute top-2 left-2 px-2 py-1 bg-slate-900 bg-opacity-80 text-white text-xs font-semibold rounded shadow-lg backdrop-blur-sm">
+                                    <div
+                                        className="relative z-10 h-full flex flex-col p-3 sm:p-3.5"
+                                        onClick={(e) => {
+                                            if (isSelectionMode || !hasPhotos) return
+
+                                            const target = e.target as HTMLElement
+                                            // Avoid opening gallery when interacting with controls inside the data panel.
+                                            if (target.closest('[data-card-panel="true"]')) return
+
+                                            onImageClick(item.photos!, item.primaryPhotoIndex || 0)
+                                        }}
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            {item.brand ? (
+                                                <div className="px-2.5 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-lg backdrop-blur-md border border-white/35 shadow-sm">
                                                     {item.brand}
                                                 </div>
-                                            )}
+                                            ) : <div />}
 
-                                            <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                            <div className="flex flex-col items-end gap-1">
                                                 {item.pieceType && (
-                                                    <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${item.pieceType === 'basic'
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${item.pieceType === 'basic'
                                                         ? isDark ? 'bg-blue-500/30 text-white' : 'bg-blue-400/30 text-white'
                                                         : item.pieceType === 'premium'
                                                             ? isDark ? 'bg-purple-500/30 text-white' : 'bg-purple-400/30 text-white'
@@ -213,29 +237,29 @@ export default function InventoryGridSection({
                                                 )}
 
                                                 {item.isSuperTreasureHunt && (
-                                                    <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white' : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white' : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'}`}>
                                                         $TH
                                                     </span>
                                                 )}
                                                 {item.isTreasureHunt && !item.isSuperTreasureHunt && (
-                                                    <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-green-500/40 text-white' : 'bg-green-400/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-green-500/40 text-white' : 'bg-green-400/40 text-white'}`}>
                                                         TH
                                                     </span>
                                                 )}
 
                                                 {item.isChase && (
-                                                    <span className={`px-2.5 py-1.5 text-xs font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white' : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white' : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'}`}>
                                                         CHASE
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
 
-                                        <div className="px-3 sm:px-4 pt-2 sm:pt-3 h-[168px] flex flex-col">
+                                        <div data-card-panel="true" className="mt-auto rounded-2xl bg-slate-900/45 backdrop-blur-xl border border-white/30 p-3 shadow-xl shadow-slate-900/35">
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0 flex-1">
                                                     <h3
-                                                        className={`text-base font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'} ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-400 transition-colors' : ''}`}
+                                                        className={`text-[1.05rem] font-semibold truncate text-white ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-300 transition-colors' : ''}`}
                                                         onClick={() => {
                                                             if (!isSelectionMode && item._id) {
                                                                 onNavigateToDetail(item._id)
@@ -246,7 +270,7 @@ export default function InventoryGridSection({
                                                         {modelName}
                                                     </h3>
                                                     <p
-                                                        className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-slate-600'} ${shouldShowSecondary ? '' : 'invisible'}`}
+                                                        className={`text-xs truncate text-slate-300 ${shouldShowSecondary ? '' : 'invisible'}`}
                                                         title={shouldShowSecondary ? secondaryLine : ''}
                                                     >
                                                         {shouldShowSecondary ? secondaryLine : 'placeholder'}
@@ -257,7 +281,7 @@ export default function InventoryGridSection({
                                                     <div className="relative flex-shrink-0">
                                                         <button
                                                             type="button"
-                                                            className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-600 hover:bg-slate-200'}`}
+                                                            className="p-1.5 rounded-md transition-colors text-slate-200 hover:bg-white/10"
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 setOpenMenuItemId(openMenuItemId === item._id ? null : item._id || null)
@@ -304,119 +328,133 @@ export default function InventoryGridSection({
                                             </div>
 
                                             {referenceCode && (
-                                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                                <p className="text-xs text-white/90">
                                                     {referenceCode}
                                                 </p>
                                             )}
 
-                                            <div className="mt-2 min-h-[24px] max-h-[24px] overflow-hidden">
-                                                {item.seriesId && (
-                                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full max-w-full">
-                                                        <span className="truncate">🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})</span>
-                                                    </div>
-                                                )}
+                                            {hasMetaBadge && (
+                                                <div className="mt-2 min-h-[24px] max-h-[24px] overflow-hidden">
+                                                    {item.seriesId && (
+                                                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-300/25 text-purple-100 text-xs font-medium rounded-full max-w-full border border-purple-200/20">
+                                                            <span className="truncate">🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})</span>
+                                                        </div>
+                                                    )}
 
-                                                {item.isBox && (
-                                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full max-w-full">
-                                                        <span className="truncate">📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas{item.boxStatus === 'sealed' ? ' 🔒' : item.boxStatus === 'unpacking' ? ' ⏳' : ''}</span>
-                                                    </div>
-                                                )}
+                                                    {item.isBox && (
+                                                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-300/25 text-purple-100 text-xs font-medium rounded-full max-w-full border border-purple-200/20">
+                                                            <span className="truncate">📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas{item.boxStatus === 'sealed' ? ' 🔒' : item.boxStatus === 'unpacking' ? ' ⏳' : ''}</span>
+                                                        </div>
+                                                    )}
 
-                                                {item.sourceBox && !item.isBox && (
-                                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full max-w-full">
-                                                        <span className="truncate">📦 De: {item.sourceBox}</span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                    {item.sourceBox && !item.isBox && (
+                                                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-900/40 text-white text-xs font-medium rounded-full max-w-full border border-white/25">
+                                                            <span className="truncate">📦 De: {item.sourceBox}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
 
-                                            <div className="mt-auto space-y-1">
+                                            <div className={`${hasMetaBadge ? 'mt-2' : 'mt-1'} space-y-1.5`}>
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span
                                                         className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${item.condition === 'mint'
-                                                            ? 'bg-slate-700 text-emerald-400'
+                                                            ? 'bg-emerald-700/35 text-emerald-100'
                                                             : item.condition === 'good'
-                                                                ? 'bg-blue-100 text-blue-800'
+                                                                ? 'bg-blue-700/35 text-blue-100'
                                                                 : item.condition === 'fair'
-                                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                                    : 'bg-red-100 text-red-800'}`}
+                                                                    ? 'bg-yellow-700/35 text-yellow-100'
+                                                                    : 'bg-red-700/35 text-red-100'}`}
                                                     >
                                                         {item.condition === 'mint' ? 'Mint' : item.condition === 'good' ? 'Bueno' : item.condition === 'fair' ? 'Regular' : 'Malo'}
                                                     </span>
                                                     <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${operationalStatus === 'Disponible'
-                                                        ? 'bg-emerald-500/20 text-emerald-400'
+                                                        ? 'bg-emerald-700/35 text-emerald-100'
                                                         : operationalStatus === 'Reservado'
-                                                            ? 'bg-amber-500/20 text-amber-400'
-                                                            : 'bg-red-500/20 text-red-400'}`}>
+                                                            ? 'bg-amber-700/35 text-amber-100'
+                                                            : 'bg-red-700/35 text-red-100'}`}>
                                                         {operationalStatus}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-2 min-h-[20px]">
-                                                    <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                                                    <span className="text-xs font-medium text-slate-200">
                                                         Stock: {availableQty} disponible{availableQty !== 1 ? 's' : ''}
                                                     </span>
                                                     {(item.reservedQuantity || 0) > 0 && (
-                                                        <span className="text-xs text-amber-500 font-medium">
+                                                        <span className="text-xs text-amber-200 font-medium">
                                                             {item.reservedQuantity} reservado{item.reservedQuantity === 1 ? '' : 's'}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div className={`mx-3 sm:mx-4 rounded-lg p-2 ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
-                                            <div className="grid grid-cols-3 gap-2 text-xs">
-                                                <div>
-                                                    <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Costo</p>
-                                                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>${item.purchasePrice.toFixed(2)}</p>
-                                                </div>
-                                                <div>
-                                                    <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Sugerido</p>
-                                                    <p className="font-semibold text-emerald-400">${item.suggestedPrice.toFixed(2)}</p>
-                                                </div>
-                                                <div>
-                                                    <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Ganancia</p>
-                                                    <p className="font-semibold text-primary-600">
-                                                        ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
-                                                    </p>
-                                                    <p className="text-[11px] text-primary-600 font-medium mt-0.5">
-                                                        +{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%
-                                                    </p>
-                                                </div>
+                                            <div className="mt-2 rounded-xl p-2 bg-slate-900/50 border border-white/25 backdrop-blur-lg">
+                                                {hideCostAndProfitInInventory ? (
+                                                    <div className="text-xs">
+                                                        <p className="text-white/70">Precio cliente</p>
+                                                        <p className="font-semibold text-emerald-200 text-lg drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">${customerPrice.toFixed(2)}</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="grid grid-cols-3 gap-2 text-xs">
+                                                        <div>
+                                                            <p className="text-white/70">Costo</p>
+                                                            <p className="font-semibold text-white">${item.purchasePrice.toFixed(2)}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-white/70">Sugerido</p>
+                                                            <p className="font-semibold text-emerald-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">${item.suggestedPrice.toFixed(2)}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-white/70">Ganancia</p>
+                                                            <p className="font-semibold text-sky-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">
+                                                                ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
+                                                            </p>
+                                                            <p className="text-[11px] text-sky-200 font-medium mt-0.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">
+                                                                +{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {item.location && (
+                                                    <div className="flex items-center gap-1 text-xs pt-1 border-t border-white/20 text-white/85">
+                                                        <MapPin size={12} />
+                                                        <span className="truncate">{item.location}</span>
+                                                    </div>
+                                                )}
                                             </div>
-                                            {item.location && (
-                                                <div className={`flex items-center gap-1 text-xs pt-1 border-t ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                                                    <MapPin size={12} />
-                                                    <span className="truncate">{item.location}</span>
+
+                                            {!isSelectionMode && (
+                                                <div className="mt-2">
+                                                    <div className="grid grid-cols-2 gap-1.5">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="primary"
+                                                            className="min-h-[38px] px-2 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-500 border border-blue-300/30 shadow-md shadow-blue-900/30"
+                                                            onClick={() => onAddToPos(item)}
+                                                            disabled={!isAvailable || !canCreate}
+                                                            title="Agregar a POS"
+                                                        >
+                                                            <ShoppingCart size={14} className="mr-1" />
+                                                            POS
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            className="min-h-[38px] px-2 py-2 text-sm rounded-xl bg-white/90 text-slate-900 hover:bg-white border border-white/60 shadow-md"
+                                                            onClick={() => onAddToDelivery(item)}
+                                                            disabled={!isAvailable || !canCreate}
+                                                            title="Agregar a entrega"
+                                                        >
+                                                            <Truck size={14} className="mr-1" />
+                                                            Entrega
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
 
-                                        {!isSelectionMode && (
-                                            <div className="p-2 sm:p-2.5 pb-2.5">
-                                                <div className="grid grid-cols-2 gap-1.5">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="primary"
-                                                        className="min-h-[34px] px-2 py-1.5 text-xs"
-                                                        onClick={() => onAddToPos(item)}
-                                                        disabled={!isAvailable || !canCreate}
-                                                        title="Agregar a POS"
-                                                    >
-                                                        <ShoppingCart size={14} className="mr-1" />
-                                                        POS
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        className="min-h-[34px] px-2 py-1.5 text-xs"
-                                                        onClick={() => onAddToDelivery(item)}
-                                                        disabled={!isAvailable || !canCreate}
-                                                        title="Agregar a entrega"
-                                                    >
-                                                        <Truck size={14} className="mr-1" />
-                                                        Entrega
-                                                    </Button>
-                                                </div>
+                                        {hasPhotos && (
+                                            <div className="absolute bottom-3 left-3 z-20 px-2 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-md backdrop-blur-md border border-white/30">
+                                                {item.photos!.length} foto{item.photos!.length !== 1 ? 's' : ''}
                                             </div>
                                         )}
                                     </div>
