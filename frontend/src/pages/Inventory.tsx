@@ -99,6 +99,15 @@ export default function Inventory() {
     })
 
     const [showAddModal, setShowAddModal] = useState(false)
+    // View mode (compact/full) with localStorage persistence
+    const [viewMode, setViewMode] = useState<'full' | 'compact'>(() => {
+        return (localStorage.getItem('inventory-view-mode') as 'full' | 'compact') || 'full'
+    })
+    const handleToggleViewMode = () => {
+        const next = viewMode === 'full' ? 'compact' : 'full'
+        setViewMode(next)
+        localStorage.setItem('inventory-view-mode', next)
+    }
     // Facebook publish modal
     const [showFacebookModal, setShowFacebookModal] = useState(false)
     // Quote report modal
@@ -321,6 +330,8 @@ export default function Inventory() {
                 filteredItemsCount={filteredItems.length}
                 canCreate={canCreate}
                 canDelete={canDelete}
+                viewMode={viewMode}
+                onToggleViewMode={handleToggleViewMode}
                 onToggleSelectionMode={handleToggleSelectionMode}
                 onDeselectAllItems={handleDeselectAllItems}
                 onAddToCart={handleAddToCart}
@@ -383,6 +394,7 @@ export default function Inventory() {
                 hasInventoryData={!!inventoryData}
                 inventoryItemsCount={inventoryItems.length}
                 filteredItems={filteredItems}
+                viewMode={viewMode}
                 searchTerm={searchTerm}
                 filterCondition={filterCondition}
                 filterBrand={filterBrand}

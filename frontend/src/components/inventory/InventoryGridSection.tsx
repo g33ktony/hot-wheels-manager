@@ -21,6 +21,7 @@ interface InventoryGridSectionProps {
     hasInventoryData: boolean
     inventoryItemsCount: number
     filteredItems: InventoryItem[]
+    viewMode: 'full' | 'compact'
     searchTerm: string
     filterCondition: string
     filterBrand: string
@@ -52,6 +53,7 @@ export default function InventoryGridSection({
     hasInventoryData,
     inventoryItemsCount,
     filteredItems,
+    viewMode,
     searchTerm,
     filterCondition,
     filterBrand,
@@ -114,7 +116,10 @@ export default function InventoryGridSection({
                     </div>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full">
+                <div className={viewMode === 'compact'
+                    ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 sm:gap-2 w-full"
+                    : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 w-full"
+                }>
                     {filteredItems.map((item: InventoryItem) => {
                         const isAvailable = item.quantity > (item.reservedQuantity || 0)
                         const availableQty = Math.max(0, item.quantity - (item.reservedQuantity || 0))
@@ -142,6 +147,129 @@ export default function InventoryGridSection({
                             : availableQty <= 0
                                 ? 'Reservado'
                                 : 'Disponible'
+
+                        if (viewMode === 'compact') {
+                            return (
+                                <Card
+                                    key={item._id}
+                                    hover={!isSelectionMode && isAvailable}
+                                    pressEffect={false}
+                                    className={`relative overflow-hidden !p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <div
+                                        className={`relative h-full min-h-[260px] ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
+                                        onClick={() => isSelectionMode && isAvailable && item._id && onToggleItemSelection(item._id)}
+                                    >
+                                        {isSelectionMode && (
+                                            <div className="absolute top-2 left-2 z-20">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedItems.has(item._id!)}
+                                                    onChange={() => item._id && isAvailable && onToggleItemSelection(item._id)}
+                                                    disabled={!isAvailable}
+                                                    className={`w-5 h-5 rounded border-slate-600 text-primary-600 focus:ring-primary-500 ${isAvailable ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {!isAvailable && isSelectionMode && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-slate-900/45 rounded-lg z-30">
+                                                <div className="text-white text-center">
+                                                    <div className="text-xl mb-0.5">🔒</div>
+                                                    <div className="text-[10px] font-semibold">No disponible</div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="absolute inset-0 group">
+                                            <LazyImage
+                                                src={primaryPhoto}
+                                                alt="Auto a Escala"
+                                                className={`w-full h-full object-cover transition-all duration-500 ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-70' : 'group-hover:scale-105'}`}
+                                                style={{ objectPosition: imageObjectPosition }}
+                                                onError={(e) => {
+                                                    ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                                                }}
+                                                onClick={() => !isSelectionMode && hasPhotos && onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
+                                            />
+                                        </div>
+
+                                        <div
+                                            className="relative z-10 h-full flex flex-col p-2"
+                                            onClick={(e) => {
+                                                if (isSelectionMode || !hasPhotos) return
+                                                const target = e.target as HTMLElement
+                                                if (target.closest('[data-card-panel="true"]')) return
+                                                onImageClick(item.photos!, item.primaryPhotoIndex || 0)
+                                            }}
+                                        >
+                                            {/* Top badges - compact */}
+                                            <div className="flex items-start justify-between gap-1">
+                                                <div />
+                                                <div className="flex flex-col items-end gap-0.5">
+                                                    {item.isSuperTreasureHunt && (
+                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded shadow-md backdrop-blur-md bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white">$TH</span>
+                                                    )}
+                                                    {item.isTreasureHunt && !item.isSuperTreasureHunt && (
+                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded shadow-md backdrop-blur-md bg-green-500/40 text-white">TH</span>
+                                                    )}
+                                                    {item.isChase && (
+                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded shadow-md backdrop-blur-md bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white">CHASE</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Bottom info panel - compact */}
+                                            <div data-card-panel="true" className="mt-auto rounded-xl bg-slate-900/50 backdrop-blur-xl border border-white/25 p-2 shadow-xl shadow-slate-900/35">
+                                                <h3
+                                                    className={`text-xs font-semibold truncate text-white leading-tight ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-300 transition-colors' : ''}`}
+                                                    onClick={() => { if (!isSelectionMode && item._id) onNavigateToDetail(item._id) }}
+                                                    title={modelName}
+                                                >
+                                                    {modelName}
+                                                </h3>
+                                                <div className="flex items-center justify-between gap-1 mt-1">
+                                                    <span className="text-xs font-semibold text-emerald-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">
+                                                        ${customerPrice.toFixed(2)}
+                                                    </span>
+                                                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${operationalStatus === 'Disponible' ? 'bg-emerald-700/35 text-emerald-100' : operationalStatus === 'Reservado' ? 'bg-amber-700/35 text-amber-100' : 'bg-red-700/35 text-red-100'}`}>
+                                                        {availableQty}u
+                                                    </span>
+                                                </div>
+
+                                                {!isSelectionMode && (
+                                                    <div className="grid grid-cols-2 gap-1 mt-1.5">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="primary"
+                                                            className="!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-300/30 shadow-sm"
+                                                            onClick={() => onAddToPos(item)}
+                                                            disabled={!isAvailable || !canCreate}
+                                                            title="POS"
+                                                        >
+                                                            <ShoppingCart size={11} className="mr-0.5" />
+                                                            POS
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            className="!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg bg-white/90 text-slate-900 hover:bg-white border border-white/60 shadow-sm"
+                                                            onClick={() => onAddToDelivery(item)}
+                                                            disabled={!isAvailable || !canCreate}
+                                                            title="Entrega"
+                                                        >
+                                                            <Truck size={11} className="mr-0.5" />
+                                                            Entrega
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            )
+                        }
 
                         return (
                             <Card

@@ -5,7 +5,9 @@ import {
     Edit,
     Facebook,
     FileText,
+    Grid,
     Image,
+    LayoutGrid,
     Plus,
     ShoppingCart,
     Trash2,
@@ -18,6 +20,8 @@ interface InventoryHeaderProps {
     filteredItemsCount: number
     canCreate: boolean
     canDelete: boolean
+    viewMode: 'full' | 'compact'
+    onToggleViewMode: () => void
     onToggleSelectionMode: () => void
     onDeselectAllItems: () => void
     onAddToCart: () => void
@@ -37,6 +41,8 @@ export default function InventoryHeader({
     filteredItemsCount,
     canCreate,
     canDelete,
+    viewMode,
+    onToggleViewMode,
     onToggleSelectionMode,
     onDeselectAllItems,
     onAddToCart,
@@ -133,6 +139,14 @@ export default function InventoryHeader({
                         </>
                     ) : (
                         <>
+                            <button
+                                type="button"
+                                onClick={onToggleViewMode}
+                                className="p-2 rounded-lg border border-slate-600 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                                title={viewMode === 'full' ? 'Vista compacta' : 'Vista completa'}
+                            >
+                                {viewMode === 'full' ? <Grid size={18} /> : <LayoutGrid size={18} />}
+                            </button>
                             {filteredItemsCount > 0 && (
                                 <Button
                                     variant="secondary"
