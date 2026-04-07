@@ -392,26 +392,28 @@ export default function InventoryGridSection({
                                         </div>
 
                                         {!isSelectionMode && (
-                                            <div className="space-y-2 p-3 sm:p-4 pb-4">
-                                                <div className="grid grid-cols-1 gap-2">
+                                            <div className="p-2 sm:p-2.5 pb-2.5">
+                                                <div className="grid grid-cols-2 gap-1.5">
                                                     <Button
                                                         size="sm"
                                                         variant="primary"
+                                                        className="min-h-[34px] px-2 py-1.5 text-xs"
                                                         onClick={() => onAddToPos(item)}
                                                         disabled={!isAvailable || !canCreate}
                                                         title="Agregar a POS"
                                                     >
-                                                        <ShoppingCart size={16} className="mr-1" />
+                                                        <ShoppingCart size={14} className="mr-1" />
                                                         POS
                                                     </Button>
                                                     <Button
                                                         size="sm"
                                                         variant="secondary"
+                                                        className="min-h-[34px] px-2 py-1.5 text-xs"
                                                         onClick={() => onAddToDelivery(item)}
                                                         disabled={!isAvailable || !canCreate}
                                                         title="Agregar a entrega"
                                                     >
-                                                        <Truck size={16} className="mr-1" />
+                                                        <Truck size={14} className="mr-1" />
                                                         Entrega
                                                     </Button>
                                                 </div>

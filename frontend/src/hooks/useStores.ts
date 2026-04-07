@@ -119,7 +119,7 @@ export const useStores = () => {
       setError(null)
 
       // If user is sys_admin, fetch all stores; otherwise fetch user's store
-      const endpoint = user?.role === 'sys_admin' ? '/api/stores' : '/api/stores/my'
+      const endpoint = user?.role === 'sys_admin' ? '/stores' : '/stores/my'
 
       const response = await api.get(endpoint)
       if (response.status !== 200) {
@@ -154,7 +154,7 @@ export const useStores = () => {
 
   const createStore = async (name: string, description?: string) => {
     try {
-      const response = await api.post('/api/stores', { name, description })
+      const response = await api.post('/stores', { name, description })
       if (response.status !== 200 && response.status !== 201) throw new Error('Failed to create store')
       const data = response.data
       setStores([...stores, data.data])
@@ -167,7 +167,7 @@ export const useStores = () => {
 
   const updateStore = async (id: string, updates: any) => {
     try {
-      const response = await api.put(`/api/stores/${id}`, updates)
+      const response = await api.put(`/stores/${id}`, updates)
       if (response.status !== 200) throw new Error('Failed to update store')
       const data = response.data
       setStores(stores.map(s => s._id === id ? data.data : s))
@@ -180,7 +180,7 @@ export const useStores = () => {
 
   const updateUserRole = async (storeId: string, userId: string, role: string) => {
     try {
-      const response = await api.put(`/api/stores/${storeId}/users/${userId}/role`, { role })
+      const response = await api.put(`/stores/${storeId}/users/${userId}/role`, { role })
       if (response.status !== 200) throw new Error('Failed to update user role')
       await fetchStores()
       return true
@@ -192,7 +192,7 @@ export const useStores = () => {
 
   const removeUser = async (storeId: string, userId: string) => {
     try {
-      const response = await api.delete(`/api/stores/${storeId}/users/${userId}`)
+      const response = await api.delete(`/stores/${storeId}/users/${userId}`)
       if (response.status !== 200) throw new Error('Failed to remove user')
       await fetchStores()
       return true
@@ -204,7 +204,7 @@ export const useStores = () => {
 
   const assignUser = async (storeId: string, userId: string, role: string) => {
     try {
-      const response = await api.post(`/api/stores/${storeId}/assign-user`, { userId, role })
+      const response = await api.post(`/stores/${storeId}/assign-user`, { userId, role })
       if (response.status !== 200) throw new Error('Failed to assign user')
       await fetchStores()
       return true
@@ -216,7 +216,7 @@ export const useStores = () => {
 
   const updateUserStatus = async (storeId: string, userId: string, status: 'approved' | 'inactive') => {
     try {
-      const response = await api.patch(`/api/stores/${storeId}/users/${userId}/status`, { status })
+      const response = await api.patch(`/stores/${storeId}/users/${userId}/status`, { status })
       if (response.status !== 200) {
         throw new Error(response?.data?.error || response?.data?.message || 'Failed to update user status')
       }
@@ -231,7 +231,7 @@ export const useStores = () => {
 
   const archiveStore = async (storeId: string) => {
     try {
-      const response = await api.patch(`/api/stores/${storeId}/archive`)
+      const response = await api.patch(`/stores/${storeId}/archive`)
       if (response.status !== 200) {
         throw new Error(response?.data?.message || 'Failed to archive store')
       }
@@ -245,7 +245,7 @@ export const useStores = () => {
 
   const restoreStore = async (storeId: string) => {
     try {
-      const response = await api.patch(`/api/stores/${storeId}/restore`)
+      const response = await api.patch(`/stores/${storeId}/restore`)
       if (response.status !== 200) {
         throw new Error(response?.data?.message || 'Failed to restore store')
       }

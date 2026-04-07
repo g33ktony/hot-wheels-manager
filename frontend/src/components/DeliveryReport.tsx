@@ -24,26 +24,25 @@ interface DeliveryReportProps {
 export default function DeliveryReport({ delivery, onClose, inline }: DeliveryReportProps) {
   const reportRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
-
-  const DESKTOP_WIDTH = 1000
   const generationCancelledRef = useRef({ cancelled: false })
 
-  async function captureNode(node: HTMLElement, desktopWidth = DESKTOP_WIDTH) {
+  async function captureNode(node: HTMLElement) {
     const originalRect = node.getBoundingClientRect()
+    const captureWidth = Math.max(320, Math.ceil(originalRect.width || node.scrollWidth || 0))
     const clone = node.cloneNode(true) as HTMLElement
     const container = document.createElement('div')
     container.style.position = 'fixed'
     container.style.left = '-9999px'
     container.style.top = '0'
-    container.style.width = `${desktopWidth}px`
+    container.style.width = `${captureWidth}px`
     container.style.overflow = 'visible'
     container.appendChild(clone)
     document.body.appendChild(container)
 
-    clone.style.width = `${desktopWidth}px`
+    clone.style.width = `${captureWidth}px`
     clone.style.boxSizing = 'border-box'
 
-    const scale = Math.min(2, (desktopWidth / (originalRect.width || desktopWidth)) * 2)
+    const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1))
 
     try {
       const canvas = await html2canvas(clone, {
@@ -51,8 +50,10 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
         scale,
         useCORS: true,
         allowTaint: true,
-        width: desktopWidth,
-        height: clone.scrollHeight
+        width: captureWidth,
+        height: Math.ceil(clone.scrollHeight),
+        windowWidth: captureWidth,
+        windowHeight: Math.ceil(clone.scrollHeight)
       })
       if (generationCancelledRef.current.cancelled) {
         if (container.parentNode) container.parentNode.removeChild(container)
@@ -129,7 +130,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
     setIsGenerating(true)
     let capturedContainer: HTMLElement | null = null
     try {
-      const { blob, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
+      const { blob, container: c } = await captureNode(reportRef.current)
       capturedContainer = c
       if (!blob) throw new Error('no blob')
       downloadBlob(blob, `reporte-entrega-${delivery._id || 'sin-id'}.png`)
@@ -148,7 +149,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
     let capturedContainer: HTMLElement | null = null
     try {
       const nav = navigator as NavigatorShare
-      const { blob, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
+      const { blob, container: c } = await captureNode(reportRef.current)
       capturedContainer = c
       if (!blob) throw new Error('No se pudo generar la imagen')
 
@@ -218,7 +219,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
     setIsGenerating(true)
     let capturedContainer: HTMLElement | null = null
     try {
-      const { canvas, container: c } = await captureNode(reportRef.current, DESKTOP_WIDTH)
+      const { canvas, container: c } = await captureNode(reportRef.current)
       capturedContainer = c
       if (!canvas) throw new Error('no canvas')
       const imgData = canvas.toDataURL('image/png')
