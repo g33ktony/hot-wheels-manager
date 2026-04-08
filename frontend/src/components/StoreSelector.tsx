@@ -38,10 +38,10 @@ export default function StoreSelector() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`
-          flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors min-h-[44px]
+          flex items-center gap-2 px-3 py-2 rounded-lg transition-colors min-h-[44px] backdrop-blur-xl
           ${mode === 'dark'
-                        ? 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600 active:bg-slate-500'
-                        : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+                        ? 'bg-slate-900/34 text-slate-300 hover:bg-slate-900/46 !shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
+                        : 'bg-white/80 text-slate-700 hover:bg-white/90 !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
                     }
         `}
                 title="Seleccionar tienda para ver datos (SYS ADMIN)"
@@ -63,20 +63,20 @@ export default function StoreSelector() {
             {isOpen && (
                 <div
                     className={`
-            absolute top-full right-0 mt-2 w-72 rounded-lg shadow-lg z-50 border
+            absolute top-full right-0 mt-2 w-72 rounded-lg z-50 backdrop-blur-xl
             ${mode === 'dark'
-                            ? 'bg-slate-800 border-slate-700'
-                            : 'bg-white border-gray-200'
+                            ? 'bg-slate-900/70 !shadow-[0_10px_24px_rgba(2,6,23,0.4),inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
+                            : 'bg-white/88 !shadow-[0_10px_24px_rgba(148,163,184,0.2),inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
                         }
           `}
                     role="listbox"
                 >
                     {/* Header with info */}
-                    <div className={`px-4 py-3 border-b ${mode === 'dark' ? 'border-slate-700' : 'border-gray-200'}`}>
+                    <div className={`px-4 py-3 border-b ${mode === 'dark' ? 'border-slate-600/50' : 'border-slate-300/70'}`}>
                         <div className="text-xs font-semibold mb-2">
                             👑 Mi Tienda (Lectura/Escritura):
                         </div>
-                        <div className={`px-3 py-2 rounded ${mode === 'dark' ? 'bg-slate-700' : 'bg-blue-50'}`}>
+                        <div className={`px-3 py-2 rounded backdrop-blur-xl ${mode === 'dark' ? 'bg-slate-800/55 !shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-blue-50/85 !shadow-[inset_0_2px_2px_rgba(147,197,253,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                             <div className={`text-sm font-bold ${mode === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
                                 {userStoreInfo?.storeName || userStore}
                             </div>
@@ -114,14 +114,14 @@ export default function StoreSelector() {
                                             }}
                                             className={`
                       w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors
-                      flex items-center gap-2
+                      flex items-center gap-2 backdrop-blur-xl
                       ${selectedStore === store.storeId
                                                     ? mode === 'dark'
-                                                        ? 'bg-emerald-500/20 text-emerald-300'
-                                                        : 'bg-emerald-100 text-emerald-700'
+                                                        ? 'bg-emerald-500/20 text-emerald-300 !shadow-[inset_0_2px_2px_rgba(6,78,59,0.45),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
+                                                        : 'bg-emerald-100/85 text-emerald-700 !shadow-[inset_0_2px_2px_rgba(167,243,208,0.34),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
                                                     : mode === 'dark'
-                                                        ? 'text-slate-300 hover:bg-slate-700 active:bg-slate-600'
-                                                        : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+                                                        ? 'text-slate-300 hover:bg-slate-800/55'
+                                                        : 'text-slate-700 hover:bg-slate-100/85'
                                                 }
                     `}
                                             role="option"
@@ -148,8 +148,8 @@ export default function StoreSelector() {
                     <div className={`
             px-4 py-3 text-xs border-t
             ${mode === 'dark'
-                            ? 'bg-slate-900/50 border-slate-700 text-slate-500'
-                            : 'bg-gray-50 border-gray-200 text-gray-600'
+                            ? 'bg-slate-900/50 border-slate-600/50 text-slate-400'
+                            : 'bg-slate-100/70 border-slate-300/70 text-slate-600'
                         }
           `}>
                         <p>📖 Solo lectura de otras tiendas. Los nuevos datos siempre se crean en tu tienda.</p>

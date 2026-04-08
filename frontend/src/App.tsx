@@ -26,6 +26,8 @@ const CloudinaryDebug = lazy(() => import('./pages/CloudinaryDebug'))
 const Search = lazy(() => import('./pages/Search'))
 const ThemeSettings = lazy(() => import('./pages/ThemeSettings'))
 const CatalogBrowser = lazy(() => import('./pages/public/CatalogBrowser'))
+const ContactPage = lazy(() => import('./pages/public/ContactPage'))
+const PrivacyPage = lazy(() => import('./pages/public/PrivacyPage'))
 const Leads = lazy(() => import('./pages/Leads'))
 const DataReports = lazy(() => import('./pages/DataReports'))
 const Customers = lazy(() => import('./pages/Customers'))
@@ -56,6 +58,8 @@ function App() {
                                 {/* Public routes - no authentication required */}
                                 <Route path="/" element={<Navigate to="/browse" replace />} />
                                 <Route path="/browse" element={<CatalogBrowser />} />
+                                <Route path="/contacto" element={<ContactPage />} />
+                                <Route path="/privacidad" element={<PrivacyPage />} />
                                 <Route path="/login" element={<Login />} />
                                 <Route path="/signup" element={<Signup />} />
 

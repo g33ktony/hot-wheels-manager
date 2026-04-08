@@ -73,6 +73,16 @@ export interface LeadData {
   recaptchaToken: string
 }
 
+export interface ContactMessageData {
+  name: string
+  email: string
+  subject: string
+  message: string
+  phone?: string
+  language: 'es' | 'en'
+  acceptedPrivacy: boolean
+}
+
 export const publicService = {
   /**
    * Search Hot Wheels catalog with inventory availability
@@ -131,6 +141,14 @@ export const publicService = {
     note: string
   }) => {
     const response = await publicApi.post('/public/reports', data)
+    return response.data
+  },
+
+  /**
+   * Submit public contact form
+   */
+  submitContactMessage: async (data: ContactMessageData) => {
+    const response = await publicApi.post('/public/contact', data)
     return response.data
   }
 }

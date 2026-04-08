@@ -36,6 +36,38 @@ export default function CatalogBrowser() {
   const [searchParams, setSearchParams] = useSearchParams()
   const isDark = mode === 'dark'
 
+  const pageBackdropClass = isDark
+    ? 'bg-[radial-gradient(circle_at_15%_20%,rgba(14,116,144,0.18),transparent_40%),radial-gradient(circle_at_85%_10%,rgba(59,130,246,0.14),transparent_35%),linear-gradient(180deg,#020617_0%,#0f172a_100%)]'
+    : 'bg-[radial-gradient(circle_at_10%_15%,rgba(56,189,248,0.16),transparent_40%),radial-gradient(circle_at_90%_5%,rgba(14,165,233,0.14),transparent_35%),linear-gradient(180deg,#f4f8ff_0%,#e9eff8_100%)]'
+
+  const neumorphSurfaceClass = isDark
+    ? 'bg-slate-800/85 border border-slate-700/70 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_22px_rgba(51,65,85,0.2)]'
+    : 'bg-[#eaf0f8] border border-white/80 shadow-[12px_12px_24px_rgba(148,163,184,0.38),-12px_-12px_24px_rgba(255,255,255,0.96)]'
+
+  const neumorphInsetClass = isDark
+    ? 'bg-slate-900/70 border border-slate-700/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+    : 'bg-[#edf3fa] border border-white/90 shadow-[inset_5px_5px_10px_rgba(148,163,184,0.26),inset_-5px_-5px_10px_rgba(255,255,255,0.92)]'
+
+  const neumorphPillClass = isDark
+    ? 'bg-slate-800 text-slate-200 border border-slate-700/70 shadow-[7px_7px_14px_rgba(2,6,23,0.45),-6px_-6px_12px_rgba(51,65,85,0.2)] hover:brightness-110'
+    : 'bg-[#eef3fa] text-slate-700 border border-white/85 shadow-[7px_7px_14px_rgba(148,163,184,0.3),-7px_-7px_14px_rgba(255,255,255,0.9)] hover:brightness-95'
+
+  const neumorphPillActiveClass = isDark
+    ? 'bg-primary-600 text-white border border-primary-500/70 shadow-[8px_8px_16px_rgba(2,6,23,0.5),-6px_-6px_12px_rgba(56,189,248,0.2)]'
+    : 'bg-primary-500 text-white border border-primary-300 shadow-[8px_8px_16px_rgba(14,116,144,0.24),-6px_-6px_12px_rgba(255,255,255,0.7)]'
+
+  const featuredShellClass = isDark
+    ? 'max-w-2xl mx-auto rounded-3xl px-5 py-6 border border-slate-700/70 bg-slate-800/45 backdrop-blur-sm shadow-[16px_16px_32px_rgba(2,6,23,0.55),-12px_-12px_24px_rgba(51,65,85,0.2)]'
+    : 'max-w-2xl mx-auto rounded-3xl px-5 py-6 border border-white/85 bg-[#eef3fa]/90 backdrop-blur-sm shadow-[16px_16px_32px_rgba(148,163,184,0.35),-14px_-14px_28px_rgba(255,255,255,0.96)]'
+
+  const featuredCardClass = isDark
+    ? 'max-w-sm mx-auto rounded-2xl overflow-hidden transition-all duration-300 bg-slate-800/90 border border-slate-700/70 shadow-[14px_14px_28px_rgba(2,6,23,0.58),-12px_-12px_24px_rgba(51,65,85,0.22)]'
+    : 'max-w-sm mx-auto rounded-2xl overflow-hidden transition-all duration-300 bg-[#edf3fa] border border-white/90 shadow-[14px_14px_28px_rgba(148,163,184,0.38),-14px_-14px_28px_rgba(255,255,255,0.98)]'
+
+  const featuredInsetClass = isDark
+    ? 'bg-slate-900/65 border border-slate-700/65 shadow-[inset_6px_6px_12px_rgba(2,6,23,0.7),inset_-5px_-5px_10px_rgba(51,65,85,0.24)]'
+    : 'bg-[#edf3fa] border border-white/90 shadow-[inset_6px_6px_12px_rgba(148,163,184,0.28),inset_-6px_-6px_12px_rgba(255,255,255,0.95)]'
+
   // Redirigir si el usuario ya tiene sesión activa (solo si viene desde la raíz o login)
   useEffect(() => {
     // Solo redirigir si no hay un parámetro específico o si queremos forzar dashboard al entrar a /
@@ -81,21 +113,35 @@ export default function CatalogBrowser() {
   // Random featured item for hero placeholder
   const [featuredItem, setFeaturedItem] = useState<CatalogItem | null>(null)
   const [featuredLoading, setFeaturedLoading] = useState(true)
+  const [refreshingFeatured, setRefreshingFeatured] = useState(false)
 
-  // Fetch random featured item on mount
-  useEffect(() => {
-    const fetchFeatured = async () => {
-      try {
-        const response = await publicService.getRandomItem()
-        if (response.success && response.data) {
-          setFeaturedItem(response.data)
-        }
-      } catch (e) {
-        console.warn('Could not load featured item')
-      } finally {
+  const fetchFeatured = async (preserveScrollPosition = false) => {
+    const keepCurrentCardVisible = preserveScrollPosition && !!featuredItem
+
+    if (keepCurrentCardVisible) {
+      setRefreshingFeatured(true)
+    } else {
+      setFeaturedLoading(true)
+    }
+
+    try {
+      const response = await publicService.getRandomItem()
+      if (response.success && response.data) {
+        setFeaturedItem(response.data)
+      }
+    } catch (_e) {
+      console.warn('Could not load featured item')
+    } finally {
+      if (keepCurrentCardVisible) {
+        setRefreshingFeatured(false)
+      } else {
         setFeaturedLoading(false)
       }
     }
+  }
+
+  // Fetch random featured item on mount
+  useEffect(() => {
     fetchFeatured()
   }, [])
 
@@ -305,568 +351,570 @@ export default function CatalogBrowser() {
 
   return (
     <PublicLayout>
-      {/* Hero Section */}
-      <div className="text-center mb-8">
-        <h1 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-          Explora Autos a Escala
-        </h1>
-        {totalItems > 0 && (
-          <p className={`text-lg font-medium ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
-            {totalItems.toLocaleString()} modelos en catálogo
+      <div className={`relative rounded-3xl px-4 py-6 sm:px-6 sm:py-8 ${pageBackdropClass}`}>
+        {/* Hero Section */}
+        <div className="text-center mb-8">
+          <h1 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            Explora autos a escala
+          </h1>
+          <p className={`text-sm sm:text-base font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+            Encuentra modelos de distintas marcas
           </p>
-        )}
-      </div>
+          {totalItems > 0 && (
+            <p className={`text-lg font-medium ${isDark ? 'text-primary-400' : 'text-primary-600'}`}>
+              {totalItems.toLocaleString()} modelos en catálogo
+            </p>
+          )}
+        </div>
 
-      {/* Search Section */}
-      <div className={`max-w-4xl mx-auto mb-8 p-6 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-white'
-        } shadow-md`}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Search Input with Autocomplete */}
-          <div className="relative">
-            <Input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Buscar por modelo, serie o fabricante..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => {
-                if (suggestions.length > 0) {
-                  setShowSuggestions(true)
-                }
-              }}
-              className="pl-10"
-            />
-            <SearchIcon
-              className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-slate-500'
-                }`}
-              size={20}
-            />
-
-            {/* Suggestions Dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div
-                ref={suggestionsRef}
-                className={`absolute z-10 w-full mt-1 rounded-lg shadow-lg border max-h-96 overflow-y-auto ${isDark
-                  ? 'bg-slate-800 border-slate-700'
-                  : 'bg-white border-slate-200'
+        {/* Search Section */}
+        <div className={`max-w-4xl mx-auto mb-8 p-6 rounded-2xl ${neumorphSurfaceClass}`}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Search Input with Autocomplete */}
+            <div className="relative">
+              <Input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Buscar por modelo, serie o fabricante..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => {
+                  if (suggestions.length > 0) {
+                    setShowSuggestions(true)
+                  }
+                }}
+                className={`pl-10 rounded-xl ${neumorphInsetClass}`}
+              />
+              <SearchIcon
+                className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-slate-500'
                   }`}
-              >
-                {suggestions.map((suggestion) => (
-                  (() => {
-                    const previewUrl = resolveCatalogImageUrl(suggestion.photo_url)
-                    return (
-                      <div
-                        key={suggestion._id}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 border-b last:border-b-0 ${isDark
-                          ? 'border-slate-700 hover:bg-slate-700'
-                          : 'border-slate-100 hover:bg-slate-50'
-                          }`}
-                      >
-                        {/* Small thumbnail */}
-                        <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
-                          {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
-                            <img
-                              src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=48&h=48&fit=cover`}
-                              alt={suggestion.carModel}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none'
-                              }}
-                            />
-                          ) : (
-                            <img src={getPlaceholderLogo(suggestion.series, suggestion.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
+                size={20}
+              />
+
+              {/* Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div
+                  ref={suggestionsRef}
+                  className={`absolute z-10 w-full mt-1 rounded-xl max-h-96 overflow-y-auto ${isDark
+                    ? 'bg-slate-800 border border-slate-700 shadow-[10px_10px_22px_rgba(2,6,23,0.55),-8px_-8px_18px_rgba(51,65,85,0.15)]'
+                    : 'bg-[#edf3fa] border border-white/80 shadow-[10px_10px_22px_rgba(148,163,184,0.32),-10px_-10px_22px_rgba(255,255,255,0.95)]'
+                    }`}
+                >
+                  {suggestions.map((suggestion) => (
+                    (() => {
+                      const previewUrl = resolveCatalogImageUrl(suggestion.photo_url)
+                      return (
+                        <div
+                          key={suggestion._id}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 border-b last:border-b-0 ${isDark
+                            ? 'border-slate-700 hover:bg-slate-700'
+                            : 'border-slate-100 hover:bg-slate-50'
+                            }`}
+                        >
+                          {/* Small thumbnail */}
+                          <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
+                            {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
+                              <img
+                                src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=48&h=48&fit=cover`}
+                                alt={suggestion.carModel}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none'
+                                }}
+                              />
+                            ) : (
+                              <img src={getPlaceholderLogo(suggestion.series, suggestion.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-1" />
+                            )}
+                          </div>
+
+                          {/* Model info */}
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {suggestion.carModel}
+                            </p>
+                            <p className={`text-sm truncate flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                              <SegmentBadge segment={suggestion.segment} />
+                              <span className="truncate">{suggestion.series} • {suggestion.year}</span>
+                            </p>
+                          </div>
+
+                          {/* Availability badge */}
+                          {suggestion.availability?.available && (
+                            <div className="flex-shrink-0 px-2 py-1 bg-green-500 text-white text-xs rounded">
+                              Disponible
+                            </div>
                           )}
                         </div>
+                      )
+                    })()
+                  ))}
+                </div>
+              )}
 
-                        {/* Model info */}
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {suggestion.carModel}
-                          </p>
-                          <p className={`text-sm truncate flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                            <SegmentBadge segment={suggestion.segment} />
-                            <span className="truncate">{suggestion.series} • {suggestion.year}</span>
-                          </p>
-                        </div>
-
-                        {/* Availability badge */}
-                        {suggestion.availability?.available && (
-                          <div className="flex-shrink-0 px-2 py-1 bg-green-500 text-white text-xs rounded">
-                            Disponible
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })()
-                ))}
-              </div>
-            )}
-
-            {/* Loading indicator */}
-            {loadingSuggestions && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className={`animate-spin ${isDark ? 'text-slate-400' : 'text-slate-500'}`} size={18} />
-              </div>
-            )}
-          </div>
-
-          {/* Sort Order + Year Filter */}
-          <div className="flex flex-col gap-4">
-            {/* Sort Buttons */}
-            <div className="flex items-center gap-2">
-              <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Orden:</span>
-              <button
-                type="button"
-                onClick={() => { setSortOrder('desc'); setPage(1) }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'desc'
-                  ? isDark
-                    ? 'bg-primary-600 text-white shadow-lg'
-                    : 'bg-primary-500 text-white shadow-lg'
-                  : isDark
-                    ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                  }`}
-              >
-                <ArrowDownNarrowWide size={16} />
-                Más recientes
-              </button>
-              <button
-                type="button"
-                onClick={() => { setSortOrder('asc'); setPage(1) }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'asc'
-                  ? isDark
-                    ? 'bg-primary-600 text-white shadow-lg'
-                    : 'bg-primary-500 text-white shadow-lg'
-                  : isDark
-                    ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                  }`}
-              >
-                <ArrowUpNarrowWide size={16} />
-                Más antiguos
-              </button>
+              {/* Loading indicator */}
+              {loadingSuggestions && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Loader2 className={`animate-spin ${isDark ? 'text-slate-400' : 'text-slate-500'}`} size={18} />
+                </div>
+              )}
             </div>
 
-            {/* Collapsible Year Filter - only show when there are results */}
-            {availableYears.length > 0 && (
+            {/* Sort Order + Year Filter */}
+            <div className="flex flex-col gap-4">
+              {/* Sort Buttons */}
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Orden:</span>
+                <button
+                  type="button"
+                  onClick={() => { setSortOrder('desc'); setPage(1) }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'desc'
+                    ? neumorphPillActiveClass
+                    : neumorphPillClass
+                    }`}
+                >
+                  <ArrowDownNarrowWide size={16} />
+                  Más recientes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setSortOrder('asc'); setPage(1) }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortOrder === 'asc'
+                    ? neumorphPillActiveClass
+                    : neumorphPillClass
+                    }`}
+                >
+                  <ArrowUpNarrowWide size={16} />
+                  Más antiguos
+                </button>
+              </div>
+
+              {/* Collapsible Year Filter - only show when there are results */}
+              {availableYears.length > 0 && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowYears(!showYears)}
+                    className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
+                      }`}
+                  >
+                    {showYears ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    Filtrar por año
+                    {yearFilter && (
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${isDark ? 'bg-primary-600 text-white' : 'bg-primary-500 text-white'}`}>
+                        {yearFilter}
+                      </span>
+                    )}
+                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      ({availableYears.length} años)
+                    </span>
+                  </button>
+
+                  {showYears && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {/* All Years Button */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setYearFilter('')
+                          setPage(1)
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === ''
+                          ? neumorphPillActiveClass
+                          : neumorphPillClass
+                          }`}
+                      >
+                        Todos
+                      </button>
+
+                      {/* Only relevant year buttons, ordered according to sort */}
+                      {(sortOrder === 'desc' ? availableYears : [...availableYears].reverse()).map((year) => (
+                        <button
+                          key={year}
+                          type="button"
+                          onClick={() => {
+                            setYearFilter(year)
+                            setPage(1)
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === year
+                            ? neumorphPillActiveClass
+                            : neumorphPillClass
+                            }`}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Collapsible Brand Filter */}
               <div>
                 <button
                   type="button"
-                  onClick={() => setShowYears(!showYears)}
+                  onClick={() => setShowBrands(!showBrands)}
                   className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
                     }`}
                 >
-                  {showYears ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  Filtrar por año
-                  {yearFilter && (
+                  {showBrands ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  Filtrar por marca
+                  {brandFilter.length > 0 && (
                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${isDark ? 'bg-primary-600 text-white' : 'bg-primary-500 text-white'}`}>
-                      {yearFilter}
+                      {brandFilter.length}
                     </span>
                   )}
-                  <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                    ({availableYears.length} años)
-                  </span>
                 </button>
 
-                {showYears && (
+                {showBrands && (
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {/* All Years Button */}
+                    {/* All Brands Button */}
                     <button
                       type="button"
                       onClick={() => {
-                        setYearFilter('')
-                        setPage(1)
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === ''
-                        ? isDark
-                          ? 'bg-primary-600 text-white shadow-lg'
-                          : 'bg-primary-500 text-white shadow-lg'
-                        : isDark
-                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                        }`}
-                    >
-                      Todos
-                    </button>
-
-                    {/* Only relevant year buttons, ordered according to sort */}
-                    {(sortOrder === 'desc' ? availableYears : [...availableYears].reverse()).map((year) => (
-                      <button
-                        key={year}
-                        type="button"
-                        onClick={() => {
-                          setYearFilter(year)
-                          setPage(1)
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${yearFilter === year
-                          ? isDark
-                            ? 'bg-primary-600 text-white shadow-lg'
-                            : 'bg-primary-500 text-white shadow-lg'
-                          : isDark
-                            ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                          }`}
-                      >
-                        {year}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Collapsible Brand Filter */}
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowBrands(!showBrands)}
-                className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
-                  }`}
-              >
-                {showBrands ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                Filtrar por marca
-                {brandFilter.length > 0 && (
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${isDark ? 'bg-primary-600 text-white' : 'bg-primary-500 text-white'}`}>
-                    {brandFilter.length}
-                  </span>
-                )}
-              </button>
-
-              {showBrands && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {/* All Brands Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const allBrandNames = ['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House', 'Tomica']
-                      // If "Todas" is selected, deselect it and select only Hot Wheels
-                      // If "Todas" is not selected, select all brands
-                      const isAllSelected = brandFilter.length === allBrandNames.length
-                      const finalBrands = isAllSelected ? ['Hot Wheels'] : allBrandNames
-                      setBrandFilter(finalBrands)
-                      setPage(1)
-                      // Immediately search with new brands
-                      handleSearch({ brands: finalBrands, pageNum: 1 })
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.length === 5
-                      ? isDark
-                        ? 'bg-primary-600 text-white shadow-lg'
-                        : 'bg-primary-500 text-white shadow-lg'
-                      : isDark
-                        ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                        : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
-                      }`}
-                  >
-                    Todas
-                  </button>
-
-                  {/* Brand buttons */}
-                  {availableBrands.map((brand) => (
-                    <button
-                      key={brand}
-                      type="button"
-                      onClick={() => {
-                        const newBrands = brandFilter.includes(brand)
-                          ? brandFilter.filter(b => b !== brand)
-                          : [...brandFilter, brand]
-                        // Ensure at least one brand is selected
-                        const finalBrands = newBrands.length > 0 ? newBrands : ['Hot Wheels']
+                        const allBrandNames = ['Hot Wheels', 'Mini GT', 'Pop Race', 'Kaido House', 'Tomica']
+                        // If "Todas" is selected, deselect it and select only Hot Wheels
+                        // If "Todas" is not selected, select all brands
+                        const isAllSelected = brandFilter.length === allBrandNames.length
+                        const finalBrands = isAllSelected ? ['Hot Wheels'] : allBrandNames
                         setBrandFilter(finalBrands)
                         setPage(1)
                         // Immediately search with new brands
                         handleSearch({ brands: finalBrands, pageNum: 1 })
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.includes(brand)
-                        ? isDark
-                          ? 'bg-primary-600 text-white shadow-lg'
-                          : 'bg-primary-500 text-white shadow-lg'
-                        : isDark
-                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                          : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.length === 5
+                        ? neumorphPillActiveClass
+                        : neumorphPillClass
                         }`}
                     >
-                      {brand}
+                      Todas
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Search Button */}
-          <Button
-            type="submit"
-            variant="primary"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin mr-2" size={18} />
-                Buscando...
-              </>
-            ) : (
-              <>
-                <SearchIcon className="mr-2" size={18} />
-                Buscar
-              </>
-            )}
-          </Button>
-        </form>
-      </div>
-
-      {/* Results Grid */}
-      {!hasSearched ? (
-        <div className="text-center py-12">
-          {featuredLoading ? (
-            <div className="flex justify-center items-center py-16">
-              <Loader2 className={`animate-spin ${isDark ? 'text-slate-500' : 'text-slate-400'}`} size={36} />
-            </div>
-          ) : featuredItem ? (
-            <>
-              {/* Featured random item */}
-              <div
-                className={`max-w-sm mx-auto rounded-xl overflow-hidden transition-all duration-300 ${isDark
-                  ? 'bg-slate-800/80 shadow-lg shadow-slate-900/50 border border-slate-700/50'
-                  : 'bg-white shadow-md border border-slate-200'
-                  }`}
-              >
-                {/* Photo */}
-                <div className={`relative h-56 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
-                  {(() => {
-                    const imgUrl = resolveCatalogImageUrl(featuredItem.photo_url)
-                    return imgUrl && (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) ? (
-                      <img
-                        src={imgUrl.includes('weserv') ? imgUrl : `https://images.weserv.nl/?url=${encodeURIComponent(imgUrl)}&w=400&h=280&fit=contain`}
-                        alt={featuredItem.carModel}
-                        className="w-full h-full object-contain p-2"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getPlaceholderLogo(featuredItem.series, featuredItem.brand)
+                    {/* Brand buttons */}
+                    {availableBrands.map((brand) => (
+                      <button
+                        key={brand}
+                        type="button"
+                        onClick={() => {
+                          const newBrands = brandFilter.includes(brand)
+                            ? brandFilter.filter(b => b !== brand)
+                            : [...brandFilter, brand]
+                          // Ensure at least one brand is selected
+                          const finalBrands = newBrands.length > 0 ? newBrands : ['Hot Wheels']
+                          setBrandFilter(finalBrands)
+                          setPage(1)
+                          // Immediately search with new brands
+                          handleSearch({ brands: finalBrands, pageNum: 1 })
                         }}
-                      />
-                    ) : (
-                      <img src={getPlaceholderLogo(featuredItem.series, featuredItem.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-6 opacity-60" />
-                    )
-                  })()}
-                  {featuredItem.segment && (
-                    <div className="absolute top-2 left-2">
-                      <SegmentBadge segment={featuredItem.segment} />
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="p-4 text-left">
-                  <h4 className={`text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {featuredItem.carModel}
-                  </h4>
-                  <p className={`text-sm mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                    {featuredItem.series} &bull; {featuredItem.year}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {featuredItem.color && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
-                        🎨 {featuredItem.color}
-                      </span>
-                    )}
-                    {featuredItem.wheel_type && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
-                        🛞 {featuredItem.wheel_type}
-                      </span>
-                    )}
-                    {featuredItem.toy_num && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
-                        #{featuredItem.toy_num}
-                      </span>
-                    )}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${brandFilter.includes(brand)
+                          ? neumorphPillActiveClass
+                          : neumorphPillClass
+                          }`}
+                      >
+                        {brand}
+                      </button>
+                    ))}
                   </div>
-
-                  <div className="mt-4 flex gap-2">
-                    <Button
-                      onClick={handleFeaturedExactSearch}
-                      className="flex-1"
-                    >
-                      Buscar este exacto
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleItemClick(featuredItem)}
-                      className="flex-1"
-                    >
-                      Ver detalles
-                    </Button>
-                  </div>
-                </div>
+                )}
               </div>
+            </div>
 
-              <h3 className={`text-2xl font-semibold mt-6 mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                ¿Qué modelo buscas?
-              </h3>
-              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                Escribe un nombre, serie o fabricante para comenzar
-              </p>
-            </>
-          ) : (
-            <>
-              <img src="/hw-flame-gold.jpg" alt="Auto a Escala" className="w-48 h-48 mx-auto mb-6 opacity-60 object-contain" />
-              <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                ¿Qué modelo buscas?
-              </h3>
-              <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                Escribe un nombre, serie o fabricante para comenzar
-              </p>
-            </>
-          )}
+            {/* Search Button */}
+            <Button
+              type="submit"
+              variant="primary"
+              className={`w-full rounded-xl ${neumorphPillActiveClass}`}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={18} />
+                  Buscando...
+                </>
+              ) : (
+                <>
+                  <SearchIcon className="mr-2" size={18} />
+                  Buscar
+                </>
+              )}
+            </Button>
+          </form>
         </div>
-      ) : loading ? (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className={`animate-spin ${isDark ? 'text-slate-400' : 'text-slate-600'}`} size={48} />
-        </div>
-      ) : results.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-            {results.map((item) => {
-              const previewUrl = resolveCatalogImageUrl(item.photo_url)
-              return (
-                <div
-                  key={item._id}
-                  onClick={() => handleItemClick(item)}
-                  className={`rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${isDark
-                    ? 'bg-slate-800 hover:bg-slate-750 hover:shadow-xl'
-                    : 'bg-white hover:shadow-lg'
-                    } shadow-md border ${isDark ? 'border-slate-700' : 'border-slate-200'
-                    }`}
-                >
-                  {/* Image */}
-                  <div className="relative h-48 bg-slate-700 flex items-center justify-center">
-                    {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
-                      <img
-                        src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
-                        alt={item.carModel}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
-                        }}
-                      />
+
+        {/* Results Grid */}
+        {!hasSearched ? (
+          <div className={`text-center py-12 ${featuredShellClass}`}>
+            {featuredLoading ? (
+              <div className="flex justify-center items-center py-16">
+                <Loader2 className={`animate-spin ${isDark ? 'text-slate-500' : 'text-slate-400'}`} size={36} />
+              </div>
+            ) : featuredItem ? (
+              <>
+                <div className="max-w-sm mx-auto mb-4 flex items-center justify-between">
+                  <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-cyan-300' : 'text-sky-700'}`}>
+                    Item Aleatorio del Catalogo
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => fetchFeatured(true)}
+                    disabled={refreshingFeatured}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${neumorphPillClass}`}
+                  >
+                    {refreshingFeatured ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Loader2 size={12} className="animate-spin" />
+                        Cargando...
+                      </span>
                     ) : (
-                      <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
+                      'Otro modelo'
                     )}
+                  </button>
+                </div>
 
-                    {/* Segment Badge */}
-                    <div className="absolute top-2 left-2 flex flex-col gap-1">
-                      <SegmentBadge segment={item.segment} />
-                      {item.brand && item.brand !== 'Hot Wheels' && (
-                        <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
-                          {item.brand}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Availability Badge */}
-                    {item.availability.available && (
-                      <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
-                        Disponible
+                {/* Featured random item */}
+                <div className={featuredCardClass}>
+                  {/* Photo */}
+                  <div className={`relative h-56 flex items-center justify-center ${featuredInsetClass}`}>
+                    {(() => {
+                      const imgUrl = resolveCatalogImageUrl(featuredItem.photo_url)
+                      return imgUrl && (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) ? (
+                        <img
+                          src={imgUrl.includes('weserv') ? imgUrl : `https://images.weserv.nl/?url=${encodeURIComponent(imgUrl)}&w=400&h=280&fit=contain`}
+                          alt={featuredItem.carModel}
+                          className="w-full h-full object-contain p-2"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getPlaceholderLogo(featuredItem.series, featuredItem.brand)
+                          }}
+                        />
+                      ) : (
+                        <img src={getPlaceholderLogo(featuredItem.series, featuredItem.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-6 opacity-60" />
+                      )
+                    })()}
+                    {featuredItem.segment && (
+                      <div className="absolute top-2 left-2">
+                        <SegmentBadge segment={featuredItem.segment} />
+                      </div>
+                    )}
+                    {refreshingFeatured && (
+                      <div className="absolute inset-0 bg-slate-900/35 backdrop-blur-[1px] flex items-center justify-center">
+                        <Loader2 size={24} className="animate-spin text-white" />
                       </div>
                     )}
                   </div>
 
                   {/* Info */}
-                  <div className="p-4">
-                    <h3 className={`font-semibold text-base mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'
-                      }`}>
-                      {item.carModel}
-                    </h3>
-
-                    <div className={`text-sm space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                      <p>{item.series}</p>
-                      <p>Año: {item.year}</p>
-                      {item.color && <p>Color: {item.color}</p>}
+                  <div className="p-4 text-left">
+                    <h4 className={`text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {featuredItem.carModel}
+                    </h4>
+                    <p className={`text-sm mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {featuredItem.series} &bull; {featuredItem.year}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {featuredItem.color && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${featuredInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          🎨 {featuredItem.color}
+                        </span>
+                      )}
+                      {featuredItem.wheel_type && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${featuredInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          🛞 {featuredItem.wheel_type}
+                        </span>
+                      )}
+                      {featuredItem.toy_num && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${featuredInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          #{featuredItem.toy_num}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Price (if available) */}
-                    {item.availability.available && item.availability.price && (
-                      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                        <p className="text-lg font-bold text-green-600">
-                          ${item.availability.price.toFixed(2)}
-                        </p>
-                        <p className="text-xs text-blue-600">
-                          Entrega inmediata
-                        </p>
-                      </div>
-                    )}
+                    <div className="mt-4 flex gap-2">
+                      <Button
+                        onClick={handleFeaturedExactSearch}
+                        className={`flex-1 ${neumorphPillActiveClass}`}
+                      >
+                        Buscar este exacto
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={() => handleItemClick(featuredItem)}
+                        className={`flex-1 ${neumorphPillClass}`}
+                      >
+                        Ver detalles
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              )
-            })}
+
+                <h3 className={`text-2xl font-semibold mt-6 mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  ¿Qué modelo buscas?
+                </h3>
+                <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Escribe un nombre, serie o fabricante para comenzar
+                </p>
+              </>
+            ) : (
+              <>
+                <img src="/hw-flame-gold.jpg" alt="Auto a Escala" className="w-48 h-48 mx-auto mb-6 opacity-60 object-contain" />
+                <h3 className={`text-2xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  ¿Qué modelo buscas?
+                </h3>
+                <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  Escribe un nombre, serie o fabricante para comenzar
+                </p>
+              </>
+            )}
           </div>
+        ) : loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className={`animate-spin ${isDark ? 'text-slate-400' : 'text-slate-600'}`} size={48} />
+          </div>
+        ) : results.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+              {results.map((item) => {
+                const previewUrl = resolveCatalogImageUrl(item.photo_url)
+                return (
+                  <div
+                    key={item._id}
+                    onClick={() => handleItemClick(item)}
+                    className={`rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${isDark
+                      ? 'bg-slate-800 border border-slate-700/60 hover:brightness-110 shadow-[10px_10px_20px_rgba(2,6,23,0.52),-8px_-8px_16px_rgba(51,65,85,0.18)]'
+                      : 'bg-[#edf3fa] border border-white/80 hover:brightness-95 shadow-[10px_10px_20px_rgba(148,163,184,0.3),-10px_-10px_20px_rgba(255,255,255,0.9)]'
+                      }`}
+                  >
+                    {/* Image */}
+                    <div className="relative h-48 bg-slate-700 flex items-center justify-center">
+                      {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
+                        <img
+                          src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
+                          alt={item.carModel}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
+                          }}
+                        />
+                      ) : (
+                        <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
+                      )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-4 mt-8">
-              <Button
-                variant="secondary"
-                onClick={handlePrevPage}
-                disabled={page === 1}
-                icon={<ChevronLeft size={18} />}
-              >
-                Anterior
-              </Button>
+                      {/* Segment Badge */}
+                      <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        <SegmentBadge segment={item.segment} />
+                        {item.brand && item.brand !== 'Hot Wheels' && (
+                          <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
+                            {item.brand}
+                          </span>
+                        )}
+                      </div>
 
-              <span className={`${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                Página {page} de {totalPages}
-              </span>
+                      {/* Availability Badge */}
+                      {item.availability.available && (
+                        <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
+                          Disponible
+                        </div>
+                      )}
+                    </div>
 
-              <Button
-                variant="secondary"
-                onClick={handleNextPage}
-                disabled={page === totalPages}
-                icon={<ChevronRight size={18} />}
-              >
-                Siguiente
-              </Button>
+                    {/* Info */}
+                    <div className="p-4">
+                      <h3 className={`font-semibold text-base mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'
+                        }`}>
+                        {item.carModel}
+                      </h3>
+
+                      <div className={`text-sm space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <p>{item.series}</p>
+                        <p>Año: {item.year}</p>
+                        {item.color && <p>Color: {item.color}</p>}
+                      </div>
+
+                      {/* Price (if available) */}
+                      {item.availability.available && item.availability.price && (
+                        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                          <p className="text-lg font-bold text-green-600">
+                            ${item.availability.price.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-blue-600">
+                            Entrega inmediata
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-          )}
-        </>
-      ) : (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🔍</div>
-          <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            No se encontraron resultados
-          </h3>
-          <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-            Intenta con otros términos de búsqueda
-          </p>
-        </div>
-      )}
 
-      {/* Lead Capture Modal */}
-      <LeadCaptureModal
-        isOpen={showLeadModal}
-        onClose={() => {
-          setShowLeadModal(false)
-          setPendingItemForLead(null) // Clear pending item on close
-        }}
-        onSuccess={handleLeadCaptured}
-        interestedInItem={
-          pendingItemForLead
-            ? {
-              catalogId: pendingItemForLead._id,
-              carModel: `${pendingItemForLead.carModel} ${pendingItemForLead.series} (${pendingItemForLead.year})`,
-              requestType: 'availability'
-            }
-            : undefined
-        }
-      />
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center space-x-4 mt-8">
+                <Button
+                  variant="secondary"
+                  onClick={handlePrevPage}
+                  disabled={page === 1}
+                  icon={<ChevronLeft size={18} />}
+                >
+                  Anterior
+                </Button>
 
-      {/* Item Detail Modal */}
-      {selectedItem && (
-        <CatalogItemDetailModal
-          item={selectedItem}
-          isOpen={!!selectedItem}
-          onClose={() => setSelectedItem(null)}
+                <span className={`${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Página {page} de {totalPages}
+                </span>
+
+                <Button
+                  variant="secondary"
+                  onClick={handleNextPage}
+                  disabled={page === totalPages}
+                  icon={<ChevronRight size={18} />}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 ${neumorphSurfaceClass}`}>
+              <span className="text-4xl">🔍</span>
+            </div>
+            <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              No se encontraron resultados
+            </h3>
+            <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              Intenta con otros términos de búsqueda
+            </p>
+          </div>
+        )}
+
+        {/* Lead Capture Modal */}
+        <LeadCaptureModal
+          isOpen={showLeadModal}
+          onClose={() => {
+            setShowLeadModal(false)
+            setPendingItemForLead(null) // Clear pending item on close
+          }}
+          onSuccess={handleLeadCaptured}
+          interestedInItem={
+            pendingItemForLead
+              ? {
+                catalogId: pendingItemForLead._id,
+                carModel: `${pendingItemForLead.carModel} ${pendingItemForLead.series} (${pendingItemForLead.year})`,
+                requestType: 'availability'
+              }
+              : undefined
+          }
         />
-      )}
+
+        {/* Item Detail Modal */}
+        {selectedItem && (
+          <CatalogItemDetailModal
+            item={selectedItem}
+            isOpen={!!selectedItem}
+            onClose={() => setSelectedItem(null)}
+          />
+        )}
+      </div>
     </PublicLayout>
   )
 }

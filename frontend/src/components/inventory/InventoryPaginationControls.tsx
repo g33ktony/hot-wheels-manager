@@ -72,8 +72,8 @@ export default function InventoryPaginationControls({
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
                     className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
-                        ? '!bg-slate-800/46 !text-slate-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)] hover:!bg-slate-800/58'
-                        : '!bg-slate-200/60 !text-slate-900 !font-semibold disabled:!text-slate-700 disabled:!opacity-80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72'
+                        ? '!bg-slate-800/46 !text-slate-300 !font-semibold disabled:!text-slate-400 disabled:!opacity-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)] hover:!bg-slate-800/58'
+                        : '!bg-slate-200/60 !text-slate-500 !font-semibold disabled:!text-slate-500 disabled:!opacity-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72'
                         }`}
                     aria-label="Página anterior"
                 >
@@ -124,8 +124,8 @@ export default function InventoryPaginationControls({
                     onClick={() => onPageChange(Math.min(pagination.totalPages, currentPage + 1))}
                     disabled={currentPage === pagination.totalPages}
                     className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
-                        ? '!bg-slate-800/46 !text-slate-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)] hover:!bg-slate-800/58'
-                        : '!bg-slate-200/60 !text-slate-900 !font-semibold disabled:!text-slate-700 disabled:!opacity-80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72'
+                        ? '!bg-slate-800/46 !text-slate-300 !font-semibold disabled:!text-slate-400 disabled:!opacity-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)] hover:!bg-slate-800/58'
+                        : '!bg-slate-200/60 !text-slate-500 !font-semibold disabled:!text-slate-500 disabled:!opacity-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72'
                         }`}
                     aria-label="Página siguiente"
                 >

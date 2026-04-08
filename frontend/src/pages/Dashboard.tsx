@@ -31,6 +31,11 @@ export default function Dashboard() {
     const [selectedUnpaidDelivery, setSelectedUnpaidDelivery] = React.useState<any>(null)
     const [isInitiatingUpdate, setIsInitiatingUpdate] = React.useState(false)
 
+    const dashboardBackdropClass = 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
+    const neumorphSurfaceClass = 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(51,65,85,0.2)]'
+    const neumorphInsetClass = 'rounded-xl border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+    const neumorphPillClass = 'rounded-xl border border-slate-700/70 bg-slate-800 text-slate-100 shadow-[8px_8px_16px_rgba(2,6,23,0.45),-6px_-6px_12px_rgba(51,65,85,0.16)] hover:brightness-110 transition-all'
+
     const { data: metrics, isLoading, error } = useQuery(
         ['dashboard-metrics', selectedStore],
         () => dashboardService.getMetrics(selectedStore ?? undefined),
@@ -212,9 +217,9 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="space-y-4 lg:space-y-6">
+        <div className={`space-y-4 lg:space-y-6 rounded-3xl p-4 lg:p-6 ${dashboardBackdropClass}`}>
             {/* Header with Update Button */}
-            <div className="flex items-center justify-between gap-4">
+            <div className={`flex items-center justify-between gap-4 p-4 lg:p-5 ${neumorphSurfaceClass}`}>
                 <div>
                     <h1 className="text-xl lg:text-2xl font-bold text-white">Dashboard</h1>
                     <p className="text-sm lg:text-base text-slate-400">Resumen general de tu negocio de autos a escala</p>
@@ -225,7 +230,7 @@ export default function Dashboard() {
                             size="sm"
                             variant="secondary"
                             onClick={handleDownload}
-                            className="flex items-center gap-2 whitespace-nowrap"
+                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillClass}`}
                             disabled={isDownloading}
                         >
                             <Download size={16} />
@@ -235,7 +240,7 @@ export default function Dashboard() {
                             size="sm"
                             variant="secondary"
                             onClick={() => setShowSearchModal(true)}
-                            className="flex items-center gap-2 whitespace-nowrap"
+                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillClass}`}
                         >
                             <Search size={16} />
                             Buscar
@@ -244,7 +249,7 @@ export default function Dashboard() {
                             size="sm"
                             variant="secondary"
                             onClick={() => setShowUpdateModal(true)}
-                            className="flex items-center gap-2 whitespace-nowrap"
+                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillClass}`}
                             disabled={updateStatus?.progress?.isUpdating}
                         >
                             <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin' : ''} />
@@ -257,9 +262,9 @@ export default function Dashboard() {
             {/* Metrics Grid - 2 columns on mobile, 3 on desktop */}
             <div className="hidden grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
                 {metricCards.map((metric) => (
-                    <Card key={metric.title} className="hover:shadow-md transition-shadow duration-200">
+                    <Card key={metric.title} className={`hover:brightness-110 transition-all duration-200 ${neumorphSurfaceClass}`}>
                         <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0">
-                            <div className={`p-2 rounded-lg ${metric.bgColor} self-start`}>
+                            <div className={`p-2 rounded-lg ${metric.bgColor} self-start shadow-[inset_3px_3px_8px_rgba(2,6,23,0.55),inset_-2px_-2px_6px_rgba(51,65,85,0.16)]`}>
                                 {React.createElement(metric.icon, { size: 20, className: metric.color })}
                             </div>
                             <div className="lg:ml-4">
@@ -274,7 +279,7 @@ export default function Dashboard() {
             {/* Statistics Widgets */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div
-                    className="p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105 rounded-lg"
+                    className="p-6 border border-emerald-400/25 cursor-pointer transition-all hover:scale-[1.02] rounded-2xl bg-[linear-gradient(145deg,rgba(16,185,129,0.9),rgba(5,150,105,0.85))] shadow-[12px_12px_24px_rgba(2,6,23,0.5),-8px_-8px_14px_rgba(52,211,153,0.12)]"
                     onClick={() => navigate('/sales-statistics')}
                 >
                     <div className="flex items-center justify-between">
@@ -288,7 +293,7 @@ export default function Dashboard() {
                 </div>
 
                 <div
-                    className="p-6 bg-gradient-to-br from-blue-500 to-blue-600 border-0 cursor-pointer hover:shadow-lg transition-all hover:scale-105 rounded-lg"
+                    className="p-6 border border-blue-400/25 cursor-pointer transition-all hover:scale-[1.02] rounded-2xl bg-[linear-gradient(145deg,rgba(59,130,246,0.9),rgba(37,99,235,0.86))] shadow-[12px_12px_24px_rgba(2,6,23,0.5),-8px_-8px_14px_rgba(59,130,246,0.14)]"
                     onClick={() => navigate('/search?stockFilter=without')}
                 >
                     <div className="flex items-center justify-between">
@@ -308,7 +313,7 @@ export default function Dashboard() {
             {/* Recent Activity and Alerts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Recent Activity */}
-                <Card>
+                <Card className={neumorphSurfaceClass}>
                     <CardHeader>
                         <CardTitle className="text-white">Actividad Reciente</CardTitle>
                     </CardHeader>
@@ -338,7 +343,7 @@ export default function Dashboard() {
                                         <div
                                             key={activity.id}
                                             onClick={() => isClickable && navigate(path)}
-                                            className={`flex items-center justify-between p-3 bg-slate-700/30 rounded-lg ${isClickable ? 'cursor-pointer hover:bg-slate-700 hover:shadow-sm transition-all' : ''
+                                            className={`flex items-center justify-between p-3 ${neumorphInsetClass} ${isClickable ? 'cursor-pointer hover:brightness-110 transition-all' : ''
                                                 }`}
                                         >
                                             <div className="flex-1">
@@ -369,7 +374,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Alerts and Notifications */}
-                <Card>
+                <Card className={neumorphSurfaceClass}>
                     <CardHeader>
                         <CardTitle className="flex items-center text-white">
                             <AlertTriangle size={20} className="text-red-500 mr-2" />
@@ -380,7 +385,7 @@ export default function Dashboard() {
                         <div className="space-y-3">
                             {/* Today's Deliveries */}
                             {metrics.todaysDeliveries && metrics.todaysDeliveries.length > 0 && (
-                                <div className="p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
+                                <div className={`p-3 ${neumorphInsetClass}`}>
                                     <div className="flex items-center mb-2">
                                         <Calendar size={16} className="text-emerald-400 mr-2" />
                                         <p className="text-sm font-medium text-white">
@@ -389,7 +394,7 @@ export default function Dashboard() {
                                     </div>
                                     <div className="space-y-2 ml-6">
                                         {metrics.todaysDeliveries.map((delivery) => (
-                                            <div key={delivery.id} className="text-xs bg-slate-800 p-2 rounded border">
+                                            <div key={delivery.id} className={`text-xs p-2 ${neumorphInsetClass}`}>
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <p className="font-medium text-white">{delivery.customerName}</p>
@@ -416,7 +421,7 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingPurchases > 0 && (
-                                <div className="flex items-center p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
+                                <div className={`flex items-center p-3 ${neumorphInsetClass}`}>
                                     <div className="flex-1">
                                         <p className="text-sm font-medium text-white">
                                             Tienes {metrics.pendingPurchases} compras pendientes de recibir
@@ -426,7 +431,7 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingSales > 0 && (
-                                <div className="flex items-center p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
+                                <div className={`flex items-center p-3 ${neumorphInsetClass}`}>
                                     <div className="flex-1">
                                         <p className="text-sm font-medium text-white">
                                             Tienes {metrics.pendingSales} ventas pendientes
@@ -436,7 +441,7 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingDeliveries > 0 && !metrics.todaysDeliveries?.length && (
-                                <div className="flex items-center p-3 bg-slate-700/50 border border-slate-600 rounded-lg">
+                                <div className={`flex items-center p-3 ${neumorphInsetClass}`}>
                                     <div className="flex-1">
                                         <p className="text-sm font-medium text-white">
                                             Tienes {metrics.pendingDeliveries} entregas programadas
@@ -448,7 +453,7 @@ export default function Dashboard() {
                             {/* Unpaid Deliveries Alert */}
                             {unpaidDeliveries && unpaidDeliveries.length > 0 && (
                                 <div
-                                    className="flex items-start p-4 bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border-2 border-yellow-600 rounded-lg cursor-pointer hover:from-yellow-900/70 hover:to-orange-900/70 transition-colors"
+                                    className="flex items-start p-4 rounded-xl cursor-pointer transition-all border border-yellow-500/60 bg-[linear-gradient(145deg,rgba(113,63,18,0.62),rgba(146,64,14,0.56))] shadow-[10px_10px_20px_rgba(2,6,23,0.5),-6px_-6px_12px_rgba(245,158,11,0.08)] hover:brightness-110"
                                     onClick={() => setSelectedUnpaidDelivery(unpaidDeliveries[0])}
                                 >
                                     <AlertCircle className="text-yellow-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
@@ -469,7 +474,7 @@ export default function Dashboard() {
                             {/* Pending Items Widget */}
                             {pendingItemsStats && pendingItemsStats.totalCount > 0 && (
                                 <div
-                                    className="flex items-start p-4 bg-slate-700/50 border-2 border-slate-600 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors"
+                                    className={`flex items-start p-4 border border-slate-600 ${neumorphInsetClass} cursor-pointer hover:brightness-110 transition-all`}
                                     onClick={() => navigate('/pending-items')}
                                 >
                                     <AlertCircle className="text-red-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
@@ -560,7 +565,7 @@ export default function Dashboard() {
                 <div className="space-y-4">
                     {updateStatus?.progress?.step !== 'completed' && updateStatus?.progress?.step !== 'error' && !updateStatus?.progress?.isUpdating && (
                         <>
-                            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+                            <div className={`p-4 ${neumorphInsetClass}`}>
                                 <p className="text-sm text-white">
                                     <span className="font-semibold">📥 Descargar datos actualizados</span>
                                     <br className="mt-2" />
@@ -568,7 +573,7 @@ export default function Dashboard() {
                                 </p>
                             </div>
 
-                            <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+                            <div className={`p-4 ${neumorphInsetClass}`}>
                                 <p className="text-sm text-white">
                                     <span className="font-semibold">⏱️ Tiempo estimado:</span> 2-5 minutos
                                     <br />
@@ -577,7 +582,7 @@ export default function Dashboard() {
                             </div>
 
                             {updateStatus && (
-                                <div className="bg-slate-700/30 rounded-lg p-4 text-sm">
+                                <div className={`p-4 text-sm ${neumorphInsetClass}`}>
                                     <p className="font-semibold text-white mb-2">Última actualización:</p>
                                     <p className="text-slate-400">
                                         {new Date(updateStatus.lastModified).toLocaleDateString('es-ES', {
@@ -611,7 +616,7 @@ export default function Dashboard() {
                                     <p className="text-white font-medium">{updateStatus?.progress?.message || 'Descargando catálogo...'}</p>
 
                                     {/* Real Progress Bar */}
-                                    <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden border border-slate-600">
+                                    <div className={`w-full h-2.5 overflow-hidden ${neumorphInsetClass}`}>
                                         <div
                                             className="bg-emerald-500 h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
                                             style={{ width: `${updateStatus?.progress?.percent || 0}%` }}
@@ -630,7 +635,7 @@ export default function Dashboard() {
                     )}
 
                     {(updateStatus?.progress?.step === 'completed' && !updateStatus?.progress?.isUpdating) && (
-                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 animate-in fade-in zoom-in duration-300">
+                        <div className={`p-4 animate-in fade-in zoom-in duration-300 ${neumorphInsetClass}`}>
                             <p className="text-white text-center">
                                 <span className="text-3xl block mb-2">✅</span>
                                 <span className="font-semibold text-emerald-400 text-lg">Actualización completada</span>
@@ -643,7 +648,7 @@ export default function Dashboard() {
                     )}
 
                     {updateStatus?.progress?.step === 'error' && (
-                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4">
+                        <div className={`p-4 ${neumorphInsetClass}`}>
                             <p className="text-white">
                                 <span className="font-semibold text-red-400">❌ Error en la actualización</span>
                                 <br className="mt-2" />
@@ -680,7 +685,7 @@ export default function Dashboard() {
             >
                 <div className="space-y-4">
                     {/* Info sobre búsqueda mejorada */}
-                    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-3">
+                    <div className="rounded-xl p-3 bg-emerald-500/10 border border-emerald-500/30 shadow-[8px_8px_16px_rgba(2,6,23,0.4),-6px_-6px_10px_rgba(16,185,129,0.08)]">
                         <p className="text-xs text-emerald-300">
                             💡 <span className="font-semibold">Búsqueda inteligente:</span> Busca en todos los campos (modelo, serie, año, códigos).
                             Encuentra resultados similares aunque no coincidan exactamente.
@@ -694,7 +699,7 @@ export default function Dashboard() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Buscar por modelo, serie, año, Toy #, etc..."
-                            className="flex-1 px-3 py-2 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                            className={`flex-1 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${neumorphInsetClass}`}
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                     searchByName(searchQuery)
@@ -730,10 +735,10 @@ export default function Dashboard() {
 
                     {/* Results Grid */}
                     {searchResults.length > 0 && (
-                        <div className="max-h-[600px] overflow-y-auto border border-slate-700 rounded-lg p-4 bg-slate-700/30">
+                        <div className={`max-h-[600px] overflow-y-auto p-4 ${neumorphInsetClass}`}>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {searchResults.map((item, idx) => (
-                                    <div key={idx} className="bg-slate-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-slate-700 flex flex-col">
+                                    <div key={idx} className="rounded-xl overflow-hidden border border-slate-700 flex flex-col bg-slate-800 shadow-[10px_10px_20px_rgba(2,6,23,0.5),-8px_-8px_16px_rgba(51,65,85,0.16)] hover:brightness-110 transition-all">
                                         {/* Imagen */}
                                         <div className="h-40 bg-slate-700 overflow-hidden flex items-center justify-center relative">
                                             {item.photo_url ? (
@@ -795,7 +800,7 @@ export default function Dashboard() {
 
                     {/* Empty State */}
                     {!isSearching && searchResults.length === 0 && !searchQuery && (
-                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 text-center">
+                        <div className={`p-4 text-center ${neumorphInsetClass}`}>
                             <p className="text-white text-sm">
                                 Cargando listado de modelos...
                             </p>
@@ -804,7 +809,7 @@ export default function Dashboard() {
 
                     {/* No Results State */}
                     {!isSearching && searchResults.length === 0 && searchQuery && (
-                        <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-4 text-center">
+                        <div className={`p-4 text-center ${neumorphInsetClass}`}>
                             <p className="text-white text-sm">
                                 No se encontraron resultados para "{searchQuery}"
                             </p>

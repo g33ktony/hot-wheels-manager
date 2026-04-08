@@ -212,7 +212,60 @@ export default function InventoryGridSection({
                                         >
                                             {/* Top badges - compact */}
                                             <div className="flex items-start justify-between gap-1">
-                                                <div />
+                                                {!isSelectionMode && (canEdit || canDelete) && item._id ? (
+                                                    <div className="relative">
+                                                        <button
+                                                            type="button"
+                                                            className={`p-1 rounded-md backdrop-blur-md transition-colors ${isDark
+                                                                ? 'text-slate-100 bg-slate-900/45 hover:bg-slate-800/70'
+                                                                : 'text-slate-700 bg-white/78 hover:bg-white/92'} shadow-[inset_0_2px_2px_rgba(15,23,42,0.25),inset_0_-1px_1px_rgba(255,255,255,0.45)]`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setOpenMenuItemId(openMenuItemId === item._id ? null : item._id || null)
+                                                            }}
+                                                            title="Más acciones"
+                                                        >
+                                                            <MoreVertical size={14} />
+                                                        </button>
+
+                                                        {openMenuItemId === item._id && (
+                                                            <div
+                                                                className={`absolute left-0 mt-1 z-20 min-w-[120px] rounded-lg border p-1 ${isDark
+                                                                    ? 'bg-slate-900/92 border-slate-600/60'
+                                                                    : 'bg-white/95 border-slate-200/85'} backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,0.28)]`}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                {canEdit && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded ${isDark ? 'text-slate-200 hover:bg-slate-700/80' : 'text-slate-700 hover:bg-slate-100'}`}
+                                                                        onClick={() => {
+                                                                            onEditItem(item)
+                                                                            setOpenMenuItemId(null)
+                                                                        }}
+                                                                    >
+                                                                        <Edit size={14} />
+                                                                        Editar
+                                                                    </button>
+                                                                )}
+                                                                {canDelete && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded text-red-500 hover:bg-red-500/10"
+                                                                        onClick={() => {
+                                                                            if (item._id) onDeleteItem(item._id)
+                                                                            setOpenMenuItemId(null)
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 size={14} />
+                                                                        Eliminar
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : <div />}
+
                                                 <div className="flex flex-col items-end gap-0.5">
                                                     {item.isSuperTreasureHunt && (
                                                         <span className="px-1.5 py-0.5 text-[9px] font-bold rounded backdrop-blur-md bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">$TH</span>

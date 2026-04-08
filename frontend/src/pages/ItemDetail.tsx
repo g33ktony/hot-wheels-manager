@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { inventoryService } from '@/services/inventory'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
-import { usePermissions } from '@/hooks/usePermissions'
+import { useCanEditStore } from '@/hooks/useCanEditStore'
 import { useCloudinaryUpload } from '@/hooks/useCloudinaryUpload'
 import ReactCrop, { Crop as CropType } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
@@ -22,14 +22,12 @@ import {
     ChevronLeft,
     ChevronRight,
     Upload,
-    Camera,
-    Pencil
+    Camera
 } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
 import Modal from '@/components/common/Modal'
-import EditCatalogModal from '@/components/EditCatalogModal'
 import toast from 'react-hot-toast'
 import { storeSettingsService } from '@/services/storeSettings'
 
@@ -38,15 +36,14 @@ export default function ItemDetail() {
     const navigate = useNavigate()
     const { mode } = useTheme()
     const { user } = useAuth()
-    const { hasPermission } = usePermissions()
+    const { canDelete } = useCanEditStore()
     const isDark = mode === 'dark'
-    const canEditCatalog = hasPermission('catalog:edit')
     const { uploadImage } = useCloudinaryUpload()
 
     // Debug: Log admin status
     useEffect(() => {
-        console.debug('ItemDetail - User:', { email: user?.email, role: user?.role, canEditCatalog })
-    }, [user?.role, canEditCatalog])
+        console.debug('ItemDetail - User:', { email: user?.email, role: user?.role })
+    }, [user?.role, user?.email])
     const [item, setItem] = useState<InventoryItem | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [showShareModal, setShowShareModal] = useState(false)
@@ -54,7 +51,6 @@ export default function ItemDetail() {
     const [showGalleryModal, setShowGalleryModal] = useState(false)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
-    const [showEditCatalogModal, setShowEditCatalogModal] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
     const [editingItem, setEditingItem] = useState<InventoryItem | null>(null)
@@ -1159,18 +1155,24 @@ export default function ItemDetail() {
 
     return (
         <div className={`min-h-screen pb-20 sm:pb-24 ${isDark ? 'bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.28),_transparent_40%),linear-gradient(to_bottom,_rgb(2,6,23),_rgb(15,23,42),_rgb(2,6,23))' : 'bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.35),_transparent_45%),linear-gradient(to_bottom,_rgb(248,250,252),_rgb(224,242,254),_rgb(239,246,255))]'}`}>
-            <div className={`border-b sticky top-0 z-10 backdrop-blur-xl ${isDark ? 'bg-slate-900/75 border-slate-700/70' : 'bg-white/80 border-slate-200/80'}`}>
-                <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
-                    <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => navigate('/inventory')}
-                        className="!p-2 rounded-xl"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Button>
-                    <div className="flex-1 min-w-0">
-                        <h1 className={`text-base sm:text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{carName}</h1>
+            <div className="sticky top-0 z-10 px-3 sm:px-5 pt-2.5 sm:pt-3">
+                <div className={`max-w-7xl mx-auto rounded-[999px] backdrop-blur-xl border border-transparent ${isDark
+                    ? 'bg-slate-900/62 shadow-[0_10px_24px_rgba(2,6,23,0.38),inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                    : 'bg-white/72 shadow-[0_10px_24px_rgba(148,163,184,0.26),inset_0_2px_2px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                    <div className="px-3 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => navigate('/inventory')}
+                            className={`!p-2 rounded-xl !backdrop-blur-xl ${isDark
+                                ? '!bg-slate-800/44 !text-slate-400 hover:!bg-slate-700/52 hover:!text-slate-300 !border !border-transparent !shadow-[inset_0_3px_3px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
+                                : '!bg-white/60 !text-slate-500 hover:!bg-white/72 hover:!text-slate-700 !border !border-transparent !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
+                        >
+                            <ArrowLeft className={`w-5 h-5 ${isDark ? '!text-slate-400' : '!text-slate-500'}`} />
+                        </Button>
+                        <div className="flex-1 min-w-0">
+                            <h1 className={`text-base sm:text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{carName}</h1>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1182,13 +1184,19 @@ export default function ItemDetail() {
                 <div className={`rounded-3xl p-[1px] ${isDark ? 'bg-gradient-to-r from-cyan-400/40 via-blue-400/30 to-slate-500/35' : 'bg-gradient-to-r from-cyan-400/40 via-blue-500/35 to-indigo-400/40'} shadow-lg`}>
                     <div className={`rounded-[calc(1.5rem-1px)] px-3 py-3 sm:px-4 sm:py-4 ${isDark ? 'bg-slate-900/75 backdrop-blur-xl' : 'bg-white/85 backdrop-blur-xl'}`}>
                         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs sm:text-sm">
-                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark ? 'bg-cyan-500/20 text-cyan-100 border border-cyan-400/35' : 'bg-cyan-100 text-cyan-800 border border-cyan-300/70'}`}>
+                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark
+                                ? 'bg-cyan-500/18 text-cyan-100 border border-transparent shadow-[inset_0_2px_2px_rgba(8,47,73,0.55),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
+                                : 'bg-cyan-100/88 text-cyan-800 border border-transparent shadow-[inset_0_2px_2px_rgba(14,116,144,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                 {formatPieceTypeLabel(item.pieceType) || 'Sin tipo'}
                             </span>
-                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark ? 'bg-blue-500/20 text-blue-100 border border-blue-400/35' : 'bg-blue-100 text-blue-800 border border-blue-300/70'}`}>
+                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark
+                                ? 'bg-blue-500/18 text-blue-100 border border-transparent shadow-[inset_0_2px_2px_rgba(30,58,138,0.52),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
+                                : 'bg-blue-100/88 text-blue-800 border border-transparent shadow-[inset_0_2px_2px_rgba(37,99,235,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                 {formatConditionLabel(item.condition) || 'Sin condición'}
                             </span>
-                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark ? 'bg-emerald-500/20 text-emerald-100 border border-emerald-400/35' : 'bg-emerald-100 text-emerald-800 border border-emerald-300/70'}`}>
+                            <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark
+                                ? 'bg-emerald-500/18 text-emerald-100 border border-transparent shadow-[inset_0_2px_2px_rgba(6,78,59,0.52),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
+                                : 'bg-emerald-100/88 text-emerald-800 border border-transparent shadow-[inset_0_2px_2px_rgba(5,150,105,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                 {availableQuantity} disponibles
                             </span>
                             <span className={`ml-auto text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -1200,109 +1208,137 @@ export default function ItemDetail() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-5">
                     <div className="lg:col-span-3 space-y-3 sm:space-y-4">
-                        <Card className={`overflow-hidden p-0 rounded-3xl border ${isDark ? 'border-slate-400/80 bg-slate-900/60 shadow-2xl shadow-cyan-900/25' : 'border-sky-200/80 bg-white/90 shadow-2xl shadow-sky-200/65'} backdrop-blur-xl`}>
-                            {selectedPhoto ? (
-                                <div>
-                                    <div className="relative group h-[48vh] min-h-[280px] max-h-[520px] sm:h-[58vh] sm:min-h-[360px] sm:max-h-[680px] bg-black flex items-center justify-center">
-                                        <img
-                                            src={proxifyImageUrl(selectedPhoto.url)}
-                                            alt={carName}
-                                            crossOrigin="anonymous"
-                                            onClick={() => setShowGalleryModal(true)}
-                                            className="w-full h-full object-contain cursor-pointer hover:opacity-95 transition-opacity"
-                                        />
-                                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/18 via-transparent to-transparent" />
-                                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2.5 py-1 rounded-lg bg-slate-200/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold shadow-sm">
-                                            {selectedPhoto.source === 'L' ? 'Local' : selectedPhoto.source === 'C' ? 'Carded' : 'Galería'}
-                                        </div>
-                                        <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-slate-900/45 backdrop-blur-md border border-white/20 text-white/90 text-xs font-medium">
-                                            Click en la imagen para ampliar
-                                        </div>
-                                        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-white/18 backdrop-blur-md border border-white/25 text-white text-xs font-semibold">
-                                            {displayPhotos.length} fotos totales
-                                        </div>
-                                    </div>
-
-                                    {displayPhotos.length > 1 && (
-                                        <div className={`flex gap-2 p-2 sm:p-3 overflow-x-auto border-t ${isDark ? 'bg-slate-800/70 border-slate-700' : 'bg-white/85 border-slate-200'}`}>
-                                            {displayPhotos.map((photo, index) => (
-                                                <button
-                                                    key={`${photo.source}-${index}`}
-                                                    onClick={() => setSelectedPhotoIndex(index)}
-                                                    title={photo.title}
-                                                    className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 relative ${safeSelectedPhotoIndex === index ? 'border-primary-500 ring-2 ring-primary-300/40' : isDark ? 'border-slate-600' : 'border-slate-300'}`}
-                                                >
-                                                    <img
-                                                        src={proxifyImageUrl(photo.url)}
-                                                        alt={`${carName} ${index + 1}`}
-                                                        crossOrigin="anonymous"
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                    <div className="absolute bottom-0.5 left-0.5 bg-gray-900/80 text-white text-xs px-1 rounded">
-                                                        {photo.source}
-                                                    </div>
-                                                    {photo.isPrimary && (
-                                                        <div className="absolute top-1 right-1 text-lg">⭐</div>
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className={`h-80 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}>
-                                    <Package className="w-16 h-16 text-gray-400" />
-                                </div>
-                            )}
-                        </Card>
-                    </div>
-
-                    <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-                        <Card className="bg-gradient-to-br from-primary-600 via-blue-600 to-cyan-600 text-white rounded-3xl border border-blue-100/35 shadow-2xl shadow-blue-900/40">
-                            <div className="p-4 sm:p-5">
-                                <div className="flex items-center justify-between">
+                        <Card className={`overflow-hidden p-[1px] !rounded-[28px] border border-transparent ${isDark
+                            ? 'bg-gradient-to-br from-cyan-400/26 via-blue-400/18 to-slate-500/24 shadow-[0_16px_36px_rgba(2,6,23,0.42)]'
+                            : 'bg-gradient-to-br from-cyan-300/42 via-blue-300/28 to-slate-300/32 shadow-[0_16px_36px_rgba(148,163,184,0.3)]'}`}>
+                            <div className={`!rounded-[27px] overflow-hidden backdrop-blur-xl ${isDark
+                                ? 'bg-slate-900/62 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+                                : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.23),inset_0_-2px_2px_rgba(255,255,255,0.98)]'}`}>
+                                {selectedPhoto ? (
                                     <div>
-                                        <p className="text-sm opacity-90 mb-1">Precio al Cliente</p>
-                                        <p className="text-3xl sm:text-4xl font-bold">${finalPrice.toFixed(2)}</p>
+                                        <div className="relative group h-[48vh] min-h-[280px] max-h-[520px] sm:h-[58vh] sm:min-h-[360px] sm:max-h-[680px] bg-black flex items-center justify-center">
+                                            <img
+                                                src={proxifyImageUrl(selectedPhoto.url)}
+                                                alt={carName}
+                                                crossOrigin="anonymous"
+                                                onClick={() => setShowGalleryModal(true)}
+                                                className="w-full h-full object-contain cursor-pointer hover:opacity-95 transition-opacity"
+                                            />
+                                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/18 via-transparent to-transparent" />
+                                            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2.5 py-1 rounded-lg bg-slate-200/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold shadow-sm">
+                                                {selectedPhoto.source === 'L' ? 'Local' : selectedPhoto.source === 'C' ? 'Carded' : 'Galería'}
+                                            </div>
+                                            <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-slate-900/45 backdrop-blur-md border border-white/20 text-white/90 text-xs font-medium">
+                                                Click en la imagen para ampliar
+                                            </div>
+                                            <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-white/18 backdrop-blur-md border border-white/25 text-white text-xs font-semibold">
+                                                {displayPhotos.length} fotos totales
+                                            </div>
+                                        </div>
+
+                                        {displayPhotos.length > 1 && (
+                                            <div className={`rounded-2xl mx-2 mb-2 sm:mx-3 sm:mb-3 p-2 sm:p-3 flex gap-2 overflow-x-auto border border-transparent ${isDark
+                                                ? 'bg-slate-800/70 shadow-[0_6px_16px_rgba(2,6,23,0.32),inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
+                                                : 'bg-white/88 shadow-[0_6px_16px_rgba(148,163,184,0.22),inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                                {displayPhotos.map((photo, index) => (
+                                                    <button
+                                                        key={`${photo.source}-${index}`}
+                                                        onClick={() => setSelectedPhotoIndex(index)}
+                                                        title={photo.title}
+                                                        className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border relative ${safeSelectedPhotoIndex === index
+                                                            ? (isDark
+                                                                ? 'border-primary-400 ring-2 ring-primary-300/40 shadow-[inset_0_2px_2px_rgba(30,58,138,0.45),inset_0_-1px_1px_rgba(255,255,255,0.2)]'
+                                                                : 'border-primary-500 ring-2 ring-primary-300/40 shadow-[inset_0_2px_2px_rgba(37,99,235,0.24),inset_0_-1px_1px_rgba(255,255,255,0.85)]')
+                                                            : (isDark
+                                                                ? 'border-slate-600/70 shadow-[inset_0_2px_2px_rgba(2,6,23,0.5),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
+                                                                : 'border-slate-300/85 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]')}`}
+                                                    >
+                                                        <img
+                                                            src={proxifyImageUrl(photo.url)}
+                                                            alt={`${carName} ${index + 1}`}
+                                                            crossOrigin="anonymous"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                        <div className="absolute bottom-0.5 left-0.5 bg-gray-900/80 text-white text-xs px-1 rounded">
+                                                            {photo.source}
+                                                        </div>
+                                                        {photo.isPrimary && (
+                                                            <div className="absolute top-1 right-1 text-lg">⭐</div>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                    <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 opacity-50" />
-                                </div>
-                                {!hideCostAndProfitInInventory && (
-                                    <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 border-t border-white/20 space-y-1 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="opacity-90">Compra:</span>
-                                            <span className="font-semibold">${purchasePrice.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="opacity-90">Ganancia:</span>
-                                            <span className="font-semibold">${profit.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="opacity-90">Margen:</span>
-                                            <span className="font-semibold">{margin.toFixed(1)}%</span>
-                                        </div>
+                                ) : (
+                                    <div className={`h-80 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-gray-100'}`}>
+                                        <Package className="w-16 h-16 text-gray-400" />
                                     </div>
                                 )}
                             </div>
                         </Card>
+                    </div>
 
-                        <Card className={`rounded-3xl border ${isDark ? 'bg-slate-800/72 border-cyan-400/25 backdrop-blur-xl' : 'bg-white/88 border-cyan-200/80 backdrop-blur-xl'} shadow-lg`}>
-                            <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                    <div className="lg:col-span-2 space-y-3 sm:space-y-4">
+                        <Card className="!rounded-[28px] p-[1px] border border-transparent bg-gradient-to-br from-blue-300/50 via-cyan-300/30 to-indigo-300/35 shadow-[0_18px_40px_rgba(30,64,175,0.36)]">
+                            <div className="!rounded-[27px] bg-gradient-to-br from-primary-600 via-blue-600 to-cyan-600 text-white shadow-[inset_0_2px_2px_rgba(255,255,255,0.2),inset_0_-2px_2px_rgba(3,105,161,0.34)]">
+                                <div className="p-4 sm:p-5">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm opacity-90 mb-1">Precio al Cliente</p>
+                                            <p className="text-3xl sm:text-4xl font-bold">${finalPrice.toFixed(2)}</p>
+                                        </div>
+                                        <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 opacity-50" />
+                                    </div>
+                                    {!hideCostAndProfitInInventory && (
+                                        <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 rounded-2xl border border-transparent bg-white/8 backdrop-blur-md px-3 py-2.5 shadow-[inset_0_2px_2px_rgba(3,7,18,0.22),inset_0_-1px_1px_rgba(255,255,255,0.22)] space-y-1 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="opacity-90">Compra:</span>
+                                                <span className="font-semibold">${purchasePrice.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="opacity-90">Ganancia:</span>
+                                                <span className="font-semibold">${profit.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="opacity-90">Margen:</span>
+                                                <span className="font-semibold">{margin.toFixed(1)}%</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </Card>
+
+                        <Card className={`!rounded-[28px] p-[1px] border border-transparent ${isDark
+                            ? 'bg-gradient-to-br from-cyan-400/28 via-blue-400/18 to-slate-500/22 shadow-[0_12px_30px_rgba(2,6,23,0.38)]'
+                            : 'bg-gradient-to-br from-cyan-300/45 via-blue-300/25 to-slate-300/30 shadow-[0_12px_30px_rgba(148,163,184,0.28)]'}`}>
+                            <div className={`!rounded-[27px] p-3 sm:p-4 space-y-2 sm:space-y-3 backdrop-blur-xl ${isDark
+                                ? 'bg-slate-800/74 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+                                : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.22),inset_0_-2px_2px_rgba(255,255,255,0.99)]'}`}>
                                 <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Resumen rápido</h2>
                                 <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
-                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
+                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Disponibles</p>
                                         <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{availableQuantity}</p>
                                     </div>
-                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
+                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Reservadas</p>
                                         <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{reservedQuantity}</p>
                                     </div>
-                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
+                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Condición</p>
                                         <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.condition}</p>
                                     </div>
-                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark ? 'bg-slate-700/60' : 'bg-slate-100/90'}`}>
+                                    <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
+                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Ubicación</p>
                                         <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.location || 'Sin ubicación'}</p>
                                     </div>
@@ -1323,34 +1359,32 @@ export default function ItemDetail() {
                             </div>
                         </Card>
 
-                        <Card className={`rounded-3xl border ${isDark ? 'bg-slate-800/72 border-blue-400/25 backdrop-blur-xl' : 'bg-white/88 border-blue-200/80 backdrop-blur-xl'} shadow-lg`}>
-                            <div className="p-3 sm:p-4 space-y-2">
+                        <Card className={`!rounded-[28px] p-[1px] border border-transparent ${isDark
+                            ? 'bg-gradient-to-br from-blue-400/30 via-indigo-400/18 to-slate-500/22 shadow-[0_12px_30px_rgba(2,6,23,0.38)]'
+                            : 'bg-gradient-to-br from-blue-300/45 via-indigo-300/25 to-slate-300/30 shadow-[0_12px_30px_rgba(148,163,184,0.28)]'}`}>
+                            <div className={`!rounded-[27px] p-3 sm:p-4 space-y-2 backdrop-blur-xl ${isDark
+                                ? 'bg-slate-800/74 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+                                : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.22),inset_0_-2px_2px_rgba(255,255,255,0.99)]'}`}>
                                 <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Acciones</h2>
                                 <Button
-                                    className="w-full justify-center gap-2 h-9 sm:h-10"
+                                    className={`w-full justify-center gap-2 h-9 sm:h-10 !border !border-transparent !backdrop-blur-xl ${isDark
+                                        ? '!bg-blue-600/72 !text-blue-50 hover:!bg-blue-600/82 !shadow-[inset_0_2px_2px_rgba(30,58,138,0.55),inset_0_-1px_1px_rgba(255,255,255,0.18)]'
+                                        : '!bg-blue-500/80 !text-white hover:!bg-blue-500/90 !shadow-[inset_0_2px_2px_rgba(37,99,235,0.26),inset_0_-1px_1px_rgba(255,255,255,0.45)]'}`}
                                     onClick={() => item && handleEditItem(item)}
                                 >
                                     <Edit className="w-4 h-4" />
                                     Editar Item
                                 </Button>
-                                {canEditCatalog && item && (
-                                    <Button
-                                        className="w-full justify-center gap-2 h-9 sm:h-10 text-blue-600 border-blue-200 hover:bg-blue-50"
-                                        variant="secondary"
-                                        onClick={() => setShowEditCatalogModal(true)}
-                                    >
-                                        <Pencil className="w-4 h-4" />
-                                        Editar Catálogo
-                                    </Button>
-                                )}
-                                {user?.role === 'admin' && (
+                                {canDelete && (
                                     <Button
                                         variant="secondary"
-                                        className="w-full justify-center gap-2 h-9 sm:h-10 text-red-600 border-red-200 hover:bg-red-50"
+                                        className={`w-full justify-center gap-2 h-9 sm:h-10 !font-semibold !opacity-100 !border !border-transparent !backdrop-blur-xl ${isDark
+                                            ? '!bg-red-900/50 !text-red-100 hover:!bg-red-900/62 !shadow-[inset_0_2px_2px_rgba(69,10,10,0.62),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                                            : '!bg-red-200/92 !text-red-950 hover:!bg-red-300/95 !shadow-[inset_0_2px_2px_rgba(190,24,93,0.18),inset_0_-1px_1px_rgba(255,255,255,0.92)]'}`}
                                         onClick={() => setShowDeleteConfirm(true)}
                                         disabled={isDeleting}
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className={`w-4 h-4 ${isDark ? '!text-red-100' : '!text-red-950'}`} />
                                         {isDeleting ? 'Eliminando...' : 'Eliminar Item'}
                                     </Button>
                                 )}
@@ -1359,8 +1393,12 @@ export default function ItemDetail() {
                     </div>
                 </div>
 
-                <Card className={`rounded-3xl border ${isDark ? 'bg-slate-800/72 border-indigo-400/25 backdrop-blur-xl' : 'bg-white/88 border-indigo-200/80 backdrop-blur-xl'} shadow-lg`}>
-                    <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
+                <Card className={`rounded-3xl p-[1px] border border-transparent ${isDark
+                    ? 'bg-gradient-to-br from-indigo-400/35 via-cyan-400/20 to-slate-500/25 shadow-[0_12px_30px_rgba(2,6,23,0.4)]'
+                    : 'bg-gradient-to-br from-indigo-300/55 via-sky-300/35 to-slate-300/35 shadow-[0_12px_30px_rgba(148,163,184,0.3)]'}`}>
+                    <div className={`rounded-[calc(1.5rem-1px)] p-3 sm:p-5 space-y-3 sm:space-y-4 backdrop-blur-xl ${isDark
+                        ? 'bg-slate-800/74 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+                        : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.22),inset_0_-2px_2px_rgba(255,255,255,0.99)]'}`}>
                         <h2 className={`text-base sm:text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                             Ficha técnica completa
@@ -1370,7 +1408,9 @@ export default function ItemDetail() {
                             {visibleTechnicalRows.map((row) => (
                                 <div
                                     key={row.label}
-                                    className={`rounded-2xl p-2.5 sm:p-3 ${isDark ? 'bg-gradient-to-br from-slate-700/65 to-slate-800/70 border border-slate-500/65' : 'bg-gradient-to-br from-white to-sky-50/85 border border-slate-200/90'} shadow-sm`}
+                                    className={`rounded-2xl p-2.5 sm:p-3 ${isDark
+                                        ? 'bg-gradient-to-br from-slate-700/65 to-slate-800/70 border border-transparent shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
+                                        : 'bg-gradient-to-br from-white to-sky-50/85 border border-transparent shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
                                 >
                                     <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>{row.label}</p>
                                     <p className={`text-sm sm:text-base font-medium break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{String(row.value)}</p>
@@ -1379,7 +1419,9 @@ export default function ItemDetail() {
                         </div>
 
                         {item.notes && (
-                            <div className={`rounded-xl p-2.5 sm:p-3 ${isDark ? 'bg-slate-700/50 border border-slate-600/80' : 'bg-slate-50/90 border border-slate-200/90'}`}>
+                            <div className={`rounded-xl p-2.5 sm:p-3 ${isDark
+                                ? 'bg-slate-700/50 border border-transparent shadow-[inset_0_2px_2px_rgba(2,6,23,0.56),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
+                                : 'bg-slate-50/90 border border-transparent shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                 <p className={`text-xs uppercase tracking-wide mb-1 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Notas</p>
                                 <p className={`${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{item.notes}</p>
                             </div>
@@ -1390,7 +1432,7 @@ export default function ItemDetail() {
 
             <button
                 onClick={handleOpenShareModal}
-                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white rounded-full p-3 sm:p-4 shadow-xl shadow-blue-900/40 transition-all hover:scale-110 z-20 border border-white/20"
+                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-gradient-to-r from-primary-600/92 to-blue-600/92 hover:from-primary-700 hover:to-blue-700 text-white rounded-full p-3 sm:p-4 shadow-[0_16px_32px_rgba(15,23,42,0.35),inset_0_2px_2px_rgba(255,255,255,0.2),inset_0_-1px_1px_rgba(30,64,175,0.38)] transition-all hover:scale-110 z-20 border border-transparent backdrop-blur-xl"
                 style={{
                     bottom: `calc(env(safe-area-inset-bottom, 0px) + ${floatingButtonBottom}px)`
                 }}
@@ -2214,19 +2256,6 @@ export default function ItemDetail() {
                     </div>
                 )
             })()}
-
-            {/* Edit Catalog Modal */}
-            {item && (
-                <EditCatalogModal
-                    isOpen={showEditCatalogModal}
-                    onClose={() => setShowEditCatalogModal(false)}
-                    item={item}
-                    onSuccess={() => {
-                        setShowEditCatalogModal(false)
-                        loadItem()
-                    }}
-                />
-            )}
 
         </div>
     )

@@ -7,6 +7,7 @@ import {
   trackItemView
 } from '../controllers/publicController'
 import { createDataReport } from '../controllers/dataReportController'
+import { submitContactForm } from '../controllers/contactController'
 
 const router = Router()
 
@@ -27,5 +28,8 @@ router.post('/track-view', trackItemView)
 
 // POST /api/public/reports - Submit a data report (no auth)
 router.post('/reports', createDataReport)
+
+// POST /api/public/contact - Submit contact form (no auth)
+router.post('/contact', submitContactForm)
 
 export default router

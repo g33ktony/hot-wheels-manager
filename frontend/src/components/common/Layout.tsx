@@ -278,14 +278,16 @@ export default function Layout({ children }: LayoutProps) {
             <div
                 ref={sidebarRef}
                 className={`
-        fixed inset-y-0 left-0 z-50 shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border-r backdrop-blur
+            fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border backdrop-blur-xl
                 ${sidebarCollapsed && window.innerWidth >= 1024 ? collapsedWidthClass : 'w-64'}
-        ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}
+            ${mode === 'dark'
+                        ? 'bg-slate-800/72 border-transparent shadow-[0_16px_34px_rgba(2,6,23,0.42),inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(148,163,184,0.12)]'
+                        : 'bg-white/84 border-transparent shadow-[0_16px_34px_rgba(148,163,184,0.28),inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className={`flex items-center h-16 border-b flex-shrink-0 z-10 backdrop-blur ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-4'} ${mode === 'dark' ? 'bg-slate-900/80 border-slate-700' : 'bg-gray-50/80 border-gray-200'}`}>
+                <div className={`flex items-center h-16 border-b border-transparent flex-shrink-0 z-10 backdrop-blur-xl ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-4'} ${mode === 'dark' ? 'bg-slate-900/42 shadow-[inset_0_-1px_1px_rgba(148,163,184,0.12)]' : 'bg-white/52 shadow-[inset_0_-1px_1px_rgba(148,163,184,0.18)]'}`}>
                     {/* Logo/Title - ocultar texto cuando está colapsado en desktop */}
                     <h1 className={`text-lg lg:text-xl font-bold select-none transition-all ${mode === 'dark' ? 'text-white' : 'text-gray-900'} ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
                         🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}
@@ -293,7 +295,9 @@ export default function Layout({ children }: LayoutProps) {
 
                     {/* Botón toggle collapse (solo desktop) */}
                     <button
-                        className={`hidden lg:block p-2 rounded-lg transition-colors ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
+                        className={`hidden lg:block p-2 rounded-lg transition-colors border border-transparent backdrop-blur-xl ${mode === 'dark'
+                            ? 'bg-slate-900/36 text-slate-300 hover:bg-slate-800/52 shadow-[inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)]'
+                            : 'bg-white/82 text-slate-600 hover:bg-white/94 shadow-[inset_0_2px_2px_rgba(148,163,184,0.22),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
                         onClick={toggleSidebarCollapse}
                         aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
                         title={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
@@ -303,7 +307,9 @@ export default function Layout({ children }: LayoutProps) {
 
                     {/* Botón cerrar (solo mobile) */}
                     <button
-                        className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
+                        className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center border border-transparent backdrop-blur-xl ${mode === 'dark'
+                            ? 'bg-slate-900/36 text-slate-300 hover:bg-slate-800/52 shadow-[inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)]'
+                            : 'bg-white/82 text-slate-600 hover:bg-white/94 shadow-[inset_0_2px_2px_rgba(148,163,184,0.22),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
                         onClick={() => setSidebarOpen(false)}
                         aria-label="Cerrar menú"
                         style={{
@@ -325,16 +331,16 @@ export default function Layout({ children }: LayoutProps) {
                                     key={item.name}
                                     to={item.href}
                                     className={`
-                  flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200
+                  flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 border border-transparent backdrop-blur-xl
                   min-h-[44px] touch-manipulation relative select-none
                   ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'}
                   ${isActive
                                             ? item.highlight
-                                                ? (mode === 'dark' ? 'bg-emerald-500/20 text-emerald-300 shadow-sm border border-emerald-500/30' : 'bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200')
-                                                : (mode === 'dark' ? 'bg-blue-500/20 text-blue-300 shadow-sm border border-blue-500/30' : 'bg-blue-100 text-blue-700 shadow-sm border border-blue-200')
+                                                ? (mode === 'dark' ? 'bg-emerald-500/16 text-emerald-200 shadow-[inset_0_2px_2px_rgba(6,78,59,0.5),inset_0_-1px_1px_rgba(255,255,255,0.14)]' : 'bg-emerald-100/82 text-emerald-800 shadow-[inset_0_2px_2px_rgba(16,185,129,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]')
+                                                : (mode === 'dark' ? 'bg-blue-500/16 text-blue-200 shadow-[inset_0_2px_2px_rgba(30,58,138,0.48),inset_0_-1px_1px_rgba(255,255,255,0.14)]' : 'bg-blue-100/82 text-blue-800 shadow-[inset_0_2px_2px_rgba(37,99,235,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]')
                                             : item.highlight
-                                                ? (mode === 'dark' ? 'text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 active:bg-orange-500/20 border border-orange-500/20' : 'text-orange-600 hover:bg-orange-50 hover:text-orange-700 active:bg-orange-100 border border-orange-200')
-                                                : (mode === 'dark' ? 'text-slate-300 hover:bg-slate-700 hover:text-white active:bg-slate-600' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200')
+                                                ? (mode === 'dark' ? 'text-orange-300 bg-orange-500/8 hover:bg-orange-500/16 hover:text-orange-200 active:bg-orange-500/22 shadow-[inset_0_2px_2px_rgba(124,45,18,0.45),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'text-orange-700 bg-orange-50/70 hover:bg-orange-50 hover:text-orange-800 active:bg-orange-100 shadow-[inset_0_2px_2px_rgba(251,146,60,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]')
+                                                : (mode === 'dark' ? 'text-slate-200 bg-slate-900/20 hover:bg-slate-800/42 hover:text-white active:bg-slate-700/55 shadow-[inset_0_2px_2px_rgba(2,6,23,0.52),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'text-slate-700 bg-white/68 hover:bg-white/86 hover:text-slate-900 active:bg-slate-100 shadow-[inset_0_2px_2px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]')
                                         }
                 `}
                                     style={{
@@ -367,7 +373,9 @@ export default function Layout({ children }: LayoutProps) {
                         <Link
                             to="/change-password"
                             onClick={handleNavClick}
-                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark' ? 'text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 active:bg-blue-500/20' : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100'}`}
+                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 border border-transparent backdrop-blur-xl ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark'
+                                ? 'text-blue-300 bg-blue-500/10 hover:bg-blue-500/16 hover:text-blue-200 active:bg-blue-500/22 shadow-[inset_0_2px_2px_rgba(30,58,138,0.48),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
+                                : 'text-blue-700 bg-blue-50/78 hover:bg-blue-50 hover:text-blue-800 active:bg-blue-100 shadow-[inset_0_2px_2px_rgba(37,99,235,0.16),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',
@@ -382,7 +390,9 @@ export default function Layout({ children }: LayoutProps) {
                         {/* Logout button */}
                         <button
                             onClick={handleLogout}
-                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark' ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300 active:bg-red-500/20' : 'text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-100'}`}
+                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation border border-transparent backdrop-blur-xl ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark'
+                                ? 'text-red-300 bg-red-500/10 hover:bg-red-500/16 hover:text-red-200 active:bg-red-500/22 shadow-[inset_0_2px_2px_rgba(127,29,29,0.45),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
+                                : 'text-red-700 bg-red-50/78 hover:bg-red-50 hover:text-red-800 active:bg-red-100 shadow-[inset_0_2px_2px_rgba(220,38,38,0.16),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
                             style={{
                                 WebkitTapHighlightColor: 'transparent',
                                 WebkitTouchCallout: 'none',
@@ -397,7 +407,9 @@ export default function Layout({ children }: LayoutProps) {
                         {/* Density toggle (desktop only) */}
                         <button
                             onClick={toggleSidebarDensity}
-                            className={`hidden lg:flex w-full items-center justify-center py-2 mt-1 rounded-lg text-xs font-semibold transition-all duration-200 ${mode === 'dark' ? 'text-slate-300 hover:bg-slate-700 active:bg-slate-600' : 'text-gray-600 hover:bg-gray-100 active:bg-gray-200'}`}
+                            className={`hidden lg:flex w-full items-center justify-center py-2 mt-1 rounded-lg text-xs font-semibold transition-all duration-200 border border-transparent backdrop-blur-xl ${mode === 'dark'
+                                ? 'text-slate-200 bg-slate-900/24 hover:bg-slate-800/44 active:bg-slate-700/58 shadow-[inset_0_2px_2px_rgba(2,6,23,0.52),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
+                                : 'text-slate-700 bg-white/68 hover:bg-white/86 active:bg-slate-100 shadow-[inset_0_2px_2px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
                             title={`Cambiar a modo ${sidebarDensity === 'compact' ? 'normal' : 'compacto'}`}
                         >
                             {sidebarDensity === 'compact' ? 'Normal' : 'Compacto'}
@@ -409,7 +421,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className={`h-16 border-b px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto shadow-sm backdrop-blur transition-all duration-300 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-800/80 border-slate-700' : 'bg-white/80 border-gray-200'}`}>
+                <div className={`h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto backdrop-blur-xl transition-all duration-300 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-900/30 !shadow-[0_8px_20px_rgba(2,6,23,0.28),inset_0_3px_3px_rgba(2,6,23,0.58),inset_0_-2px_2px_rgba(148,163,184,0.08)]' : 'bg-white/72 !shadow-[0_8px_20px_rgba(148,163,184,0.2),inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'}`}>
                     <button
                         className={`lg:hidden p-2 -ml-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                         onClick={() => setSidebarOpen(true)}
@@ -431,9 +443,9 @@ export default function Layout({ children }: LayoutProps) {
                                 placeholder="Buscar..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className={`w-full pl-10 pr-4 py-1.5 md:py-2 rounded-lg border text-xs md:text-sm transition-colors ${mode === 'dark'
-                                    ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500'
+                                className={`w-full pl-10 pr-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm transition-colors backdrop-blur-xl ${mode === 'dark'
+                                    ? 'bg-slate-900/34 text-slate-100 placeholder-slate-400 !shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(148,163,184,0.1)] focus:ring-1 focus:ring-emerald-500'
+                                    : 'bg-white/80 text-slate-700 placeholder-slate-500 !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] focus:ring-1 focus:ring-emerald-500'
                                     }`}
                             />
                         </div>
@@ -446,7 +458,9 @@ export default function Layout({ children }: LayoutProps) {
                         {/* Theme toggle button */}
                         <button
                             onClick={toggleTheme}
-                            className={`p-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
+                            className={`p-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center backdrop-blur-xl ${mode === 'dark'
+                                ? 'bg-slate-900/36 text-slate-200 hover:bg-slate-900/52 !shadow-[inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)]'
+                                : 'bg-white/82 text-slate-600 hover:bg-white/94 !shadow-[inset_0_2px_2px_rgba(148,163,184,0.22),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
                             aria-label={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
                             title={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
                             style={{
@@ -455,21 +469,21 @@ export default function Layout({ children }: LayoutProps) {
                             }}
                         >
                             {mode === 'dark' ? (
-                                <Sun size={20} className="text-slate-300" />
+                                <Sun size={20} className="text-slate-200" />
                             ) : (
-                                <Moon size={20} className="text-gray-600" />
+                                <Moon size={20} className="text-slate-600" />
                             )}
                         </button>
 
-                        <div className={`text-sm hidden sm:flex items-center gap-2 select-none ${mode === 'dark' ? 'text-slate-400' : 'text-gray-600'}`}>
-                            {user?.name || 'Usuario'}
+                        <div className={`text-sm hidden sm:flex items-center gap-2 select-none px-3 py-1.5 rounded-lg backdrop-blur-xl ${mode === 'dark' ? 'bg-slate-900/34 text-slate-300 !shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-white/80 text-slate-600 !shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                            <span className="font-medium">{user?.name || 'Usuario'}</span>
                             {isSysAdmin() && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold backdrop-blur-xl ${mode === 'dark' ? 'bg-red-700/35 text-red-100 !shadow-[inset_0_2px_2px_rgba(127,29,29,0.45),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-red-100/85 text-red-700 !shadow-[inset_0_2px_2px_rgba(252,165,165,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                     👑 SYS ADMIN
                                 </span>
                             )}
                             {isAdmin() && !isSysAdmin() && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold backdrop-blur-xl ${mode === 'dark' ? 'bg-amber-700/35 text-amber-100 !shadow-[inset_0_2px_2px_rgba(120,53,15,0.45),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-amber-100/85 text-amber-700 !shadow-[inset_0_2px_2px_rgba(253,186,116,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
                                     🔐 ADMIN
                                 </span>
                             )}
