@@ -227,12 +227,12 @@ export default function InventoryGridSection({
                                             <div
                                                 data-card-panel="true"
                                                 className={`mt-auto rounded-xl p-2 ${isDark
-                                                        ? 'bg-slate-900/36 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                                        : 'bg-white/80 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+                                                    ? 'bg-slate-900/36 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+                                                    : 'bg-white/80 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
                                                     }`}
                                             >
                                                 <h3
-                                                    className={`text-xs font-semibold truncate leading-tight ${isDark ? 'text-white hover:text-emerald-300' : 'text-slate-950 hover:text-emerald-700'} ${!isSelectionMode && item._id ? 'cursor-pointer transition-colors' : ''}`}
+                                                    className={`text-xs font-semibold truncate leading-tight ${isDark ? 'text-white' : 'text-slate-950'} ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-600 transition-colors' : ''}`}
                                                     onClick={() => { if (!isSelectionMode && item._id) onNavigateToDetail(item._id) }}
                                                     title={modelName}
                                                 >
@@ -258,8 +258,8 @@ export default function InventoryGridSection({
                                                             size="sm"
                                                             variant="primary"
                                                             className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${isDark
-                                                                ? 'bg-blue-500/22 text-blue-100 hover:bg-blue-500/30 border border-blue-200/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
-                                                                : 'bg-blue-500/14 text-blue-700 hover:bg-blue-500/20 border border-white/75 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(59,130,246,0.24),inset_0_-1px_1px_rgba(255,255,255,0.96)]'
+                                                                ? '!bg-blue-600/65 !text-blue-50 hover:!bg-blue-600/75 !border !border-blue-300/25 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)] hover:!shadow-[inset_0_3px_3px_rgba(15,23,42,0.5),inset_0_-1px_1px_rgba(255,255,255,0.2)]'
+                                                                : '!bg-blue-500/55 !text-white hover:!bg-blue-500/65 !border !border-blue-300/40 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(59,130,246,0.25),inset_0_-1px_1px_rgba(255,255,255,0.5)] hover:!shadow-[inset_0_3px_3px_rgba(59,130,246,0.2),inset_0_-1px_1px_rgba(255,255,255,0.6)]'
                                                                 }`}
                                                             onClick={() => onAddToPos(item)}
                                                             disabled={!isAvailable || !canCreate}
@@ -272,8 +272,8 @@ export default function InventoryGridSection({
                                                             size="sm"
                                                             variant="secondary"
                                                             className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${isDark
-                                                                ? 'bg-slate-800/38 !text-slate-50 hover:bg-slate-700/45 border border-slate-300/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
-                                                                : 'bg-white/52 !text-slate-800 hover:bg-white/68 border border-white/80 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                                                ? '!bg-slate-800/44 !text-slate-500 hover:!bg-slate-700/52 hover:!text-slate-400 !border !border-slate-300/30 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)] hover:!shadow-[inset_0_3px_3px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.18)]'
+                                                                : '!bg-white/60 !text-slate-500 hover:!bg-white/72 hover:!text-slate-700 !border !border-slate-200/80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] hover:!shadow-[inset_0_3px_3px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]'
                                                                 }`}
                                                             onClick={() => onAddToDelivery(item)}
                                                             disabled={!isAvailable || !canCreate}
@@ -408,7 +408,7 @@ export default function InventoryGridSection({
 
                                         <div
                                             data-card-panel="true"
-                                                className={`mt-auto rounded-2xl p-3 ${isDark
+                                            className={`mt-auto rounded-2xl p-3 ${isDark
                                                 ? 'bg-slate-900/34 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
                                                 : 'bg-white/82 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
                                                 }`}
@@ -416,7 +416,7 @@ export default function InventoryGridSection({
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0 flex-1">
                                                     <h3
-                                                        className={`text-[1.05rem] font-semibold truncate ${isDark ? 'text-white hover:text-emerald-300' : 'text-slate-950 hover:text-emerald-700'} ${!isSelectionMode && item._id ? 'cursor-pointer transition-colors' : ''}`}
+                                                        className={`text-[1.05rem] font-semibold truncate ${isDark ? 'text-white' : 'text-slate-950'} ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-600 transition-colors' : ''}`}
                                                         onClick={() => {
                                                             if (!isSelectionMode && item._id) {
                                                                 onNavigateToDetail(item._id)
@@ -598,8 +598,8 @@ export default function InventoryGridSection({
                                                             size="sm"
                                                             variant="primary"
                                                             className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${isDark
-                                                                ? 'bg-blue-500/22 text-blue-100 hover:bg-blue-500/30 border border-blue-200/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
-                                                                : 'bg-blue-500/14 text-blue-700 hover:bg-blue-500/20 border border-white/75 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(59,130,246,0.24),inset_0_-1px_1px_rgba(255,255,255,0.96)]'
+                                                                ? '!bg-blue-600/65 !text-blue-50 hover:!bg-blue-600/75 !border !border-blue-300/25 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)] hover:!shadow-[inset_0_3px_3px_rgba(15,23,42,0.5),inset_0_-1px_1px_rgba(255,255,255,0.2)]'
+                                                                : '!bg-blue-500/55 !text-white hover:!bg-blue-500/65 !border !border-blue-300/40 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(59,130,246,0.25),inset_0_-1px_1px_rgba(255,255,255,0.5)] hover:!shadow-[inset_0_3px_3px_rgba(59,130,246,0.2),inset_0_-1px_1px_rgba(255,255,255,0.6)]'
                                                                 }`}
                                                             onClick={() => onAddToPos(item)}
                                                             disabled={!isAvailable || !canCreate}
@@ -612,8 +612,8 @@ export default function InventoryGridSection({
                                                             size="sm"
                                                             variant="secondary"
                                                             className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${isDark
-                                                                ? 'bg-slate-800/38 !text-slate-50 hover:bg-slate-700/45 border border-slate-300/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
-                                                                : 'bg-white/52 !text-slate-800 hover:bg-white/68 border border-white/80 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                                                ? '!bg-slate-800/44 !text-slate-500 hover:!bg-slate-700/52 hover:!text-slate-400 !border !border-slate-300/30 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)] hover:!shadow-[inset_0_3px_3px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.18)]'
+                                                                : '!bg-white/60 !text-slate-500 hover:!bg-white/72 hover:!text-slate-700 !border !border-slate-200/80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] hover:!shadow-[inset_0_3px_3px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]'
                                                                 }`}
                                                             onClick={() => onAddToDelivery(item)}
                                                             disabled={!isAvailable || !canCreate}

@@ -100,9 +100,11 @@ export default function Inventory() {
     })
 
     const [showAddModal, setShowAddModal] = useState(false)
-    // View mode (compact/full) with localStorage persistence
+    // View mode (compact/full) with localStorage persistence — default compact on mobile
     const [viewMode, setViewMode] = useState<'full' | 'compact'>(() => {
-        return (localStorage.getItem('inventory-view-mode') as 'full' | 'compact') || 'full'
+        const saved = localStorage.getItem('inventory-view-mode') as 'full' | 'compact' | null
+        if (saved) return saved
+        return window.innerWidth < 768 ? 'compact' : 'full'
     })
     const handleToggleViewMode = () => {
         const next = viewMode === 'full' ? 'compact' : 'full'
@@ -340,26 +342,26 @@ export default function Inventory() {
 
             {/* Header */}
             <div ref={headerRef}>
-            <InventoryHeader
-                isSelectionMode={isSelectionMode}
-                selectedItemsCount={selectedItems.size}
-                filteredItemsCount={filteredItems.length}
-                canCreate={canCreate}
-                canDelete={canDelete}
-                viewMode={viewMode}
-                onToggleViewMode={handleToggleViewMode}
-                onToggleSelectionMode={handleToggleSelectionMode}
-                onDeselectAllItems={handleDeselectAllItems}
-                onAddToCart={handleAddToCart}
-                onCreateDeliveryFromInventory={handleCreateDeliveryFromInventory}
-                onShowQuoteModal={() => setShowQuoteModal(true)}
-                onShowCollageModal={() => setShowCollageModal(true)}
-                onShowBulkEditModal={() => setShowBulkEditModal(true)}
-                onShowFacebookModal={() => setShowFacebookModal(true)}
-                onBulkDelete={handleBulkDelete}
-                onSelectAllItems={handleSelectAllItems}
-                onShowAddModal={() => setShowAddModal(true)}
-            />
+                <InventoryHeader
+                    isSelectionMode={isSelectionMode}
+                    selectedItemsCount={selectedItems.size}
+                    filteredItemsCount={filteredItems.length}
+                    canCreate={canCreate}
+                    canDelete={canDelete}
+                    viewMode={viewMode}
+                    onToggleViewMode={handleToggleViewMode}
+                    onToggleSelectionMode={handleToggleSelectionMode}
+                    onDeselectAllItems={handleDeselectAllItems}
+                    onAddToCart={handleAddToCart}
+                    onCreateDeliveryFromInventory={handleCreateDeliveryFromInventory}
+                    onShowQuoteModal={() => setShowQuoteModal(true)}
+                    onShowCollageModal={() => setShowCollageModal(true)}
+                    onShowBulkEditModal={() => setShowBulkEditModal(true)}
+                    onShowFacebookModal={() => setShowFacebookModal(true)}
+                    onBulkDelete={handleBulkDelete}
+                    onSelectAllItems={handleSelectAllItems}
+                    onShowAddModal={() => setShowAddModal(true)}
+                />
             </div>
 
             {/* Filters */}
