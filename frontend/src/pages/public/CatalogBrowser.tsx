@@ -68,6 +68,10 @@ export default function CatalogBrowser() {
     ? 'bg-slate-900/65 border border-slate-700/65 shadow-[inset_6px_6px_12px_rgba(2,6,23,0.7),inset_-5px_-5px_10px_rgba(51,65,85,0.24)]'
     : 'bg-[#edf3fa] border border-white/90 shadow-[inset_6px_6px_12px_rgba(148,163,184,0.28),inset_-6px_-6px_12px_rgba(255,255,255,0.95)]'
 
+  const catalogCardShellClass = isDark
+    ? 'relative overflow-hidden rounded-2xl border border-slate-500/30 bg-slate-900/32 backdrop-blur-xl shadow-[0_12px_28px_rgba(2,6,23,0.4),inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+    : 'relative overflow-hidden rounded-2xl border border-slate-300/75 bg-white/66 backdrop-blur-xl shadow-[0_12px_28px_rgba(148,163,184,0.24),inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+
   // Redirigir si el usuario ya tiene sesión activa (solo si viene desde la raíz o login)
   useEffect(() => {
     // Solo redirigir si no hay un parámetro específico o si queremos forzar dashboard al entrar a /
@@ -808,20 +812,20 @@ export default function CatalogBrowser() {
             </div>
 
             {viewMode === 'compact' ? (
-              <div className="space-y-3 mb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 mb-8">
                 {results.map((item) => {
                   const previewUrl = resolveCatalogImageUrl(item.photo_url)
                   return (
                     <div
                       key={item._id}
                       onClick={() => handleItemClick(item)}
-                      className={`rounded-2xl p-3 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 ${neumorphSurfaceClass}`}
+                      className={`cursor-pointer transition-all duration-200 hover:-translate-y-0.5 ${catalogCardShellClass}`}
                     >
-                      <div className="flex gap-3">
-                        <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 ${neumorphInsetClass}`}>
+                      <div className="relative h-[250px] sm:h-[270px]">
+                        <div className="absolute inset-0">
                           {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
                             <img
-                              src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=220&h=220&fit=cover`}
+                              src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=500&h=700&fit=cover`}
                               alt={item.carModel}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -829,44 +833,48 @@ export default function CatalogBrowser() {
                               }}
                             />
                           ) : (
-                            <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-2" />
+                            <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-3" />
                           )}
                         </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                            <SegmentBadge segment={item.segment} />
-                            {item.brand && (
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${neumorphInsetClass} ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-                                {item.brand}
-                              </span>
-                            )}
-                            {item.availability.available ? (
-                              <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">Disponible</span>
-                            ) : (
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-700'}`}>No disponible</span>
-                            )}
-                          </div>
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/55" />
 
-                          <h3 className={`font-bold text-sm sm:text-base leading-tight line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {item.carModel}
-                          </h3>
-
-                          <div className={`mt-1 text-xs sm:text-sm grid grid-cols-2 gap-x-2 gap-y-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                            <p className="col-span-2 truncate">Serie: {item.series}</p>
-                            <p>Año: {item.year}</p>
-                            {item.toy_num && <p>Toy #: {item.toy_num}</p>}
-                            {item.col_num && <p>Col #: {item.col_num}</p>}
-                            {item.color && <p className="col-span-2 truncate">Color: {item.color}</p>}
-                            {item.wheel_type && <p className="col-span-2 truncate">Ruedas: {item.wheel_type}</p>}
-                          </div>
-
-                          {item.availability.available && item.availability.price && (
-                            <div className="mt-2 flex items-center justify-between">
-                              <p className="text-base sm:text-lg font-bold text-green-600">${item.availability.price.toFixed(2)}</p>
-                              <p className="text-[11px] sm:text-xs text-blue-600 font-semibold">Entrega inmediata</p>
-                            </div>
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                          <SegmentBadge segment={item.segment} />
+                          {item.brand && item.brand !== 'Hot Wheels' && (
+                            <span className="px-2 py-0.5 bg-blue-600/90 text-white text-[10px] font-bold rounded uppercase shadow-sm backdrop-blur-sm">
+                              {item.brand}
+                            </span>
                           )}
+                        </div>
+
+                        <div className="absolute top-2 right-2">
+                          {item.availability.available ? (
+                            <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full shadow-md">Disponible</span>
+                          ) : (
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${isDark ? 'bg-slate-700/90 text-slate-300' : 'bg-slate-200/95 text-slate-700'}`}>
+                              No stock
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="absolute inset-x-2 bottom-2">
+                          <div className={`rounded-xl p-2 ${neumorphInsetClass}`}>
+                            <h3 className={`font-bold text-xs sm:text-sm leading-tight line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {item.carModel}
+                            </h3>
+                            <p className={`text-[11px] mt-0.5 truncate ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                              {item.series} • {item.year}
+                            </p>
+                            <div className={`mt-1 flex items-center justify-between gap-1 text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                              <span className="truncate">{item.toy_num ? `#${item.toy_num}` : (item.col_num ? `Col ${item.col_num}` : 'Coleccionable')}</span>
+                              {item.availability.available && item.availability.price ? (
+                                <span className="font-bold text-green-600">${item.availability.price.toFixed(2)}</span>
+                              ) : (
+                                <span className="font-semibold">Ver detalle</span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -874,20 +882,19 @@ export default function CatalogBrowser() {
                 })}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
                 {results.map((item) => {
                   const previewUrl = resolveCatalogImageUrl(item.photo_url)
                   return (
                     <div
                       key={item._id}
                       onClick={() => handleItemClick(item)}
-                      className={`rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 ${neumorphSurfaceClass}`}
+                      className={`cursor-pointer transition-all duration-200 hover:-translate-y-0.5 ${catalogCardShellClass}`}
                     >
-                      {/* Image */}
-                      <div className={`relative h-48 flex items-center justify-center border-b ${isDark ? 'bg-slate-900/70 border-slate-700/70' : 'bg-[#dfe8f5] border-white/85'}`}>
+                      <div className="relative h-[320px]">
                         {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
                           <img
-                            src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
+                            src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=900&h=1200&fit=cover`}
                             alt={item.carModel}
                             className="w-full h-full object-cover"
                             onError={(e) => {
@@ -895,51 +902,53 @@ export default function CatalogBrowser() {
                             }}
                           />
                         ) : (
-                          <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
+                          <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-5" />
                         )}
 
-                        {/* Segment Badge */}
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60" />
+
                         <div className="absolute top-2 left-2 flex flex-col gap-1">
                           <SegmentBadge segment={item.segment} />
                           {item.brand && item.brand !== 'Hot Wheels' && (
-                            <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
+                            <span className="px-2 py-0.5 bg-blue-600/90 text-white text-[10px] font-bold rounded uppercase shadow-sm backdrop-blur-sm">
                               {item.brand}
                             </span>
                           )}
                         </div>
 
-                        {/* Availability Badge */}
                         {item.availability.available && (
                           <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
                             Disponible
                           </div>
                         )}
-                      </div>
 
-                      {/* Info */}
-                      <div className={`m-3 p-4 rounded-xl ${neumorphInsetClass}`}>
-                        <h3 className={`font-semibold text-base mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'
-                          }`}>
-                          {item.carModel}
-                        </h3>
+                        <div className="absolute inset-x-3 bottom-3">
+                          <div className={`rounded-xl p-3 ${neumorphInsetClass}`}>
+                            <h3 className={`font-bold text-sm sm:text-base mb-1.5 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                              {item.carModel}
+                            </h3>
 
-                        <div className={`text-sm space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                          <p>{item.series}</p>
-                          <p>Año: {item.year}</p>
-                          {item.color && <p>Color: {item.color}</p>}
-                        </div>
+                            <div className={`text-xs sm:text-sm grid grid-cols-2 gap-x-2 gap-y-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                              <p className="col-span-2 truncate">Serie: {item.series}</p>
+                              <p>Año: {item.year}</p>
+                              {item.toy_num && <p>Toy #: {item.toy_num}</p>}
+                              {item.col_num && <p>Col #: {item.col_num}</p>}
+                              {item.color && <p className="col-span-2 truncate">Color: {item.color}</p>}
+                              {item.wheel_type && <p className="col-span-2 truncate">Ruedas: {item.wheel_type}</p>}
+                            </div>
 
-                        {/* Price (if available) */}
-                        {item.availability.available && item.availability.price && (
-                          <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                            <p className="text-lg font-bold text-green-600">
-                              ${item.availability.price.toFixed(2)}
-                            </p>
-                            <p className="text-xs text-blue-600">
-                              Entrega inmediata
-                            </p>
+                            {item.availability.available && item.availability.price && (
+                              <div className="mt-2 pt-2 border-t border-slate-200/45 dark:border-slate-700/55 flex items-center justify-between">
+                                <p className="text-lg font-bold text-green-600">
+                                  ${item.availability.price.toFixed(2)}
+                                </p>
+                                <p className="text-[11px] sm:text-xs text-blue-600 font-semibold">
+                                  Entrega inmediata
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                   )

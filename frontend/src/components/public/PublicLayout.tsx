@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { LogIn, Sun, Moon } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
-import Button from '@/components/common/Button'
 
 interface PublicLayoutProps {
   children: ReactNode
@@ -28,8 +27,8 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     : 'rounded-xl bg-[#e7edf7] shadow-[inset_5px_5px_10px_rgba(148,163,184,0.22),inset_-4px_-4px_8px_rgba(255,255,255,0.92)] px-3 py-2'
 
   const buttonNeumorphClass = isDark
-    ? 'rounded-xl !border !border-slate-700/70 !bg-slate-800 !text-slate-100 !shadow-[8px_8px_16px_rgba(2,6,23,0.45),-6px_-6px_12px_rgba(51,65,85,0.16)] hover:brightness-110'
-    : 'rounded-xl !border !border-white/90 !bg-[#edf3fa] !text-slate-700 !shadow-[8px_8px_16px_rgba(148,163,184,0.3),-8px_-8px_16px_rgba(255,255,255,0.94)] hover:brightness-95'
+    ? 'rounded-xl border border-slate-700/80 bg-[linear-gradient(145deg,rgba(51,65,85,0.32),rgba(30,41,59,0.82))] text-slate-100 shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_18px_rgba(71,85,105,0.22),inset_1px_1px_0_rgba(255,255,255,0.08)] hover:brightness-110'
+    : 'rounded-xl border border-white/90 bg-[linear-gradient(145deg,#f5f8fd,#e6edf7)] text-slate-700 shadow-[10px_10px_20px_rgba(148,163,184,0.3),-8px_-8px_16px_rgba(255,255,255,0.96),inset_1px_1px_0_rgba(255,255,255,0.85)] hover:brightness-95'
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-[#e9f0f9]'}`}>
@@ -56,21 +55,20 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             {/* Navigation */}
             <div className="flex items-center space-x-2">
               {/* Theme Toggle */}
-              <Button
-                variant="secondary"
-                size="sm"
+              <button
+                type="button"
                 onClick={toggleTheme}
-                icon={isDark ? <Sun size={18} /> : <Moon size={18} />}
-                className={`${buttonNeumorphClass} !hover:bg-inherit !hover:text-inherit`}
+                className={`inline-flex items-center justify-center min-h-[44px] px-4 py-2.5 font-medium transition-all duration-200 ${buttonNeumorphClass}`}
                 title={isDark ? 'Modo claro' : 'Modo oscuro'}
+                aria-label={isDark ? 'Modo claro' : 'Modo oscuro'}
               >
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
                 <span className="sr-only">{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-              </Button>
+              </button>
 
               {/* Admin Login / Dashboard */}
-              <Button
-                variant="secondary"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => {
                   if (user) {
                     // If already logged in, go to dashboard
@@ -80,11 +78,11 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                     navigate('/login')
                   }
                 }}
-                icon={<LogIn size={18} />}
-                className={`${buttonNeumorphClass} !hover:bg-inherit !hover:text-inherit`}
+                className={`inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 font-medium transition-all duration-200 ${buttonNeumorphClass}`}
               >
+                <LogIn size={18} />
                 <span className="hidden sm:inline">{user ? 'Home' : 'Admin'}</span>
-              </Button>
+              </button>
             </div>
           </div>
         </div>
