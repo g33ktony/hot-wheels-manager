@@ -23,61 +23,98 @@ export default function InventoryPaginationControls({
 }: InventoryPaginationControlsProps) {
     if (!pagination || pagination.totalPages <= 1) return null
 
+    const startItem = ((currentPage - 1) * itemsPerPage) + 1
+    const endItem = Math.min(currentPage * itemsPerPage, pagination.totalItems)
+
+    const pageTokens: Array<number | 'left-gap' | 'right-gap'> = []
+    const candidatePages = new Set<number>([
+        1,
+        pagination.totalPages,
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+    ])
+
+    const validPages = [...candidatePages]
+        .filter((page) => page >= 1 && page <= pagination.totalPages)
+        .sort((a, b) => a - b)
+
+    validPages.forEach((page, index) => {
+        const previousPage = validPages[index - 1]
+
+        if (index > 0 && previousPage !== undefined && page - previousPage > 1) {
+            pageTokens.push(index === 1 ? 'left-gap' : 'right-gap')
+        }
+
+        pageTokens.push(page)
+    })
+
     return (
-        <div className={`border rounded-lg p-3 w-full ${isDark ? 'bg-slate-800' : 'bg-white border-gray-200'}`}>
-            <div className={`hidden sm:flex items-center justify-center text-sm mb-3 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-                <span>
-                    Mostrando <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> -{' '}
-                    <span className="font-medium">
-                        {Math.min(currentPage * itemsPerPage, pagination.totalItems)}
-                    </span> de{' '}
-                    <span className="font-medium">{pagination.totalItems}</span> items
+        <div
+            className={`w-full rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 backdrop-blur-xl ${isDark
+                ? 'border-slate-500/70 bg-slate-900/55 shadow-lg shadow-slate-950/20'
+                : 'border-slate-200/90 bg-white/90 shadow-md shadow-slate-200/55'
+                }`}
+        >
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2 w-full flex-wrap">
+                <span
+                    className={`hidden md:inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium border ${isDark
+                        ? 'border-slate-500/60 bg-slate-800/70 text-slate-300'
+                        : 'border-slate-200 bg-slate-50 text-slate-600'
+                        }`}
+                >
+                    {startItem}-{endItem} de {pagination.totalItems}
                 </span>
-            </div>
 
-            <div className={`sm:hidden text-xs text-center mb-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, pagination.totalItems)} de {pagination.totalItems} items
-            </div>
-
-            <div className="flex items-center justify-center gap-1 sm:gap-2 w-full">
                 <Button
                     size="sm"
                     variant="secondary"
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-2 sm:px-3"
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
+                        ? '!bg-slate-700/60 !border !border-slate-500/70 !text-slate-100 hover:!bg-slate-700/80'
+                        : '!bg-white/90 !border !border-slate-300/85 !text-slate-700 hover:!bg-slate-50'
+                        }`}
+                    aria-label="Página anterior"
                 >
                     <ChevronLeft size={16} />
                     <span className="hidden sm:inline">Anterior</span>
                 </Button>
 
-                <div className="flex items-center gap-1">
-                    {[...Array(pagination.totalPages)].map((_, idx) => {
-                        const pageNum = idx + 1
-                        if (
-                            pageNum === 1 ||
-                            pageNum === pagination.totalPages ||
-                            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                        ) {
+                <div
+                    className={`flex items-center gap-1 rounded-xl px-1.5 py-1 ${isDark
+                        ? 'bg-slate-800/55 border border-slate-500/60'
+                        : 'bg-slate-100/80 border border-slate-200/90'
+                        }`}
+                >
+                    {pageTokens.map((token, idx) => {
+                        if (typeof token !== 'number') {
                             return (
-                                <button
-                                    key={pageNum}
-                                    onClick={() => onPageChange(pageNum)}
-                                    className={`px-2 sm:px-3 py-1 rounded text-sm font-medium transition-colors min-w-[32px] ${currentPage === pageNum
-                                        ? 'bg-primary-500 text-white'
-                                        : (isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
-                                        }`}
+                                <span
+                                    key={`${token}-${idx}`}
+                                    className={`px-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
                                 >
-                                    {pageNum}
-                                </button>
+                                    ...
+                                </span>
                             )
-                        } else if (
-                            pageNum === currentPage - 2 ||
-                            pageNum === currentPage + 2
-                        ) {
-                            return <span key={pageNum} className={`px-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>...</span>
                         }
-                        return null
+
+                        const isActive = currentPage === token
+
+                        return (
+                            <button
+                                key={token}
+                                onClick={() => onPageChange(token)}
+                                className={`min-w-[30px] sm:min-w-[34px] px-2 py-1 rounded-md text-xs sm:text-sm font-semibold transition-all ${isActive
+                                    ? 'bg-primary-500 text-white shadow-sm shadow-primary-500/40'
+                                    : isDark
+                                        ? 'text-slate-300 hover:bg-slate-700/70 hover:text-slate-100'
+                                        : 'text-slate-700 hover:bg-white hover:text-slate-900'
+                                    }`}
+                            >
+                                {token}
+                            </button>
+                        )
                     })}
                 </div>
 
@@ -86,11 +123,24 @@ export default function InventoryPaginationControls({
                     variant="secondary"
                     onClick={() => onPageChange(Math.min(pagination.totalPages, currentPage + 1))}
                     disabled={currentPage === pagination.totalPages}
-                    className="flex items-center gap-1 px-2 sm:px-3"
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
+                        ? '!bg-slate-700/60 !border !border-slate-500/70 !text-slate-100 hover:!bg-slate-700/80'
+                        : '!bg-white/90 !border !border-slate-300/85 !text-slate-700 hover:!bg-slate-50'
+                        }`}
+                    aria-label="Página siguiente"
                 >
                     <span className="hidden sm:inline">Siguiente</span>
                     <ChevronRight size={16} />
                 </Button>
+
+                <span
+                    className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium border ${isDark
+                        ? 'border-blue-300/30 bg-blue-500/10 text-blue-100'
+                        : 'border-blue-200 bg-blue-50 text-blue-700'
+                        }`}
+                >
+                    {currentPage}/{pagination.totalPages}
+                </span>
             </div>
         </div>
     )

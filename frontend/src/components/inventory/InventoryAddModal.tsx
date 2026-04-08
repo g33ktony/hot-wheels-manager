@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import Stepper from '@/components/common/Stepper'
 import OCRScanner from '@/components/OCRScanner'
-import { Plus, Upload, Camera, X, Trash2, MapPin, TrendingUp, Edit } from 'lucide-react'
+import { Plus, Upload, Camera, X, Trash2, MapPin, TrendingUp, Edit, ChevronDown } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import toast from 'react-hot-toast'
 import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
@@ -169,6 +169,11 @@ export default function InventoryAddModal({
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [showCatalogResults, setShowCatalogResults] = useState(false)
     const [catalogSearchResults, setCatalogSearchResults] = useState<any[]>([])
+    const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['identification']))
+
+    const toggleSection = useCallback((section: string) => {
+        setExpandedSections(prev => (prev.has(section) ? new Set() : new Set([section])))
+    }, [])
 
     // ── Hooks ──
     const { results: hotWheelsResults, isLoading: isSearchingCatalog, searchByName } = useSearchHotWheels()
@@ -201,6 +206,7 @@ export default function InventoryAddModal({
         setCustomBrandInput('')
         setShowCatalogResults(false)
         setCatalogSearchResults([])
+        setExpandedSections(new Set(['identification']))
         onClose()
     }
 
@@ -532,6 +538,35 @@ export default function InventoryAddModal({
         )
     }, [newItem.carId, inventoryItems])
 
+    const openOnlySection = useCallback((section: string) => {
+        setExpandedSections(new Set([section]))
+    }, [])
+
+    const sectionCardClass = isDark
+        ? 'rounded-2xl border border-white/20 bg-slate-900/30 p-3 sm:p-4 backdrop-blur-2xl shadow-xl shadow-slate-900/25'
+        : 'rounded-2xl border border-sky-200/70 bg-white/65 p-3 sm:p-4 backdrop-blur-2xl shadow-lg shadow-sky-200/25'
+
+    const sectionTitleClass = isDark ? 'text-slate-100' : 'text-slate-900'
+    const labelClass = isDark ? 'block text-sm font-medium text-slate-200 mb-1' : 'block text-sm font-medium text-gray-700 mb-1'
+    const helperClass = isDark ? 'text-xs text-slate-400 mt-1' : 'text-xs text-gray-500 mt-1'
+    const translucentFieldsClass = isDark
+        ? '[&_.input]:bg-slate-800/40 [&_.input]:border-slate-500/65 [&_.input]:text-slate-100 [&_.input]:placeholder:text-slate-400 [&_.input]:backdrop-blur-md [&_.input]:focus:border-cyan-300/55 [&_.input]:focus:ring-cyan-400/30'
+        : '[&_.input]:bg-white/55 [&_.input]:border-slate-300/80 [&_.input]:text-slate-900 [&_.input]:placeholder:text-slate-400 [&_.input]:backdrop-blur-md [&_.input]:focus:border-blue-400/70 [&_.input]:focus:ring-blue-300/35'
+
+    const sectionContentClass = isDark ? 'mt-3 space-y-4 text-slate-100' : 'mt-3 space-y-4 text-slate-800'
+
+    const getSectionHeaderClass = (isOpen: boolean) => {
+        if (isDark) {
+            return isOpen
+                ? 'w-full flex items-center justify-between rounded-xl px-3 py-2 text-left bg-gradient-to-r from-cyan-500/16 to-blue-500/12 border border-cyan-400/30'
+                : 'w-full flex items-center justify-between rounded-xl px-3 py-2 text-left bg-slate-800/45 border border-slate-500/60 hover:border-slate-300'
+        }
+
+        return isOpen
+            ? 'w-full flex items-center justify-between rounded-xl px-3 py-2 text-left bg-gradient-to-r from-cyan-50/80 to-blue-50/75 border border-cyan-200/90'
+            : 'w-full flex items-center justify-between rounded-xl px-3 py-2 text-left bg-white/60 border border-slate-200/85 hover:border-sky-300'
+    }
+
     // ─── Render ───────────────────────────────────────────────────────────────
 
     if (!isOpen) return null
@@ -546,14 +581,20 @@ export default function InventoryAddModal({
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <Button
                         variant="secondary"
-                        className="w-full sm:flex-1 h-10"
+                        className={`w-full sm:flex-1 h-10 ${isDark
+                            ? '!bg-slate-700/45 !border !border-slate-400/45 !text-slate-100 backdrop-blur-md hover:!bg-slate-700/65'
+                            : '!bg-white/65 !border !border-slate-300/80 !text-slate-800 backdrop-blur-md hover:!bg-white/85'
+                            }`}
                         onClick={resetForm}
                         disabled={isAddingItem}
                     >
                         Cancelar
                     </Button>
                     <Button
-                        className="w-full sm:flex-1 h-10"
+                        className={`w-full sm:flex-1 h-10 ${isDark
+                            ? '!bg-gradient-to-r !from-primary-600/90 !to-blue-600/90 border border-white/20 backdrop-blur-md'
+                            : '!bg-gradient-to-r !from-primary-600/95 !to-blue-600/95 border border-white/30 backdrop-blur-md'
+                            }`}
                         onClick={handleAddItem}
                         disabled={
                             isAddingItem ||
@@ -586,10 +627,28 @@ export default function InventoryAddModal({
                 </div>
             }
         >
-            <div className="space-y-4 sm:space-y-5">
+            <div className={`space-y-3 sm:space-y-4 ${translucentFieldsClass}`}>
+                <div className={sectionCardClass}>
+                    <button
+                        type="button"
+                        className={getSectionHeaderClass(expandedSections.has('identification'))}
+                        onClick={() => toggleSection('identification')}
+                    >
+                        <div>
+                            <p className={`text-sm font-semibold ${sectionTitleClass}`}>1. Identificación y tipo de compra</p>
+                            <p className={helperClass}>Define si es pieza, caja o serie y registra el casting.</p>
+                        </div>
+                        <ChevronDown
+                            size={18}
+                            className={`transition-transform ${expandedSections.has('identification') ? 'rotate-180' : ''} ${isDark ? 'text-slate-300' : 'text-slate-500'}`}
+                        />
+                    </button>
+
+                    {expandedSections.has('identification') && (
+                        <div className={sectionContentClass}>
                 {/* Type Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className={labelClass}>
                         Tipo de Compra
                     </label>
                     <div className="flex flex-col gap-2">
@@ -653,7 +712,7 @@ export default function InventoryAddModal({
                         </label>
                     </div>
                     {newItem.isMultipleCars && (
-                        <p className="text-xs text-gray-500 mt-2">
+                        <p className={helperClass}>
                             💡 Usa esta opción para series como Fast & Furious donde cada caja trae varios modelos diferentes
                         </p>
                     )}
@@ -661,17 +720,17 @@ export default function InventoryAddModal({
 
                 {/* Multiple Cars Section */}
                 {newItem.isMultipleCars && (
-                    <div className="border-2 border-blue-200 rounded-lg p-4 space-y-4">
+                    <div className={`${isDark ? 'border border-cyan-400/30 bg-slate-800/35' : 'border border-blue-200/90 bg-blue-50/55'} rounded-xl p-4 space-y-4`}>
                         <div className="flex justify-between items-center">
-                            <h4 className="font-medium text-white">Modelos en la caja/serie</h4>
-                            <span className="text-sm text-slate-400">
+                            <h4 className={`font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>Modelos en la caja/serie</h4>
+                            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                                 {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas totales
                             </span>
                         </div>
 
                         {/* Series Checkbox */}
-                        <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-3">
-                            <label className="flex items-center gap-2 cursor-pointer">
+                        <div className={`${isDark ? 'bg-purple-500/8 border border-purple-300/30' : 'bg-purple-50/75 border-2 border-purple-200/90'} rounded-lg p-3`}>
+                            <label className={`flex items-center gap-2 cursor-pointer ${isDark ? 'text-purple-100' : ''}`}>
                                 <input
                                     type="checkbox"
                                     checked={!!newItem.seriesId}
@@ -699,32 +758,32 @@ export default function InventoryAddModal({
                                         }
                                     }}
                                 />
-                                <span className="font-medium text-purple-900">
+                                <span className={`font-medium ${isDark ? 'text-purple-100' : 'text-purple-900'}`}>
                                     🎁 Estos modelos pertenecen a una serie
                                 </span>
                             </label>
-                            <p className="text-xs text-purple-700 mt-1 ml-6">
+                            <p className={`text-xs mt-1 ml-6 ${isDark ? 'text-purple-200/90' : 'text-purple-700'}`}>
                                 Marca esto si los carros que vas a agregar son parte de una colección/serie vendible completa
                             </p>
                         </div>
 
                         {/* Series Configuration */}
                         {newItem.seriesId && (
-                            <div className="grid grid-cols-2 gap-4 p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                            <div className={`grid grid-cols-2 gap-4 p-4 rounded-lg ${isDark ? 'bg-purple-500/8 border border-purple-300/30' : 'bg-purple-50/75 border-2 border-purple-200/90'}`}>
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className={labelClass}>
                                         ID de Serie (auto-generado)
                                     </label>
                                     <input
                                         type="text"
-                                        className="input w-full bg-slate-700"
+                                        className={`input w-full ${isDark ? 'bg-slate-800/45 border-slate-500/70 text-slate-100' : 'bg-slate-100/85 border-slate-300/85 text-slate-800'}`}
                                         value={newItem.seriesId}
                                         readOnly
                                     />
                                 </div>
 
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className={labelClass}>
                                         Nombre de la Serie *
                                     </label>
                                     <input
@@ -737,7 +796,7 @@ export default function InventoryAddModal({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className={labelClass}>
                                         Total de Piezas en Serie *
                                     </label>
                                     <input
@@ -765,7 +824,7 @@ export default function InventoryAddModal({
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label className={labelClass}>
                                         Precio de Serie Completa (Opcional)
                                     </label>
                                     <input
@@ -792,7 +851,7 @@ export default function InventoryAddModal({
                                 </div>
 
                                 {(newItem.suggestedPrice as number) > 0 && (newItem.seriesSize as number) > 0 && (
-                                    <div className="col-span-2 text-xs bg-slate-800 p-2 rounded border border-purple-200">
+                                    <div className={`col-span-2 text-xs p-2 rounded ${isDark ? 'bg-slate-800/65 border border-purple-300/35 text-slate-100' : 'bg-white/75 border border-purple-200 text-slate-700'}`}>
                                         💡 Precio sugerido:{' '}
                                         <strong>
                                             ${((newItem.suggestedPrice as number) * (newItem.seriesSize as number) * 0.85).toFixed(2)}
@@ -850,11 +909,11 @@ export default function InventoryAddModal({
                                 {newItem.cars.map((car, index) => (
                                     <div
                                         key={index}
-                                        className="flex justify-between items-center bg-slate-700/30 p-2 rounded"
+                                        className={`flex justify-between items-center p-2 rounded ${isDark ? 'bg-slate-700/30' : 'bg-slate-100/85 border border-slate-200/85'}`}
                                     >
-                                        <span className="text-sm">
+                                        <span className={`text-sm ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>
                                             <span className="font-medium">{car.carId}</span>
-                                            <span className="text-slate-400 ml-2">× {car.quantity}</span>
+                                            <span className={`ml-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>× {car.quantity}</span>
                                         </span>
                                         <button
                                             type="button"
@@ -874,7 +933,7 @@ export default function InventoryAddModal({
                         )}
 
                         {newItem.cars.length === 0 && (
-                            <p className="text-sm text-slate-400 text-center py-4">
+                            <p className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                 Agrega los modelos que vienen en la caja/serie
                             </p>
                         )}
@@ -884,7 +943,7 @@ export default function InventoryAddModal({
                 {/* Box Size Selection */}
                 {newItem.isBox && !newItem.isMultipleCars && (
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className={labelClass}>
                             Tamaño de Caja
                         </label>
                         <select
@@ -911,7 +970,7 @@ export default function InventoryAddModal({
                 {!newItem.isMultipleCars && (
                     <div className="relative">
                         <div className="flex items-center justify-between mb-1">
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label className={labelClass.replace(' mb-1', '')}>
                                 Casting / Nombre
                             </label>
                             <OCRScanner
@@ -936,7 +995,9 @@ export default function InventoryAddModal({
                                     }
                                 }}
                                 buttonText="📷 Escanear"
-                                buttonClassName="!py-1 !px-2 text-xs"
+                                buttonClassName={isDark
+                                    ? '!py-1 !px-2 text-xs !bg-slate-700/55 !text-slate-100 !border !border-slate-400/50 backdrop-blur-md hover:!bg-slate-700/75'
+                                    : '!py-1 !px-2 text-xs !bg-white/70 !text-slate-800 !border !border-slate-300/85 backdrop-blur-md hover:!bg-white/90'}
                             />
                         </div>
 
@@ -982,8 +1043,8 @@ export default function InventoryAddModal({
 
                         {/* Inventory suggestions dropdown */}
                         {showSuggestions && !existingItemToUpdate && getMatchingItems.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                <div className="p-2 bg-slate-700/30 border-b text-xs text-slate-400">
+                            <div className={`absolute z-10 w-full mt-1 rounded-lg shadow-lg max-h-48 overflow-y-auto backdrop-blur-xl ${isDark ? 'bg-slate-900/75 border border-slate-500/70' : 'bg-white/85 border border-slate-200'}`}>
+                                <div className={`p-2 border-b text-xs ${isDark ? 'bg-slate-700/40 text-slate-300 border-slate-500/70' : 'bg-slate-100/80 text-slate-600 border-slate-200'}`}>
                                     {getMatchingItems.length} pieza{getMatchingItems.length !== 1 ? 's' : ''} encontrada
                                     {getMatchingItems.length !== 1 ? 's' : ''} (búsqueda inteligente)
                                 </div>
@@ -994,13 +1055,13 @@ export default function InventoryAddModal({
                                         <button
                                             key={item._id}
                                             type="button"
-                                            className="w-full text-left px-3 py-2 hover:bg-blue-50 border-b last:border-b-0 transition-colors"
+                                            className={`w-full text-left px-3 py-2 border-b last:border-b-0 transition-colors ${isDark ? 'hover:bg-slate-700/45 border-slate-600/70' : 'hover:bg-blue-50 border-slate-200'}`}
                                             onClick={() => handleSelectExistingItem(item)}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div>
                                                     <div className="font-medium text-sm">{item.carId}</div>
-                                                    <div className="text-xs text-slate-400">
+                                                    <div className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
                                                         {item.quantity} disponible{item.quantity !== 1 ? 's' : ''} • {item.condition} • ${item.suggestedPrice}
                                                     </div>
                                                 </div>
@@ -1026,8 +1087,8 @@ export default function InventoryAddModal({
 
                         {/* Hot Wheels catalog dropdown */}
                         {showCatalogResults && catalogSearchResults.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-emerald-900 border border-emerald-600 rounded-lg shadow-lg max-h-64 overflow-y-auto top-full">
-                                <div className="sticky top-0 p-2 bg-emerald-800/50 border-b border-emerald-600 text-xs text-emerald-200 font-semibold">
+                            <div className={`absolute z-10 w-full mt-1 rounded-lg shadow-lg max-h-64 overflow-y-auto top-full backdrop-blur-xl ${isDark ? 'bg-emerald-900/70 border border-emerald-500/65' : 'bg-emerald-50/90 border border-emerald-200'}`}>
+                                <div className={`sticky top-0 p-2 border-b text-xs font-semibold ${isDark ? 'bg-emerald-800/45 border-emerald-600 text-emerald-200' : 'bg-emerald-100/85 border-emerald-200 text-emerald-700'}`}>
                                     📚 Catálogo Autos a Escala ({catalogSearchResults.length} resultado
                                     {catalogSearchResults.length !== 1 ? 's' : ''})
                                 </div>
@@ -1052,7 +1113,7 @@ export default function InventoryAddModal({
                                         <button
                                             key={`${item.toy_num}-${idx}`}
                                             type="button"
-                                            className="w-full text-left px-3 py-2 hover:bg-emerald-700/30 border-b last:border-b-0 transition-colors"
+                                            className={`w-full text-left px-3 py-2 border-b last:border-b-0 transition-colors ${isDark ? 'hover:bg-emerald-700/30 border-emerald-700/45' : 'hover:bg-emerald-100/70 border-emerald-200/70'}`}
                                             onClick={() => handleSelectCatalogItem(item)}
                                         >
                                             <div className="flex items-start gap-3">
@@ -1086,7 +1147,7 @@ export default function InventoryAddModal({
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-sm text-emerald-100">
+                                                        <span className={`font-medium text-sm ${isDark ? 'text-emerald-100' : 'text-emerald-900'}`}>
                                                             {item.model}
                                                         </span>
                                                         {seriesInfo.isPartOfSeries && (
@@ -1095,7 +1156,7 @@ export default function InventoryAddModal({
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <div className="text-xs text-emerald-300 space-y-0.5">
+                                                    <div className={`text-xs space-y-0.5 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
                                                         <p>
                                                             Serie: <span className="font-semibold">{item.series}</span> • Año:{' '}
                                                             <span className="font-semibold">{item.year}</span>
@@ -1107,7 +1168,7 @@ export default function InventoryAddModal({
                                                     </div>
                                                 </div>
                                                 <div className="flex-shrink-0">
-                                                    <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-700/50 text-emerald-100">
+                                                    <span className={`text-xs font-semibold px-2 py-1 rounded ${isDark ? 'bg-emerald-700/50 text-emerald-100' : 'bg-emerald-200/80 text-emerald-800'}`}>
                                                         Agregar
                                                     </span>
                                                 </div>
@@ -1120,8 +1181,8 @@ export default function InventoryAddModal({
 
                         {/* Loading catalog results */}
                         {showCatalogResults && isSearchingCatalog && catalogSearchResults.length === 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-emerald-900 border border-emerald-600 rounded-lg shadow-lg p-3">
-                                <div className="text-xs text-emerald-200 flex items-center gap-2">
+                            <div className={`absolute z-10 w-full mt-1 rounded-lg shadow-lg p-3 backdrop-blur-xl ${isDark ? 'bg-emerald-900/70 border border-emerald-600' : 'bg-emerald-50/90 border border-emerald-200'}`}>
+                                <div className={`text-xs flex items-center gap-2 ${isDark ? 'text-emerald-200' : 'text-emerald-700'}`}>
                                     <div className="animate-spin inline-block">
                                         <div className="w-3 h-3 border-2 border-emerald-400 border-t-emerald-100 rounded-full" />
                                     </div>
@@ -1135,13 +1196,13 @@ export default function InventoryAddModal({
                 {/* Quantity */}
                 {!newItem.isMultipleCars && (
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={isDark ? 'block text-sm font-medium text-slate-200 mb-2' : 'block text-sm font-medium text-gray-700 mb-2'}>
                             {newItem.isBox ? 'Total de Piezas (automático)' : 'Cantidad'}
                         </label>
                         {newItem.isBox ? (
-                            <div className="flex items-center gap-2 p-3 bg-slate-700/30 border border-slate-600 rounded-lg">
-                                <span className="text-sm font-medium text-gray-700">{newItem.quantity}</span>
-                                <span className="text-xs text-gray-500">piezas automáticas</span>
+                            <div className={`flex items-center gap-2 p-3 rounded-lg ${isDark ? 'bg-slate-700/30 border border-slate-600' : 'bg-slate-100/85 border border-slate-200/90'}`}>
+                                <span className={isDark ? 'text-sm font-medium text-slate-100' : 'text-sm font-medium text-gray-700'}>{newItem.quantity}</span>
+                                <span className={isDark ? 'text-xs text-slate-400' : 'text-xs text-gray-500'}>piezas automáticas</span>
                             </div>
                         ) : (
                             <div className="flex justify-start">
@@ -1155,16 +1216,48 @@ export default function InventoryAddModal({
                             </div>
                         )}
                         {newItem.isBox && (
-                            <p className="text-xs text-gray-500 mt-2">
+                            <p className={helperClass}>
                                 Se agregarán {newItem.quantity} piezas del mismo auto a escala
                             </p>
                         )}
                     </div>
                 )}
 
+                            <div className="pt-1">
+                                <Button
+                                    variant="secondary"
+                                    className="w-full h-9"
+                                    onClick={() => openOnlySection('pricing')}
+                                >
+                                    Siguiente: precios y estado
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className={sectionCardClass}>
+                    <button
+                        type="button"
+                        className={getSectionHeaderClass(expandedSections.has('pricing'))}
+                        onClick={() => toggleSection('pricing')}
+                    >
+                        <div>
+                            <p className={`text-sm font-semibold ${sectionTitleClass}`}>2. Precios y condición</p>
+                            <p className={helperClass}>Configura compra, sugerido, precio actual y condición.</p>
+                        </div>
+                        <ChevronDown
+                            size={18}
+                            className={`transition-transform ${expandedSections.has('pricing') ? 'rotate-180' : ''} ${isDark ? 'text-slate-300' : 'text-slate-500'}`}
+                        />
+                    </button>
+
+                    {expandedSections.has('pricing') && (
+                        <div className={sectionContentClass}>
+
                 {/* Purchase Price */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className={labelClass}>
                         {newItem.isMultipleCars || newItem.isBox ? 'Precio Total de la Caja/Serie' : 'Precio de Compra'}
                     </label>
                     <input
@@ -1188,7 +1281,7 @@ export default function InventoryAddModal({
                         }}
                     />
                     {newItem.isMultipleCars && newItem.cars.length > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={helperClass}>
                             💡 {newItem.cars.reduce((sum, car) => sum + car.quantity, 0)} piezas total = $
                             {(newItem.purchasePrice as number) > 0
                                 ? ((newItem.purchasePrice as number) / newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)
@@ -1197,7 +1290,7 @@ export default function InventoryAddModal({
                         </p>
                     )}
                     {newItem.isBox && (newItem.purchasePrice as number) > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={helperClass}>
                             ${((newItem.purchasePrice as number) / newItem.boxSize).toFixed(2)} por pieza
                         </p>
                     )}
@@ -1205,14 +1298,14 @@ export default function InventoryAddModal({
 
                 {/* Suggested Price */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+                    <label className={`${labelClass} flex items-center gap-2`}>
                         {newItem.isMultipleCars && newItem.seriesId
                             ? 'Precio Individual por Pieza (si se vende por separado)'
                             : newItem.isMultipleCars || newItem.isBox
                                 ? 'Precio de Venta por Pieza'
                                 : 'Precio Sugerido'}
                         {!newItem.isMultipleCars && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-slate-700 text-emerald-400 rounded-full">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full ${isDark ? 'bg-slate-700/80 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
                                 <TrendingUp size={12} />
                                 {(newItem.purchasePrice as number) > 0 && (newItem.suggestedPrice as number) > 0
                                     ? `+${((((newItem.suggestedPrice as number) - (newItem.purchasePrice as number)) / (newItem.purchasePrice as number)) * 100).toFixed(0)}%`
@@ -1232,18 +1325,18 @@ export default function InventoryAddModal({
                         }}
                     />
                     {newItem.isMultipleCars && newItem.seriesId && newItem.cars.length > 0 && (newItem.suggestedPrice as number) > 0 && (
-                        <p className="text-xs text-yellow-600 mt-1">
+                        <p className={`text-xs mt-1 ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`}>
                             ⚠️ Este es el precio si vendes cada pieza POR SEPARADO. El precio de serie completa se configura abajo.
                         </p>
                     )}
                     {newItem.isMultipleCars && !newItem.seriesId && newItem.cars.length > 0 && (newItem.suggestedPrice as number) > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={helperClass}>
                             💰 Si vendes todas por separado: $
                             {((newItem.suggestedPrice as number) * newItem.cars.reduce((sum, car) => sum + car.quantity, 0)).toFixed(2)} total
                         </p>
                     )}
                     {!newItem.isMultipleCars && (newItem.purchasePrice as number) > 0 && (
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className={helperClass}>
                             💡 Sugerido: ${calculateSuggestedMargin(newItem.purchasePrice as number, newItem.condition).toFixed(2)}
                             {newItem.isBox &&
                                 ` (Ganancia: $${(((newItem.suggestedPrice as number) - (newItem.purchasePrice as number) / newItem.boxSize) * newItem.boxSize).toFixed(2)} por caja)`}
@@ -1253,7 +1346,7 @@ export default function InventoryAddModal({
 
                 {/* Actual Price */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className={labelClass}>
                         Precio Actual (Opcional)
                     </label>
                     <input
@@ -1270,7 +1363,7 @@ export default function InventoryAddModal({
                             }))
                         }}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className={helperClass}>
                         Precio al que se vende actualmente (diferente al sugerido)
                     </p>
                 </div>
@@ -1281,7 +1374,7 @@ export default function InventoryAddModal({
                         Condición (afecta margen sugerido)
                     </label>
                     <select
-                        className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                        className={`input w-full ${isDark ? 'bg-slate-800/45 text-white border-slate-500/70 backdrop-blur-md' : 'bg-white/70 text-slate-900 border-slate-300/80 backdrop-blur-md'}`}
                         value={newItem.condition}
                         onChange={(e) => handleConditionChange(e.target.value)}
                     >
@@ -1294,7 +1387,7 @@ export default function InventoryAddModal({
 
                 {/* Location */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                    <label className={`${isDark ? 'block text-sm font-medium text-slate-200 mb-1' : 'block text-sm font-medium text-gray-700 mb-1'} flex items-center gap-1`}>
                         <MapPin size={14} />
                         Ubicación Física (Opcional)
                     </label>
@@ -1305,8 +1398,40 @@ export default function InventoryAddModal({
                         value={newItem.location}
                         onChange={(e) => setNewItem(prev => ({ ...prev, location: e.target.value }))}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Dónde guardas físicamente esta pieza</p>
+                    <p className={helperClass}>Dónde guardas físicamente esta pieza</p>
                 </div>
+
+                            <div className="pt-1">
+                                <Button
+                                    variant="secondary"
+                                    className="w-full h-9"
+                                    onClick={() => openOnlySection('details')}
+                                >
+                                    Siguiente: clasificación y etiquetas
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className={sectionCardClass}>
+                    <button
+                        type="button"
+                        className={getSectionHeaderClass(expandedSections.has('details'))}
+                        onClick={() => toggleSection('details')}
+                    >
+                        <div>
+                            <p className={`text-sm font-semibold ${sectionTitleClass}`}>3. Clasificación</p>
+                            <p className={helperClass}>Marca, tipo de pieza, etiquetas y notas.</p>
+                        </div>
+                        <ChevronDown
+                            size={18}
+                            className={`transition-transform ${expandedSections.has('details') ? 'rotate-180' : ''} ${isDark ? 'text-slate-300' : 'text-slate-500'}`}
+                        />
+                    </button>
+
+                    {expandedSections.has('details') && (
+                        <div className={sectionContentClass}>
 
                 {/* Brand */}
                 <div>
@@ -1314,7 +1439,7 @@ export default function InventoryAddModal({
                         Marca
                     </label>
                     <select
-                        className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                        className={`input w-full ${isDark ? 'bg-slate-800/45 text-white border-slate-500/70 backdrop-blur-md' : 'bg-white/70 text-slate-900 border-slate-300/80 backdrop-blur-md'}`}
                         value={showCustomBrandInput ? 'custom' : newItem.brand}
                         onChange={(e) => handleBrandChange(e.target.value)}
                     >
@@ -1366,7 +1491,7 @@ export default function InventoryAddModal({
                             Tipo de Pieza
                         </label>
                         <select
-                            className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                            className={`input w-full ${isDark ? 'bg-slate-800/45 text-white border-slate-500/70 backdrop-blur-md' : 'bg-white/70 text-slate-900 border-slate-300/80 backdrop-blur-md'}`}
                             value={newItem.pieceType}
                             onChange={(e) => setNewItem(prev => ({ ...prev, pieceType: e.target.value as any }))}
                         >
@@ -1397,7 +1522,7 @@ export default function InventoryAddModal({
                                 }
                                 className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
                             />
-                            <span className={`text-sm font-medium ${newItem.isSuperTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                            <span className={`text-sm font-medium ${newItem.isSuperTreasureHunt ? (isDark ? 'text-slate-500' : 'text-gray-400') : (isDark ? 'text-slate-200' : 'text-gray-700')}`}>
                                 🔍 Treasure Hunt (TH)
                             </span>
                         </label>
@@ -1415,7 +1540,7 @@ export default function InventoryAddModal({
                                 }
                                 className="rounded disabled:opacity-50 disabled:cursor-not-allowed"
                             />
-                            <span className={`text-sm font-medium ${newItem.isTreasureHunt ? 'text-gray-400' : 'text-gray-700'}`}>
+                            <span className={`text-sm font-medium ${newItem.isTreasureHunt ? (isDark ? 'text-slate-500' : 'text-gray-400') : (isDark ? 'text-slate-200' : 'text-gray-700')}`}>
                                 ⭐ Super Treasure Hunt (STH)
                             </span>
                         </label>
@@ -1488,14 +1613,14 @@ export default function InventoryAddModal({
                                     onChange={(e) => setNewItem(prev => ({ ...prev, isChase: e.target.checked }))}
                                     className="w-4 h-4 accent-primary-600 cursor-pointer rounded"
                                 />
-                                <span className="text-sm font-medium text-gray-700">🌟 Chase</span>
+                                <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>🌟 Chase</span>
                             </label>
                         </div>
                     )}
 
                 {/* Notes */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className={labelClass}>
                         Notas (Opcional)
                     </label>
                     <textarea
@@ -1506,9 +1631,41 @@ export default function InventoryAddModal({
                     />
                 </div>
 
+                            <div className="pt-1">
+                                <Button
+                                    variant="secondary"
+                                    className="w-full h-9"
+                                    onClick={() => openOnlySection('media')}
+                                >
+                                    Siguiente: fotos
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className={sectionCardClass}>
+                    <button
+                        type="button"
+                        className={getSectionHeaderClass(expandedSections.has('media'))}
+                        onClick={() => toggleSection('media')}
+                    >
+                        <div>
+                            <p className={`text-sm font-semibold ${sectionTitleClass}`}>4. Fotos</p>
+                            <p className={helperClass}>Carga imágenes y selecciona la foto destacada.</p>
+                        </div>
+                        <ChevronDown
+                            size={18}
+                            className={`transition-transform ${expandedSections.has('media') ? 'rotate-180' : ''} ${isDark ? 'text-slate-300' : 'text-slate-500'}`}
+                        />
+                    </button>
+
+                    {expandedSections.has('media') && (
+                        <div className={isDark ? 'mt-3 text-slate-200' : 'mt-3 text-slate-800'}>
+
                 {/* Photos Section */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fotos</label>
+                    <label className={isDark ? 'block text-sm font-medium text-slate-200 mb-2' : 'block text-sm font-medium text-gray-700 mb-2'}>Fotos</label>
 
                     <div className="mb-3 space-y-2">
                         <input
@@ -1531,17 +1688,17 @@ export default function InventoryAddModal({
                         <div className="flex gap-2">
                             <label
                                 htmlFor="photo-upload"
-                                className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${isDark ? 'border-slate-500/80 hover:border-slate-300 bg-slate-800/35' : 'border-slate-300 hover:border-slate-400 bg-white/75'}`}
                             >
-                                <Upload size={20} className="text-gray-400" />
-                                <span className="text-sm text-slate-400">Galería</span>
+                                <Upload size={20} className={isDark ? 'text-slate-300' : 'text-slate-500'} />
+                                <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-600'}`}>Galería</span>
                             </label>
                             <label
                                 htmlFor="photo-camera"
-                                className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-gray-400 transition-colors"
+                                className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${isDark ? 'border-slate-500/80 hover:border-slate-300 bg-slate-800/35' : 'border-slate-300 hover:border-slate-400 bg-white/75'}`}
                             >
-                                <Camera size={20} className="text-gray-400" />
-                                <span className="text-sm text-slate-400">Cámara</span>
+                                <Camera size={20} className={isDark ? 'text-slate-300' : 'text-slate-500'} />
+                                <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-600'}`}>Cámara</span>
                             </label>
                         </div>
                     </div>
@@ -1561,7 +1718,7 @@ export default function InventoryAddModal({
 
                             {newItem.photos.length > 1 && (
                                 <div>
-                                    <p className="text-xs text-gray-600 font-semibold mb-2">
+                                    <p className={`text-xs font-semibold mb-2 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
                                         Doble click para cambiar foto destacada:
                                     </p>
                                     <div className="grid grid-cols-4 gap-2">
@@ -1604,12 +1761,31 @@ export default function InventoryAddModal({
                     )}
                 </div>
 
+                        </div>
+                    )}
+                </div>
+
                 {/* Summary */}
                 {((newItem.carId || newItem.cars.length > 0) &&
                     ((newItem.purchasePrice as number) > 0 || (newItem.suggestedPrice as number) > 0)) && (
-                        <div className="border-t pt-4">
-                            <h4 className="font-medium text-white mb-2">Resumen</h4>
-                            <div className="bg-slate-700/30 p-3 rounded-lg text-sm space-y-1">
+                        <div className={sectionCardClass}>
+                            <button
+                                type="button"
+                                className={getSectionHeaderClass(expandedSections.has('summary'))}
+                                onClick={() => toggleSection('summary')}
+                            >
+                                <div>
+                                    <p className={`text-sm font-semibold ${sectionTitleClass}`}>5. Resumen final</p>
+                                    <p className={helperClass}>Revisa cantidades, precios y ganancia antes de guardar.</p>
+                                </div>
+                                <ChevronDown
+                                    size={18}
+                                    className={`transition-transform ${expandedSections.has('summary') ? 'rotate-180' : ''} ${isDark ? 'text-slate-300' : 'text-slate-500'}`}
+                                />
+                            </button>
+
+                            {expandedSections.has('summary') && (
+                                <div className={`mt-3 p-3 rounded-lg text-sm space-y-1 ${isDark ? 'bg-slate-700/30 text-slate-100' : 'bg-white text-slate-800 border border-slate-200'}`}>
                                 {newItem.isMultipleCars && newItem.cars.length > 0 && (
                                     <>
                                         <div className="flex justify-between">
@@ -1731,7 +1907,8 @@ export default function InventoryAddModal({
                                             )}
                                     </>
                                 )}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     )}
             </div>

@@ -27,6 +27,7 @@ import InventoryEditModal from '@/components/inventory/InventoryEditModal'
 import InventoryCreateDeliveryModal from '@/components/inventory/InventoryCreateDeliveryModal'
 import InventorySecondaryModals from '@/components/inventory/InventorySecondaryModals'
 import ImageViewerModal from '@/components/common/ImageViewerModal'
+import InventoryFab from '@/components/inventory/InventoryStickyBar'
 import toast from 'react-hot-toast'
 import { formatPieceType } from '@/utils/searchUtils'
 import { useInventoryFiltering } from '@/hooks/useInventoryFiltering'
@@ -122,6 +123,20 @@ export default function Inventory() {
 
     // Ref para scroll automático
     const topRef = useRef<HTMLDivElement>(null)
+
+    // Track header visibility for FAB
+    const headerRef = useRef<HTMLDivElement>(null)
+    const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+    useEffect(() => {
+        const el = headerRef.current
+        if (!el) return
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsHeaderVisible(entry.isIntersecting),
+            { threshold: 0 }
+        )
+        observer.observe(el)
+        return () => observer.disconnect()
+    }, [])
 
     const { data: inventoryData, isLoading, error } = useInventory({
         page: currentPage,
@@ -324,6 +339,7 @@ export default function Inventory() {
             <div ref={topRef} />
 
             {/* Header */}
+            <div ref={headerRef}>
             <InventoryHeader
                 isSelectionMode={isSelectionMode}
                 selectedItemsCount={selectedItems.size}
@@ -344,6 +360,7 @@ export default function Inventory() {
                 onSelectAllItems={handleSelectAllItems}
                 onShowAddModal={() => setShowAddModal(true)}
             />
+            </div>
 
             {/* Filters */}
             <InventoryFilters
@@ -497,6 +514,23 @@ export default function Inventory() {
                 onCloseCollageModal={() => setShowCollageModal(false)}
                 onCloseBulkEditModal={() => setShowBulkEditModal(false)}
                 onBulkEditSave={handleBulkEditSave}
+            />
+
+            {/* Mobile FAB - appears when header scrolls out of view */}
+            <InventoryFab
+                isHeaderVisible={isHeaderVisible}
+                viewMode={viewMode}
+                onToggleViewMode={handleToggleViewMode}
+                isSelectionMode={isSelectionMode}
+                selectedItemsCount={selectedItems.size}
+                filteredItemsCount={filteredItems.length}
+                onToggleSelectionMode={handleToggleSelectionMode}
+                canCreate={canCreate}
+                onShowAddModal={() => setShowAddModal(true)}
+                pagination={pagination}
+                currentPage={currentPage}
+                onPageChange={handlePageChange}
+                isDark={isDark}
             />
 
             {/* Create Delivery Modal */}

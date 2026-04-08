@@ -154,7 +154,10 @@ export default function InventoryGridSection({
                                     key={item._id}
                                     hover={!isSelectionMode && isAvailable}
                                     pressEffect={false}
-                                    className={`relative overflow-hidden !p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`relative overflow-hidden !p-0 !shadow-none ${isDark
+                                        ? 'border border-transparent shadow-[inset_0_2px_2px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                                        : 'border border-transparent shadow-[inset_0_2px_2px_rgba(148,163,184,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                        } ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <div
                                         className={`relative h-full min-h-[260px] ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
@@ -209,31 +212,42 @@ export default function InventoryGridSection({
                                                 <div />
                                                 <div className="flex flex-col items-end gap-0.5">
                                                     {item.isSuperTreasureHunt && (
-                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded shadow-md backdrop-blur-md bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white">$TH</span>
+                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded backdrop-blur-md bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">$TH</span>
                                                     )}
                                                     {item.isTreasureHunt && !item.isSuperTreasureHunt && (
-                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded shadow-md backdrop-blur-md bg-green-500/40 text-white">TH</span>
+                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded backdrop-blur-md bg-green-500/40 text-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">TH</span>
                                                     )}
                                                     {item.isChase && (
-                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded shadow-md backdrop-blur-md bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white">CHASE</span>
+                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded backdrop-blur-md bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">CHASE</span>
                                                     )}
                                                 </div>
                                             </div>
 
                                             {/* Bottom info panel - compact */}
-                                            <div data-card-panel="true" className="mt-auto rounded-xl bg-slate-900/50 backdrop-blur-xl border border-white/25 p-2 shadow-xl shadow-slate-900/35">
+                                            <div
+                                                data-card-panel="true"
+                                                className={`mt-auto rounded-xl p-2 ${isDark
+                                                        ? 'bg-slate-900/36 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+                                                        : 'bg-white/80 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+                                                    }`}
+                                            >
                                                 <h3
-                                                    className={`text-xs font-semibold truncate text-white leading-tight ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-300 transition-colors' : ''}`}
+                                                    className={`text-xs font-semibold truncate leading-tight ${isDark ? 'text-white hover:text-emerald-300' : 'text-slate-950 hover:text-emerald-700'} ${!isSelectionMode && item._id ? 'cursor-pointer transition-colors' : ''}`}
                                                     onClick={() => { if (!isSelectionMode && item._id) onNavigateToDetail(item._id) }}
                                                     title={modelName}
                                                 >
                                                     {modelName}
                                                 </h3>
                                                 <div className="flex items-center justify-between gap-1 mt-1">
-                                                    <span className="text-xs font-semibold text-emerald-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">
+                                                    <span className={`text-xs font-semibold ${isDark ? 'text-emerald-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]' : 'text-emerald-700'}`}>
                                                         ${customerPrice.toFixed(2)}
                                                     </span>
-                                                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${operationalStatus === 'Disponible' ? 'bg-emerald-700/35 text-emerald-100' : operationalStatus === 'Reservado' ? 'bg-amber-700/35 text-amber-100' : 'bg-red-700/35 text-red-100'}`}>
+                                                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${operationalStatus === 'Disponible'
+                                                        ? (isDark ? 'bg-emerald-700/35 text-emerald-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-[inset_0_1px_1px_rgba(16,185,129,0.18),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                        : operationalStatus === 'Reservado'
+                                                            ? (isDark ? 'bg-amber-700/35 text-amber-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-[inset_0_1px_1px_rgba(217,119,6,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                            : (isDark ? 'bg-red-700/35 text-red-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-red-100 text-red-700 border border-red-200 shadow-[inset_0_1px_1px_rgba(220,38,38,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                        }`}>
                                                         {availableQty}u
                                                     </span>
                                                 </div>
@@ -243,7 +257,10 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="primary"
-                                                            className="!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg bg-blue-600 hover:bg-blue-500 border border-blue-300/30 shadow-sm"
+                                                            className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${isDark
+                                                                ? 'bg-blue-500/22 text-blue-100 hover:bg-blue-500/30 border border-blue-200/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
+                                                                : 'bg-blue-500/14 text-blue-700 hover:bg-blue-500/20 border border-white/75 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(59,130,246,0.24),inset_0_-1px_1px_rgba(255,255,255,0.96)]'
+                                                                }`}
                                                             onClick={() => onAddToPos(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="POS"
@@ -254,7 +271,10 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="secondary"
-                                                            className="!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg bg-white/90 text-slate-900 hover:bg-white border border-white/60 shadow-sm"
+                                                            className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${isDark
+                                                                ? 'bg-slate-800/38 !text-slate-50 hover:bg-slate-700/45 border border-slate-300/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
+                                                                : 'bg-white/52 !text-slate-800 hover:bg-white/68 border border-white/80 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                                                }`}
                                                             onClick={() => onAddToDelivery(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="Entrega"
@@ -276,7 +296,10 @@ export default function InventoryGridSection({
                                 key={item._id}
                                 hover={!isSelectionMode && isAvailable}
                                 pressEffect={false}
-                                className={`relative overflow-hidden !p-0 border-0 ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`relative overflow-hidden !p-0 !shadow-none ${isDark
+                                    ? 'border border-transparent shadow-[inset_0_2px_2px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
+                                    : 'border border-transparent shadow-[inset_0_2px_2px_rgba(148,163,184,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                    } ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                                 <div
                                     className={`relative h-full min-h-[520px] ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
@@ -342,14 +365,14 @@ export default function InventoryGridSection({
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             {item.brand ? (
-                                                <div className="px-2.5 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-lg backdrop-blur-md border border-white/35 shadow-sm">
+                                                <div className="px-2.5 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-lg backdrop-blur-md border border-transparent shadow-[inset_0_2px_2px_rgba(0,0,0,0.38),inset_0_-1px_1px_rgba(255,255,255,0.16)]">
                                                     {item.brand}
                                                 </div>
                                             ) : <div />}
 
                                             <div className="flex flex-col items-end gap-1">
                                                 {item.pieceType && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${item.pieceType === 'basic'
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md border border-transparent ${item.pieceType === 'basic'
                                                         ? isDark ? 'bg-blue-500/30 text-white' : 'bg-blue-400/30 text-white'
                                                         : item.pieceType === 'premium'
                                                             ? isDark ? 'bg-purple-500/30 text-white' : 'bg-purple-400/30 text-white'
@@ -359,35 +382,41 @@ export default function InventoryGridSection({
                                                                     ? isDark ? 'bg-slate-400/30 text-white' : 'bg-slate-300/30 text-white'
                                                                     : item.pieceType === 'elite_64'
                                                                         ? isDark ? 'bg-red-500/30 text-white' : 'bg-red-400/30 text-white'
-                                                                        : isDark ? 'bg-slate-500/30 text-white' : 'bg-slate-400/30 text-white'}`}>
+                                                                        : isDark ? 'bg-slate-500/30 text-white' : 'bg-slate-400/30 text-white'} shadow-[inset_0_2px_2px_rgba(0,0,0,0.4),inset_0_-1px_1px_rgba(255,255,255,0.15)]`}>
                                                         {formatPieceType(item.pieceType).toUpperCase()}
                                                     </span>
                                                 )}
 
                                                 {item.isSuperTreasureHunt && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white' : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)] ${isDark ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white' : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'}`}>
                                                         $TH
                                                     </span>
                                                 )}
                                                 {item.isTreasureHunt && !item.isSuperTreasureHunt && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-green-500/40 text-white' : 'bg-green-400/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)] ${isDark ? 'bg-green-500/40 text-white' : 'bg-green-400/40 text-white'}`}>
                                                         TH
                                                     </span>
                                                 )}
 
                                                 {item.isChase && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md shadow-md backdrop-blur-md ${isDark ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white' : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)] ${isDark ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white' : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'}`}>
                                                         CHASE
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
 
-                                        <div data-card-panel="true" className="mt-auto rounded-2xl bg-slate-900/45 backdrop-blur-xl border border-white/30 p-3 shadow-xl shadow-slate-900/35">
+                                        <div
+                                            data-card-panel="true"
+                                                className={`mt-auto rounded-2xl p-3 ${isDark
+                                                ? 'bg-slate-900/34 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
+                                                : 'bg-white/82 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+                                                }`}
+                                        >
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0 flex-1">
                                                     <h3
-                                                        className={`text-[1.05rem] font-semibold truncate text-white ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-300 transition-colors' : ''}`}
+                                                        className={`text-[1.05rem] font-semibold truncate ${isDark ? 'text-white hover:text-emerald-300' : 'text-slate-950 hover:text-emerald-700'} ${!isSelectionMode && item._id ? 'cursor-pointer transition-colors' : ''}`}
                                                         onClick={() => {
                                                             if (!isSelectionMode && item._id) {
                                                                 onNavigateToDetail(item._id)
@@ -398,7 +427,7 @@ export default function InventoryGridSection({
                                                         {modelName}
                                                     </h3>
                                                     <p
-                                                        className={`text-xs truncate text-slate-300 ${shouldShowSecondary ? '' : 'invisible'}`}
+                                                        className={`text-xs truncate ${isDark ? 'text-slate-300' : 'text-slate-700'} ${shouldShowSecondary ? '' : 'invisible'}`}
                                                         title={shouldShowSecondary ? secondaryLine : ''}
                                                     >
                                                         {shouldShowSecondary ? secondaryLine : 'placeholder'}
@@ -409,7 +438,7 @@ export default function InventoryGridSection({
                                                     <div className="relative flex-shrink-0">
                                                         <button
                                                             type="button"
-                                                            className="p-1.5 rounded-md transition-colors text-slate-200 hover:bg-white/10"
+                                                            className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-200 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100/90'}`}
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 setOpenMenuItemId(openMenuItemId === item._id ? null : item._id || null)
@@ -456,7 +485,7 @@ export default function InventoryGridSection({
                                             </div>
 
                                             {referenceCode && (
-                                                <p className="text-xs text-white/90">
+                                                <p className={`text-xs ${isDark ? 'text-white/90' : 'text-slate-800'}`}>
                                                     {referenceCode}
                                                 </p>
                                             )}
@@ -464,19 +493,28 @@ export default function InventoryGridSection({
                                             {hasMetaBadge && (
                                                 <div className="mt-2 min-h-[24px] max-h-[24px] overflow-hidden">
                                                     {item.seriesId && (
-                                                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-300/25 text-purple-100 text-xs font-medium rounded-full max-w-full border border-purple-200/20">
+                                                        <div className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full max-w-full ${isDark
+                                                            ? 'bg-purple-300/25 text-purple-100 border border-purple-200/20 shadow-[inset_0_1px_1px_rgba(2,6,23,0.4),inset_0_-1px_0_rgba(255,255,255,0.14)]'
+                                                            : 'bg-purple-100 text-purple-700 border border-purple-200 shadow-[inset_0_1px_1px_rgba(147,51,234,0.16),inset_0_-1px_0_rgba(255,255,255,0.98)]'
+                                                            }`}>
                                                             <span className="truncate">🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})</span>
                                                         </div>
                                                     )}
 
                                                     {item.isBox && (
-                                                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-300/25 text-purple-100 text-xs font-medium rounded-full max-w-full border border-purple-200/20">
+                                                        <div className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full max-w-full ${isDark
+                                                            ? 'bg-purple-300/25 text-purple-100 border border-purple-200/20 shadow-[inset_0_1px_1px_rgba(2,6,23,0.4),inset_0_-1px_0_rgba(255,255,255,0.14)]'
+                                                            : 'bg-purple-100 text-purple-700 border border-purple-200 shadow-[inset_0_1px_1px_rgba(147,51,234,0.16),inset_0_-1px_0_rgba(255,255,255,0.98)]'
+                                                            }`}>
                                                             <span className="truncate">📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas{item.boxStatus === 'sealed' ? ' 🔒' : item.boxStatus === 'unpacking' ? ' ⏳' : ''}</span>
                                                         </div>
                                                     )}
 
                                                     {item.sourceBox && !item.isBox && (
-                                                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-900/40 text-white text-xs font-medium rounded-full max-w-full border border-white/25">
+                                                        <div className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full max-w-full ${isDark
+                                                            ? 'bg-slate-900/40 text-white border border-slate-400/35 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]'
+                                                            : 'bg-slate-100 text-slate-700 border border-slate-200 shadow-[inset_0_1px_1px_rgba(71,85,105,0.15),inset_0_-1px_0_rgba(255,255,255,0.98)]'
+                                                            }`}>
                                                             <span className="truncate">📦 De: {item.sourceBox}</span>
                                                         </div>
                                                     )}
@@ -487,63 +525,66 @@ export default function InventoryGridSection({
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span
                                                         className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${item.condition === 'mint'
-                                                            ? 'bg-emerald-700/35 text-emerald-100'
+                                                            ? (isDark ? 'bg-emerald-700/35 text-emerald-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-[inset_0_1px_1px_rgba(16,185,129,0.18),inset_0_-1px_0_rgba(255,255,255,0.98)]')
                                                             : item.condition === 'good'
-                                                                ? 'bg-blue-700/35 text-blue-100'
+                                                                ? (isDark ? 'bg-blue-700/35 text-blue-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-blue-100 text-blue-700 border border-blue-200 shadow-[inset_0_1px_1px_rgba(37,99,235,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
                                                                 : item.condition === 'fair'
-                                                                    ? 'bg-yellow-700/35 text-yellow-100'
-                                                                    : 'bg-red-700/35 text-red-100'}`}
+                                                                    ? (isDark ? 'bg-yellow-700/35 text-yellow-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-[inset_0_1px_1px_rgba(217,119,6,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                                    : (isDark ? 'bg-red-700/35 text-red-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-red-100 text-red-700 border border-red-200 shadow-[inset_0_1px_1px_rgba(220,38,38,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')}`}
                                                     >
                                                         {item.condition === 'mint' ? 'Mint' : item.condition === 'good' ? 'Bueno' : item.condition === 'fair' ? 'Regular' : 'Malo'}
                                                     </span>
                                                     <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${operationalStatus === 'Disponible'
-                                                        ? 'bg-emerald-700/35 text-emerald-100'
+                                                        ? (isDark ? 'bg-emerald-700/35 text-emerald-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-[inset_0_1px_1px_rgba(16,185,129,0.18),inset_0_-1px_0_rgba(255,255,255,0.98)]')
                                                         : operationalStatus === 'Reservado'
-                                                            ? 'bg-amber-700/35 text-amber-100'
-                                                            : 'bg-red-700/35 text-red-100'}`}>
+                                                            ? (isDark ? 'bg-amber-700/35 text-amber-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-[inset_0_1px_1px_rgba(217,119,6,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                            : (isDark ? 'bg-red-700/35 text-red-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-red-100 text-red-700 border border-red-200 shadow-[inset_0_1px_1px_rgba(220,38,38,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')}`}>
                                                         {operationalStatus}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-2 min-h-[20px]">
-                                                    <span className="text-xs font-medium text-slate-200">
+                                                    <span className={`text-xs font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                                                         Stock: {availableQty} disponible{availableQty !== 1 ? 's' : ''}
                                                     </span>
                                                     {(item.reservedQuantity || 0) > 0 && (
-                                                        <span className="text-xs text-amber-200 font-medium">
+                                                        <span className={`text-xs font-medium ${isDark ? 'text-amber-200' : 'text-amber-700'}`}>
                                                             {item.reservedQuantity} reservado{item.reservedQuantity === 1 ? '' : 's'}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="mt-2 rounded-xl p-2 bg-slate-900/50 border border-white/25 backdrop-blur-lg">
+                                            <div className={`mt-2 rounded-xl p-2.5 ${isDark
+                                                ? 'bg-slate-900/28 backdrop-blur-md border border-transparent shadow-[inset_0_3px_3px_rgba(0,0,0,0.5),inset_0_-2px_2px_rgba(255,255,255,0.16)]'
+                                                : 'bg-white/54 backdrop-blur-md border border-transparent shadow-[inset_0_3px_3px_rgba(148,163,184,0.34),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+                                                }`}>
                                                 {hideCostAndProfitInInventory ? (
                                                     <div className="text-xs">
-                                                        <p className="text-white/70">Precio cliente</p>
-                                                        <p className="font-semibold text-emerald-200 text-lg drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">${customerPrice.toFixed(2)}</p>
+                                                        <p className={isDark ? 'text-white/70' : 'text-slate-700'}>Precio cliente</p>
+                                                        <p className={`font-semibold text-lg ${isDark ? 'text-emerald-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]' : 'text-emerald-800'}`}>${customerPrice.toFixed(2)}</p>
                                                     </div>
                                                 ) : (
-                                                    <div className="grid grid-cols-3 gap-2 text-xs">
+                                                    <div className={`grid grid-cols-3 gap-2 text-xs ${isDark ? 'divide-x divide-slate-600/35' : 'divide-x divide-slate-300/55'}`}>
                                                         <div>
-                                                            <p className="text-white/70">Costo</p>
-                                                            <p className="font-semibold text-white">${item.purchasePrice.toFixed(2)}</p>
+                                                            <p className={isDark ? 'text-white/70' : 'text-slate-700'}>Costo</p>
+                                                            <p className={isDark ? 'font-semibold text-white' : 'font-bold text-slate-900'}>${item.purchasePrice.toFixed(2)}</p>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-white/70">Sugerido</p>
-                                                            <p className="font-semibold text-emerald-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">${item.suggestedPrice.toFixed(2)}</p>
+                                                        <div className="pl-2">
+                                                            <p className={isDark ? 'text-white/70' : 'text-slate-700'}>Sugerido</p>
+                                                            <p className={isDark ? 'font-semibold text-emerald-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]' : 'font-bold text-emerald-700'}>${item.suggestedPrice.toFixed(2)}</p>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-white/70">Ganancia</p>
-                                                            <p className="font-semibold text-sky-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">
+                                                        <div className="pl-2">
+                                                            <p className={isDark ? 'text-white/70' : 'text-slate-700'}>Ganancia</p>
+                                                            <p className={isDark ? 'font-semibold text-sky-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]' : 'font-bold text-sky-700'}>
                                                                 ${(item.suggestedPrice - item.purchasePrice).toFixed(2)}
                                                             </p>
-                                                            <p className="text-[11px] text-sky-200 font-medium mt-0.5 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]">
+                                                            <p className={`text-[11px] font-semibold mt-0.5 ${isDark ? 'text-sky-200 drop-shadow-[0_1px_1px_rgba(0,0,0,0.55)]' : 'text-sky-700'}`}>
                                                                 +{(((item.suggestedPrice - item.purchasePrice) / item.purchasePrice) * 100).toFixed(0)}%
                                                             </p>
                                                         </div>
                                                     </div>
                                                 )}
                                                 {item.location && (
-                                                    <div className="flex items-center gap-1 text-xs pt-1 border-t border-white/20 text-white/85">
+                                                    <div className={`flex items-center gap-1 text-xs pt-1 ${isDark ? 'border-t border-slate-500/30 text-white/85' : 'border-t border-slate-200 text-slate-800'}`}>
                                                         <MapPin size={12} />
                                                         <span className="truncate">{item.location}</span>
                                                     </div>
@@ -556,7 +597,10 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="primary"
-                                                            className="min-h-[38px] px-2 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-500 border border-blue-300/30 shadow-md shadow-blue-900/30"
+                                                            className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${isDark
+                                                                ? 'bg-blue-500/22 text-blue-100 hover:bg-blue-500/30 border border-blue-200/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
+                                                                : 'bg-blue-500/14 text-blue-700 hover:bg-blue-500/20 border border-white/75 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(59,130,246,0.24),inset_0_-1px_1px_rgba(255,255,255,0.96)]'
+                                                                }`}
                                                             onClick={() => onAddToPos(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="Agregar a POS"
@@ -567,7 +611,10 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="secondary"
-                                                            className="min-h-[38px] px-2 py-2 text-sm rounded-xl bg-white/90 text-slate-900 hover:bg-white border border-white/60 shadow-md"
+                                                            className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${isDark
+                                                                ? 'bg-slate-800/38 !text-slate-50 hover:bg-slate-700/45 border border-slate-300/30 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
+                                                                : 'bg-white/52 !text-slate-800 hover:bg-white/68 border border-white/80 backdrop-blur-md shadow-[inset_0_2px_2px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                                                }`}
                                                             onClick={() => onAddToDelivery(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="Agregar a entrega"
@@ -581,7 +628,7 @@ export default function InventoryGridSection({
                                         </div>
 
                                         {hasPhotos && (
-                                            <div className="absolute bottom-3 left-3 z-20 px-2 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-md backdrop-blur-md border border-white/30">
+                                            <div className="absolute bottom-3 left-3 z-20 px-2 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-md backdrop-blur-md border border-white/30 shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">
                                                 {item.photos!.length} foto{item.photos!.length !== 1 ? 's' : ''}
                                             </div>
                                         )}

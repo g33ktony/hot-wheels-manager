@@ -1153,6 +1153,10 @@ export default function ItemDetail() {
         item.isFastFurious ? 'Fast & Furious' : null,
     ].filter(Boolean) as string[]
 
+    const modalInputClass = isDark
+        ? 'input w-full bg-slate-800/45 border-slate-500/70 text-slate-100 placeholder:text-slate-400 backdrop-blur-md'
+        : 'input w-full bg-white/70 border-slate-300/80 text-slate-900 placeholder:text-slate-400 backdrop-blur-md'
+
     return (
         <div className={`min-h-screen pb-20 sm:pb-24 ${isDark ? 'bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.28),_transparent_40%),linear-gradient(to_bottom,_rgb(2,6,23),_rgb(15,23,42),_rgb(2,6,23))' : 'bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.35),_transparent_45%),linear-gradient(to_bottom,_rgb(248,250,252),_rgb(224,242,254),_rgb(239,246,255))]'}`}>
             <div className={`border-b sticky top-0 z-10 backdrop-blur-xl ${isDark ? 'bg-slate-900/75 border-slate-700/70' : 'bg-white/80 border-slate-200/80'}`}>
@@ -1401,7 +1405,7 @@ export default function ItemDetail() {
                 maxWidth="md"
             >
                 <div className="space-y-4">
-                    <div className={`rounded-lg p-3 ${isDark ? 'bg-slate-700/50' : 'bg-slate-100'}`}>
+                    <div className={`rounded-xl p-3 border backdrop-blur-xl ${isDark ? 'bg-slate-800/45 border-slate-500/65' : 'bg-white/70 border-slate-200/90'}`}>
                         <p className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
                             Elige cómo quieres compartir esta pieza con tu cliente.
                         </p>
@@ -1416,7 +1420,7 @@ export default function ItemDetail() {
                             inputMode="decimal"
                             step="0.01"
                             min="0"
-                            className="input w-full"
+                            className={modalInputClass}
                             value={sharePrice}
                             onChange={(e) => setSharePrice(Number(e.target.value) || 0)}
                         />
@@ -1476,12 +1480,12 @@ export default function ItemDetail() {
                 }
             >
                 <div className="space-y-3">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-blue-900">Ajusta el área que quieres compartir con el cliente.</p>
+                    <div className={`rounded-xl p-3 border backdrop-blur-xl ${isDark ? 'bg-blue-500/12 border-blue-300/35' : 'bg-blue-50/80 border-blue-200/90'}`}>
+                        <p className={`text-sm ${isDark ? 'text-blue-100' : 'text-blue-900'}`}>Ajusta el área que quieres compartir con el cliente.</p>
                     </div>
 
                     {selectedPhoto && (
-                        <div className="w-full bg-slate-700 rounded-lg overflow-auto" style={{ maxHeight: '70vh', minHeight: '400px' }}>
+                        <div className={`w-full rounded-lg overflow-auto border backdrop-blur-md ${isDark ? 'bg-slate-800/55 border-slate-500/65' : 'bg-white/75 border-slate-200/90'}`} style={{ maxHeight: '70vh', minHeight: '400px' }}>
                             <ReactCrop
                                 crop={crop}
                                 onChange={(c) => setCrop(c)}
@@ -1538,7 +1542,10 @@ export default function ItemDetail() {
                 }
             >
                 {editingItem && (
-                    <div className="space-y-4">
+                    <div className={`space-y-4 ${isDark
+                        ? '[&_.input]:bg-slate-800/45 [&_.input]:border-slate-500/70 [&_.input]:text-slate-100 [&_.input]:placeholder:text-slate-400 [&_.input]:backdrop-blur-md'
+                        : '[&_.input]:bg-white/70 [&_.input]:border-slate-300/80 [&_.input]:text-slate-900 [&_.input]:placeholder:text-slate-400 [&_.input]:backdrop-blur-md'
+                        }`}>
                         <div>
                             <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                                 Código/ID del auto a escala
@@ -1657,7 +1664,7 @@ export default function ItemDetail() {
                                 Condición
                             </label>
                             <select
-                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                                className={`input w-full ${isDark ? 'bg-slate-800/45 text-white border-slate-500/70 backdrop-blur-md' : 'bg-white/70 text-slate-900 border-slate-300/80 backdrop-blur-md'}`}
                                 value={editingItem.condition}
                                 onChange={(e) => setEditingItem({ ...editingItem, condition: e.target.value as any })}
                             >
@@ -1687,7 +1694,7 @@ export default function ItemDetail() {
                                 Marca
                             </label>
                             <select
-                                className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                                className={`input w-full ${isDark ? 'bg-slate-800/45 text-white border-slate-500/70 backdrop-blur-md' : 'bg-white/70 text-slate-900 border-slate-300/80 backdrop-blur-md'}`}
                                 value={editingItem.brand || ''}
                                 onChange={(e) => setEditingItem({ ...editingItem, brand: e.target.value })}
                             >
@@ -1707,7 +1714,7 @@ export default function ItemDetail() {
                                     Tipo de Pieza
                                 </label>
                                 <select
-                                    className={`input w-full ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-900 border-gray-300'}`}
+                                    className={`input w-full ${isDark ? 'bg-slate-800/45 text-white border-slate-500/70 backdrop-blur-md' : 'bg-white/70 text-slate-900 border-slate-300/80 backdrop-blur-md'}`}
                                     value={editingItem.pieceType || ''}
                                     onChange={(e) => setEditingItem({ ...editingItem, pieceType: (e.target.value || undefined) as 'basic' | 'premium' | 'rlc' | 'silver_series' | 'elite_64' | undefined })}
                                 >
@@ -1944,7 +1951,7 @@ export default function ItemDetail() {
                                 </div>
 
                                 {editingItem.seriesId && (
-                                    <div className="text-xs text-gray-500 bg-slate-700/30 p-2 rounded">
+                                    <div className={`text-xs p-2 rounded border backdrop-blur-md ${isDark ? 'text-slate-300 bg-slate-700/40 border-slate-600/70' : 'text-slate-600 bg-white/70 border-slate-200'}`}>
                                         💡 Los items con el mismo ID de serie se pueden vender como set completo
                                     </div>
                                 )}
@@ -1993,23 +2000,23 @@ export default function ItemDetail() {
                                 <div className="flex gap-2">
                                     <label
                                         htmlFor="photo-upload-edit"
-                                        className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingPhotos > 0
+                                        className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors backdrop-blur-md ${uploadingPhotos > 0
                                             ? 'opacity-50 cursor-not-allowed border-slate-400'
-                                            : 'border-slate-600 hover:border-gray-400'
+                                            : isDark ? 'border-slate-500/80 hover:border-slate-300 bg-slate-800/35' : 'border-slate-300 hover:border-slate-400 bg-white/75'
                                             }`}
                                     >
-                                        <Upload size={20} className="text-gray-400" />
-                                        <span className="text-sm text-slate-400">Galería</span>
+                                        <Upload size={20} className={isDark ? 'text-slate-300' : 'text-slate-500'} />
+                                        <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-600'}`}>Galería</span>
                                     </label>
                                     <label
                                         htmlFor="photo-camera-edit"
-                                        className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${uploadingPhotos > 0
+                                        className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors backdrop-blur-md ${uploadingPhotos > 0
                                             ? 'opacity-50 cursor-not-allowed border-slate-400'
-                                            : 'border-slate-600 hover:border-gray-400'
+                                            : isDark ? 'border-slate-500/80 hover:border-slate-300 bg-slate-800/35' : 'border-slate-300 hover:border-slate-400 bg-white/75'
                                             }`}
                                     >
-                                        <Camera size={20} className="text-gray-400" />
-                                        <span className="text-sm text-slate-400">Cámara</span>
+                                        <Camera size={20} className={isDark ? 'text-slate-300' : 'text-slate-500'} />
+                                        <span className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-600'}`}>Cámara</span>
                                     </label>
                                 </div>
                             </div>
