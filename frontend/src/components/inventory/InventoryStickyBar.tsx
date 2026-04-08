@@ -75,11 +75,10 @@ export default function InventoryFab({
             {/* Expanded menu */}
             {isOpen && (
                 <div
-                    className={`absolute bottom-14 right-0 w-56 rounded-2xl border shadow-2xl overflow-hidden backdrop-blur-xl ${
-                        isDark
+                    className={`absolute bottom-14 right-0 w-56 rounded-2xl border shadow-2xl overflow-hidden backdrop-blur-xl ${isDark
                             ? 'bg-slate-800/95 border-slate-600/80 shadow-black/40'
                             : 'bg-white/95 border-slate-200 shadow-slate-400/30'
-                    }`}
+                        }`}
                 >
                     {/* Pagination mini */}
                     {hasPagination && (
@@ -112,9 +111,8 @@ export default function InventoryFab({
                         <button
                             type="button"
                             onClick={() => { onToggleViewMode(); setIsOpen(false) }}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                                isDark ? 'text-slate-200 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'
-                            }`}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isDark ? 'text-slate-200 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'
+                                }`}
                         >
                             {viewMode === 'full' ? <Grid size={16} /> : <LayoutGrid size={16} />}
                             {viewMode === 'full' ? 'Vista compacta' : 'Vista completa'}
@@ -125,11 +123,10 @@ export default function InventoryFab({
                             <button
                                 type="button"
                                 onClick={() => { onToggleSelectionMode(); setIsOpen(false) }}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                                    isSelectionMode
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isSelectionMode
                                         ? 'text-primary-400 hover:bg-primary-500/10'
                                         : isDark ? 'text-slate-200 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'
-                                }`}
+                                    }`}
                             >
                                 {isSelectionMode ? <X size={16} /> : <CheckSquare size={16} />}
                                 {isSelectionMode ? `Salir selección (${selectedItemsCount})` : 'Seleccionar'}
@@ -141,9 +138,8 @@ export default function InventoryFab({
                             <button
                                 type="button"
                                 onClick={() => { onShowAddModal(); setIsOpen(false) }}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                                    isDark ? 'text-emerald-300 hover:bg-emerald-500/10' : 'text-emerald-700 hover:bg-emerald-50'
-                                }`}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isDark ? 'text-emerald-300 hover:bg-emerald-500/10' : 'text-emerald-700 hover:bg-emerald-50'
+                                    }`}
                             >
                                 <Plus size={16} />
                                 Agregar pieza
@@ -157,11 +153,10 @@ export default function InventoryFab({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all active:scale-95 ${
-                    isOpen
+                className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all active:scale-95 ${isOpen
                         ? 'bg-slate-600 text-white rotate-45 shadow-slate-900/40'
                         : 'bg-gradient-to-br from-primary-500 to-blue-600 text-white shadow-blue-900/40 hover:shadow-2xl hover:scale-105'
-                } border border-white/20`}
+                    } border border-slate-500/35`}
             >
                 {isOpen ? <X size={22} /> : <Settings size={22} />}
             </button>

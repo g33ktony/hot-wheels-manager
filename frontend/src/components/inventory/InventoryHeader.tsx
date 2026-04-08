@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 
 interface InventoryHeaderProps {
+    isDark: boolean
     isSelectionMode: boolean
     selectedItemsCount: number
     filteredItemsCount: number
@@ -36,6 +37,7 @@ interface InventoryHeaderProps {
 }
 
 export default function InventoryHeader({
+    isDark,
     isSelectionMode,
     selectedItemsCount,
     filteredItemsCount,
@@ -55,6 +57,16 @@ export default function InventoryHeader({
     onSelectAllItems,
     onShowAddModal,
 }: InventoryHeaderProps) {
+    const neutralButtonClass = isDark
+        ? '!bg-slate-800/48 !text-slate-500 !font-semibold !border !border-slate-500/35 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-2px_2px_rgba(148,163,184,0.12)] hover:!bg-slate-800/58 hover:!text-slate-400'
+        : '!bg-slate-200/60 !text-slate-500 !font-semibold !border !border-slate-400/70 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72 hover:!text-slate-700'
+    const primaryButtonClass = isDark
+        ? '!bg-blue-600/58 !text-blue-50 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(30,58,138,0.45),inset_0_-2px_2px_rgba(255,255,255,0.12)] hover:!bg-blue-600/70'
+        : '!bg-blue-500/58 !text-white !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(59,130,246,0.26),inset_0_-2px_2px_rgba(255,255,255,0.52)] hover:!bg-blue-500/68'
+    const dangerButtonClass = isDark
+        ? '!bg-red-700/52 !text-red-50 !border !border-red-300/26 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(127,29,29,0.5),inset_0_-2px_2px_rgba(255,255,255,0.1)] hover:!bg-red-700/66'
+        : '!bg-red-500/58 !text-white !border !border-red-300/35 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(239,68,68,0.24),inset_0_-2px_2px_rgba(255,255,255,0.5)] hover:!bg-red-500/68'
+
     return (
         <PageHeader
             title="Inventario"
@@ -63,12 +75,12 @@ export default function InventoryHeader({
                 <div className="flex flex-wrap gap-2">
                     {isSelectionMode ? (
                         <>
-                            <Button variant="secondary" onClick={onToggleSelectionMode} size="sm">
+                            <Button variant="secondary" onClick={onToggleSelectionMode} size="sm" className={neutralButtonClass}>
                                 Salir del Modo Selección
                             </Button>
                             {selectedItemsCount > 0 && (
                                 <>
-                                    <Button variant="secondary" onClick={onDeselectAllItems} size="sm">
+                                    <Button variant="secondary" onClick={onDeselectAllItems} size="sm" className={neutralButtonClass}>
                                         Deseleccionar ({selectedItemsCount})
                                     </Button>
                                     <Button
@@ -76,6 +88,7 @@ export default function InventoryHeader({
                                         icon={<ShoppingCart size={18} />}
                                         onClick={onAddToCart}
                                         size="sm"
+                                        className={primaryButtonClass}
                                     >
                                         Agregar al Carrito ({selectedItemsCount})
                                     </Button>
@@ -84,6 +97,7 @@ export default function InventoryHeader({
                                         icon={<Truck size={18} />}
                                         onClick={onCreateDeliveryFromInventory}
                                         size="sm"
+                                        className={primaryButtonClass}
                                     >
                                         Crear Entrega ({selectedItemsCount})
                                     </Button>
@@ -92,6 +106,7 @@ export default function InventoryHeader({
                                         icon={<FileText size={18} />}
                                         onClick={onShowQuoteModal}
                                         size="sm"
+                                        className={primaryButtonClass}
                                     >
                                         Generar Cotización ({selectedItemsCount})
                                     </Button>
@@ -100,6 +115,7 @@ export default function InventoryHeader({
                                         icon={<Image size={18} />}
                                         onClick={onShowCollageModal}
                                         size="sm"
+                                        className={primaryButtonClass}
                                     >
                                         Collages para FB
                                     </Button>
@@ -108,6 +124,7 @@ export default function InventoryHeader({
                                         icon={<Edit size={18} />}
                                         onClick={onShowBulkEditModal}
                                         size="sm"
+                                        className={neutralButtonClass}
                                     >
                                         Editar ({selectedItemsCount})
                                     </Button>
@@ -116,6 +133,7 @@ export default function InventoryHeader({
                                         icon={<Facebook size={18} />}
                                         onClick={onShowFacebookModal}
                                         size="sm"
+                                        className={neutralButtonClass}
                                     >
                                         Publicar en Facebook
                                     </Button>
@@ -125,6 +143,7 @@ export default function InventoryHeader({
                                             icon={<Trash2 size={18} />}
                                             onClick={onBulkDelete}
                                             size="sm"
+                                            className={dangerButtonClass}
                                         >
                                             Eliminar ({selectedItemsCount})
                                         </Button>
@@ -132,7 +151,7 @@ export default function InventoryHeader({
                                 </>
                             )}
                             {selectedItemsCount === 0 && filteredItemsCount > 0 && (
-                                <Button variant="secondary" onClick={onSelectAllItems} size="sm">
+                                <Button variant="secondary" onClick={onSelectAllItems} size="sm" className={neutralButtonClass}>
                                     Seleccionar Todo
                                 </Button>
                             )}
@@ -142,7 +161,10 @@ export default function InventoryHeader({
                             <button
                                 type="button"
                                 onClick={onToggleViewMode}
-                                className="p-2 rounded-lg border border-slate-600 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                                className={`p-2 rounded-lg transition-colors ${isDark
+                                    ? 'bg-slate-900/34 text-slate-200 hover:bg-slate-900/46 backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-2px_2px_rgba(255,255,255,0.1)]'
+                                    : 'bg-white/72 text-slate-700 hover:text-slate-800 hover:bg-white/86 backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+                                    }`}
                                 title={viewMode === 'full' ? 'Vista compacta' : 'Vista completa'}
                             >
                                 {viewMode === 'full' ? <Grid size={18} /> : <LayoutGrid size={18} />}
@@ -153,16 +175,20 @@ export default function InventoryHeader({
                                     icon={<CheckSquare size={18} />}
                                     onClick={onToggleSelectionMode}
                                     size="sm"
+                                    className={neutralButtonClass}
                                 >
                                     Seleccionar
                                 </Button>
                             )}
                             {canCreate ? (
-                                <Button icon={<Plus size={18} />} onClick={onShowAddModal} size="sm">
+                                <Button icon={<Plus size={18} />} onClick={onShowAddModal} size="sm" className={primaryButtonClass}>
                                     Agregar Pieza
                                 </Button>
                             ) : (
-                                <div className="text-xs text-orange-400 px-3 py-2 bg-orange-900/30 rounded-lg border border-orange-700/50">
+                                <div className={`text-xs px-3 py-2 rounded-lg border backdrop-blur-xl ${isDark
+                                    ? 'text-orange-300 bg-orange-900/30 border-orange-700/45 shadow-[inset_0_2px_2px_rgba(124,45,18,0.4),inset_0_-1px_1px_rgba(255,255,255,0.08)]'
+                                    : 'text-orange-700 bg-orange-50/85 border-orange-200/90 shadow-[inset_0_2px_2px_rgba(251,146,60,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                    }`}>
                                     📖 Solo lectura - Seleccionaste otra tienda
                                 </div>
                             )}

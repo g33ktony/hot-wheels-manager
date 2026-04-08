@@ -51,16 +51,16 @@ export default function InventoryPaginationControls({
 
     return (
         <div
-            className={`w-full rounded-xl border px-2 py-1.5 sm:px-2.5 sm:py-2 backdrop-blur-xl ${isDark
-                ? 'border-slate-500/70 bg-slate-900/55 shadow-lg shadow-slate-950/20'
-                : 'border-slate-200/90 bg-white/90 shadow-md shadow-slate-200/55'
+            className={`w-full rounded-xl px-2 py-1.5 sm:px-2.5 sm:py-2 backdrop-blur-xl ${isDark
+                ? 'bg-slate-900/55 !shadow-[0_8px_20px_rgba(2,6,23,0.28),inset_0_3px_3px_rgba(2,6,23,0.58),inset_0_-2px_2px_rgba(148,163,184,0.08)]'
+                : 'bg-white/90 !shadow-[0_8px_20px_rgba(148,163,184,0.2),inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
                 }`}
         >
             <div className="flex items-center justify-center gap-1.5 sm:gap-2 w-full flex-wrap">
                 <span
                     className={`hidden md:inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium border ${isDark
                         ? 'border-slate-500/60 bg-slate-800/70 text-slate-300'
-                        : 'border-slate-200 bg-slate-50 text-slate-600'
+                        : 'border-slate-300 bg-slate-100/85 text-slate-600'
                         }`}
                 >
                     {startItem}-{endItem} de {pagination.totalItems}
@@ -72,8 +72,8 @@ export default function InventoryPaginationControls({
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
                     className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
-                        ? '!bg-slate-700/60 !border !border-slate-500/70 !text-slate-100 hover:!bg-slate-700/80'
-                        : '!bg-white/90 !border !border-slate-300/85 !text-slate-700 hover:!bg-slate-50'
+                        ? '!bg-slate-800/46 !text-slate-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)] hover:!bg-slate-800/58'
+                        : '!bg-slate-200/60 !text-slate-900 !font-semibold disabled:!text-slate-700 disabled:!opacity-80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72'
                         }`}
                     aria-label="Página anterior"
                 >
@@ -83,8 +83,8 @@ export default function InventoryPaginationControls({
 
                 <div
                     className={`flex items-center gap-1 rounded-xl px-1.5 py-1 ${isDark
-                        ? 'bg-slate-800/55 border border-slate-500/60'
-                        : 'bg-slate-100/80 border border-slate-200/90'
+                        ? 'bg-slate-800/55 !shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
+                        : 'bg-slate-100/80 !shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.92)]'
                         }`}
                 >
                     {pageTokens.map((token, idx) => {
@@ -124,8 +124,8 @@ export default function InventoryPaginationControls({
                     onClick={() => onPageChange(Math.min(pagination.totalPages, currentPage + 1))}
                     disabled={currentPage === pagination.totalPages}
                     className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
-                        ? '!bg-slate-700/60 !border !border-slate-500/70 !text-slate-100 hover:!bg-slate-700/80'
-                        : '!bg-white/90 !border !border-slate-300/85 !text-slate-700 hover:!bg-slate-50'
+                        ? '!bg-slate-800/46 !text-slate-100 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)] hover:!bg-slate-800/58'
+                        : '!bg-slate-200/60 !text-slate-900 !font-semibold disabled:!text-slate-700 disabled:!opacity-80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72'
                         }`}
                     aria-label="Página siguiente"
                 >
