@@ -53,6 +53,9 @@ const StoreSettingsPage: React.FC = () => {
     const { createUserInStore } = useUserManagement()
     const { stores, refetch, updateUserRole: updateStoreUserRole, updateUserStatus, removeUser: removeStoreUser } = useStores()
     const isDark = mode === 'dark'
+    const pageBackdropClass = isDark
+        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
+        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
 
     const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user' | 'public-catalog'>('profile')
     const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -413,13 +416,13 @@ const StoreSettingsPage: React.FC = () => {
     }
 
     return (
-        <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        <div className={`min-h-screen ${pageBackdropClass}`}>
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-4">
                         <Settings className={`${isDark ? 'text-blue-400' : 'text-blue-600'}`} size={32} />
-                        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : ''}`}>
+                        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Configuración
                         </h1>
                     </div>
@@ -464,7 +467,7 @@ const StoreSettingsPage: React.FC = () => {
                     <div className="space-y-6">
                         {/* Perfil de Usuario */}
                         <Card>
-                            <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : ''}`}>
+                            <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 Mi Perfil
                             </h2>
                             <div className="space-y-4">
@@ -499,7 +502,7 @@ const StoreSettingsPage: React.FC = () => {
                         {/* Configuración de Tienda */}
                         {currentStore && (
                             <Card>
-                                <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : ''}`}>
+                                <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                     Configuración de Tienda
                                 </h2>
                                 <div className="space-y-4">
@@ -525,7 +528,7 @@ const StoreSettingsPage: React.FC = () => {
 
                 {activeTab === 'team' && (
                     <Card>
-                        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : ''}`}>
+                        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Mi Equipo ({filteredTeamUsers.length}/{teamUsers.length} usuarios)
                         </h2>
 
@@ -593,7 +596,7 @@ const StoreSettingsPage: React.FC = () => {
                                             >
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <p className={`font-medium ${isDark ? 'text-white' : ''}`}>
+                                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                                             {teamUser.name}
                                                         </p>
                                                         {isSelf && (
@@ -671,7 +674,7 @@ const StoreSettingsPage: React.FC = () => {
 
                 {activeTab === 'create-user' && (
                     <Card>
-                        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : ''}`}>
+                        <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Crear Nuevo Usuario
                         </h2>
                         <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
@@ -754,12 +757,12 @@ const StoreSettingsPage: React.FC = () => {
                     <Card>
                         <div className="flex items-center gap-3 mb-6">
                             <Globe className={isDark ? 'text-emerald-400' : 'text-emerald-600'} size={24} />
-                            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : ''}`}>
+                            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 Opciones de Visibilidad y Privacidad
                             </h2>
                         </div>
 
-                        <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-gray-50'}`}>
+                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-[#e2e8f3] border-white shadow-[inset_4px_4px_9px_rgba(148,163,184,0.28),inset_-4px_-4px_8px_rgba(255,255,255,0.92)]'}`}>
                             <label className="flex items-start gap-3 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -790,7 +793,7 @@ const StoreSettingsPage: React.FC = () => {
                             )}
                         </div>
 
-                        <div className={`mt-4 p-4 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-gray-50'}`}>
+                        <div className={`mt-4 p-4 rounded-xl border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-[#e2e8f3] border-white shadow-[inset_4px_4px_9px_rgba(148,163,184,0.28),inset_-4px_-4px_8px_rgba(255,255,255,0.92)]'}`}>
                             <label className="flex items-start gap-3 cursor-pointer">
                                 <input
                                     type="checkbox"

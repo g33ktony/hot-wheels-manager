@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import { Loading } from '@/components/common/Loading'
@@ -79,6 +79,62 @@ export default function InventoryGridSection({
     onDeleteItem,
 }: InventoryGridSectionProps) {
     const [openMenuItemId, setOpenMenuItemId] = useState<string | null>(null)
+    const parallaxRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+    const animationFrameRef = useRef<number | null>(null)
+
+    const setParallaxRef = (id?: string) => (el: HTMLDivElement | null) => {
+        if (!id) return
+        if (el) {
+            parallaxRefs.current.set(id, el)
+        } else {
+            parallaxRefs.current.delete(id)
+        }
+    }
+
+    useEffect(() => {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+        const updateParallax = () => {
+            const viewportHeight = window.innerHeight
+            const maxOffset = 14
+
+            parallaxRefs.current.forEach((el) => {
+                if (prefersReducedMotion) {
+                    el.style.transform = 'translate3d(0, 0, 0) scale(1.04)'
+                    return
+                }
+
+                const rect = el.getBoundingClientRect()
+                const elementCenter = rect.top + rect.height / 2
+                const viewportCenter = viewportHeight / 2
+                const distanceRatio = (elementCenter - viewportCenter) / viewportCenter
+                const clampedRatio = Math.max(-1, Math.min(1, distanceRatio))
+                const translateY = clampedRatio * -maxOffset
+
+                el.style.transform = `translate3d(0, ${translateY.toFixed(2)}px, 0) scale(1.08)`
+            })
+        }
+
+        const handleScroll = () => {
+            if (animationFrameRef.current) return
+            animationFrameRef.current = window.requestAnimationFrame(() => {
+                updateParallax()
+                animationFrameRef.current = null
+            })
+        }
+
+        updateParallax()
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        window.addEventListener('resize', handleScroll)
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll)
+            window.removeEventListener('resize', handleScroll)
+            if (animationFrameRef.current) {
+                window.cancelAnimationFrame(animationFrameRef.current)
+            }
+        }
+    }, [filteredItems.length, viewMode])
 
     return (
         <div className="relative">
@@ -188,17 +244,22 @@ export default function InventoryGridSection({
                                             </div>
                                         )}
 
-                                        <div className="absolute inset-0 group">
-                                            <LazyImage
-                                                src={primaryPhoto}
-                                                alt="Auto a Escala"
-                                                className={`w-full h-full object-cover transition-all duration-500 ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-70' : 'group-hover:scale-105'}`}
-                                                style={{ objectPosition: imageObjectPosition }}
-                                                onError={(e) => {
-                                                    ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
-                                                }}
-                                                onClick={() => !isSelectionMode && hasPhotos && onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
-                                            />
+                                        <div className="absolute inset-0 group overflow-hidden">
+                                            <div
+                                                ref={setParallaxRef(item._id)}
+                                                className="absolute inset-x-0 -inset-y-4 will-change-transform transition-transform duration-300 ease-out"
+                                            >
+                                                <LazyImage
+                                                    src={primaryPhoto}
+                                                    alt="Auto a Escala"
+                                                    className={`w-full h-full object-cover transition-all duration-500 ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-70' : 'group-hover:scale-105'}`}
+                                                    style={{ objectPosition: imageObjectPosition }}
+                                                    onError={(e) => {
+                                                        ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                                                    }}
+                                                    onClick={() => !isSelectionMode && hasPhotos && onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
+                                                />
+                                            </div>
                                         </div>
 
                                         <div
@@ -395,17 +456,22 @@ export default function InventoryGridSection({
                                         </div>
                                     )}
 
-                                    <div className="absolute inset-0 group">
-                                        <LazyImage
-                                            src={primaryPhoto}
-                                            alt="Auto a Escala"
-                                            className={`w-full h-full object-cover transition-all duration-500 ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-70' : 'group-hover:scale-105'}`}
-                                            style={{ objectPosition: imageObjectPosition }}
-                                            onError={(e) => {
-                                                ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
-                                            }}
-                                            onClick={() => !isSelectionMode && hasPhotos && onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
-                                        />
+                                    <div className="absolute inset-0 group overflow-hidden">
+                                        <div
+                                            ref={setParallaxRef(item._id)}
+                                            className="absolute inset-x-0 -inset-y-5 will-change-transform transition-transform duration-300 ease-out"
+                                        >
+                                            <LazyImage
+                                                src={primaryPhoto}
+                                                alt="Auto a Escala"
+                                                className={`w-full h-full object-cover transition-all duration-500 ${isSelectionMode && selectedItems.has(item._id!) ? 'opacity-70' : 'group-hover:scale-105'}`}
+                                                style={{ objectPosition: imageObjectPosition }}
+                                                onError={(e) => {
+                                                    ; (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series)
+                                                }}
+                                                onClick={() => !isSelectionMode && hasPhotos && onImageClick(item.photos!, item.primaryPhotoIndex || 0)}
+                                            />
+                                        </div>
 
                                         {!isSelectionMode && hasPhotos && (
                                             <button

@@ -49,6 +49,26 @@ const POS: React.FC = () => {
   const { mode } = useTheme()
   const isDark = mode === 'dark'
 
+  const pageBackdropClass = isDark
+    ? 'bg-[radial-gradient(circle_at_12%_12%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_88%_8%,rgba(59,130,246,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0f172a_100%)]'
+    : 'bg-[radial-gradient(circle_at_10%_15%,rgba(56,189,248,0.14),transparent_35%),radial-gradient(circle_at_88%_12%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f5f8ff_0%,#e9eff8_100%)]'
+
+  const neumorphSurfaceClass = isDark
+    ? 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_22px_rgba(51,65,85,0.2)]'
+    : 'rounded-2xl border border-white/80 bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.36),-12px_-12px_24px_rgba(255,255,255,0.95)]'
+
+  const neumorphInsetClass = isDark
+    ? 'border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+    : 'border border-white/90 bg-[#edf3fa] shadow-[inset_5px_5px_10px_rgba(148,163,184,0.24),inset_-5px_-5px_10px_rgba(255,255,255,0.92)]'
+
+  const neumorphPillClass = isDark
+    ? 'border border-slate-700/70 bg-slate-800 text-slate-100 shadow-[8px_8px_16px_rgba(2,6,23,0.45),-6px_-6px_12px_rgba(51,65,85,0.16)] hover:brightness-110'
+    : 'border border-white/85 bg-[#eef3fa] text-slate-700 shadow-[8px_8px_16px_rgba(148,163,184,0.3),-8px_-8px_16px_rgba(255,255,255,0.9)] hover:brightness-95'
+
+  const neumorphPillActiveClass = isDark
+    ? 'border border-emerald-500/70 bg-emerald-600 text-white shadow-[10px_10px_20px_rgba(2,6,23,0.5),-8px_-8px_16px_rgba(16,185,129,0.2)] hover:brightness-110'
+    : 'border border-emerald-300 bg-emerald-500 text-white shadow-[10px_10px_20px_rgba(14,116,144,0.24),-8px_-8px_16px_rgba(255,255,255,0.75)] hover:brightness-95'
+
   // Get selected store
   const { selectedStore } = useStore()
 
@@ -605,9 +625,9 @@ const POS: React.FC = () => {
   }
 
   return (
-    <div className={isDark ? 'bg-slate-900' : 'bg-gray-50'}>
+    <div className={pageBackdropClass}>
       <div className="container mx-auto px-4 py-6">
-        <div className="mb-6">
+        <div className={`mb-6 p-5 ${neumorphSurfaceClass}`}>
           <h1 className={`text-3xl font-bold ${isDark ? '!text-white' : '!text-gray-900'}`}>🛒 Punto de Venta (POS)</h1>
           <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
         </div>
@@ -615,7 +635,7 @@ const POS: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Lista de Inventario */}
           <div className="lg:col-span-2">
-            <div className={`${isDark ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow p-4`}>
+            <div className={`${neumorphSurfaceClass} p-4`}>
               {/* Barra de búsqueda */}
               <div className="mb-4">
                 <input
@@ -623,7 +643,7 @@ const POS: React.FC = () => {
                   placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
                   value={searchTerm}
                   onChange={(e) => updateFilter('searchTerm', e.target.value)}
-                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400' : 'border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-500'}`}
+                  className={`w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white placeholder-slate-400' : 'text-gray-900 placeholder-gray-500'}`}
                 />
               </div>
 
@@ -634,7 +654,7 @@ const POS: React.FC = () => {
                   <select
                     value={filterCondition}
                     onChange={(e) => updateFilter('filterCondition', e.target.value)}
-                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
                   >
                     <option value="">Todas las condiciones</option>
                     <option value="mint">Mint</option>
@@ -649,7 +669,7 @@ const POS: React.FC = () => {
                       updateFilter('filterBrand', e.target.value);
                       if (!e.target.value) updateFilter('filterPieceType', ''); // Reset tipo al cambiar marca
                     }}
-                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
                   >
                     <option value="">Todas las marcas</option>
                     {uniqueBrands.map(brand => (
@@ -660,7 +680,7 @@ const POS: React.FC = () => {
                   <select
                     value={filterPieceType}
                     onChange={(e) => updateFilter('filterPieceType', e.target.value)}
-                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 disabled:opacity-50 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 disabled:opacity-50 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
                     disabled={!filterBrand}
                   >
                     <option value="">Todos los tipos</option>
@@ -677,7 +697,7 @@ const POS: React.FC = () => {
                   <select
                     value={filterLocation}
                     onChange={(e) => updateFilter('filterLocation', e.target.value)}
-                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
                   >
                     <option value="">Todas las ubicaciones</option>
                     {uniqueLocations.map(location => (
@@ -690,7 +710,7 @@ const POS: React.FC = () => {
                     <select
                       value={filterTreasureHunt}
                       onChange={(e) => updateFilter('filterTreasureHunt', e.target.value)}
-                      className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                      className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
                     >
                       <option value="">Todos (TH/STH/Normal)</option>
                       <option value="th">Solo Treasure Hunt (TH)</option>
@@ -698,7 +718,7 @@ const POS: React.FC = () => {
                     </select>
                   )}
 
-                  <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
                     <input
                       type="checkbox"
                       checked={filterLowStock}
@@ -714,7 +734,7 @@ const POS: React.FC = () => {
                 {/* Tercera fila de filtros */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   {/* Filtro Chase */}
-                  <label className="flex items-center gap-2 px-3 py-2 border border-slate-600 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-600/50">
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
                     <input
                       type="checkbox"
                       checked={filterChase}
@@ -728,7 +748,7 @@ const POS: React.FC = () => {
 
                   {/* Filtro Fantasy solo para Hot Wheels */}
                   {filterBrand === 'Hot Wheels' && (
-                    <label className="flex items-center gap-2 px-3 py-2 border border-purple-600 bg-purple-900/50 rounded-lg cursor-pointer hover:bg-purple-800/50">
+                    <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
                       <input
                         type="checkbox"
                         checked={filterFantasy}
@@ -742,7 +762,7 @@ const POS: React.FC = () => {
                   )}
 
                   {/* Filtro Moto */}
-                  <label className="flex items-center gap-2 px-3 py-2 border border-orange-600 bg-orange-900/50 rounded-lg cursor-pointer hover:bg-orange-800/50">
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
                     <input
                       type="checkbox"
                       checked={filterMoto}
@@ -755,7 +775,7 @@ const POS: React.FC = () => {
                   </label>
 
                   {/* Filtro Camioneta */}
-                  <label className="flex items-center gap-2 px-3 py-2 border border-blue-600 bg-blue-900/50 rounded-lg cursor-pointer hover:bg-blue-800/50">
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
                     <input
                       type="checkbox"
                       checked={filterCamioneta}
@@ -782,7 +802,7 @@ const POS: React.FC = () => {
                         updateFilter('filterMoto', false);
                         updateFilter('filterCamioneta', false);
                       }}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium border ${isDark ? 'bg-slate-600 text-slate-200 hover:bg-slate-500 border-slate-600' : 'bg-gray-300 text-gray-700 hover:bg-gray-400 border-gray-300'}`}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${neumorphPillClass}`}
                     >
                       Limpiar filtros
                     </button>
@@ -820,10 +840,10 @@ const POS: React.FC = () => {
                       return (
                         <div
                           key={item._id}
-                          className={`border rounded-lg overflow-hidden hover:shadow-lg transition-shadow ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}
+                          className={`rounded-xl overflow-hidden transition-all hover:brightness-110 ${neumorphSurfaceClass}`}
                         >
                           {/* Item Image */}
-                          <div className="relative bg-gradient-to-br from-gray-50 to-gray-100">
+                          <div className={`relative ${neumorphInsetClass}`}>
                             {item.photos && item.photos.length > 0 ? (
                               <img
                                 src={item.photos[item.primaryPhotoIndex || 0]}
@@ -879,7 +899,7 @@ const POS: React.FC = () => {
                                   disabled={isInCart}
                                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
                                     ? 'bg-slate-600 cursor-not-allowed text-slate-400'
-                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                    : neumorphPillClass
                                     }`}
                                 >
                                   {isInCart ? '✓ Agregado' : '+ Agregar'}
@@ -890,7 +910,7 @@ const POS: React.FC = () => {
                                     <>
                                       <button
                                         onClick={() => updateCartQuantity(item._id, cartQty - 1)}
-                                        className="w-9 h-9 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors"
+                                        className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${neumorphPillClass}`}
                                       >
                                         −
                                       </button>
@@ -902,7 +922,7 @@ const POS: React.FC = () => {
                                     disabled={cartQty >= availableQty}
                                     className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${cartQty >= availableQty
                                       ? 'bg-gray-300 cursor-not-allowed'
-                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                      : neumorphPillClass
                                       }`}
                                   >
                                     +
@@ -922,7 +942,7 @@ const POS: React.FC = () => {
 
           {/* Carrito */}
           <div className="lg:col-span-1">
-            <div className={`rounded-lg shadow p-4 sticky top-4 border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
+            <div className={`p-4 sticky top-4 ${neumorphSurfaceClass}`}>
               <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Carrito ({cart.length})</h2>
 
               <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
@@ -939,7 +959,7 @@ const POS: React.FC = () => {
                     const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
 
                     return (
-                      <div key={item._id} className={`border rounded-lg overflow-hidden hover:shadow-md transition-shadow ${isDark ? 'border-slate-600 bg-slate-700/50' : 'border-gray-200 bg-gray-50'}`}>
+                      <div key={item._id} className={`rounded-lg overflow-hidden transition-all ${neumorphInsetClass}`}>
                         <div className="flex gap-2 p-2">
                           {/* Cart Item Image */}
                           <div className="flex-shrink-0">
@@ -1000,7 +1020,7 @@ const POS: React.FC = () => {
                                     onClick={() =>
                                       updateCartQuantity(item._id, item.cartQuantity - 1)
                                     }
-                                    className="w-6 h-6 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded font-bold text-xs"
+                                    className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${neumorphPillClass}`}
                                   >
                                     −
                                   </button>
@@ -1014,7 +1034,7 @@ const POS: React.FC = () => {
                                     disabled={item.cartQuantity >= availableQty}
                                     className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${item.cartQuantity >= availableQty
                                       ? 'bg-gray-300 cursor-not-allowed'
-                                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                      : neumorphPillClass
                                       }`}
                                   >
                                     +
@@ -1041,7 +1061,7 @@ const POS: React.FC = () => {
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${isDark ? 'border-slate-600 bg-slate-700 text-white' : 'border-gray-300 bg-gray-50 text-gray-900'}`}
+                    className={`w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
                   >
                     <option value="cash">Efectivo</option>
                     <option value="transfer">Transferencia</option>
@@ -1063,7 +1083,7 @@ const POS: React.FC = () => {
                   disabled={cart.length === 0 || processing}
                   className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
                     ? (isDark ? 'bg-slate-600 cursor-not-allowed text-slate-400' : 'bg-gray-300 cursor-not-allowed text-gray-500')
-                    : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : neumorphPillActiveClass
                     }`}
                 >
                   {processing ? 'Procesando...' : 'Completar Venta'}
@@ -1072,7 +1092,7 @@ const POS: React.FC = () => {
                 <button
                   onClick={() => dispatch(clearCart())}
                   disabled={cart.length === 0}
-                  className={`w-full mt-2 py-2 border rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isDark ? 'border-slate-600 hover:bg-slate-700/50 text-slate-300 hover:text-white' : 'border-gray-300 hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
+                  className={`w-full mt-2 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${neumorphPillClass}`}
                 >
                   Limpiar Carrito
                 </button>

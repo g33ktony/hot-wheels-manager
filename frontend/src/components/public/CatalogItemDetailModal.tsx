@@ -24,6 +24,18 @@ export default function CatalogItemDetailModal({
   const { mode } = useTheme()
   const isDark = mode === 'dark'
 
+  const neumorphSurfaceClass = isDark
+    ? 'bg-slate-800/85 border border-slate-700/70 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_22px_rgba(51,65,85,0.2)]'
+    : 'bg-[#eaf0f8] border border-white/80 shadow-[12px_12px_24px_rgba(148,163,184,0.34),-12px_-12px_24px_rgba(255,255,255,0.96)]'
+
+  const neumorphInsetClass = isDark
+    ? 'bg-slate-900/70 border border-slate-700/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+    : 'bg-[#edf3fa] border border-white/90 shadow-[inset_5px_5px_10px_rgba(148,163,184,0.26),inset_-5px_-5px_10px_rgba(255,255,255,0.92)]'
+
+  const neumorphPillClass = isDark
+    ? 'bg-slate-800 text-slate-200 border border-slate-700/70 shadow-[7px_7px_14px_rgba(2,6,23,0.45),-6px_-6px_12px_rgba(51,65,85,0.2)] hover:brightness-110'
+    : 'bg-[#eef3fa] text-slate-700 border border-white/85 shadow-[7px_7px_14px_rgba(148,163,184,0.3),-7px_-7px_14px_rgba(255,255,255,0.9)] hover:brightness-95'
+
   const [showImageViewer, setShowImageViewer] = useState(false)
   const [showNotifyModal, setShowNotifyModal] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
@@ -122,11 +134,12 @@ export default function CatalogItemDetailModal({
         title="Detalles del Modelo"
         maxWidth="2xl"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`rounded-2xl p-4 md:p-5 ${neumorphSurfaceClass}`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Image Section with Carousel */}
           <div>
             <div
-              className="relative bg-slate-700 rounded-lg overflow-hidden cursor-pointer group"
+              className={`relative rounded-xl overflow-hidden cursor-pointer group ${neumorphInsetClass}`}
               onClick={() => setShowImageViewer(true)}
             >
               {photos.length > 0 ? (
@@ -190,7 +203,7 @@ export default function CatalogItemDetailModal({
 
               {/* Availability Badge */}
               {item.availability.available && (
-                <div className="absolute top-4 right-4 px-4 py-2 bg-green-500 text-white text-sm font-bold rounded-full shadow-lg">
+                <div className="absolute top-4 right-4 px-4 py-2 bg-green-500 text-white text-sm font-bold rounded-full shadow-[8px_8px_16px_rgba(22,163,74,0.35),-4px_-4px_10px_rgba(255,255,255,0.2)]">
                   ✓ Disponible
                 </div>
               )}
@@ -204,7 +217,7 @@ export default function CatalogItemDetailModal({
           {/* Details Section */}
           <div className="space-y-4">
             {/* Model Name */}
-            <div>
+            <div className={`rounded-xl p-3 ${neumorphInsetClass}`}>
               <div className="flex items-center gap-2 mb-1">
                 <SegmentBadge segment={item.segment} size="md" />
               </div>
@@ -215,20 +228,20 @@ export default function CatalogItemDetailModal({
 
             {/* Details Grid */}
             <div className="space-y-3">
-              <DetailRow label="Serie" value={item.series} isDark={isDark} />
-              {item.sub_series && <DetailRow label="Sub-serie" value={item.sub_series} isDark={isDark} />}
-              <DetailRow label="Año" value={item.year} isDark={isDark} />
-              {item.color && <DetailRow label="Color" value={item.color} isDark={isDark} />}
-              {item.car_make && <DetailRow label="Fabricante" value={item.car_make} isDark={isDark} />}
-              {item.tampo && <DetailRow label="Tampo" value={item.tampo} isDark={isDark} />}
-              {item.wheel_type && <DetailRow label="Ruedas" value={item.wheel_type} isDark={isDark} />}
-              <DetailRow label="Toy #" value={item.toy_num} isDark={isDark} />
-              <DetailRow label="Col #" value={item.col_num} isDark={isDark} />
+              <DetailRow label="Serie" value={item.series} isDark={isDark} isNeumorph />
+              {item.sub_series && <DetailRow label="Sub-serie" value={item.sub_series} isDark={isDark} isNeumorph />}
+              <DetailRow label="Año" value={item.year} isDark={isDark} isNeumorph />
+              {item.color && <DetailRow label="Color" value={item.color} isDark={isDark} isNeumorph />}
+              {item.car_make && <DetailRow label="Fabricante" value={item.car_make} isDark={isDark} isNeumorph />}
+              {item.tampo && <DetailRow label="Tampo" value={item.tampo} isDark={isDark} isNeumorph />}
+              {item.wheel_type && <DetailRow label="Ruedas" value={item.wheel_type} isDark={isDark} isNeumorph />}
+              <DetailRow label="Toy #" value={item.toy_num} isDark={isDark} isNeumorph />
+              <DetailRow label="Col #" value={item.col_num} isDark={isDark} isNeumorph />
             </div>
 
             {/* Pack Contents - Show if this is a multi-pack */}
             {item.pack_contents && item.pack_contents.length > 0 && (
-              <div className={`p-4 rounded-lg ${isDark ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+              <div className={`p-4 rounded-xl ${neumorphInsetClass}`}>
                 <h3 className={`font-semibold mb-3 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
                   📦 Contenido del Pack ({item.pack_contents.length} autos)
                 </h3>
@@ -250,7 +263,9 @@ export default function CatalogItemDetailModal({
                       return (
                         <div
                           key={index}
-                          className={`p-3 rounded border flex gap-3 ${isDark ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-200'
+                          className={`p-3 rounded-xl flex gap-3 ${isDark
+                            ? 'bg-slate-800/80 border border-slate-700/70 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.5),inset_-3px_-3px_7px_rgba(51,65,85,0.2)]'
+                            : 'bg-[#edf3fa] border border-white/90 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.22),inset_-4px_-4px_8px_rgba(255,255,255,0.92)]'
                             }`}
                         >
                           {/* Car Photo */}
@@ -291,7 +306,7 @@ export default function CatalogItemDetailModal({
 
             {/* Availability & Pricing */}
             {item.availability.available ? (
-              <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-green-900/20 border-green-700' : 'bg-green-50 border-green-300'
+              <div className={`p-4 rounded-xl border ${isDark ? 'bg-green-900/20 border-green-700 shadow-[10px_10px_20px_rgba(2,6,23,0.45),-8px_-8px_16px_rgba(34,197,94,0.1)]' : 'bg-green-50 border-green-300 shadow-[10px_10px_20px_rgba(16,185,129,0.15),-8px_-8px_16px_rgba(255,255,255,0.8)]'
                 }`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className={`font-semibold ${isDark ? 'text-green-400' : 'text-green-700'}`}>
@@ -343,7 +358,7 @@ export default function CatalogItemDetailModal({
                 </div>
               </div>
             ) : (
-              <div className={`p-4 rounded-lg border-2 ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-slate-100 border-slate-300'
+              <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-800/70 border-slate-700 shadow-[10px_10px_20px_rgba(2,6,23,0.45),-8px_-8px_16px_rgba(51,65,85,0.2)]' : 'bg-[#edf3fa] border-white/85 shadow-[10px_10px_20px_rgba(148,163,184,0.25),-8px_-8px_16px_rgba(255,255,255,0.85)]'
                 }`}>
                 <p className={`font-semibold mb-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                   No disponible actualmente
@@ -377,8 +392,11 @@ export default function CatalogItemDetailModal({
                 <>
                   {/* Contact via Messenger */}
                   <Button
-                    variant="primary"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    variant="secondary"
+                    className={`w-full !text-white border ${isDark
+                      ? '!bg-blue-600 border-blue-400/60 shadow-[9px_9px_18px_rgba(2,6,23,0.5),-7px_-7px_14px_rgba(56,189,248,0.2)]'
+                      : '!bg-blue-500 border-blue-300 shadow-[9px_9px_18px_rgba(14,116,144,0.24),-7px_-7px_14px_rgba(255,255,255,0.72)]'
+                      }`}
                     onClick={handleContactClick}
                     icon={<MessageCircle size={20} />}
                   >
@@ -393,8 +411,11 @@ export default function CatalogItemDetailModal({
                 <>
                   {/* Notify when available */}
                   <Button
-                    variant="primary"
-                    className="w-full"
+                    variant="secondary"
+                    className={`w-full border ${isDark
+                      ? '!bg-slate-800 text-slate-100 border-slate-600 shadow-[9px_9px_18px_rgba(2,6,23,0.5),-7px_-7px_14px_rgba(51,65,85,0.2)]'
+                      : '!bg-[#eef3fa] text-slate-800 border-white/85 shadow-[9px_9px_18px_rgba(148,163,184,0.3),-7px_-7px_14px_rgba(255,255,255,0.9)]'
+                      }`}
                     onClick={handleNotifyClick}
                     icon={<Bell size={20} />}
                   >
@@ -406,15 +427,16 @@ export default function CatalogItemDetailModal({
               {/* Report data button - always visible */}
               <button
                 onClick={() => setShowReportModal(true)}
-                className={`w-full flex items-center justify-center gap-2 text-xs py-2 rounded-lg transition-colors ${isDark
-                  ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-700/50'
-                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                className={`w-full flex items-center justify-center gap-2 text-xs py-2 rounded-xl transition-all ${neumorphPillClass} ${isDark
+                  ? 'text-slate-400 hover:text-slate-200'
+                  : 'text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <Flag size={14} />
                 Reportar dato incorrecto
               </button>
             </div>
+          </div>
           </div>
         </div>
       </Modal>
@@ -461,9 +483,15 @@ export default function CatalogItemDetailModal({
 }
 
 // Helper component for detail rows
-function DetailRow({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
+function DetailRow({ label, value, isDark, isNeumorph = false }: { label: string; value: string; isDark: boolean; isNeumorph?: boolean }) {
+  const rowClass = isNeumorph
+    ? isDark
+      ? 'rounded-xl px-3 py-2 bg-slate-900/70 border border-slate-700/70 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.6),inset_-3px_-3px_8px_rgba(51,65,85,0.2)]'
+      : 'rounded-xl px-3 py-2 bg-[#edf3fa] border border-white/90 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-4px_-4px_8px_rgba(255,255,255,0.93)]'
+    : ''
+
   return (
-    <div className="flex justify-between">
+    <div className={`flex justify-between ${rowClass}`}>
       <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
         {label}:
       </span>

@@ -14,6 +14,14 @@ export default function Customers() {
     const { selectedStore } = useStore()
     const { mode } = useTheme()
     const isDark = mode === 'dark'
+    const pageBackdropClass = isDark
+        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
+        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+    const headerTextClass = isDark ? 'text-white' : 'text-slate-900'
+    const mutedTextClass = isDark ? 'text-slate-400' : 'text-slate-600'
+    const neumorphInsetClass = isDark
+        ? 'rounded-xl border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+        : 'rounded-xl border border-white/80 bg-[#e2e8f3] shadow-[inset_4px_4px_9px_rgba(148,163,184,0.28),inset_-4px_-4px_8px_rgba(255,255,255,0.92)]'
     const [searchTerm, setSearchTerm] = useState('')
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [editingCustomer, setEditingCustomer] = useState<any>(null)
@@ -113,11 +121,11 @@ export default function Customers() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className={`space-y-6 rounded-3xl p-4 lg:p-6 ${pageBackdropClass}`}>
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Clientes</h1>
-                    <p className="text-slate-400">Gestión de clientes para entregas y ventas</p>
+                    <h1 className={`text-2xl font-bold ${headerTextClass}`}>Clientes</h1>
+                    <p className={mutedTextClass}>Gestión de clientes para entregas y ventas</p>
                 </div>
                 <Button onClick={() => setShowCreateModal(true)}>
                     Nuevo Cliente
@@ -140,11 +148,11 @@ export default function Customers() {
             {/* Customers List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCustomers.map((customer) => (
-                    <Card key={customer._id} className="hover:shadow-md transition-shadow">
+                    <Card key={customer._id} className="hover:brightness-105 transition-all">
                         <div className="flex items-start justify-between mb-4">
                             <div>
-                                <h3 className="font-semibold text-white">{customer.name}</h3>
-                                <p className="text-sm text-gray-500 capitalize">{customer.contactMethod}</p>
+                                <h3 className={`font-semibold ${headerTextClass}`}>{customer.name}</h3>
+                                <p className={`text-sm capitalize ${mutedTextClass}`}>{customer.contactMethod}</p>
                             </div>
                             <div className="flex gap-2">
                                 <Button
@@ -172,17 +180,17 @@ export default function Customers() {
 
                         <div className="space-y-2">
                             {customer.email && (
-                                <div className="text-sm text-slate-400">
+                                <div className={`text-sm ${mutedTextClass}`}>
                                     Email: {customer.email}
                                 </div>
                             )}
                             {customer.phone && (
-                                <div className="text-sm text-slate-400">
+                                <div className={`text-sm ${mutedTextClass}`}>
                                     Teléfono: {customer.phone}
                                 </div>
                             )}
                             {customer.address && (
-                                <div className="text-sm text-slate-400">
+                                <div className={`text-sm ${mutedTextClass}`}>
                                     Dirección: {customer.address}
                                 </div>
                             )}
@@ -194,10 +202,10 @@ export default function Customers() {
             {filteredCustomers.length === 0 && (
                 <Card>
                     <div className="text-center py-12">
-                        <h3 className="text-lg font-medium text-white mb-2">
+                        <h3 className={`text-lg font-medium mb-2 ${headerTextClass}`}>
                             No hay clientes registrados
                         </h3>
-                        <p className="text-gray-500 mb-4">
+                        <p className={`mb-4 ${mutedTextClass}`}>
                             Comienza agregando tu primer cliente
                         </p>
                         <Button onClick={() => setShowCreateModal(true)}>
@@ -262,13 +270,13 @@ export default function Customers() {
                         />
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className={`block text-sm font-medium mb-1 ${mutedTextClass}`}>
                                 Método de Contacto
                             </label>
                             <select
                                 value={formData.contactMethod}
                                 onChange={(e) => setFormData({ ...formData, contactMethod: e.target.value as any })}
-                                className={`w-full px-3 py-2 border rounded-md ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
+                                className={`w-full px-3 py-2 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
                             >
                                 <option value="email">Email</option>
                                 <option value="phone">Teléfono</option>

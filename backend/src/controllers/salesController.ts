@@ -838,7 +838,11 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
     let posSalesCount = 0;
     const salesByDay: { [key: string]: { amount: number; profit: number; pieces: number } } = {};
     const salesByBrand: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
+    const salesByPieceType: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
+    const salesByCustomer: { [key: string]: { customerId: string | null; customerName: string; amount: number; profit: number; pieces: number; count: number } } = {};
+    const customerItemBreakdown: { [customerKey: string]: { [itemKey: string]: { carId: string; carName: string; quantity: number; amount: number; profit: number } } } = {};
     const transactionsList: any[] = [];
+    let topTransaction: any = null;
 
     for (const sale of sales) {
       // Primero, verificar si la venta contiene items que coinciden con los filtros
@@ -867,6 +871,26 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       let saleTotalProfit = 0;
       let saleTotalPieces = 0;
       let saleFilteredAmount = 0;
+      const saleItemDetails: Array<{ carId: string; carName: string; quantity: number; unitPrice: number; amount: number; profit: number }> = [];
+
+      // Ventas por cliente (key preparada antes de recorrer items)
+      const rawCustomerId = (sale as any).customer?._id || sale.customerId || null;
+      const customerId = rawCustomerId ? String(rawCustomerId) : null;
+      const customerName = (sale as any).customer?.name || 'Venta POS';
+      const customerKey = customerId || `pos:${customerName}`;
+      if (!salesByCustomer[customerKey]) {
+        salesByCustomer[customerKey] = {
+          customerId,
+          customerName,
+          amount: 0,
+          profit: 0,
+          pieces: 0,
+          count: 0
+        };
+      }
+      if (!customerItemBreakdown[customerKey]) {
+        customerItemBreakdown[customerKey] = {};
+      }
 
       // Calcular ganancia y piezas por item (solo items que coinciden con filtros)
       for (const item of sale.items) {
@@ -893,6 +917,32 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
         saleTotalProfit += itemProfit;
         saleTotalPieces += quantity;
         saleFilteredAmount += salePrice * quantity;
+
+        const lineAmount = salePrice * quantity;
+        const lineCarId = item.carId || 'N/A';
+        const lineCarName = item.carName || lineCarId;
+        saleItemDetails.push({
+          carId: lineCarId,
+          carName: lineCarName,
+          quantity,
+          unitPrice: salePrice,
+          amount: lineAmount,
+          profit: itemProfit
+        });
+
+        const itemKey = `${lineCarId}::${lineCarName}`;
+        if (!customerItemBreakdown[customerKey][itemKey]) {
+          customerItemBreakdown[customerKey][itemKey] = {
+            carId: lineCarId,
+            carName: lineCarName,
+            quantity: 0,
+            amount: 0,
+            profit: 0
+          };
+        }
+        customerItemBreakdown[customerKey][itemKey].quantity += quantity;
+        customerItemBreakdown[customerKey][itemKey].amount += lineAmount;
+        customerItemBreakdown[customerKey][itemKey].profit += itemProfit;
       }
 
       const saleDate = dateToLocalString(sale.saleDate);
@@ -916,6 +966,11 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       salesByDay[saleDate].amount += saleFilteredAmount;
       salesByDay[saleDate].profit += saleTotalProfit;
       salesByDay[saleDate].pieces += saleTotalPieces;
+
+      salesByCustomer[customerKey].amount += saleFilteredAmount;
+      salesByCustomer[customerKey].profit += saleTotalProfit;
+      salesByCustomer[customerKey].pieces += saleTotalPieces;
+      salesByCustomer[customerKey].count += 1;
 
       // Ventas por marca (solo items que coinciden)
       for (const item of sale.items) {
@@ -944,12 +999,24 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
         salesByBrand[itemBrand].profit += itemProfit;
         salesByBrand[itemBrand].pieces += quantity;
         salesByBrand[itemBrand].count++;
+
+        // Ventas por tipo de pieza (solo items que coinciden)
+        const rawPieceType = inventory.pieceType || 'unknown';
+        const itemPieceType = String(rawPieceType).trim() || 'unknown';
+        if (!salesByPieceType[itemPieceType]) {
+          salesByPieceType[itemPieceType] = { amount: 0, profit: 0, pieces: 0, count: 0 };
+        }
+        salesByPieceType[itemPieceType].amount += item.unitPrice * quantity;
+        salesByPieceType[itemPieceType].profit += itemProfit;
+        salesByPieceType[itemPieceType].pieces += quantity;
+        salesByPieceType[itemPieceType].count++;
       }
 
       // Agregar a transacciones (solo si tiene items que coinciden)
       if (saleTotalPieces > 0) {
-        transactionsList.push({
+        const transaction = {
           _id: sale._id,
+          customerId,
           customerName: (sale as any).customer?.name || 'Venta POS',
           saleDate: sale.saleDate,
           totalAmount: saleFilteredAmount,
@@ -957,8 +1024,14 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
           pieces: saleTotalPieces,
           saleType: sale.saleType,
           paymentMethod: sale.paymentMethod,
-          itemsCount: sale.items.length
-        });
+          itemsCount: saleItemDetails.length,
+          items: saleItemDetails
+        };
+        transactionsList.push(transaction);
+
+        if (!topTransaction || transaction.totalAmount > topTransaction.totalAmount) {
+          topTransaction = transaction;
+        }
       }
     }
 
@@ -972,6 +1045,61 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       .sort(([, a], [, b]) => b.amount - a.amount)
       .slice(0, 5)
       .map(([brandName, data]) => ({ brand: brandName, ...data }));
+
+    const pieceTypeLabelMap: Record<string, string> = {
+      basic: 'Basic',
+      premium: 'Premium',
+      rlc: 'RLC',
+      silver_series: 'Silver Series',
+      elite_64: 'Elite 64',
+      unknown: 'Sin tipo'
+    };
+
+    const pieceTypeBreakdown = Object.entries(salesByPieceType)
+      .map(([pieceTypeName, data]) => {
+        const margin = data.amount > 0 ? (data.profit / data.amount) * 100 : 0;
+        return {
+          pieceType: pieceTypeName,
+          label: pieceTypeLabelMap[pieceTypeName] || pieceTypeName,
+          amount: Math.round(data.amount * 100) / 100,
+          profit: Math.round(data.profit * 100) / 100,
+          pieces: data.pieces,
+          count: data.count,
+          margin: Math.round(margin * 100) / 100
+        };
+      })
+      .sort((a, b) => b.margin - a.margin);
+
+    const rankedCustomerEntries = Object.entries(salesByCustomer)
+      .sort(([, a], [, b]) => b.amount - a.amount);
+
+    const topCustomers = rankedCustomerEntries
+      .slice(0, 5)
+      .map(([, c]) => ({
+        customerId: c.customerId,
+        customerName: c.customerName,
+        amount: Math.round(c.amount * 100) / 100,
+        profit: Math.round(c.profit * 100) / 100,
+        pieces: c.pieces,
+        count: c.count,
+        margin: c.amount > 0 ? Math.round(((c.profit / c.amount) * 100) * 100) / 100 : 0
+      }));
+
+    const topCustomerKey = rankedCustomerEntries[0]?.[0];
+    const topCustomerDetails = topCustomerKey && topCustomers[0]
+      ? {
+          ...topCustomers[0],
+          items: Object.values(customerItemBreakdown[topCustomerKey] || {})
+            .sort((a, b) => b.amount - a.amount)
+            .map((item) => ({
+              carId: item.carId,
+              carName: item.carName,
+              quantity: item.quantity,
+              amount: Math.round(item.amount * 100) / 100,
+              profit: Math.round(item.profit * 100) / 100
+            }))
+        }
+      : null;
 
     res.json({
       success: true,
@@ -997,6 +1125,21 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
         chartData: {
           salesByDay: salesByDayArray,
           topBrands,
+          pieceTypeBreakdown,
+          topCustomers,
+          topCustomerDetails,
+          topTransaction: topTransaction
+            ? {
+                ...topTransaction,
+                totalAmount: Math.round(topTransaction.totalAmount * 100) / 100,
+                profit: Math.round(topTransaction.profit * 100) / 100,
+                items: (topTransaction.items || []).map((item: any) => ({
+                  ...item,
+                  amount: Math.round(item.amount * 100) / 100,
+                  profit: Math.round(item.profit * 100) / 100
+                }))
+              }
+            : null,
           saleTypeDistribution: [
             { name: 'Entregas', value: deliverySalesCount },
             { name: 'POS', value: posSalesCount }

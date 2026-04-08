@@ -11,7 +11,8 @@ import {
 } from 'recharts'
 import { format, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Calendar, TrendingUp, DollarSign, Package, ShoppingCart, Search } from 'lucide-react'
+import { Calendar, TrendingUp, DollarSign, Package, ShoppingCart, Search, Crown, User } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import toast from 'react-hot-toast'
@@ -28,6 +29,60 @@ interface StatisticsData {
     chartData: {
         salesByDay: Array<{ date: string; amount: number; profit: number; pieces: number }>
         topBrands: Array<{ brand: string; amount: number; profit: number; pieces: number; count: number }>
+        pieceTypeBreakdown: Array<{
+            pieceType: string
+            label: string
+            amount: number
+            profit: number
+            pieces: number
+            count: number
+            margin: number
+        }>
+        topCustomers: Array<{
+            customerId: string | null
+            customerName: string
+            amount: number
+            profit: number
+            pieces: number
+            count: number
+            margin: number
+        }>
+        topCustomerDetails: {
+            customerId: string | null
+            customerName: string
+            amount: number
+            profit: number
+            pieces: number
+            count: number
+            margin: number
+            items: Array<{
+                carId: string
+                carName: string
+                quantity: number
+                amount: number
+                profit: number
+            }>
+        } | null
+        topTransaction: {
+            _id: string
+            customerId: string | null
+            customerName: string
+            saleDate: string
+            totalAmount: number
+            profit: number
+            pieces: number
+            saleType: 'delivery' | 'pos'
+            paymentMethod?: string
+            itemsCount: number
+            items: Array<{
+                carId: string
+                carName: string
+                quantity: number
+                unitPrice: number
+                amount: number
+                profit: number
+            }>
+        } | null
         saleTypeDistribution: Array<{ name: string; value: number }>
     }
     transactions: any[]
@@ -48,6 +103,8 @@ const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
 
 export default function SalesStatistics() {
     const navigate = useNavigate()
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
 
     // Initialize with current month
     const today = new Date()
@@ -64,6 +121,19 @@ export default function SalesStatistics() {
     const [reactivatingId, setReactivatingId] = useState<string | null>(null)
     const [reactivateQuantity, setReactivateQuantity] = useState<{ [key: string]: number }>({})
     const { selectedStore } = useStore()
+
+    const pageBackdropClass = isDark
+        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
+        : 'bg-[radial-gradient(circle_at_10%_10%,rgba(16,185,129,0.16),transparent_32%),radial-gradient(circle_at_90%_0%,rgba(56,189,248,0.18),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+    const neumorphSurfaceClass = isDark
+        ? 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(51,65,85,0.2)]'
+        : 'rounded-2xl border border-white/80 bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.34),-12px_-12px_24px_rgba(255,255,255,0.96)]'
+    const neumorphInsetClass = isDark
+        ? 'rounded-xl border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+        : 'rounded-xl border border-white/80 bg-[#e2e8f3] shadow-[inset_4px_4px_9px_rgba(148,163,184,0.28),inset_-4px_-4px_8px_rgba(255,255,255,0.92)]'
+    const headerTextClass = isDark ? 'text-white' : 'text-slate-900'
+    const mutedTextClass = isDark ? 'text-slate-400' : 'text-slate-600'
+    const inputClass = `${neumorphInsetClass} w-full px-4 py-2 ${isDark ? 'text-white placeholder-slate-500' : 'text-slate-700 placeholder-slate-500'} focus:outline-none focus:ring-2 ${isDark ? 'focus:ring-emerald-500/50' : 'focus:ring-emerald-500/40'}`
 
     // Fetch detailed statistics
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery<StatisticsData>(
@@ -85,6 +155,9 @@ export default function SalesStatistics() {
             staleTime: 1000 * 60 * 5
         }
     )
+    const topCustomer = stats?.chartData?.topCustomers?.[0]
+    const topCustomerDetails = stats?.chartData?.topCustomerDetails
+    const topTransaction = stats?.chartData?.topTransaction
 
     // Fetch out-of-stock items
     const { data: outOfStockData, isLoading: outOfStockLoading, refetch: refetchOutOfStock } = useQuery<OutOfStockItem[]>(
@@ -141,43 +214,47 @@ export default function SalesStatistics() {
     }, [reactivateQuantity, refetchOutOfStock])
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-6">
+        <div className={`min-h-screen p-4 md:p-6 ${pageBackdropClass}`}>
             {/* Loading Overlay */}
             {statsLoading && activeTab === 'statistics' && (
-                <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 shadow-lg">
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-xl px-4 py-3 ${neumorphSurfaceClass}`}>
                     <div className="animate-spin h-5 w-5 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
-                    <span className="text-sm font-medium text-slate-300">Cargando estadísticas...</span>
+                    <span className={`text-sm font-medium ${mutedTextClass}`}>Cargando estadísticas...</span>
                 </div>
             )}
 
             {outOfStockLoading && activeTab === 'inventory' && (
-                <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 shadow-lg">
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 rounded-xl px-4 py-3 ${neumorphSurfaceClass}`}>
                     <div className="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                    <span className="text-sm font-medium text-slate-300">Cargando inventario...</span>
+                    <span className={`text-sm font-medium ${mutedTextClass}`}>Cargando inventario...</span>
                 </div>
             )}
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-4xl font-bold text-white mb-2">📊 Estadísticas de Ventas</h1>
-                <p className="text-slate-400">Análisis detallado de ventas y ganancias</p>
+                <h1 className={`text-4xl font-bold mb-2 ${headerTextClass}`}>📊 Estadísticas de Ventas</h1>
+                <p className={mutedTextClass}>Análisis detallado de ventas y ganancias</p>
             </div>
 
             {/* Tabs */}
             <div className="flex gap-2 mb-6">
                 <button
                     onClick={() => setActiveTab('statistics')}
-                    className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === 'statistics'
-                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'statistics'
+                        ? isDark
+                            ? 'bg-emerald-500 text-white shadow-[6px_6px_14px_rgba(16,185,129,0.35)]'
+                            : 'bg-emerald-500 text-white shadow-[6px_6px_14px_rgba(16,185,129,0.28)]'
+                        : `${neumorphInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`
                         }`}
                 >
                     📈 Estadísticas
                 </button>
                 <button
                     onClick={() => setActiveTab('inventory')}
-                    className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === 'inventory'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all ${activeTab === 'inventory'
+                        ? isDark
+                            ? 'bg-blue-500 text-white shadow-[6px_6px_14px_rgba(59,130,246,0.34)]'
+                            : 'bg-blue-500 text-white shadow-[6px_6px_14px_rgba(59,130,246,0.28)]'
+                        : `${neumorphInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`
                         }`}
                 >
                     📦 Piezas Sin Stock
@@ -187,32 +264,32 @@ export default function SalesStatistics() {
             {activeTab === 'statistics' ? (
                 <>
                     {/* Filters */}
-                    <Card className="mb-6 bg-slate-800/50 border-slate-700">
+                    <Card className={`mb-6 ${neumorphSurfaceClass}`}>
                         <div className="p-6">
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                            <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${headerTextClass}`}>
                                 <Calendar className="w-5 h-5 text-emerald-500" /> Filtros
                             </h3>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                                 {/* Period Selection */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Período</label>
-                                    <div className="flex items-center gap-2 bg-slate-700 rounded-lg p-1 border border-slate-600">
+                                    <label className={`block text-sm font-medium mb-2 ${mutedTextClass}`}>Período</label>
+                                    <div className={`flex items-center gap-2 p-1 ${neumorphInsetClass}`}>
                                         <button
                                             onClick={() => handlePeriodChange('day')}
-                                            className={`flex-1 px-3 py-2 rounded transition-colors text-sm font-medium ${period === 'day' ? 'bg-emerald-500 text-white' : 'text-slate-300 hover:bg-slate-600'}`}
+                                            className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${period === 'day' ? 'bg-emerald-500 text-white' : isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-white/60'}`}
                                         >
                                             Hoy
                                         </button>
                                         <button
                                             onClick={() => handlePeriodChange('month')}
-                                            className={`flex-1 px-3 py-2 rounded transition-colors text-sm font-medium ${period === 'month' ? 'bg-emerald-500 text-white' : 'text-slate-300 hover:bg-slate-600'}`}
+                                            className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${period === 'month' ? 'bg-emerald-500 text-white' : isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-white/60'}`}
                                         >
                                             Mes
                                         </button>
                                         <button
                                             onClick={() => handlePeriodChange('custom')}
-                                            className={`flex-1 px-3 py-2 rounded transition-colors text-sm font-medium ${period === 'custom' ? 'bg-emerald-500 text-white' : 'text-slate-300 hover:bg-slate-600'}`}
+                                            className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${period === 'custom' ? 'bg-emerald-500 text-white' : isDark ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-white/60'}`}
                                         >
                                             Personalizado
                                         </button>
@@ -221,35 +298,35 @@ export default function SalesStatistics() {
 
                                 {/* Start Date */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Desde</label>
+                                    <label className={`block text-sm font-medium mb-2 ${mutedTextClass}`}>Desde</label>
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:border-emerald-500 focus:outline-none"
+                                        className={inputClass}
                                     />
                                 </div>
 
                                 {/* End Date */}
                                 {period === 'custom' && (
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-300 mb-2">Hasta</label>
+                                        <label className={`block text-sm font-medium mb-2 ${mutedTextClass}`}>Hasta</label>
                                         <input
                                             type="date"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
-                                            className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:border-emerald-500 focus:outline-none"
+                                            className={inputClass}
                                         />
                                     </div>
                                 )}
 
                                 {/* Sale Type */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Tipo</label>
+                                    <label className={`block text-sm font-medium mb-2 ${mutedTextClass}`}>Tipo</label>
                                     <select
                                         value={saleType}
                                         onChange={(e) => setSaleType(e.target.value as any)}
-                                        className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:border-emerald-500 focus:outline-none"
+                                        className={inputClass}
                                     >
                                         <option value="all">Todas</option>
                                         <option value="delivery">Solo Entregas</option>
@@ -259,11 +336,11 @@ export default function SalesStatistics() {
 
                                 {/* Brand */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Marca</label>
+                                    <label className={`block text-sm font-medium mb-2 ${mutedTextClass}`}>Marca</label>
                                     <select
                                         value={brand}
                                         onChange={(e) => setBrand(e.target.value)}
-                                        className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:border-emerald-500 focus:outline-none"
+                                        className={inputClass}
                                     >
                                         <option value="">Todas</option>
                                         {stats?.chartData?.topBrands?.map((item) => (
@@ -276,11 +353,11 @@ export default function SalesStatistics() {
 
                                 {/* Piece Type */}
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Tipo de Pieza</label>
+                                    <label className={`block text-sm font-medium mb-2 ${mutedTextClass}`}>Tipo de Pieza</label>
                                     <select
                                         value={pieceType}
                                         onChange={(e) => setPieceType(e.target.value)}
-                                        className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:border-emerald-500 focus:outline-none"
+                                        className={inputClass}
                                     >
                                         <option value="">Todas</option>
                                         <option value="basic">Basic</option>
@@ -294,7 +371,7 @@ export default function SalesStatistics() {
 
                             <Button
                                 onClick={() => refetchStats()}
-                                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white"
+                                className={`w-full ${isDark ? 'bg-emerald-500/25 hover:bg-emerald-500/35 border border-emerald-500/30 text-emerald-200' : 'bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-700'} rounded-xl shadow-none`}
                             >
                                 🔄 Actualizar
                             </Button>
@@ -310,50 +387,182 @@ export default function SalesStatistics() {
                                     title="Ventas Totales"
                                     value={`$${stats.summary.totalSalesAmount.toFixed(2)}`}
                                     subtitle={`${stats.summary.totalTransactions} transacciones`}
-                                    color="from-emerald-500 to-emerald-600"
+                                    color="text-emerald-500"
+                                    variant="emerald"
                                 />
                                 <SummaryCard
                                     icon={<TrendingUp className="w-6 h-6" />}
                                     title="Ganancias Totales"
                                     value={`$${stats.summary.totalProfit.toFixed(2)}`}
                                     subtitle={`${((stats.summary.totalProfit / stats.summary.totalSalesAmount) * 100).toFixed(1)}% margen`}
-                                    color="from-blue-500 to-blue-600"
+                                    color="text-blue-500"
+                                    variant="blue"
                                 />
                                 <SummaryCard
                                     icon={<Package className="w-6 h-6" />}
                                     title="Piezas Vendidas"
                                     value={stats.summary.totalPieces.toString()}
                                     subtitle={`${(stats.summary.totalPieces / stats.summary.totalTransactions).toFixed(1)} por transacción`}
-                                    color="from-orange-500 to-orange-600"
+                                    color="text-orange-500"
+                                    variant="orange"
                                 />
                                 <SummaryCard
                                     icon={<ShoppingCart className="w-6 h-6" />}
                                     title="Distribución"
                                     value={`${stats.summary.deliveryCount} / ${stats.summary.posCount}`}
                                     subtitle="Entregas / POS"
-                                    color="from-purple-500 to-purple-600"
+                                    color="text-violet-500"
+                                    variant="violet"
                                 />
                             </div>
+
+                            <Card className={`mb-8 ${neumorphSurfaceClass}`}>
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between gap-3 mb-4">
+                                        <h3 className={`text-lg font-semibold flex items-center gap-2 ${headerTextClass}`}>
+                                            <Crown className="w-5 h-5 text-amber-500" /> Top Cliente del Período
+                                        </h3>
+                                        <span className={`text-xs px-3 py-1 rounded-full ${neumorphInsetClass} ${mutedTextClass}`}>
+                                            {period === 'month' ? 'Mes actual' : period === 'day' ? 'Hoy' : 'Rango personalizado'}
+                                        </span>
+                                    </div>
+
+                                    {topCustomer ? (
+                                        <div className={`grid grid-cols-1 md:grid-cols-4 gap-3 ${neumorphInsetClass} p-4`}>
+                                            <div className="md:col-span-2">
+                                                <p className={`text-sm ${mutedTextClass}`}>Cliente</p>
+                                                <p className={`text-xl font-bold flex items-center gap-2 ${headerTextClass}`}>
+                                                    <User className="w-5 h-5 text-amber-500" />
+                                                    {topCustomer.customerName}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className={`text-sm ${mutedTextClass}`}>Total Comprado</p>
+                                                <p className="text-xl font-semibold text-emerald-500">${topCustomer.amount.toFixed(2)}</p>
+                                            </div>
+                                            <div>
+                                                <p className={`text-sm ${mutedTextClass}`}>Margen</p>
+                                                <p className="text-xl font-semibold text-amber-500">{topCustomer.margin.toFixed(1)}%</p>
+                                            </div>
+
+                                            {topCustomerDetails && (
+                                                <div className="md:col-span-4 mt-2 space-y-2">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <span className={`text-xs px-2 py-1 rounded-lg ${neumorphInsetClass} ${mutedTextClass}`}>
+                                                            {topCustomerDetails.count} transacciones
+                                                        </span>
+                                                        <span className={`text-xs px-2 py-1 rounded-lg ${neumorphInsetClass} ${mutedTextClass}`}>
+                                                            {topCustomerDetails.pieces} piezas
+                                                        </span>
+                                                        <span className={`text-xs px-2 py-1 rounded-lg ${neumorphInsetClass} ${mutedTextClass}`}>
+                                                            ${topCustomerDetails.profit.toFixed(2)} ganancia
+                                                        </span>
+                                                    </div>
+
+                                                    <div>
+                                                        <p className={`text-sm font-semibold mb-2 ${headerTextClass}`}>Modelos más comprados</p>
+                                                        <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                                                            {topCustomerDetails.items.slice(0, 6).map((item, idx) => (
+                                                                <div key={`${item.carId}-${idx}`} className={`flex items-center justify-between p-2 ${neumorphInsetClass}`}>
+                                                                    <div className="min-w-0">
+                                                                        <p className={`text-sm font-medium truncate ${headerTextClass}`}>{item.carName}</p>
+                                                                        <p className={`text-xs ${mutedTextClass}`}>x{item.quantity} • {item.carId}</p>
+                                                                    </div>
+                                                                    <p className="text-sm font-semibold text-emerald-500">${item.amount.toFixed(2)}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className={`text-center py-6 ${mutedTextClass}`}>
+                                            No hay datos suficientes para calcular el top cliente en este período.
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
+
+                            <Card className={`mb-8 ${neumorphSurfaceClass}`}>
+                                <div className="p-6">
+                                    <div className="flex items-center justify-between gap-3 mb-4">
+                                        <h3 className={`text-lg font-semibold flex items-center gap-2 ${headerTextClass}`}>
+                                            <DollarSign className="w-5 h-5 text-emerald-500" /> Mayor Transacción del Período
+                                        </h3>
+                                    </div>
+
+                                    {topTransaction ? (
+                                        <div className={`space-y-3 ${neumorphInsetClass} p-4`}>
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                                <div className="md:col-span-2">
+                                                    <p className={`text-sm ${mutedTextClass}`}>Cliente</p>
+                                                    <p className={`text-xl font-bold ${headerTextClass}`}>{topTransaction.customerName}</p>
+                                                    <p className={`text-xs ${mutedTextClass}`}>
+                                                        {format(parseISO(topTransaction.saleDate), 'dd MMM yyyy HH:mm', { locale: es })}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className={`text-sm ${mutedTextClass}`}>Monto</p>
+                                                    <p className="text-xl font-semibold text-emerald-500">${topTransaction.totalAmount.toFixed(2)}</p>
+                                                </div>
+                                                <div>
+                                                    <p className={`text-sm ${mutedTextClass}`}>Ganancia</p>
+                                                    <p className="text-xl font-semibold text-blue-500">${topTransaction.profit.toFixed(2)}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className={`text-xs px-2 py-1 rounded-lg ${neumorphInsetClass} ${mutedTextClass}`}>
+                                                    {topTransaction.pieces} piezas
+                                                </span>
+                                                <span className={`text-xs px-2 py-1 rounded-lg ${neumorphInsetClass} ${mutedTextClass}`}>
+                                                    {topTransaction.itemsCount} items
+                                                </span>
+                                                <span className={`text-xs px-2 py-1 rounded-lg ${neumorphInsetClass} ${mutedTextClass}`}>
+                                                    {topTransaction.saleType === 'delivery' ? 'Entrega' : 'POS'}
+                                                </span>
+                                            </div>
+
+                                            <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                                                {topTransaction.items.slice(0, 6).map((item, idx) => (
+                                                    <div key={`${item.carId}-${idx}`} className={`flex items-center justify-between p-2 ${neumorphInsetClass}`}>
+                                                        <div className="min-w-0">
+                                                            <p className={`text-sm font-medium truncate ${headerTextClass}`}>{item.carName}</p>
+                                                            <p className={`text-xs ${mutedTextClass}`}>x{item.quantity} • ${item.unitPrice.toFixed(2)} c/u</p>
+                                                        </div>
+                                                        <p className="text-sm font-semibold text-emerald-500">${item.amount.toFixed(2)}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className={`text-center py-6 ${mutedTextClass}`}>
+                                            No hay transacciones registradas para este período.
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
 
                             {/* Charts */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                                 {/* Sales by Day */}
-                                <Card className="bg-slate-800/50 border-slate-700">
+                                <Card className={neumorphSurfaceClass}>
                                     <div className="p-6">
-                                        <h3 className="text-lg font-semibold text-white mb-4">📈 Ventas por Día</h3>
+                                        <h3 className={`text-lg font-semibold mb-4 ${headerTextClass}`}>📈 Ventas por Día</h3>
                                         <ResponsiveContainer width="100%" height={300}>
                                             <LineChart data={stats.chartData.salesByDay}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#475569' : '#94a3b8'} />
                                                 <XAxis
                                                     dataKey="date"
-                                                    stroke="#94a3b8"
+                                                    stroke={isDark ? '#94a3b8' : '#64748b'}
                                                     tick={{ fontSize: 12 }}
                                                     tickFormatter={(date) => format(parseISO(date), 'dd MMM', { locale: es })}
                                                 />
-                                                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                                                <YAxis stroke={isDark ? '#94a3b8' : '#64748b'} tick={{ fontSize: 12 }} />
                                                 <Tooltip
-                                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
-                                                    labelStyle={{ color: '#e2e8f0' }}
+                                                    contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#eaf0f8', border: 'none', borderRadius: '12px', boxShadow: isDark ? '12px 12px 24px rgba(2,6,23,0.45)' : '10px 10px 20px rgba(148,163,184,0.3)' }}
+                                                    labelStyle={{ color: isDark ? '#e2e8f0' : '#334155' }}
                                                     formatter={(value: any) => `$${value.toFixed(2)}`}
                                                 />
                                                 <Legend />
@@ -381,17 +590,17 @@ export default function SalesStatistics() {
                                 </Card>
 
                                 {/* Top Brands */}
-                                <Card className="bg-slate-800/50 border-slate-700">
+                                <Card className={neumorphSurfaceClass}>
                                     <div className="p-6">
-                                        <h3 className="text-lg font-semibold text-white mb-4">🏆 Top Marcas</h3>
+                                        <h3 className={`text-lg font-semibold mb-4 ${headerTextClass}`}>🏆 Top Marcas</h3>
                                         <ResponsiveContainer width="100%" height={300}>
                                             <BarChart data={stats.chartData.topBrands}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
-                                                <XAxis dataKey="brand" stroke="#94a3b8" tick={{ fontSize: 12 }} />
-                                                <YAxis stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#475569' : '#94a3b8'} />
+                                                <XAxis dataKey="brand" stroke={isDark ? '#94a3b8' : '#64748b'} tick={{ fontSize: 12 }} />
+                                                <YAxis stroke={isDark ? '#94a3b8' : '#64748b'} tick={{ fontSize: 12 }} />
                                                 <Tooltip
-                                                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px' }}
-                                                    labelStyle={{ color: '#e2e8f0' }}
+                                                    contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#eaf0f8', border: 'none', borderRadius: '12px', boxShadow: isDark ? '12px 12px 24px rgba(2,6,23,0.45)' : '10px 10px 20px rgba(148,163,184,0.3)' }}
+                                                    labelStyle={{ color: isDark ? '#e2e8f0' : '#334155' }}
                                                     formatter={(value: any) => `$${value.toFixed(2)}`}
                                                 />
                                                 <Legend />
@@ -403,9 +612,9 @@ export default function SalesStatistics() {
                                 </Card>
 
                                 {/* Sale Type Distribution */}
-                                <Card className="bg-slate-800/50 border-slate-700">
+                                <Card className={neumorphSurfaceClass}>
                                     <div className="p-6">
-                                        <h3 className="text-lg font-semibold text-white mb-4">🥧 Distribución de Ventas</h3>
+                                        <h3 className={`text-lg font-semibold mb-4 ${headerTextClass}`}>🥧 Distribución de Ventas</h3>
                                         <ResponsiveContainer width="100%" height={300}>
                                             <PieChart>
                                                 <Pie
@@ -428,26 +637,40 @@ export default function SalesStatistics() {
                                     </div>
                                 </Card>
 
-                                {/* Pieces by Type */}
-                                <Card className="bg-slate-800/50 border-slate-700">
+                                {/* Piece Type Margin */}
+                                <Card className={neumorphSurfaceClass}>
                                     <div className="p-6">
-                                        <h3 className="text-lg font-semibold text-white mb-4">📦 Piezas por Tipo</h3>
+                                        <h3 className={`text-lg font-semibold mb-4 ${headerTextClass}`}>📦 Margen por Tipo de Pieza</h3>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            <BarChart data={stats.chartData.pieceTypeBreakdown || []}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#475569' : '#94a3b8'} />
+                                                <XAxis dataKey="label" stroke={isDark ? '#94a3b8' : '#64748b'} tick={{ fontSize: 12 }} />
+                                                <YAxis stroke={isDark ? '#94a3b8' : '#64748b'} tick={{ fontSize: 12 }} unit="%" />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#eaf0f8', border: 'none', borderRadius: '12px', boxShadow: isDark ? '12px 12px 24px rgba(2,6,23,0.45)' : '10px 10px 20px rgba(148,163,184,0.3)' }}
+                                                    labelStyle={{ color: isDark ? '#e2e8f0' : '#334155' }}
+                                                    formatter={(value: any) => `${Number(value).toFixed(1)}%`}
+                                                />
+                                                <Bar dataKey="margin" fill="#f59e0b" name="Margen" radius={[6, 6, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+
                                         <div className="space-y-3">
-                                            {Object.entries(stats.chartData.topBrands).length > 0 ? (
-                                                stats.chartData.topBrands.map((item, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                                            {(stats.chartData.pieceTypeBreakdown || []).length > 0 ? (
+                                                stats.chartData.pieceTypeBreakdown.map((item, idx) => (
+                                                    <div key={idx} className={`flex items-center justify-between p-3 ${neumorphInsetClass}`}>
                                                         <div>
-                                                            <p className="text-white font-medium">{item.brand}</p>
-                                                            <p className="text-sm text-slate-400">{item.count} transacciones</p>
+                                                            <p className={`font-medium ${headerTextClass}`}>{item.label}</p>
+                                                            <p className={`text-sm ${mutedTextClass}`}>{item.pieces} piezas • {item.count} movimientos</p>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="text-emerald-400 font-semibold">{item.pieces} piezas</p>
-                                                            <p className="text-sm text-slate-400">${item.profit.toFixed(2)} ganancia</p>
+                                                            <p className="text-amber-400 font-semibold">{item.margin.toFixed(1)}% margen</p>
+                                                            <p className={`text-sm ${mutedTextClass}`}>${item.profit.toFixed(2)} ganancia</p>
                                                         </div>
                                                     </div>
                                                 ))
                                             ) : (
-                                                <p className="text-slate-400 text-center py-6">Sin datos disponibles</p>
+                                                <p className={`text-center py-6 ${mutedTextClass}`}>Sin datos disponibles</p>
                                             )}
                                         </div>
                                     </div>
@@ -455,30 +678,30 @@ export default function SalesStatistics() {
                             </div>
 
                             {/* Transactions Table */}
-                            <Card className="bg-slate-800/50 border-slate-700">
+                            <Card className={neumorphSurfaceClass}>
                                 <div className="p-6">
-                                    <h3 className="text-lg font-semibold text-white mb-4">💳 Transacciones Recientes</h3>
+                                    <h3 className={`text-lg font-semibold mb-4 ${headerTextClass}`}>💳 Transacciones Recientes</h3>
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
                                             <thead>
-                                                <tr className="border-b border-slate-700">
-                                                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Cliente</th>
-                                                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Fecha</th>
-                                                    <th className="text-left py-3 px-4 text-slate-300 font-semibold">Tipo</th>
-                                                    <th className="text-right py-3 px-4 text-slate-300 font-semibold">Venta</th>
-                                                    <th className="text-right py-3 px-4 text-slate-300 font-semibold">Ganancia</th>
-                                                    <th className="text-center py-3 px-4 text-slate-300 font-semibold">Piezas</th>
+                                                <tr className={`border-b ${isDark ? 'border-slate-700' : 'border-slate-300/70'}`}>
+                                                    <th className={`text-left py-3 px-4 font-semibold ${mutedTextClass}`}>Cliente</th>
+                                                    <th className={`text-left py-3 px-4 font-semibold ${mutedTextClass}`}>Fecha</th>
+                                                    <th className={`text-left py-3 px-4 font-semibold ${mutedTextClass}`}>Tipo</th>
+                                                    <th className={`text-right py-3 px-4 font-semibold ${mutedTextClass}`}>Venta</th>
+                                                    <th className={`text-right py-3 px-4 font-semibold ${mutedTextClass}`}>Ganancia</th>
+                                                    <th className={`text-center py-3 px-4 font-semibold ${mutedTextClass}`}>Piezas</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {stats.transactions.map((transaction, idx) => (
                                                     <tr
                                                         key={idx}
-                                                        className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors cursor-pointer"
+                                                        className={`border-b transition-colors cursor-pointer ${isDark ? 'border-slate-700/50 hover:bg-slate-700/30' : 'border-slate-300/50 hover:bg-white/65'}`}
                                                         onClick={() => navigate(`/sales?id=${transaction._id}`)}
                                                     >
-                                                        <td className="py-3 px-4 text-slate-200">{transaction.customerName}</td>
-                                                        <td className="py-3 px-4 text-slate-400">
+                                                        <td className={`py-3 px-4 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{transaction.customerName}</td>
+                                                        <td className={`py-3 px-4 ${mutedTextClass}`}>
                                                             {format(parseISO(transaction.saleDate), 'dd MMM HH:mm', { locale: es })}
                                                         </td>
                                                         <td className="py-3 px-4">
@@ -496,9 +719,7 @@ export default function SalesStatistics() {
                                                 ))}
                                             </tbody>
                                         </table>
-                                        {stats.transactions.length === 0 && (
-                                            <p className="text-center text-slate-400 py-6">No hay transacciones en este período</p>
-                                        )}
+                                        {stats.transactions.length === 0 && <p className={`text-center py-6 ${mutedTextClass}`}>No hay transacciones en este período</p>}
                                     </div>
                                 </div>
                             </Card>
@@ -508,20 +729,20 @@ export default function SalesStatistics() {
             ) : (
                 <>
                     {/* Out of Stock Items */}
-                    <Card className="bg-slate-800/50 border-slate-700 mb-6">
+                    <Card className={`${neumorphSurfaceClass} mb-6`}>
                         <div className="p-6">
                             <div className="flex gap-4 mb-4">
                                 <div className="flex-1 relative">
-                                    <Search className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                                    <Search className={`absolute left-3 top-3 w-5 h-5 ${mutedTextClass}`} />
                                     <input
                                         type="text"
                                         placeholder="Buscar por nombre, marca..."
                                         value={outOfStockSearch}
                                         onChange={(e) => setOutOfStockSearch(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-500 focus:border-slate-500 focus:outline-none"
+                                        className={`${inputClass} pl-10 pr-4`}
                                     />
                                 </div>
-                                <Button onClick={() => refetchOutOfStock()} className="bg-slate-700 hover:bg-slate-600">
+                                <Button onClick={() => refetchOutOfStock()} className={`${neumorphInsetClass} ${isDark ? 'text-slate-200 hover:text-white' : 'text-slate-700 hover:text-slate-900'} px-3`}>
                                     🔄
                                 </Button>
                             </div>
@@ -531,10 +752,10 @@ export default function SalesStatistics() {
                                     {outOfStockData.map((item) => (
                                         <div
                                             key={item._id}
-                                            className="flex items-center justify-between p-4 bg-slate-700/50 rounded-lg border border-slate-600 hover:border-slate-500 transition-all"
+                                            className={`flex items-center justify-between p-4 transition-all ${neumorphInsetClass}`}
                                         >
                                             <div className="flex-1">
-                                                <h4 className="text-white font-semibold">{item.carId}</h4>
+                                                <h4 className={`font-semibold ${headerTextClass}`}>{item.carId}</h4>
                                                 <div className="flex gap-2 mt-2 flex-wrap">
                                                     {item.brand && (
                                                         <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded">
@@ -550,19 +771,19 @@ export default function SalesStatistics() {
                                                         Sin Stock
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-slate-400 mt-2">
+                                                <p className={`text-sm mt-2 ${mutedTextClass}`}>
                                                     Precio: ${item.actualPrice || item.suggestedPrice || 0}
                                                 </p>
                                             </div>
 
                                             <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1 bg-slate-700/50 rounded-lg p-1">
+                                                <div className={`flex items-center gap-1 p-1 ${neumorphInsetClass}`}>
                                                     <button
                                                         onClick={() => setReactivateQuantity(prev => ({
                                                             ...prev,
                                                             [item._id]: Math.max(1, (prev[item._id] ?? 1) - 1)
                                                         }))}
-                                                        className="w-8 h-8 flex items-center justify-center rounded bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-colors"
+                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' : 'bg-white/70 hover:bg-white text-slate-600 hover:text-slate-900'}`}
                                                     >
                                                         −
                                                     </button>
@@ -577,14 +798,14 @@ export default function SalesStatistics() {
                                                             }))
                                                         }
                                                         placeholder="1"
-                                                        className="w-12 px-2 py-1 rounded bg-slate-600 border border-slate-500 text-white text-center focus:outline-none focus:border-emerald-500"
+                                                        className={`w-12 px-2 py-1 rounded-lg border text-center focus:outline-none ${isDark ? 'bg-slate-700 border-slate-600 text-white focus:border-emerald-500' : 'bg-white/70 border-white text-slate-800 focus:border-emerald-500'}`}
                                                     />
                                                     <button
                                                         onClick={() => setReactivateQuantity(prev => ({
                                                             ...prev,
                                                             [item._id]: (prev[item._id] ?? 1) + 1
                                                         }))}
-                                                        className="w-8 h-8 flex items-center justify-center rounded bg-slate-600 hover:bg-slate-500 text-slate-300 hover:text-white transition-colors"
+                                                        className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white' : 'bg-white/70 hover:bg-white text-slate-600 hover:text-slate-900'}`}
                                                     >
                                                         +
                                                     </button>
@@ -592,7 +813,7 @@ export default function SalesStatistics() {
                                                 <Button
                                                     onClick={() => handleReactivate(item._id)}
                                                     disabled={reactivatingId === item._id}
-                                                    className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-3 py-1"
+                                                    className={`${isDark ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/25' : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 border border-emerald-500/35'} px-3 py-1 rounded-xl`}
                                                 >
                                                     {reactivatingId === item._id ? 'Guardando...' : 'Agregar'}
                                                 </Button>
@@ -603,7 +824,7 @@ export default function SalesStatistics() {
                             ) : (
                                 <div className="text-center py-12">
                                     <Package className="w-12 h-12 text-emerald-500 mx-auto mb-4 opacity-50" />
-                                    <p className="text-slate-400">
+                                    <p className={mutedTextClass}>
                                         {outOfStockSearch ? 'No hay items que coincidan' : 'Todos los items tienen stock'}
                                     </p>
                                 </div>
@@ -622,18 +843,38 @@ interface SummaryCardProps {
     value: string
     subtitle: string
     color: string
+    variant: 'emerald' | 'blue' | 'orange' | 'violet'
 }
 
-function SummaryCard({ icon, title, value, subtitle, color }: SummaryCardProps) {
+function SummaryCard({ icon, title, value, subtitle, color, variant }: SummaryCardProps) {
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
+    const variantStyles = {
+        emerald: isDark
+            ? 'border-emerald-500/30 bg-[linear-gradient(145deg,rgba(16,185,129,0.16),rgba(15,23,42,0.88))]'
+            : 'border-emerald-300/70 bg-[linear-gradient(145deg,rgba(16,185,129,0.14),#eaf0f8)]',
+        blue: isDark
+            ? 'border-blue-500/30 bg-[linear-gradient(145deg,rgba(59,130,246,0.16),rgba(15,23,42,0.88))]'
+            : 'border-blue-300/70 bg-[linear-gradient(145deg,rgba(59,130,246,0.14),#eaf0f8)]',
+        orange: isDark
+            ? 'border-orange-500/30 bg-[linear-gradient(145deg,rgba(249,115,22,0.16),rgba(15,23,42,0.88))]'
+            : 'border-orange-300/70 bg-[linear-gradient(145deg,rgba(249,115,22,0.14),#eaf0f8)]',
+        violet: isDark
+            ? 'border-violet-500/30 bg-[linear-gradient(145deg,rgba(139,92,246,0.16),rgba(15,23,42,0.88))]'
+            : 'border-violet-300/70 bg-[linear-gradient(145deg,rgba(139,92,246,0.14),#eaf0f8)]',
+    }[variant]
+
     return (
-        <Card className={`bg-gradient-to-br ${color} border-0`}>
+        <Card className={`${isDark
+            ? 'rounded-2xl border bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(51,65,85,0.2)]'
+            : 'rounded-2xl border bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.34),-12px_-12px_24px_rgba(255,255,255,0.96)]'} ${variantStyles}`}>
             <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white/80 text-sm font-medium">{title}</h3>
-                    <div className="text-white/60">{icon}</div>
+                    <h3 className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{title}</h3>
+                    <div className={color}>{icon}</div>
                 </div>
-                <p className="text-3xl font-bold text-white mb-2">{value}</p>
-                <p className="text-white/60 text-sm">{subtitle}</p>
+                <p className={`text-3xl font-bold mb-2 ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{value}</p>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{subtitle}</p>
             </div>
         </Card>
     )

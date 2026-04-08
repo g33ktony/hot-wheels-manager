@@ -38,6 +38,9 @@ const UsersPage: React.FC = () => {
     const { mode } = useTheme()
     const { isSysAdmin } = usePermissions()
     const isDark = mode === 'dark'
+    const pageBackdropClass = isDark
+        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
+        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
 
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
@@ -73,10 +76,10 @@ const UsersPage: React.FC = () => {
     // Verificar permisos (after all hooks)
     if (!hasAccess) {
         return (
-            <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+            <div className={`min-h-screen flex items-center justify-center ${pageBackdropClass}`}>
                 <Card className="p-8 text-center">
                     <AlertCircle className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
-                    <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : ''}`}>
+                    <h2 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         Acceso Denegado
                     </h2>
                     <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
@@ -188,13 +191,13 @@ const UsersPage: React.FC = () => {
     }
 
     return (
-        <div className={`min-h-screen ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        <div className={`min-h-screen ${pageBackdropClass}`}>
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-4">
                         <Users className={`${isDark ? 'text-blue-400' : 'text-blue-600'}`} size={32} />
-                        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : ''}`}>
+                        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Gestión de Usuarios
                         </h1>
                     </div>
@@ -275,7 +278,7 @@ const UsersPage: React.FC = () => {
                                         key={user._id}
                                         className={`border-t ${isDark ? 'border-slate-700 hover:bg-slate-700/50' : 'border-gray-200 hover:bg-gray-50'}`}
                                     >
-                                        <td className={`px-6 py-4 ${isDark ? 'text-white' : ''}`}>
+                                        <td className={`px-6 py-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             <div>
                                                 <p className="font-medium">{user.name}</p>
                                                 {user.phone && (

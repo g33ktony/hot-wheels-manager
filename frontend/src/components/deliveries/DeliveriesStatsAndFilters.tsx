@@ -93,7 +93,7 @@ export default function DeliveriesStatsAndFilters({
               <CheckCircle size={20} className="text-green-600" />
             </div>
             <div className="lg:ml-4">
-              <p className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400">Completadas</p>
+              <p className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400">Entregadas</p>
               <p className="text-lg lg:text-2xl font-bold text-slate-900 dark:text-white">{completedDeliveries}</p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function DeliveriesStatsAndFilters({
               {statusFilter === 'pending' ? 'Pendientes (Programadas y Preparadas)' :
                 statusFilter === 'scheduled' ? 'Programadas' :
                   statusFilter === 'prepared' ? 'Preparadas' :
-                    statusFilter === 'completed' ? 'Completadas' :
+                    statusFilter === 'completed' ? 'Entregadas' :
                       statusFilter === 'cancelled' ? 'Canceladas' :
                         statusFilter === 'rescheduled' ? 'Reprogramadas' : ''}
             </span>

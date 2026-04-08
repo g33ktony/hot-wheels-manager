@@ -8,6 +8,16 @@ export default function ThemeSettings() {
   const { customTheme, updateCustomTheme, resetToDefault, mode } = useTheme()
   const [colors, setColors] = useState<CustomThemeConfig>(customTheme)
   const [hasChanges, setHasChanges] = useState(false)
+  const isDark = mode === 'dark'
+  const pageBackdropClass = isDark
+    ? 'bg-[radial-gradient(circle_at_12%_12%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_88%_8%,rgba(59,130,246,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0f172a_100%)]'
+    : 'bg-[radial-gradient(circle_at_10%_15%,rgba(56,189,248,0.14),transparent_35%),radial-gradient(circle_at_88%_12%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f5f8ff_0%,#e9eff8_100%)]'
+  const surfaceClass = isDark
+    ? 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_22px_rgba(51,65,85,0.2)]'
+    : 'rounded-2xl border border-white/80 bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.34),-12px_-12px_24px_rgba(255,255,255,0.96)]'
+  const insetClass = isDark
+    ? 'border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+    : 'border border-white/90 bg-[#edf3fa] shadow-[inset_5px_5px_10px_rgba(148,163,184,0.24),inset_-5px_-5px_10px_rgba(255,255,255,0.92)]'
 
   const handleColorChange = (key: keyof CustomThemeConfig, value: string) => {
     setColors(prev => ({
@@ -71,8 +81,8 @@ export default function ThemeSettings() {
   ]
 
   return (
-    <div className={`min-h-screen p-6 ${mode === 'dark' ? 'bg-slate-900' : 'bg-gray-50'}`}>
-      <div className={`max-w-6xl mx-auto p-6 rounded-lg ${mode === 'dark' ? 'bg-slate-800' : 'bg-white'} ${mode === 'dark' ? 'border-slate-700' : 'border-gray-200'} border`}>
+    <div className={`min-h-screen p-6 ${pageBackdropClass}`}>
+      <div className={`max-w-6xl mx-auto p-6 ${surfaceClass}`}>
         <div className="mb-8">
           <h1 className={`text-3xl font-bold mb-2 ${mode === 'dark' ? 'text-white' : 'text-gray-900'}`}>
             ⚙️ Configuración de Tema
@@ -90,7 +100,7 @@ export default function ThemeSettings() {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {group.colors.map((item) => (
-                  <div key={item.key} className={`p-4 rounded-lg ${mode === 'dark' ? 'bg-slate-700' : 'bg-gray-50'} border ${mode === 'dark' ? 'border-slate-600' : 'border-gray-200'}`}>
+                  <div key={item.key} className={`p-4 rounded-lg ${insetClass}`}>
                     <label className={`block text-sm font-medium mb-2 ${mode === 'dark' ? 'text-slate-300' : 'text-gray-700'}`}>
                       {item.label}
                     </label>
@@ -121,7 +131,7 @@ export default function ThemeSettings() {
           ))}
         </div>
 
-        <div className={`mt-8 p-4 rounded-lg ${mode === 'dark' ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'} border`}>
+        <div className={`mt-8 p-4 rounded-lg ${insetClass}`}>
           <p className={`text-sm ${mode === 'dark' ? 'text-blue-300' : 'text-blue-800'}`}>
             💡 <strong>Consejo:</strong> Los cambios se guardan automáticamente en tu navegador. El fondo de la aplicación seguirá siendo blanco (light) o gris oscuro (dark) según el modo seleccionado.
           </p>
@@ -132,15 +142,14 @@ export default function ThemeSettings() {
           <button
             onClick={handleSave}
             disabled={!hasChanges}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${
-              hasChanges
+            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${hasChanges
                 ? mode === 'dark'
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
                   : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                 : mode === 'dark'
-                ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+                  ? 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
           >
             <Check size={18} />
             Guardar Cambios
@@ -149,15 +158,14 @@ export default function ThemeSettings() {
           <button
             onClick={handleCancel}
             disabled={!hasChanges}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${
-              hasChanges
+            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${hasChanges
                 ? mode === 'dark'
                   ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
                   : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                 : mode === 'dark'
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
+                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
           >
             <X size={18} />
             Cancelar
@@ -165,11 +173,10 @@ export default function ThemeSettings() {
 
           <button
             onClick={handleReset}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ml-auto ${
-              mode === 'dark'
+            className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ml-auto ${mode === 'dark'
                 ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            }`}
+              }`}
           >
             <RotateCcw size={18} />
             Restaurar Valores por Defecto

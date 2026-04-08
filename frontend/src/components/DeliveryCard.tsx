@@ -64,7 +64,7 @@ export default function DeliveryCard({
     const statusConfig = {
         scheduled: { bg: isDark ? 'bg-blue-900/40' : 'bg-blue-100', text: isDark ? 'text-blue-300' : 'text-blue-800', label: 'Programada', icon: Clock },
         prepared: { bg: isDark ? 'bg-orange-900/40' : 'bg-orange-100', text: isDark ? 'text-orange-300' : 'text-orange-800', label: 'Preparada', icon: Package },
-        completed: { bg: isDark ? 'bg-green-900/40' : 'bg-green-100', text: isDark ? 'text-green-300' : 'text-green-800', label: 'Completada', icon: CheckCircle },
+        completed: { bg: isDark ? 'bg-green-900/40' : 'bg-green-100', text: isDark ? 'text-green-300' : 'text-green-800', label: 'Entregada', icon: CheckCircle },
         rescheduled: { bg: isDark ? 'bg-yellow-900/40' : 'bg-yellow-100', text: isDark ? 'text-yellow-300' : 'text-yellow-800', label: 'Reprogramada', icon: Clock },
         cancelled: { bg: isDark ? 'bg-red-900/40' : 'bg-red-100', text: isDark ? 'text-red-300' : 'text-red-800', label: 'Cancelada', icon: Clock }
     }
@@ -204,14 +204,14 @@ export default function DeliveryCard({
                             onClick={() => onMarkAsCompleted(delivery._id!)}
                             disabled={isLoadingCompleted}
                             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                            title="Marcar como completada"
+                            title="Marcar como entregada"
                         >
                             <CheckCircle size={14} />
-                            <span className="hidden sm:inline">Completar</span>
+                            <span className="hidden sm:inline">Entregar</span>
                         </Button>
                     )}
                     {delivery.status === 'completed' && (
-                        <div className="flex-1 text-xs text-gray-500 text-center">No reversible</div>
+                        <div className="flex-1 text-xs text-gray-500 text-center">Entrega finalizada</div>
                     )}
 
                     {/* Secondary actions */}

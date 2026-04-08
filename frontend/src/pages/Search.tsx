@@ -44,6 +44,15 @@ interface ModalState {
 export default function Search() {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
+    const pageBackdropClass = isDark
+        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
+        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+    const neumorphSurfaceClass = isDark
+        ? 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(51,65,85,0.2)]'
+        : 'rounded-2xl border border-white/80 bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.34),-12px_-12px_24px_rgba(255,255,255,0.96)]'
+    const neumorphInsetClass = isDark
+        ? 'rounded-xl border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
+        : 'rounded-xl border border-white/80 bg-[#e2e8f3] shadow-[inset_4px_4px_9px_rgba(148,163,184,0.28),inset_-4px_-4px_8px_rgba(255,255,255,0.92)]'
     const [searchParams] = useSearchParams()
     const initialQuery = searchParams.get('q') || ''
     const dispatch = useAppDispatch()
@@ -384,7 +393,7 @@ export default function Search() {
     }, [])
 
     return (
-        <div className={`min-h-screen p-4 md:p-6 ${isDark ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'}`}>
+        <div className={`min-h-screen p-4 md:p-6 ${pageBackdropClass}`}>
             {/* Header */}
             <div className="mb-8">
                 <h1 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>🔍 Búsqueda Global</h1>
@@ -392,7 +401,7 @@ export default function Search() {
             </div>
 
             {/* Predictive Search Input */}
-            <div className={`mb-6 rounded-lg sticky top-6 z-40 ${isDark ? 'bg-slate-800/50 border border-slate-700' : 'bg-white border border-slate-200 shadow-sm'}`} ref={searchRef}>
+            <div className={`mb-6 sticky top-6 z-40 ${neumorphSurfaceClass}`} ref={searchRef}>
                 <div className="p-2 md:p-6">
                     <div className="relative">
                         <SearchIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
@@ -403,9 +412,9 @@ export default function Search() {
                             onChange={(e) => handlePredictiveInputChange(e.target.value)}
                             onFocus={() => query.length >= 3 && predictions.length > 0 && setShowPredictions(true)}
                             autoFocus
-                            className={`w-full pl-9 md:pl-12 pr-3 md:pr-4 py-1.5 md:py-3 rounded-lg border text-sm md:text-base focus:border-emerald-500 focus:outline-none ${isDark
-                                ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-500'
-                                : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
+                            className={`w-full pl-9 md:pl-12 pr-3 md:pr-4 py-1.5 md:py-3 text-sm md:text-base focus:outline-none ${neumorphInsetClass} ${isDark
+                                ? 'text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/45'
+                                : 'text-slate-800 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/35'
                                 }`}
                         />
                         {query && (
@@ -423,12 +432,12 @@ export default function Search() {
 
                         {/* Predictions Dropdown */}
                         {showPredictions && predictions.length > 0 && (
-                            <div className={`absolute top-full left-0 right-0 mt-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-300'} shadow-lg max-h-96 overflow-y-auto z-50`}>
+                            <div className={`absolute top-full left-0 right-0 mt-2 ${neumorphSurfaceClass} max-h-96 overflow-y-auto z-50`}>
                                 {predictions.map((prediction, index) => (
                                     <button
                                         key={index}
                                         onClick={() => handleSelectPrediction(prediction)}
-                                        className={`w-full text-left px-4 py-3 flex items-center gap-3 border-b last:border-b-0 transition-colors ${isDark ? 'hover:bg-slate-600 border-slate-600' : 'hover:bg-slate-50 border-slate-200'}`}
+                                        className={`w-full text-left px-4 py-3 flex items-center gap-3 border-b last:border-b-0 transition-colors ${isDark ? 'hover:bg-slate-700/65 border-slate-700' : 'hover:bg-white/70 border-slate-300/60'}`}
                                     >
                                         {prediction.photoUrl && (
                                             <img src={prediction.photoUrl} alt={prediction.name} className="w-10 h-10 rounded object-cover" />
@@ -447,7 +456,7 @@ export default function Search() {
 
                         {/* Loading State */}
                         {isLoadingPredictions && query.length >= 3 && (
-                            <div className={`absolute top-full left-0 right-0 mt-2 rounded-lg border ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-white border-slate-300'} shadow-lg p-4 text-center`}>
+                            <div className={`absolute top-full left-0 right-0 mt-2 ${neumorphSurfaceClass} p-4 text-center`}>
                                 <div className="inline-flex items-center gap-2">
                                     <div className="animate-spin h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
                                     <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Buscando...</span>
@@ -457,7 +466,7 @@ export default function Search() {
                     </div>
 
                     {/* Filtros */}
-                    <div className={`mt-3 md:mt-4 pt-3 md:pt-4 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-200'}`}>
+                    <div className={`mt-3 md:mt-4 pt-3 md:pt-4 ${isDark ? 'border-t border-slate-700' : 'border-t border-slate-300/70'}`}>
                         <p className={`text-xs font-semibold mb-2 md:mb-3 uppercase ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Filtrar:</p>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
                             {/* Seleccionados por default */}
@@ -540,7 +549,7 @@ export default function Search() {
                                             onChange={(e) => setFilters({ ...filters, inventoryStock: e.target.value as any })}
                                             className="rounded"
                                         />
-                                        <span className="text-sm text-slate-300">Todo</span>
+                                        <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Todo</span>
                                     </label>
                                     <label className={`flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'
                                         }`}>
@@ -607,7 +616,7 @@ export default function Search() {
                     {groupedResults.inventory.length > 0 && (
                         <div>
                             <div
-                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-2 rounded transition-colors ${isDark ? 'text-white hover:bg-slate-700/30' : 'text-slate-900 hover:bg-slate-100'}`}
+                                className={`text-xl font-semibold mb-4 flex items-center gap-2 cursor-pointer p-3 transition-colors ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
                                 onClick={() => setCollapsedSections({ ...collapsedSections, inventory: !collapsedSections.inventory })}
                             >
                                 <Package className="w-5 h-5 text-blue-500" />
@@ -619,9 +628,9 @@ export default function Search() {
                                     {groupedResults.inventory.slice(0, sectionPagination.inventory).map((result) => (
                                         <div
                                             key={result._id}
-                                            className={`p-4 flex items-center justify-between rounded-lg hover:border-blue-500 transition-all cursor-pointer ${isDark
-                                                ? 'bg-slate-800/50 border border-slate-700'
-                                                : 'bg-slate-100 border border-slate-300'
+                                            className={`p-4 flex items-center justify-between transition-all cursor-pointer ${isDark
+                                                ? 'rounded-xl border border-slate-700 bg-slate-800/70 hover:border-blue-500'
+                                                : 'rounded-xl border border-white/80 bg-[#eaf0f8] hover:border-sky-300 shadow-[10px_10px_20px_rgba(148,163,184,0.3),-8px_-8px_16px_rgba(255,255,255,0.95)]'
                                                 }`}
                                             onClick={() => handleResultClick(result)}
                                         >
@@ -637,7 +646,7 @@ export default function Search() {
                                                     }}
                                                 />
                                             ) : (
-                                                <div className={`w-16 h-16 rounded mr-4 flex-shrink-0 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                                                <div className={`w-16 h-16 rounded mr-4 flex-shrink-0 flex items-center justify-center ${isDark ? 'bg-slate-700' : 'bg-[#dbe4f0] shadow-[inset_3px_3px_7px_rgba(148,163,184,0.25),inset_-3px_-3px_6px_rgba(255,255,255,0.88)]'}`}>
                                                     <img src={getPlaceholderLogo(result.metadata?.brand)} alt="placeholder" className="w-10 h-10 object-contain opacity-50" />
                                                 </div>
                                             )}
@@ -648,7 +657,7 @@ export default function Search() {
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 {!result.inStock && (
-                                                    <span className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-full">
+                                                    <span className={`px-2 py-1 text-xs rounded-full ${isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-500/15 text-red-700 border border-red-500/30'}`}>
                                                         ❌ Sin Stock
                                                     </span>
                                                 )}
@@ -662,7 +671,7 @@ export default function Search() {
                                                             )
                                                         }}
                                                         disabled={!result.inStock}
-                                                        className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1 flex items-center gap-1"
+                                                        className={`${isDark ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30' : 'bg-blue-500/12 hover:bg-blue-500/22 text-blue-700 border border-blue-500/35'} px-3 py-1 rounded-xl flex items-center gap-1 shadow-none`}
                                                     >
                                                         <ShoppingCart className="w-4 h-4" /> POS
                                                     </Button>
@@ -675,7 +684,7 @@ export default function Search() {
                                                             )
                                                         }}
                                                         disabled={!result.inStock}
-                                                        className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-3 py-1 flex items-center gap-1"
+                                                        className={`${isDark ? 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30' : 'bg-violet-500/12 hover:bg-violet-500/22 text-violet-700 border border-violet-500/35'} px-3 py-1 rounded-xl flex items-center gap-1 shadow-none`}
                                                     >
                                                         <Truck className="w-4 h-4" /> Entrega
                                                     </Button>
@@ -685,7 +694,7 @@ export default function Search() {
                                                             handleAddToInventory(result._id)
                                                         }}
                                                         disabled={result.inStock}
-                                                        className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-3 py-1 flex items-center gap-1"
+                                                        className={`${isDark ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30' : 'bg-emerald-500/12 hover:bg-emerald-500/22 text-emerald-700 border border-emerald-500/35'} px-3 py-1 rounded-xl flex items-center gap-1 shadow-none`}
                                                     >
                                                         <Plus className="w-4 h-4" /> Stock
                                                     </Button>
@@ -695,7 +704,7 @@ export default function Search() {
                                                                 e.stopPropagation()
                                                                 handlePermanentDelete(result._id, result.title)
                                                             }}
-                                                            className="bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1 flex items-center gap-1"
+                                                            className={`${isDark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30' : 'bg-red-500/12 hover:bg-red-500/22 text-red-700 border border-red-500/35'} px-3 py-1 rounded-xl flex items-center gap-1 shadow-none`}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </Button>
@@ -712,7 +721,7 @@ export default function Search() {
                                     onClick={() => setSectionPagination({ ...sectionPagination, inventory: sectionPagination.inventory + 10 })}
                                     className={`w-full mt-4 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${isDark
                                         ? 'bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 border border-blue-600/30'
-                                        : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                                        : 'bg-[#e2e8f3] hover:bg-white text-blue-700 border border-white shadow-[8px_8px_16px_rgba(148,163,184,0.26),-8px_-8px_16px_rgba(255,255,255,0.92)]'
                                         }`}
                                 >
                                     <span>Mostrar más ({sectionPagination.inventory} de {groupedResults.inventory.length})</span>

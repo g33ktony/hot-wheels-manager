@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
-import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2, ArrowUpNarrowWide, ArrowDownNarrowWide, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2, ArrowUpNarrowWide, ArrowDownNarrowWide, ChevronDown, ChevronUp, LayoutGrid, List } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { publicService, CatalogItem } from '@/services/public'
@@ -114,6 +114,14 @@ export default function CatalogBrowser() {
   const [featuredItem, setFeaturedItem] = useState<CatalogItem | null>(null)
   const [featuredLoading, setFeaturedLoading] = useState(true)
   const [refreshingFeatured, setRefreshingFeatured] = useState(false)
+  const [viewMode, setViewMode] = useState<'full' | 'compact'>(() => {
+    if (typeof window === 'undefined') return 'full'
+
+    const savedMode = localStorage.getItem('publicCatalogViewMode')
+    if (savedMode === 'compact' || savedMode === 'full') return savedMode
+
+    return window.innerWidth < 768 ? 'compact' : 'full'
+  })
 
   const fetchFeatured = async (preserveScrollPosition = false) => {
     const keepCurrentCardVisible = preserveScrollPosition && !!featuredItem
@@ -152,6 +160,10 @@ export default function CatalogBrowser() {
       setLeadCaptured(true)
     }
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem('publicCatalogViewMode', viewMode)
+  }, [viewMode])
 
   // Fetch suggestions (debounced)
   useEffect(() => {
@@ -395,10 +407,7 @@ export default function CatalogBrowser() {
               {showSuggestions && suggestions.length > 0 && (
                 <div
                   ref={suggestionsRef}
-                  className={`absolute z-10 w-full mt-1 rounded-xl max-h-96 overflow-y-auto ${isDark
-                    ? 'bg-slate-800 border border-slate-700 shadow-[10px_10px_22px_rgba(2,6,23,0.55),-8px_-8px_18px_rgba(51,65,85,0.15)]'
-                    : 'bg-[#edf3fa] border border-white/80 shadow-[10px_10px_22px_rgba(148,163,184,0.32),-10px_-10px_22px_rgba(255,255,255,0.95)]'
-                    }`}
+                  className={`absolute z-10 w-full mt-2 rounded-2xl p-2 max-h-96 overflow-y-auto ${neumorphSurfaceClass}`}
                 >
                   {suggestions.map((suggestion) => (
                     (() => {
@@ -407,13 +416,10 @@ export default function CatalogBrowser() {
                         <div
                           key={suggestion._id}
                           onClick={() => handleSuggestionClick(suggestion)}
-                          className={`px-4 py-3 cursor-pointer transition-colors flex items-center gap-3 border-b last:border-b-0 ${isDark
-                            ? 'border-slate-700 hover:bg-slate-700'
-                            : 'border-slate-100 hover:bg-slate-50'
-                            }`}
+                          className={`px-4 py-3 cursor-pointer transition-all flex items-center gap-3 rounded-xl mb-2 last:mb-0 ${neumorphInsetClass} ${isDark ? 'hover:brightness-110' : 'hover:brightness-95'}`}
                         >
                           {/* Small thumbnail */}
-                          <div className="w-12 h-12 flex-shrink-0 rounded bg-slate-700 flex items-center justify-center overflow-hidden">
+                          <div className={`w-12 h-12 flex-shrink-0 rounded-lg flex items-center justify-center overflow-hidden ${isDark ? 'bg-slate-800 border border-slate-700/70' : 'bg-[#dfe8f5] border border-white/85'}`}>
                             {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
                               <img
                                 src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=48&h=48&fit=cover`}
@@ -461,9 +467,9 @@ export default function CatalogBrowser() {
             </div>
 
             {/* Sort Order + Year Filter */}
-            <div className="flex flex-col gap-4">
+            <div className={`flex flex-col gap-4 rounded-2xl p-3 ${neumorphInsetClass}`}>
               {/* Sort Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Orden:</span>
                 <button
                   type="button"
@@ -495,7 +501,7 @@ export default function CatalogBrowser() {
                   <button
                     type="button"
                     onClick={() => setShowYears(!showYears)}
-                    className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
+                    className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all ${neumorphPillClass} ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
                       }`}
                   >
                     {showYears ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -554,7 +560,7 @@ export default function CatalogBrowser() {
                 <button
                   type="button"
                   onClick={() => setShowBrands(!showBrands)}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
+                  className={`w-full flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all ${neumorphPillClass} ${isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-900'
                     }`}
                 >
                   {showBrands ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -622,8 +628,11 @@ export default function CatalogBrowser() {
             {/* Search Button */}
             <Button
               type="submit"
-              variant="primary"
-              className={`w-full rounded-xl ${neumorphPillActiveClass}`}
+              variant="secondary"
+              className={`w-full rounded-2xl border !text-white ${isDark
+                ? '!bg-primary-600 border-primary-400/60 shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_18px_rgba(56,189,248,0.22)] hover:brightness-110'
+                : '!bg-primary-500 border-primary-300 shadow-[10px_10px_20px_rgba(14,116,144,0.24),-8px_-8px_16px_rgba(255,255,255,0.72)] hover:brightness-95'
+                }`}
               disabled={loading}
             >
               {loading ? (
@@ -771,80 +780,172 @@ export default function CatalogBrowser() {
           </div>
         ) : results.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-              {results.map((item) => {
-                const previewUrl = resolveCatalogImageUrl(item.photo_url)
-                return (
-                  <div
-                    key={item._id}
-                    onClick={() => handleItemClick(item)}
-                    className={`rounded-lg overflow-hidden cursor-pointer transition-all duration-200 ${isDark
-                      ? 'bg-slate-800 border border-slate-700/60 hover:brightness-110 shadow-[10px_10px_20px_rgba(2,6,23,0.52),-8px_-8px_16px_rgba(51,65,85,0.18)]'
-                      : 'bg-[#edf3fa] border border-white/80 hover:brightness-95 shadow-[10px_10px_20px_rgba(148,163,184,0.3),-10px_-10px_20px_rgba(255,255,255,0.9)]'
-                      }`}
-                  >
-                    {/* Image */}
-                    <div className="relative h-48 bg-slate-700 flex items-center justify-center">
-                      {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
-                        <img
-                          src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
-                          alt={item.carModel}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
-                          }}
-                        />
-                      ) : (
-                        <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
-                      )}
+            <div className={`mb-4 p-3 rounded-2xl flex items-center justify-between gap-3 ${neumorphSurfaceClass}`}>
+              <p className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                Mostrando {results.length} de {totalItems.toLocaleString()} resultados
+              </p>
 
-                      {/* Segment Badge */}
-                      <div className="absolute top-2 left-2 flex flex-col gap-1">
-                        <SegmentBadge segment={item.segment} />
-                        {item.brand && item.brand !== 'Hot Wheels' && (
-                          <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
-                            {item.brand}
-                          </span>
+              <div className={`inline-flex items-center gap-1 p-1 rounded-xl ${neumorphInsetClass}`}>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('compact')}
+                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all ${viewMode === 'compact' ? neumorphPillActiveClass : neumorphPillClass}`}
+                  title="Vista compacta"
+                >
+                  <List size={16} />
+                  Compacta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('full')}
+                  className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all ${viewMode === 'full' ? neumorphPillActiveClass : neumorphPillClass}`}
+                  title="Vista completa"
+                >
+                  <LayoutGrid size={16} />
+                  Completa
+                </button>
+              </div>
+            </div>
+
+            {viewMode === 'compact' ? (
+              <div className="space-y-3 mb-8">
+                {results.map((item) => {
+                  const previewUrl = resolveCatalogImageUrl(item.photo_url)
+                  return (
+                    <div
+                      key={item._id}
+                      onClick={() => handleItemClick(item)}
+                      className={`rounded-2xl p-3 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 ${neumorphSurfaceClass}`}
+                    >
+                      <div className="flex gap-3">
+                        <div className={`w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 ${neumorphInsetClass}`}>
+                          {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
+                            <img
+                              src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=220&h=220&fit=cover`}
+                              alt={item.carModel}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
+                              }}
+                            />
+                          ) : (
+                            <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-2" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                            <SegmentBadge segment={item.segment} />
+                            {item.brand && (
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${neumorphInsetClass} ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                                {item.brand}
+                              </span>
+                            )}
+                            {item.availability.available ? (
+                              <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">Disponible</span>
+                            ) : (
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-200 text-slate-700'}`}>No disponible</span>
+                            )}
+                          </div>
+
+                          <h3 className={`font-bold text-sm sm:text-base leading-tight line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                            {item.carModel}
+                          </h3>
+
+                          <div className={`mt-1 text-xs sm:text-sm grid grid-cols-2 gap-x-2 gap-y-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                            <p className="col-span-2 truncate">Serie: {item.series}</p>
+                            <p>Año: {item.year}</p>
+                            {item.toy_num && <p>Toy #: {item.toy_num}</p>}
+                            {item.col_num && <p>Col #: {item.col_num}</p>}
+                            {item.color && <p className="col-span-2 truncate">Color: {item.color}</p>}
+                            {item.wheel_type && <p className="col-span-2 truncate">Ruedas: {item.wheel_type}</p>}
+                          </div>
+
+                          {item.availability.available && item.availability.price && (
+                            <div className="mt-2 flex items-center justify-between">
+                              <p className="text-base sm:text-lg font-bold text-green-600">${item.availability.price.toFixed(2)}</p>
+                              <p className="text-[11px] sm:text-xs text-blue-600 font-semibold">Entrega inmediata</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+                {results.map((item) => {
+                  const previewUrl = resolveCatalogImageUrl(item.photo_url)
+                  return (
+                    <div
+                      key={item._id}
+                      onClick={() => handleItemClick(item)}
+                      className={`rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-0.5 ${neumorphSurfaceClass}`}
+                    >
+                      {/* Image */}
+                      <div className={`relative h-48 flex items-center justify-center border-b ${isDark ? 'bg-slate-900/70 border-slate-700/70' : 'bg-[#dfe8f5] border-white/85'}`}>
+                        {previewUrl && (previewUrl.startsWith('https://') || previewUrl.startsWith('http://')) ? (
+                          <img
+                            src={previewUrl.includes('weserv') || previewUrl.startsWith('http://localhost') ? previewUrl : `https://images.weserv.nl/?url=${encodeURIComponent(previewUrl)}&w=300&h=200&fit=contain`}
+                            alt={item.carModel}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = getPlaceholderLogo(item.series, item.brand)
+                            }}
+                          />
+                        ) : (
+                          <img src={getPlaceholderLogo(item.series, item.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4" />
+                        )}
+
+                        {/* Segment Badge */}
+                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                          <SegmentBadge segment={item.segment} />
+                          {item.brand && item.brand !== 'Hot Wheels' && (
+                            <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded uppercase shadow-sm">
+                              {item.brand}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Availability Badge */}
+                        {item.availability.available && (
+                          <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
+                            Disponible
+                          </div>
                         )}
                       </div>
 
-                      {/* Availability Badge */}
-                      {item.availability.available && (
-                        <div className="absolute top-2 right-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
-                          Disponible
+                      {/* Info */}
+                      <div className={`m-3 p-4 rounded-xl ${neumorphInsetClass}`}>
+                        <h3 className={`font-semibold text-base mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'
+                          }`}>
+                          {item.carModel}
+                        </h3>
+
+                        <div className={`text-sm space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                          <p>{item.series}</p>
+                          <p>Año: {item.year}</p>
+                          {item.color && <p>Color: {item.color}</p>}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Info */}
-                    <div className="p-4">
-                      <h3 className={`font-semibold text-base mb-2 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'
-                        }`}>
-                        {item.carModel}
-                      </h3>
-
-                      <div className={`text-sm space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                        <p>{item.series}</p>
-                        <p>Año: {item.year}</p>
-                        {item.color && <p>Color: {item.color}</p>}
+                        {/* Price (if available) */}
+                        {item.availability.available && item.availability.price && (
+                          <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                            <p className="text-lg font-bold text-green-600">
+                              ${item.availability.price.toFixed(2)}
+                            </p>
+                            <p className="text-xs text-blue-600">
+                              Entrega inmediata
+                            </p>
+                          </div>
+                        )}
                       </div>
-
-                      {/* Price (if available) */}
-                      {item.availability.available && item.availability.price && (
-                        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                          <p className="text-lg font-bold text-green-600">
-                            ${item.availability.price.toFixed(2)}
-                          </p>
-                          <p className="text-xs text-blue-600">
-                            Entrega inmediata
-                          </p>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (

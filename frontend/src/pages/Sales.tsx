@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTheme } from '@/contexts/ThemeContext'
 import { useStore } from '@/contexts/StoreContext'
 import { useCanEditStore } from '@/hooks/useCanEditStore'
 import { useSales, useDeleteSale } from '@/hooks/useSales'
@@ -14,6 +15,8 @@ import { Plus, Search, ShoppingCart, X, ChevronLeft, ChevronRight } from 'lucide
 
 export default function Sales() {
     const [searchParams] = useSearchParams()
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const { selectedStore } = useStore()
     const { canEdit, canDelete, canCreate } = useCanEditStore()
     const [searchTerm, setSearchTerm] = useState('')
@@ -120,7 +123,7 @@ export default function Sales() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <span className="text-sm text-slate-400">
+                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                             {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} encontrada{filteredSales.length !== 1 ? 's' : ''}
                         </span>
                     </div>
@@ -132,8 +135,8 @@ export default function Sales() {
                 <Card>
                     <div className="text-center py-12">
                         <ShoppingCart size={48} className="mx-auto text-slate-400 mb-4" />
-                        <h3 className="text-lg font-medium text-white mb-2">No hay ventas registradas</h3>
-                        <p className="text-slate-400 mb-4">
+                        <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No hay ventas registradas</h3>
+                        <p className={`mb-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                             {searchTerm
                                 ? 'No se encontraron ventas con los filtros aplicados'
                                 : 'Comienza registrando tu primera venta'
@@ -168,20 +171,20 @@ export default function Sales() {
             {/* Create Sale Modal - Temporarily disabled for new structure */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-slate-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                    <div className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-[#eaf0f8] border-white/70'} rounded-2xl border p-6 w-full max-w-md max-h-[90vh] overflow-y-auto shadow-[12px_12px_24px_rgba(15,23,42,0.35),-10px_-10px_20px_rgba(255,255,255,0.2)]`}>
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-white">Nueva Venta</h3>
+                            <h3 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>Nueva Venta</h3>
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="text-slate-400 hover:text-slate-300"
+                                className={`${isDark ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         <div className="text-center py-8">
-                            <p className="text-slate-400">La funcionalidad de crear ventas manuales está temporalmente deshabilitada.</p>
-                            <p className="text-sm text-slate-400 mt-2">Las ventas se crean automáticamente cuando se completan las entregas.</p>
+                            <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>La funcionalidad de crear ventas manuales está temporalmente deshabilitada.</p>
+                            <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Las ventas se crean automáticamente cuando se completan las entregas.</p>
                         </div>
                     </div>
                 </div>

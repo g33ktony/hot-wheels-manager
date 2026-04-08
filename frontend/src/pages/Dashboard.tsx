@@ -34,7 +34,7 @@ export default function Dashboard() {
     const dashboardBackdropClass = 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
     const neumorphSurfaceClass = 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(51,65,85,0.2)]'
     const neumorphInsetClass = 'rounded-xl border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
-    const neumorphPillClass = 'rounded-xl border border-slate-700/70 bg-slate-800 text-slate-100 shadow-[8px_8px_16px_rgba(2,6,23,0.45),-6px_-6px_12px_rgba(51,65,85,0.16)] hover:brightness-110 transition-all'
+    const neumorphPillStrongClass = '!rounded-xl !border !border-slate-700/75 !bg-slate-800 !text-slate-100 !shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(51,65,85,0.2)] hover:!brightness-110 !transition-all'
 
     const { data: metrics, isLoading, error } = useQuery(
         ['dashboard-metrics', selectedStore],
@@ -230,7 +230,7 @@ export default function Dashboard() {
                             size="sm"
                             variant="secondary"
                             onClick={handleDownload}
-                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillClass}`}
+                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillStrongClass}`}
                             disabled={isDownloading}
                         >
                             <Download size={16} />
@@ -240,7 +240,7 @@ export default function Dashboard() {
                             size="sm"
                             variant="secondary"
                             onClick={() => setShowSearchModal(true)}
-                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillClass}`}
+                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillStrongClass}`}
                         >
                             <Search size={16} />
                             Buscar
@@ -249,7 +249,7 @@ export default function Dashboard() {
                             size="sm"
                             variant="secondary"
                             onClick={() => setShowUpdateModal(true)}
-                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillClass}`}
+                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillStrongClass}`}
                             disabled={updateStatus?.progress?.isUpdating}
                         >
                             <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin' : ''} />
@@ -279,7 +279,7 @@ export default function Dashboard() {
             {/* Statistics Widgets */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div
-                    className="p-6 border border-emerald-400/25 cursor-pointer transition-all hover:scale-[1.02] rounded-2xl bg-[linear-gradient(145deg,rgba(16,185,129,0.9),rgba(5,150,105,0.85))] shadow-[12px_12px_24px_rgba(2,6,23,0.5),-8px_-8px_14px_rgba(52,211,153,0.12)]"
+                    className="p-6 border border-emerald-300/30 cursor-pointer transition-all hover:scale-[1.02] rounded-2xl bg-[linear-gradient(145deg,rgba(16,185,129,0.9),rgba(5,150,105,0.85))] shadow-[14px_14px_28px_rgba(2,6,23,0.56),-10px_-10px_18px_rgba(52,211,153,0.16),inset_3px_3px_10px_rgba(6,78,59,0.35),inset_-2px_-2px_10px_rgba(110,231,183,0.14)]"
                     onClick={() => navigate('/sales-statistics')}
                 >
                     <div className="flex items-center justify-between">
@@ -293,7 +293,7 @@ export default function Dashboard() {
                 </div>
 
                 <div
-                    className="p-6 border border-blue-400/25 cursor-pointer transition-all hover:scale-[1.02] rounded-2xl bg-[linear-gradient(145deg,rgba(59,130,246,0.9),rgba(37,99,235,0.86))] shadow-[12px_12px_24px_rgba(2,6,23,0.5),-8px_-8px_14px_rgba(59,130,246,0.14)]"
+                    className="p-6 border border-blue-300/30 cursor-pointer transition-all hover:scale-[1.02] rounded-2xl bg-[linear-gradient(145deg,rgba(59,130,246,0.9),rgba(37,99,235,0.86))] shadow-[14px_14px_28px_rgba(2,6,23,0.56),-10px_-10px_18px_rgba(59,130,246,0.16),inset_3px_3px_10px_rgba(30,58,138,0.35),inset_-2px_-2px_10px_rgba(147,197,253,0.14)]"
                     onClick={() => navigate('/search?stockFilter=without')}
                 >
                     <div className="flex items-center justify-between">
