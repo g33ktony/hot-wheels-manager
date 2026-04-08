@@ -58,6 +58,7 @@ interface StatisticsData {
             items: Array<{
                 carId: string
                 carName: string
+                brand: string
                 quantity: number
                 amount: number
                 profit: number
@@ -77,6 +78,7 @@ interface StatisticsData {
             items: Array<{
                 carId: string
                 carName: string
+                brand: string
                 quantity: number
                 unitPrice: number
                 amount: number
@@ -134,6 +136,20 @@ export default function SalesStatistics() {
     const headerTextClass = isDark ? 'text-white' : 'text-slate-900'
     const mutedTextClass = isDark ? 'text-slate-400' : 'text-slate-600'
     const inputClass = `${neumorphInsetClass} w-full px-4 py-2 ${isDark ? 'text-white placeholder-slate-500' : 'text-slate-700 placeholder-slate-500'} focus:outline-none focus:ring-2 ${isDark ? 'focus:ring-emerald-500/50' : 'focus:ring-emerald-500/40'}`
+    const getBrandLabelClass = (brand?: string) => {
+        const normalized = (brand || '').toLowerCase().trim()
+        const baseClass = isDark
+            ? 'rounded-md border shadow-[inset_1px_1px_0_rgba(255,255,255,0.1),4px_4px_10px_rgba(2,6,23,0.38)]'
+            : 'rounded-md border shadow-[inset_1px_1px_0_rgba(255,255,255,0.85),4px_4px_10px_rgba(148,163,184,0.24)]'
+
+        if (normalized.includes('hot wheels')) return `${baseClass} ${isDark ? 'bg-orange-500/24 text-orange-200 border-orange-400/35' : 'bg-orange-100/95 text-orange-700 border-orange-300/90'}`
+        if (normalized.includes('mini gt')) return `${baseClass} ${isDark ? 'bg-cyan-500/24 text-cyan-200 border-cyan-400/35' : 'bg-cyan-100/95 text-cyan-700 border-cyan-300/90'}`
+        if (normalized.includes('pop race')) return `${baseClass} ${isDark ? 'bg-fuchsia-500/24 text-fuchsia-200 border-fuchsia-400/35' : 'bg-fuchsia-100/95 text-fuchsia-700 border-fuchsia-300/90'}`
+        if (normalized.includes('kaido')) return `${baseClass} ${isDark ? 'bg-violet-500/24 text-violet-200 border-violet-400/35' : 'bg-violet-100/95 text-violet-700 border-violet-300/90'}`
+        if (normalized.includes('tomica')) return `${baseClass} ${isDark ? 'bg-red-500/24 text-red-200 border-red-400/35' : 'bg-red-100/95 text-red-700 border-red-300/90'}`
+
+        return `${baseClass} ${isDark ? 'bg-slate-700/70 text-slate-300 border-slate-600/70' : 'bg-slate-100/95 text-slate-700 border-slate-300/90'}`
+    }
 
     // Fetch detailed statistics
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useQuery<StatisticsData>(
@@ -466,7 +482,12 @@ export default function SalesStatistics() {
                                                                 <div key={`${item.carId}-${idx}`} className={`flex items-center justify-between p-2 ${neumorphInsetClass}`}>
                                                                     <div className="min-w-0">
                                                                         <p className={`text-sm font-medium truncate ${headerTextClass}`}>{item.carName}</p>
-                                                                        <p className={`text-xs ${mutedTextClass}`}>x{item.quantity} • {item.carId}</p>
+                                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                                            <span className={`text-xs px-1.5 py-0.5 rounded ${getBrandLabelClass(item.brand)}`}>
+                                                                                {item.brand || 'Sin marca'}
+                                                                            </span>
+                                                                            <p className={`text-xs ${mutedTextClass}`}>x{item.quantity} • {item.carId}</p>
+                                                                        </div>
                                                                     </div>
                                                                     <p className="text-sm font-semibold text-emerald-500">${item.amount.toFixed(2)}</p>
                                                                 </div>
@@ -529,7 +550,12 @@ export default function SalesStatistics() {
                                                     <div key={`${item.carId}-${idx}`} className={`flex items-center justify-between p-2 ${neumorphInsetClass}`}>
                                                         <div className="min-w-0">
                                                             <p className={`text-sm font-medium truncate ${headerTextClass}`}>{item.carName}</p>
-                                                            <p className={`text-xs ${mutedTextClass}`}>x{item.quantity} • ${item.unitPrice.toFixed(2)} c/u</p>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className={`text-xs px-1.5 py-0.5 rounded ${getBrandLabelClass(item.brand)}`}>
+                                                                    {item.brand || 'Sin marca'}
+                                                                </span>
+                                                                <p className={`text-xs ${mutedTextClass}`}>x{item.quantity} • ${item.unitPrice.toFixed(2)} c/u</p>
+                                                            </div>
                                                         </div>
                                                         <p className="text-sm font-semibold text-emerald-500">${item.amount.toFixed(2)}</p>
                                                     </div>
@@ -681,40 +707,40 @@ export default function SalesStatistics() {
                             <Card className={neumorphSurfaceClass}>
                                 <div className="p-6">
                                     <h3 className={`text-lg font-semibold mb-4 ${headerTextClass}`}>💳 Transacciones Recientes</h3>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
+                                    <div className={`overflow-x-auto rounded-2xl p-3 ${neumorphInsetClass}`}>
+                                        <table className="w-full border-separate [border-spacing:0_8px]">
                                             <thead>
-                                                <tr className={`border-b ${isDark ? 'border-slate-700' : 'border-slate-300/70'}`}>
-                                                    <th className={`text-left py-3 px-4 font-semibold ${mutedTextClass}`}>Cliente</th>
-                                                    <th className={`text-left py-3 px-4 font-semibold ${mutedTextClass}`}>Fecha</th>
-                                                    <th className={`text-left py-3 px-4 font-semibold ${mutedTextClass}`}>Tipo</th>
-                                                    <th className={`text-right py-3 px-4 font-semibold ${mutedTextClass}`}>Venta</th>
-                                                    <th className={`text-right py-3 px-4 font-semibold ${mutedTextClass}`}>Ganancia</th>
-                                                    <th className={`text-center py-3 px-4 font-semibold ${mutedTextClass}`}>Piezas</th>
+                                                <tr>
+                                                    <th className={`text-left py-3 px-4 font-semibold rounded-l-xl border-y border-l ${isDark ? 'bg-slate-800/70 border-slate-700/70' : 'bg-white/75 border-slate-300/70'} ${mutedTextClass}`}>Cliente</th>
+                                                    <th className={`text-left py-3 px-4 font-semibold border-y ${isDark ? 'bg-slate-800/70 border-slate-700/70' : 'bg-white/75 border-slate-300/70'} ${mutedTextClass}`}>Fecha</th>
+                                                    <th className={`text-left py-3 px-4 font-semibold border-y ${isDark ? 'bg-slate-800/70 border-slate-700/70' : 'bg-white/75 border-slate-300/70'} ${mutedTextClass}`}>Tipo</th>
+                                                    <th className={`text-right py-3 px-4 font-semibold border-y ${isDark ? 'bg-slate-800/70 border-slate-700/70' : 'bg-white/75 border-slate-300/70'} ${mutedTextClass}`}>Venta</th>
+                                                    <th className={`text-right py-3 px-4 font-semibold border-y ${isDark ? 'bg-slate-800/70 border-slate-700/70' : 'bg-white/75 border-slate-300/70'} ${mutedTextClass}`}>Ganancia</th>
+                                                    <th className={`text-center py-3 px-4 font-semibold rounded-r-xl border-y border-r ${isDark ? 'bg-slate-800/70 border-slate-700/70' : 'bg-white/75 border-slate-300/70'} ${mutedTextClass}`}>Piezas</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {stats.transactions.map((transaction, idx) => (
                                                     <tr
                                                         key={idx}
-                                                        className={`border-b transition-colors cursor-pointer ${isDark ? 'border-slate-700/50 hover:bg-slate-700/30' : 'border-slate-300/50 hover:bg-white/65'}`}
+                                                        className={`transition-all cursor-pointer ${isDark ? 'hover:brightness-110' : 'hover:brightness-95'}`}
                                                         onClick={() => navigate(`/sales?id=${transaction._id}`)}
                                                     >
-                                                        <td className={`py-3 px-4 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{transaction.customerName}</td>
-                                                        <td className={`py-3 px-4 ${mutedTextClass}`}>
+                                                        <td className={`py-3 px-4 rounded-l-xl border-y border-l shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)] ${isDark ? 'bg-slate-900/70 border-slate-700/75 text-slate-200' : 'bg-[#edf3fa] border-slate-300/65 text-slate-700'}`}>{transaction.customerName}</td>
+                                                        <td className={`py-3 px-4 border-y shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)] ${isDark ? 'bg-slate-900/70 border-slate-700/75' : 'bg-[#edf3fa] border-slate-300/65'} ${mutedTextClass}`}>
                                                             {format(parseISO(transaction.saleDate), 'dd MMM HH:mm', { locale: es })}
                                                         </td>
-                                                        <td className="py-3 px-4">
+                                                        <td className={`py-3 px-4 border-y shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)] ${isDark ? 'bg-slate-900/70 border-slate-700/75' : 'bg-[#edf3fa] border-slate-300/65'}`}>
                                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${transaction.saleType === 'delivery'
-                                                                ? 'bg-emerald-500/20 text-emerald-300'
-                                                                : 'bg-blue-500/20 text-blue-300'
+                                                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/25 shadow-[inset_1px_1px_0_rgba(255,255,255,0.12),3px_3px_8px_rgba(2,6,23,0.3)]'
+                                                                : 'bg-blue-500/20 text-blue-300 border border-blue-400/25 shadow-[inset_1px_1px_0_rgba(255,255,255,0.12),3px_3px_8px_rgba(2,6,23,0.3)]'
                                                                 }`}>
                                                                 {transaction.saleType === 'delivery' ? '📦 Entrega' : '🛒 POS'}
                                                             </span>
                                                         </td>
-                                                        <td className="py-3 px-4 text-right text-emerald-400 font-semibold">${transaction.totalAmount.toFixed(2)}</td>
-                                                        <td className="py-3 px-4 text-right text-blue-400 font-semibold">${transaction.profit.toFixed(2)}</td>
-                                                        <td className="py-3 px-4 text-center text-orange-400 font-semibold">{transaction.pieces}</td>
+                                                        <td className={`py-3 px-4 text-right border-y shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)] ${isDark ? 'bg-slate-900/70 border-slate-700/75' : 'bg-[#edf3fa] border-slate-300/65'} text-emerald-400 font-semibold`}>${transaction.totalAmount.toFixed(2)}</td>
+                                                        <td className={`py-3 px-4 text-right border-y shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)] ${isDark ? 'bg-slate-900/70 border-slate-700/75' : 'bg-[#edf3fa] border-slate-300/65'} text-blue-400 font-semibold`}>${transaction.profit.toFixed(2)}</td>
+                                                        <td className={`py-3 px-4 text-center rounded-r-xl border-y border-r shadow-[inset_1px_1px_0_rgba(255,255,255,0.06)] ${isDark ? 'bg-slate-900/70 border-slate-700/75' : 'bg-[#edf3fa] border-slate-300/65'} text-orange-400 font-semibold`}>{transaction.pieces}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>

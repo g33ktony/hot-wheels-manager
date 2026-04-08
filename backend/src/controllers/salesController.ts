@@ -840,7 +840,7 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
     const salesByBrand: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
     const salesByPieceType: { [key: string]: { amount: number; profit: number; pieces: number; count: number } } = {};
     const salesByCustomer: { [key: string]: { customerId: string | null; customerName: string; amount: number; profit: number; pieces: number; count: number } } = {};
-    const customerItemBreakdown: { [customerKey: string]: { [itemKey: string]: { carId: string; carName: string; quantity: number; amount: number; profit: number } } } = {};
+    const customerItemBreakdown: { [customerKey: string]: { [itemKey: string]: { carId: string; carName: string; brand: string; quantity: number; amount: number; profit: number } } } = {};
     const transactionsList: any[] = [];
     let topTransaction: any = null;
 
@@ -871,7 +871,7 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
       let saleTotalProfit = 0;
       let saleTotalPieces = 0;
       let saleFilteredAmount = 0;
-      const saleItemDetails: Array<{ carId: string; carName: string; quantity: number; unitPrice: number; amount: number; profit: number }> = [];
+      const saleItemDetails: Array<{ carId: string; carName: string; brand: string; quantity: number; unitPrice: number; amount: number; profit: number }> = [];
 
       // Ventas por cliente (key preparada antes de recorrer items)
       const rawCustomerId = (sale as any).customer?._id || sale.customerId || null;
@@ -921,20 +921,23 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
         const lineAmount = salePrice * quantity;
         const lineCarId = item.carId || 'N/A';
         const lineCarName = item.carName || lineCarId;
+        const lineBrand = inventory?.brand || (item as any).brand || 'Sin marca';
         saleItemDetails.push({
           carId: lineCarId,
           carName: lineCarName,
+          brand: lineBrand,
           quantity,
           unitPrice: salePrice,
           amount: lineAmount,
           profit: itemProfit
         });
 
-        const itemKey = `${lineCarId}::${lineCarName}`;
+        const itemKey = `${lineCarId}::${lineCarName}::${lineBrand}`;
         if (!customerItemBreakdown[customerKey][itemKey]) {
           customerItemBreakdown[customerKey][itemKey] = {
             carId: lineCarId,
             carName: lineCarName,
+            brand: lineBrand,
             quantity: 0,
             amount: 0,
             profit: 0
@@ -1094,6 +1097,7 @@ export const getDetailedStatistics = async (req: Request, res: Response) => {
             .map((item) => ({
               carId: item.carId,
               carName: item.carName,
+              brand: item.brand,
               quantity: item.quantity,
               amount: Math.round(item.amount * 100) / 100,
               profit: Math.round(item.profit * 100) / 100

@@ -521,7 +521,7 @@ export default function Dashboard() {
                     <div className="flex gap-3">
                         <Button
                             variant="secondary"
-                            className="flex-1"
+                            className={`flex-1 ${neumorphPillStrongClass}`}
                             onClick={() => {
                                 setShowUpdateModal(false)
                                 setIsInitiatingUpdate(false)
@@ -535,7 +535,7 @@ export default function Dashboard() {
                         </Button>
                         {updateStatus?.progress?.step !== 'completed' && (
                             <Button
-                                className="flex-1 flex items-center justify-center gap-2 relative overflow-hidden"
+                                className="flex-1 flex items-center justify-center gap-2 relative overflow-hidden !rounded-xl !border !border-emerald-400/40 !bg-emerald-600/20 !text-emerald-100 !shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(16,185,129,0.16)] hover:!brightness-110 !transition-all"
                                 onClick={() => {
                                     setIsInitiatingUpdate(true)
                                     updateCatalogMutation.mutate()
@@ -562,7 +562,7 @@ export default function Dashboard() {
                     </div>
                 }
             >
-                <div className="space-y-4">
+                <div className={`space-y-4 rounded-2xl p-1 ${neumorphSurfaceClass}`}>
                     {updateStatus?.progress?.step !== 'completed' && updateStatus?.progress?.step !== 'error' && !updateStatus?.progress?.isUpdating && (
                         <>
                             <div className={`p-4 ${neumorphInsetClass}`}>
@@ -618,7 +618,7 @@ export default function Dashboard() {
                                     {/* Real Progress Bar */}
                                     <div className={`w-full h-2.5 overflow-hidden ${neumorphInsetClass}`}>
                                         <div
-                                            className="bg-emerald-500 h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                            className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full transition-all duration-500 ease-out shadow-[0_0_14px_rgba(16,185,129,0.65)]"
                                             style={{ width: `${updateStatus?.progress?.percent || 0}%` }}
                                         />
                                     </div>
