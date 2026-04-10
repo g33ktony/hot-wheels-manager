@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
-import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2, ArrowUpNarrowWide, ArrowDownNarrowWide, ChevronDown, ChevronUp, LayoutGrid, List } from 'lucide-react'
+import { Search as SearchIcon, ChevronLeft, ChevronRight, Loader2, ArrowUpNarrowWide, ArrowDownNarrowWide, ChevronDown, ChevronUp, LayoutGrid, List, X } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { publicService, CatalogItem } from '@/services/public'
@@ -361,6 +361,38 @@ export default function CatalogBrowser() {
     }
   }
 
+  // Limpiar todos los filtros
+  const handleClearFilters = () => {
+    setSearchTerm('')
+    setYearFilter('')
+    setBrandFilter(['Hot Wheels'])
+    setPage(1)
+    setHasSearched(false)
+    setResults([])
+    setTotalPages(0)
+    setTotalItems(0)
+    // Preservar adminView si existe
+    const isAdminView = searchParams.get('adminView') === 'true'
+    setSearchParams(isAdminView ? { adminView: 'true' } : {})
+  }
+
+  // Limpiar solo el término de búsqueda
+  const handleClearSearchTerm = () => {
+    setSearchTerm('')
+    setPage(1)
+    const isAdminView = searchParams.get('adminView') === 'true'
+    // Si hay otros filtros activos, buscar de nuevo
+    if (yearFilter || (brandFilter.length > 0 && !(brandFilter.length === 1 && brandFilter[0] === 'Hot Wheels'))) {
+      handleSearch({ search: '', pageNum: 1 })
+    } else {
+      setHasSearched(false)
+      setResults([])
+      setTotalPages(0)
+      setTotalItems(0)
+      setSearchParams(isAdminView ? { adminView: 'true' } : {})
+    }
+  }
+
   return (
     <PublicLayout>
       {/* Hero Section */}
@@ -394,13 +426,24 @@ export default function CatalogBrowser() {
                   setShowSuggestions(true)
                 }
               }}
-              className={`pl-10 rounded-xl ${neumorphInsetClass}`}
+              className={`pl-10 pr-10 rounded-xl ${neumorphInsetClass}`}
             />
             <SearchIcon
-              className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-slate-500'
-                }`}
+              className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
               size={20}
             />
+            {/* Botón X para limpiar el search term */}
+            {searchTerm && (
+              <button
+                type="button"
+                aria-label="Limpiar búsqueda"
+                onClick={handleClearSearchTerm}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                tabIndex={0}
+              >
+                <X size={18} className={isDark ? 'text-slate-400' : 'text-slate-500'} />
+              </button>
+            )}
 
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
@@ -465,8 +508,21 @@ export default function CatalogBrowser() {
             )}
           </div>
 
-          {/* Sort Order + Year Filter */}
+          {/* Sort Order + Year Filter + Limpiar filtros */}
           <div className="flex flex-col gap-4">
+            {/* Botón Limpiar Filtros */}
+            {(searchTerm || yearFilter || (brandFilter.length > 0 && !(brandFilter.length === 1 && brandFilter[0] === 'Hot Wheels'))) && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${neumorphPillClass}`}
+                >
+                  <X size={16} />
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
             {/* Sort Buttons */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Orden:</span>
@@ -648,115 +704,104 @@ export default function CatalogBrowser() {
 
       {/* Results Grid */}
       {!hasSearched ? (
-        <div className={`text-center py-12 ${featuredShellClass}`}>
-          {featuredLoading ? (
+        (
+          featuredLoading ? (
             <div className="flex justify-center items-center py-16">
               <Loader2 className={`animate-spin ${isDark ? 'text-slate-500' : 'text-slate-400'}`} size={36} />
             </div>
           ) : featuredItem ? (
             <>
-              <div className="max-w-sm mx-auto mb-4 flex items-center justify-between">
-                <p className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-cyan-300' : 'text-sky-700'}`}>
-                  Item Aleatorio del Catalogo
+              <div className="max-w-lg mx-auto mb-2 flex items-center justify-between">
+                <p className={`text-[11px] font-semibold uppercase tracking-wider ${isDark ? 'text-cyan-300' : 'text-sky-700'}`}>
+                  Item aleatorio del catálogo
                 </p>
                 <button
                   type="button"
                   onClick={() => fetchFeatured(true)}
                   disabled={refreshingFeatured}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${neumorphPillClass}`}
+                  className={`p-2 rounded-full transition-all ${neumorphPillClass}`}
+                  title="Otro modelo"
                 >
                   {refreshingFeatured ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <Loader2 size={12} className="animate-spin" />
-                      Cargando...
-                    </span>
+                    <Loader2 size={16} className="animate-spin" />
                   ) : (
-                    'Otro modelo'
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className={isDark ? 'text-cyan-300' : 'text-sky-700'}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581m-1.638-7.362A8.001 8.001 0 004.582 9M4 15a8.003 8.003 0 0013.777 2.362" /></svg>
                   )}
                 </button>
               </div>
-
-              {/* Featured random item */}
-              <div className={featuredCardClass}>
-                {/* Photo */}
-                <div className={`relative h-56 flex items-center justify-center ${featuredInsetClass}`}>
-                  {(() => {
-                    const imgUrl = resolveCatalogImageUrl(featuredItem.photo_url)
-                    return imgUrl && (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) ? (
-                      <img
-                        src={imgUrl.includes('weserv') ? imgUrl : `https://images.weserv.nl/?url=${encodeURIComponent(imgUrl)}&w=400&h=280&fit=contain`}
-                        alt={featuredItem.carModel}
-                        className="w-full h-full object-contain p-2"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = getPlaceholderLogo(featuredItem.series, featuredItem.brand)
-                        }}
-                      />
-                    ) : (
-                      <img src={getPlaceholderLogo(featuredItem.series, featuredItem.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-6 opacity-60" />
-                    )
-                  })()}
-                  {featuredItem.segment && (
-                    <div className="absolute top-2 left-2">
-                      <SegmentBadge segment={featuredItem.segment} />
-                    </div>
-                  )}
-                  {refreshingFeatured && (
-                    <div className="absolute inset-0 bg-slate-900/35 backdrop-blur-[1px] flex items-center justify-center">
-                      <Loader2 size={24} className="animate-spin text-white" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="p-4 text-left">
-                  <h4 className={`text-lg font-bold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {featuredItem.carModel}
-                  </h4>
-                  <p className={`text-sm mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                    {featuredItem.series} &bull; {featuredItem.year}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {featuredItem.color && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${featuredInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        🎨 {featuredItem.color}
-                      </span>
+              {/* Featured random item — compact horizontal layout */}
+              <div className={`${featuredCardClass} max-w-2xl mx-auto mt-2`}>
+                <div className="flex items-stretch">
+                  {/* Photo */}
+                  <div className={`relative w-56 h-56 flex-shrink-0 flex items-center justify-center ${featuredInsetClass}`} style={{ borderRadius: '1.5rem 0 0 1.5rem' }}>
+                    {(() => {
+                      const imgUrl = resolveCatalogImageUrl(featuredItem.photo_url)
+                      return imgUrl && (imgUrl.startsWith('https://') || imgUrl.startsWith('http://')) ? (
+                        <img
+                          src={imgUrl.includes('weserv') ? imgUrl : `https://images.weserv.nl/?url=${encodeURIComponent(imgUrl)}&w=280&h=280&fit=contain`}
+                          alt={featuredItem.carModel}
+                          className="w-full h-full object-contain p-3"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getPlaceholderLogo(featuredItem.series, featuredItem.brand)
+                          }}
+                        />
+                      ) : (
+                        <img src={getPlaceholderLogo(featuredItem.series, featuredItem.brand)} alt="Auto a Escala" className="w-full h-full object-contain p-4 opacity-60" />
+                      )
+                    })()}
+                    {featuredItem.segment && (
+                      <div className="absolute top-1.5 left-1.5 scale-75 origin-top-left">
+                        <SegmentBadge segment={featuredItem.segment} />
+                      </div>
                     )}
-                    {featuredItem.wheel_type && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${featuredInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        🛞 {featuredItem.wheel_type}
-                      </span>
-                    )}
-                    {featuredItem.toy_num && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${featuredInsetClass} ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        #{featuredItem.toy_num}
-                      </span>
+                    {refreshingFeatured && (
+                      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center rounded-l-2xl">
+                        <Loader2 size={22} className="animate-spin text-white" />
+                      </div>
                     )}
                   </div>
-
-                  <div className="mt-4 flex gap-2">
-                    <Button
-                      onClick={handleFeaturedExactSearch}
-                      className={`flex-1 ${neumorphPillActiveClass}`}
-                    >
-                      Buscar este exacto
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleItemClick(featuredItem)}
-                      className={`flex-1 ${neumorphPillClass}`}
-                    >
-                      Ver detalles
-                    </Button>
+                  {/* Info */}
+                  <div className="flex-1 p-3 text-left flex flex-col justify-between min-w-0">
+                    <div>
+                      <h4 className={`text-lg font-bold leading-tight line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {featuredItem.carModel}
+                      </h4>
+                      <p className={`text-[11px] mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {featuredItem.series}
+                      </p>
+                      <p className={`text-[11px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {featuredItem.year}{featuredItem.brand ? ` · ${featuredItem.brand}` : ''}
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {featuredItem.color && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                            🎨 {featuredItem.color}
+                          </span>
+                        )}
+                        {featuredItem.toy_num && (
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+                            #{featuredItem.toy_num}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5 mt-2">
+                      <button
+                        onClick={handleFeaturedExactSearch}
+                        className={`flex-1 text-[11px] font-semibold py-1.5 rounded-lg transition-all ${neumorphPillActiveClass}`}
+                      >
+                        Buscar
+                      </button>
+                      <button
+                        onClick={() => handleItemClick(featuredItem)}
+                        className={`flex-1 text-[11px] font-semibold py-1.5 rounded-lg transition-all ${neumorphPillClass}`}
+                      >
+                        Detalles
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <h3 className={`text-2xl font-semibold mt-6 mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                ¿Qué modelo buscas?
-              </h3>
-              <p className={`text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                Escribe un nombre, serie o fabricante para comenzar
-              </p>
             </>
           ) : (
             <>
@@ -768,8 +813,8 @@ export default function CatalogBrowser() {
                 Escribe un nombre, serie o fabricante para comenzar
               </p>
             </>
-          )}
-        </div>
+          )
+        )
       ) : loading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className={`animate-spin ${isDark ? 'text-slate-400' : 'text-slate-600'}`} size={48} />

@@ -55,8 +55,12 @@ const StoreSettingsPage: React.FC = () => {
     const isDark = mode === 'dark'
     const pageBackdropClass = 'bg-transparent'
 
-    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user' | 'public-catalog'>('profile')
+    const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user' | 'public-catalog' | 'navigation'>('profile')
     const [showPasswordModal, setShowPasswordModal] = useState(false)
+
+    // Navigation visibility state (sys_admin only)
+    const [hiddenSections, setHiddenSections] = useState<string[]>([])
+    const [navSettingsLoading, setNavSettingsLoading] = useState(false)
 
     // Public catalog state
     const [showCustomInventory, setShowCustomInventory] = useState(false)
@@ -191,6 +195,7 @@ const StoreSettingsPage: React.FC = () => {
                 setShowCustomInventory(settings.publicCatalog?.showCustomInventory ?? false)
                 setHideCostAndProfitInInventory(settings.publicCatalog?.hideCostAndProfitInInventory ?? false)
                 setAllowStoreAdminVisibility(settings.publicCatalog?.allowStoreAdminInventoryVisibilityControl ?? false)
+                setHiddenSections(settings.navigation?.hiddenSections ?? [])
             } catch (error) {
                 console.error('Error loading catalog settings:', error)
             }
@@ -238,6 +243,25 @@ const StoreSettingsPage: React.FC = () => {
             toast.error('Error al actualizar la configuración')
         } finally {
             setCatalogSettingsLoading(false)
+        }
+    }
+
+    const handleToggleSection = async (route: string, hidden: boolean) => {
+        const updated = hidden
+            ? [...hiddenSections, route]
+            : hiddenSections.filter(s => s !== route)
+        setHiddenSections(updated)
+        try {
+            setNavSettingsLoading(true)
+            await storeSettingsService.update({ navigation: { hiddenSections: updated } })
+            toast.success(hidden ? 'Sección ocultada' : 'Sección visible')
+        } catch (error) {
+            console.error('Error updating navigation settings:', error)
+            toast.error('Error al actualizar la navegación')
+            // revert
+            setHiddenSections(hiddenSections)
+        } finally {
+            setNavSettingsLoading(false)
         }
     }
 
@@ -445,7 +469,8 @@ const StoreSettingsPage: React.FC = () => {
                         { id: 'profile', label: 'Perfil y Tienda' },
                         { id: 'team', label: 'Mi Equipo' },
                         ...((user?.role === 'admin' || user?.role === 'sys_admin') ? [{ id: 'create-user', label: 'Crear Usuario' }] : []),
-                        ...((isSysAdmin() || canManageCatalogVisibility) ? [{ id: 'public-catalog', label: '⚙️ Visibilidad y Privacidad' }] : [])
+                        ...((isSysAdmin() || canManageCatalogVisibility) ? [{ id: 'public-catalog', label: '⚙️ Visibilidad y Privacidad' }] : []),
+                        ...(isSysAdmin() ? [{ id: 'navigation', label: '🗂️ Menú de Navegación' }] : [])
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -747,6 +772,80 @@ const StoreSettingsPage: React.FC = () => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </Card>
+                )}
+
+                {activeTab === 'navigation' && isSysAdmin() && (
+                    <Card>
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className="text-2xl">🗂️</span>
+                            <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                Menú de Navegación
+                            </h2>
+                        </div>
+                        <p className={`text-sm mb-6 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            Activa o desactiva secciones del menú lateral para todos los usuarios de tu tienda.
+                            Tú (SysAdmin) siempre verás todo.
+                        </p>
+
+                        <div className="space-y-2">
+                            {[
+                                { label: 'Inventario', route: '/inventory', icon: '📦' },
+                                { label: 'Ventas', route: '/sales', icon: '💰' },
+                                { label: 'Compras', route: '/purchases', icon: '🛍️' },
+                                { label: 'Pre-Ventas', route: '/presale', icon: '📋' },
+                                { label: 'Cajas', route: '/boxes', icon: '📫' },
+                                { label: 'Entregas', route: '/deliveries', icon: '🚚' },
+                                { label: 'Contactos', route: '/contacts', icon: '👥' },
+                                { label: 'Catálogo Público', route: '/browse', icon: '🔍' },
+                            ].map(({ label, route, icon }) => {
+                                const isHidden = hiddenSections.includes(route)
+                                return (
+                                    <div
+                                        key={route}
+                                        className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${isDark
+                                            ? 'border-slate-700 bg-slate-800/50'
+                                            : 'border-slate-200 bg-slate-50'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-lg">{icon}</span>
+                                            <span className={`font-medium text-sm ${isHidden
+                                                ? isDark ? 'text-slate-500 line-through' : 'text-slate-400 line-through'
+                                                : isDark ? 'text-slate-200' : 'text-slate-800'
+                                                }`}>
+                                                {label}
+                                            </span>
+                                            {isHidden && (
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isDark ? 'bg-red-900/40 text-red-300' : 'bg-red-100 text-red-600'}`}>
+                                                    Oculto
+                                                </span>
+                                            )}
+                                        </div>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only peer"
+                                                checked={!isHidden}
+                                                disabled={navSettingsLoading}
+                                                onChange={(e) => handleToggleSection(route, !e.target.checked)}
+                                            />
+                                            <div className={`w-11 h-6 rounded-full peer transition-colors
+                                                ${isDark ? 'bg-slate-600 peer-checked:bg-emerald-600' : 'bg-slate-300 peer-checked:bg-emerald-500'}
+                                                peer-focus:outline-none
+                                                after:content-[''] after:absolute after:top-[2px] after:start-[2px]
+                                                after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all
+                                                peer-checked:after:translate-x-full`}
+                                            />
+                                        </label>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        <div className={`mt-4 p-3 rounded-xl text-xs ${isDark ? 'bg-blue-900/20 text-blue-300' : 'bg-blue-50 text-blue-700'}`}>
+                            💡 Los cambios se aplican de inmediato. Los usuarios verán la nueva navegación al refrescar la página.
                         </div>
                     </Card>
                 )}

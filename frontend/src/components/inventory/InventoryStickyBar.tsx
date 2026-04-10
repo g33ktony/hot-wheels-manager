@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
     CheckSquare,
     ChevronLeft,
@@ -7,6 +8,7 @@ import {
     LayoutGrid,
     Plus,
     Settings,
+    ShoppingCart,
     X,
 } from 'lucide-react'
 
@@ -46,6 +48,7 @@ export default function InventoryFab({
     onPageChange,
     isDark,
 }: InventoryFabProps) {
+    const navigate = useNavigate()
     const [isOpen, setIsOpen] = useState(false)
     const fabRef = useRef<HTMLDivElement>(null)
     const hasPagination = pagination && pagination.totalPages > 1
@@ -132,6 +135,16 @@ export default function InventoryFab({
                                 {isSelectionMode ? `Salir selección (${selectedItemsCount})` : 'Seleccionar'}
                             </button>
                         )}
+
+                        {/* Nueva Venta */}
+                        <button
+                            type="button"
+                            onClick={() => { navigate('/pos'); setIsOpen(false) }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isDark ? 'text-sky-300 hover:bg-sky-500/10' : 'text-sky-700 hover:bg-sky-50'}`}
+                        >
+                            <ShoppingCart size={16} />
+                            Nueva Venta (POS)
+                        </button>
 
                         {/* Add piece */}
                         {canCreate && (

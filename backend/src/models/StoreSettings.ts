@@ -26,6 +26,9 @@ export interface IStoreSettings extends Document {
     hideCostAndProfitInInventory?: boolean // Oculta costo y ganancia en vistas de inventario
     allowStoreAdminInventoryVisibilityControl?: boolean // Permite que admin de tienda gestione visibilidad del inventario
   }
+  navigation?: {
+    hiddenSections?: string[] // Routes hidden from all non-sys_admin users (e.g. ['/sales', '/purchases'])
+  }
   storeId: string
   createdAt: Date
   updatedAt: Date
@@ -106,6 +109,12 @@ const storeSettingsSchema = new Schema<IStoreSettings>({
     allowStoreAdminInventoryVisibilityControl: {
       type: Boolean,
       default: false
+    }
+  },
+  navigation: {
+    hiddenSections: {
+      type: [String],
+      default: []
     }
   },
   // Multi-tenancy field

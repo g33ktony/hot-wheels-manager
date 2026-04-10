@@ -39,7 +39,7 @@ export const getStoreSettings = async (req: Request, res: Response) => {
 
 export const updateStoreSettings = async (req: Request, res: Response) => {
   try {
-    const { storeName, logo, description, customMessages, colors, contact, publicCatalog } = req.body
+    const { storeName, logo, description, customMessages, colors, contact, publicCatalog, navigation } = req.body
     const requestedPublicCatalog = publicCatalog && typeof publicCatalog === 'object'
       ? { ...publicCatalog }
       : undefined
@@ -144,6 +144,11 @@ export const updateStoreSettings = async (req: Request, res: Response) => {
           ...settings.publicCatalog,
           ...requestedPublicCatalog
         }
+      }
+
+      if (navigation && req.userRole === 'sys_admin' && Array.isArray(navigation.hiddenSections)) {
+        if (!settings.navigation) settings.navigation = {}
+        settings.navigation.hiddenSections = navigation.hiddenSections
       }
 
       await settings.save()

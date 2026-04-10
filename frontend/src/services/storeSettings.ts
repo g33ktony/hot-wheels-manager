@@ -27,6 +27,9 @@ export interface StoreSettings {
     hideCostAndProfitInInventory?: boolean
     allowStoreAdminInventoryVisibilityControl?: boolean
   }
+  navigation?: {
+    hiddenSections?: string[]
+  }
   createdAt?: string
   updatedAt?: string
 }

@@ -5,13 +5,11 @@ import {
     Package,
     ShoppingCart,
     ShoppingBag,
-    CreditCard,
     DollarSign,
     ClipboardList,
     BookOpen,
     Truck,
     Menu,
-    X,
     Users,
     Building2,
     PackageOpen,
@@ -25,6 +23,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useBoxes } from '@/hooks/useBoxes'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { useLeadStatistics } from '@/hooks/useLeads'
 import { useDataReportsSummary } from '@/hooks/useDataReports'
 import { usePendingUsersCount } from '@/hooks/usePendingUsers'
@@ -60,13 +59,10 @@ const withAlpha = (color: string, alpha: number): string => {
 }
 
 export default function Layout({ children }: LayoutProps) {
-    const [sidebarOpen, setSidebarOpen] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
         const saved = localStorage.getItem('sidebarCollapsed')
         return saved === 'true'
     })
-    const [touchStart, setTouchStart] = useState<number | null>(null)
-    const [touchEnd, setTouchEnd] = useState<number | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [showDeliveryCartModal, setShowDeliveryCartModal] = useState(false)
     const [sidebarDensity, setSidebarDensity] = useState<SidebarDensity>(() => {
@@ -87,6 +83,8 @@ export default function Layout({ children }: LayoutProps) {
     const deliveryCartItems = useAppSelector(state => state.deliveryCart.items)
     const cartItemCount = cartItems.length
     const deliveryCartCount = deliveryCartItems.length
+    const { data: storeSettings } = useStoreSettings()
+    const hiddenSections = storeSettings?.navigation?.hiddenSections ?? []
 
     const routePalettes: Record<string, RoutePalette> = {
         '/dashboard': {
@@ -229,6 +227,16 @@ export default function Layout({ children }: LayoutProps) {
             darkText: 'rgb(153,246,228)',
             lightText: 'rgb(15,118,110)'
         },
+        '/contacts': {
+            darkGlow: 'rgba(14,165,233,0.22)',
+            lightGlow: 'rgba(14,165,233,0.18)',
+            darkFrom: 'rgba(14,165,233,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(240,249,255,0.98)',
+            lightTo: 'rgba(186,230,253,0.9)',
+            darkText: 'rgb(186,230,253)',
+            lightText: 'rgb(3,105,161)'
+        },
         '/suppliers': {
             darkGlow: 'rgba(217,70,239,0.22)',
             lightGlow: 'rgba(217,70,239,0.18)',
@@ -274,30 +282,30 @@ export default function Layout({ children }: LayoutProps) {
     const toggleSidebarDensity = () => {
         setSidebarDensity(prev => (prev === 'compact' ? 'normal' : 'compact'))
     }
+    // Mobile: always w-14 (icon-only). Desktop: collapsed w-16/20, expanded w-64
     const collapsedWidthClass = sidebarDensity === 'normal' ? 'lg:w-20' : 'lg:w-16'
     const collapsedHeaderOffsetClass = sidebarDensity === 'normal' ? 'lg:left-20' : 'lg:left-16'
+    const mainOffsetClass = sidebarCollapsed
+        ? (sidebarDensity === 'normal' ? 'lg:ml-20' : 'lg:ml-16')
+        : 'lg:ml-64'
+    // Item layout: on mobile always icon-only (flex-col); on desktop follow collapsed state
     const collapsedItemLayoutClass = sidebarDensity === 'normal'
-        ? 'lg:flex-col lg:justify-center lg:gap-1 lg:px-1.5 lg:py-2'
-        : 'lg:flex-col lg:justify-center lg:gap-1 lg:px-1 lg:py-2'
+        ? 'flex-col justify-center gap-0.5 px-1 py-2 lg:gap-1 lg:px-1.5'
+        : 'flex-col justify-center gap-0.5 px-1 py-2 lg:gap-1 lg:px-1'
+    // Expanded on desktop: horizontal layout
+    const expandedItemLayoutClass = 'flex-col justify-center gap-0.5 px-1 py-2 lg:flex-row lg:items-center lg:px-4 lg:gap-0 lg:py-0'
     const collapsedLabelClass = sidebarDensity === 'normal'
-        ? 'hidden lg:block text-[11px] leading-tight font-semibold text-center w-full px-0.5'
+        ? 'hidden lg:block text-[10px] leading-tight font-semibold text-center w-full px-0.5'
         : 'hidden lg:block text-[9px] leading-none font-semibold uppercase text-center w-full px-0.5'
 
-    // Handle navigation item click
+    // Handle navigation item click — collapse desktop sidebar
     const handleNavClick = () => {
-        // En mobile, cerrar el sidebar
-        if (window.innerWidth < 1024) {
-            setSidebarOpen(false)
-        }
-        // En desktop siempre colapsar
         if (window.innerWidth >= 1024) {
             setSidebarCollapsed(true)
         }
     }
 
     // Minimum swipe distance (in px)
-    const minSwipeDistance = 50
-
     // Filter active boxes (exclude completed ones)
     const activeBoxes = boxes?.filter((box: any) => box.boxStatus !== 'completed') || []
 
@@ -323,13 +331,6 @@ export default function Layout({ children }: LayoutProps) {
     const navigationItems = [
         { name: 'Dashboard', shortName: 'Dash', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Inventario', shortName: 'Inv', href: '/inventory', icon: Package },
-        {
-            name: '🛒 POS',
-            shortName: 'POS',
-            href: '/pos',
-            icon: CreditCard,
-            ...(cartItemCount > 0 && { badge: cartItemCount })
-        },
         { name: 'Ventas', shortName: 'Vta', href: '/sales', icon: DollarSign },
         { name: 'Compras', shortName: 'Comp', href: '/purchases', icon: ShoppingBag },
         { name: 'Pre-Ventas', shortName: 'PreV', href: '/presale', icon: ClipboardList },
@@ -351,7 +352,7 @@ export default function Layout({ children }: LayoutProps) {
             badge: activeBoxes.length
         }] : []),
         { name: 'Entregas', shortName: 'Ent', href: '/deliveries', icon: Truck },
-        { name: 'Clientes', shortName: 'Clie', href: '/customers', icon: Users },
+        { name: 'Contactos', shortName: 'Cont', href: '/contacts', icon: Users },
         // Conditional: Only show for sys_admin
         ...(isSysAdmin() ? [
             {
@@ -391,92 +392,43 @@ export default function Layout({ children }: LayoutProps) {
             }
         ] : []),
         { name: 'Catálogo Público', shortName: 'Pub', href: '/browse?adminView=true', icon: SearchIcon },
-        { name: 'Proveedores', shortName: 'Prov', href: '/suppliers', icon: Building2 },
-    ]
-
-    const onTouchStart = (e: React.TouchEvent) => {
-        const target = e.target as HTMLElement
-        if (target.closest('[role="dialog"]')) {
-            setTouchStart(null)
-            setTouchEnd(null)
-            return
-        }
-        setTouchEnd(null)
-        setTouchStart(e.targetTouches[0].clientX)
-    }
-
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (touchStart === null) return
-        setTouchEnd(e.targetTouches[0].clientX)
-    }
-
-    const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return
-
-        const distance = touchStart - touchEnd
-        const isLeftSwipe = distance > minSwipeDistance
-        const isRightSwipe = distance < -minSwipeDistance
-
-        // Swipe right from left edge to open sidebar
-        if (isRightSwipe && touchStart < 50 && !sidebarOpen) {
-            setSidebarOpen(true)
-        }
-        // Swipe left to close sidebar
-        if (isLeftSwipe && sidebarOpen) {
-            setSidebarOpen(false)
-        }
-    }
-
-    // Close sidebar when route changes
-    useEffect(() => {
-        setSidebarOpen(false)
-    }, [location.pathname])
+    ].filter(item => {
+        // sys_admin always sees everything
+        if (isSysAdmin()) return true
+        const route = item.href.split('?')[0]
+        return !hiddenSections.includes(route)
+    })
 
     return (
         <div
-            className="min-h-screen flex overflow-x-hidden w-full max-w-full"
+            className="min-h-screen overflow-x-hidden w-full max-w-full"
             style={{
                 background: mode === 'dark'
                     ? `linear-gradient(180deg, ${withAlpha(currentPalette.darkGlow, 0.12)} 0%, rgba(2,6,23,0) 8%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.darkGlow, 0.2)} 0%, transparent 11%), radial-gradient(circle at 90% 90%, rgba(56,189,248,0.03) 0%, transparent 16%), linear-gradient(180deg, #020617 0%, #0f172a 100%)`
                     : `linear-gradient(180deg, ${withAlpha(currentPalette.lightGlow, 0.15)} 0%, rgba(248,251,255,0) 9%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.lightGlow, 0.22)} 0%, transparent 11%), radial-gradient(circle at 90% 90%, rgba(14,165,233,0.03) 0%, transparent 18%), linear-gradient(180deg, #f8fbff 0%, #eef3fa 100%)`
             }}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
         >
-            {/* Mobile sidebar backdrop */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-slate-900 bg-opacity-75 lg:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                    style={{
-                        WebkitTapHighlightColor: 'transparent',
-                    }}
-                />
-            )}
-
-            {/* Sidebar */}
+            {/* Sidebar — always fixed, always visible. Mobile: icon-only w-14. Desktop: collapsed or expanded. */}
             <div
                 ref={sidebarRef}
                 className={`
-            fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden backdrop-blur-xl
-                ${sidebarCollapsed && window.innerWidth >= 1024 ? collapsedWidthClass : 'w-64'}
-            ${mode === 'dark'
+                    fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden backdrop-blur-xl transition-all duration-300
+                    w-14 ${sidebarCollapsed ? collapsedWidthClass : 'lg:w-64'}
+                    ${mode === 'dark'
                         ? 'bg-slate-800/74 shadow-[18px_18px_34px_rgba(2,6,23,0.58),-12px_-12px_22px_rgba(148,163,184,0.18)]'
                         : 'bg-white/88 shadow-[18px_18px_34px_rgba(148,163,184,0.3),-12px_-12px_22px_rgba(255,255,255,0.98)]'}
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}
+                `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className={`flex items-center h-16 flex-shrink-0 z-10 backdrop-blur-xl ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-4'} ${mode === 'dark' ? 'bg-slate-900/45 shadow-[0_6px_14px_rgba(2,6,23,0.35)]' : 'bg-white/56 shadow-[0_6px_14px_rgba(148,163,184,0.18)]'}`}>
-                    {/* Logo/Title - ocultar texto cuando está colapsado en desktop */}
-                    <h1 className={`text-lg lg:text-xl font-bold select-none transition-all ${mode === 'dark' ? 'text-white' : 'text-gray-900'} ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
+                <div className={`flex items-center h-16 flex-shrink-0 z-10 backdrop-blur-xl justify-center px-2 lg:px-4 ${!sidebarCollapsed ? 'lg:justify-between' : ''} ${mode === 'dark' ? 'bg-slate-900/45 shadow-[0_6px_14px_rgba(2,6,23,0.35)]' : 'bg-white/56 shadow-[0_6px_14px_rgba(148,163,184,0.18)]'}`}>
+                    {/* Logo/Title — hidden on mobile, hidden when collapsed on desktop */}
+                    <h1 className={`hidden text-lg lg:text-xl font-bold select-none transition-all ${mode === 'dark' ? 'text-white' : 'text-gray-900'} ${sidebarCollapsed ? '' : 'lg:block'}`}>
                         🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}
                     </h1>
 
-                    {/* Botón toggle collapse (solo desktop) */}
+                    {/* Collapse toggle — desktop only */}
                     <button
-                        className={`hidden lg:block p-2 rounded-lg transition-colors backdrop-blur-xl ${mode === 'dark'
+                        className={`p-2 rounded-lg transition-colors backdrop-blur-xl ${mode === 'dark'
                             ? 'bg-slate-900/44 text-slate-200 hover:bg-slate-800/58 shadow-[10px_10px_18px_rgba(2,6,23,0.55),-7px_-7px_12px_rgba(148,163,184,0.16)]'
                             : 'bg-white/90 text-slate-600 hover:bg-white shadow-[10px_10px_18px_rgba(148,163,184,0.28),-7px_-7px_12px_rgba(255,255,255,0.98)]'}`}
                         onClick={toggleSidebarCollapse}
@@ -485,26 +437,11 @@ export default function Layout({ children }: LayoutProps) {
                     >
                         <Menu size={20} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
                     </button>
-
-                    {/* Botón cerrar (solo mobile) */}
-                    <button
-                        className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center backdrop-blur-xl ${mode === 'dark'
-                            ? 'bg-slate-900/44 text-slate-200 hover:bg-slate-800/58 shadow-[10px_10px_18px_rgba(2,6,23,0.55),-7px_-7px_12px_rgba(148,163,184,0.16)]'
-                            : 'bg-white/90 text-slate-600 hover:bg-white shadow-[10px_10px_18px_rgba(148,163,184,0.28),-7px_-7px_12px_rgba(255,255,255,0.98)]'}`}
-                        onClick={() => setSidebarOpen(false)}
-                        aria-label="Cerrar menú"
-                        style={{
-                            WebkitTapHighlightColor: 'transparent',
-                            WebkitTouchCallout: 'none',
-                        }}
-                    >
-                        <X size={24} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
-                    </button>
                 </div>
 
-                {/* Scrollable Navigation */}
-                <div className="flex-1 overflow-y-auto">
-                    <nav className="px-3 pt-4 pb-20 space-y-1">
+                {/* Navigation */}
+                <div className="flex-1 overflow-hidden">
+                    <nav className="px-1.5 pt-3 pb-3 space-y-0.5 lg:px-2 lg:pt-4 lg:pb-4 lg:space-y-1">
                         {navigationItems.map((item: any) => {
                             const isActive = isItemActive(item.href)
                             const itemPalette = routePalettes[resolvePaletteKey(item.href.split('?')[0])] || routePalettes['/dashboard']
@@ -520,11 +457,11 @@ export default function Layout({ children }: LayoutProps) {
                                     key={item.name}
                                     to={item.href}
                                     className={`
-                  flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 backdrop-blur-xl will-change-transform
-                  min-h-[44px] touch-manipulation relative select-none
-                  ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'}
-                  ${tabStateClass}
-                `}
+                                        flex items-center text-base font-medium rounded-lg transition-all duration-200 backdrop-blur-xl will-change-transform
+                                        min-h-[40px] touch-manipulation relative select-none
+                                        ${sidebarCollapsed ? collapsedItemLayoutClass : expandedItemLayoutClass}
+                                        ${tabStateClass}
+                                    `}
                                     style={{
                                         WebkitTapHighlightColor: 'transparent',
                                         WebkitTouchCallout: 'none',
@@ -533,25 +470,27 @@ export default function Layout({ children }: LayoutProps) {
                                                 ? `linear-gradient(145deg, ${withAlpha(itemPalette.darkGlow, 0.66)}, rgba(15,23,42,0.74))`
                                                 : `linear-gradient(145deg, ${withAlpha(itemPalette.lightGlow, 0.62)}, ${withAlpha(itemPalette.lightGlow, 0.28)})`)
                                             : (mode === 'dark'
-                                                ? `linear-gradient(145deg, ${withAlpha(itemPalette.darkGlow, 0.34)}, rgba(15,23,42,0.58))`
-                                                : `linear-gradient(145deg, ${withAlpha(itemPalette.lightGlow, 0.34)}, rgba(241,245,249,0.9))`),
+                                                ? 'linear-gradient(145deg, rgba(30,41,59,0.5), rgba(15,23,42,0.58))'
+                                                : 'linear-gradient(145deg, rgba(248,250,252,0.9), rgba(241,245,249,0.8))'),
                                         border: mode === 'dark'
-                                            ? `1px solid ${isActive ? withAlpha(itemPalette.darkGlow, 0.7) : withAlpha(itemPalette.darkGlow, 0.42)}`
-                                            : undefined,
+                                            ? `1px solid ${isActive ? withAlpha(itemPalette.darkGlow, 0.7) : 'rgba(148,163,184,0.1)'}`
+                                            : `1px solid ${isActive ? withAlpha(itemPalette.lightGlow, 0.5) : 'transparent'}`,
                                         color: isActive
                                             ? (mode === 'dark' ? itemPalette.darkText : itemPalette.lightText)
                                             : (mode === 'dark' ? 'rgb(226,232,240)' : 'rgb(51,65,85)')
                                     }}
                                     onClick={handleNavClick}
-                                    title={sidebarCollapsed ? item.name : undefined}
+                                    title={item.name}
                                 >
-                                    <item.icon size={22} className={`flex-shrink-0 ${!sidebarCollapsed ? 'mr-3' : ''}`} />
-                                    {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
-                                    {sidebarCollapsed && <span className={collapsedLabelClass}>{item.shortName || item.name}</span>}
+                                    <item.icon size={20} className={`flex-shrink-0 ${!sidebarCollapsed ? 'lg:mr-3' : ''}`} />
+                                    {/* Text label: hidden on mobile always; on desktop only when expanded */}
+                                    {!sidebarCollapsed && <span className="hidden lg:inline flex-1">{item.name}</span>}
+                                    {/* Short label: shown on desktop when collapsed */}
+                                    <span className={collapsedLabelClass}>{item.shortName || item.name}</span>
                                     {item.badge && item.badge > 0 && (
                                         <span className={`
-                    px-2 py-0.5 text-xs font-semibold rounded-full
-                    ${sidebarCollapsed ? 'lg:absolute lg:top-0.5 lg:right-0.5' : ''}
+                    px-1.5 py-0.5 text-xs font-semibold rounded-full absolute top-0.5 right-0.5 lg:static lg:px-2
+                    ${sidebarCollapsed ? '' : 'lg:relative lg:top-0 lg:right-0'}
                     ${isActive
                                                 ? 'bg-emerald-500 text-white'
                                                 : 'bg-orange-500 text-white'
@@ -567,22 +506,10 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
             </div>
 
-            {/* Main content */}
-            <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
+            {/* Main content — always offset by sidebar width */}
+            <div className={`flex flex-col overflow-x-hidden min-h-screen ml-14 ${mainOffsetClass}`}>
                 {/* Top bar - Fixed header */}
-                <div className={`h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto backdrop-blur-xl transition-all duration-300 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-900/32 !shadow-[0_10px_22px_rgba(2,6,23,0.34)]' : 'bg-white/76 !shadow-[0_10px_22px_rgba(148,163,184,0.22)]'}`}>
-                    <button
-                        className={`lg:hidden p-2 -ml-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
-                        onClick={() => setSidebarOpen(true)}
-                        aria-label="Abrir menú"
-                        style={{
-                            WebkitTapHighlightColor: 'transparent',
-                            WebkitTouchCallout: 'none',
-                        }}
-                    >
-                        <Menu size={24} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
-                    </button>
-
+                <div className={`h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 right-0 z-40 backdrop-blur-xl transition-all duration-300 left-14 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-900/32 !shadow-[0_10px_22px_rgba(2,6,23,0.34)]' : 'bg-white/76 !shadow-[0_10px_22px_rgba(148,163,184,0.22)]'}`}>
                     {/* Search form */}
                     <form onSubmit={handleSearch} className="flex items-center flex-1 mx-2 md:mx-4 md:max-w-md">
                         <div className="relative w-full">

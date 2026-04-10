@@ -1,5 +1,6 @@
 import Button from '@/components/common/Button'
 import PageHeader from '@/components/common/PageHeader'
+import { useNavigate } from 'react-router-dom'
 import {
     CheckSquare,
     Edit,
@@ -57,6 +58,7 @@ export default function InventoryHeader({
     onSelectAllItems,
     onShowAddModal,
 }: InventoryHeaderProps) {
+    const navigate = useNavigate()
     const neutralButtonClass = isDark
         ? '!bg-slate-800/48 !text-slate-500 !font-semibold !border !border-slate-500/35 !backdrop-blur-xl !shadow-[6,23,0.6),163,184,0.12)] hover:!bg-slate-800/58 hover:!text-slate-400'
         : '!bg-slate-200/60 !text-slate-500 !font-semibold !border !border-slate-400/70 !backdrop-blur-xl !shadow-[163,184,0.24),255,255,0.88)] hover:!bg-slate-200/72 hover:!text-slate-700'
@@ -180,6 +182,16 @@ export default function InventoryHeader({
                                     Seleccionar
                                 </Button>
                             )}
+                            <Button
+                                icon={<ShoppingCart size={18} />}
+                                onClick={() => navigate('/pos')}
+                                size="sm"
+                                className={isDark
+                                    ? '!bg-emerald-600/58 !text-emerald-50 !backdrop-blur-xl !shadow-[6px_6px_12px_rgba(5,150,105,0.4)] hover:!bg-emerald-600/70'
+                                    : '!bg-emerald-500/58 !text-white !backdrop-blur-xl !shadow-[6px_6px_12px_rgba(16,185,129,0.3)] hover:!bg-emerald-500/70'}
+                            >
+                                Nueva Venta
+                            </Button>
                             {canCreate ? (
                                 <Button icon={<Plus size={18} />} onClick={onShowAddModal} size="sm" className={primaryButtonClass}>
                                     Agregar Pieza

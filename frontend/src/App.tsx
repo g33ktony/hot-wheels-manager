@@ -33,6 +33,7 @@ const DataReports = lazy(() => import('./pages/DataReports'))
 const Customers = lazy(() => import('./pages/Customers'))
 const CustomerProfile = lazy(() => import('./pages/CustomerProfile'))
 const Suppliers = lazy(() => import('./pages/Suppliers'))
+const Contacts = lazy(() => import('./pages/Contacts'))
 const Boxes = lazy(() => import('./pages/Boxes'))
 const PendingItemsPage = lazy(() => import('./pages/PendingItemsPage'))
 const PreSaleHub = lazy(() => import('./pages/PreSaleHub'))
@@ -86,6 +87,7 @@ function App() {
                                                         <Route path="/pending-items" element={<PendingItemsPage />} />
                                                         <Route path="/deliveries" element={<Deliveries />} />
                                                         <Route path="/delivery-analytics" element={<DeliveryAnalytics />} />
+                                                        <Route path="/contacts" element={<Contacts />} />
                                                         <Route path="/customers" element={<Customers />} />
                                                         <Route path="/customers/:customerId" element={<CustomerProfile />} />
                                                         <Route path="/suppliers" element={<Suppliers />} />

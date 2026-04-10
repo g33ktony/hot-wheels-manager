@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useStore } from '@/contexts/StoreContext'
 import { useCanEditStore } from '@/hooks/useCanEditStore'
@@ -11,6 +11,7 @@ import { Loading } from '@/components/common/Loading'
 import { Plus, Search, ShoppingCart, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function Sales() {
+    const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const { mode } = useTheme()
     const isDark = mode === 'dark'
@@ -113,9 +114,17 @@ export default function Sales() {
 
     return (
         <div className="space-y-6">
-            <div className={titleSurfaceClass}>
-                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Ventas</h1>
-                <p className={`text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Todas las ventas se realizan a través del POS</p>
+            <div className={`${titleSurfaceClass} flex items-center justify-between`}>
+                <div>
+                    <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Ventas</h1>
+                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Historial de ventas realizadas a través del POS</p>
+                </div>
+                <Button
+                    icon={<ShoppingCart size={18} />}
+                    onClick={() => navigate('/pos')}
+                >
+                    Nueva Venta
+                </Button>
             </div>
 
             {/* Filters */}

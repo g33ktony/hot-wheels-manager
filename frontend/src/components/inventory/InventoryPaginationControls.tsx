@@ -1,4 +1,3 @@
-import Button from '@/components/common/Button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface PaginationMeta {
@@ -70,20 +69,18 @@ export default function InventoryPaginationControls({
                     {startItem}-{endItem} de {pagination.totalItems}
                 </span>
 
-                <Button
-                    size="sm"
-                    variant="secondary"
+                <button
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
-                        ? '!bg-slate-800/62 !text-white !font-bold disabled:!text-slate-400 disabled:!bg-slate-800/50 disabled:!opacity-100 !backdrop-blur-xl !shadow-[10px_10px_16px_rgba(2,6,23,0.5),-7px_-7px_12px_rgba(148,163,184,0.2)] hover:!bg-slate-700/72'
-                        : '!bg-slate-200/78 !text-slate-800 !font-bold disabled:!text-slate-400 disabled:!bg-slate-200/60 disabled:!opacity-100 !backdrop-blur-xl !shadow-[10px_10px_16px_rgba(148,163,184,0.26),-7px_-7px_12px_rgba(255,255,255,0.98)] hover:!bg-slate-200/88'
-                        }`}
                     aria-label="Página anterior"
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg font-bold text-sm transition-all duration-200 disabled:pointer-events-none ${isDark
+                        ? 'bg-slate-700 text-slate-200 shadow-[10px_10px_16px_rgba(2,6,23,0.5),-7px_-7px_12px_rgba(148,163,184,0.15)] hover:bg-slate-600 hover:text-white disabled:bg-slate-800/50 disabled:text-slate-500'
+                        : 'bg-slate-200 text-slate-800 shadow-[10px_10px_16px_rgba(148,163,184,0.26),-7px_-7px_12px_rgba(255,255,255,0.98)] hover:bg-slate-300 disabled:text-slate-400 disabled:bg-slate-200/60'
+                        }`}
                 >
                     <ChevronLeft size={16} />
                     <span className="hidden sm:inline">Anterior</span>
-                </Button>
+                </button>
 
                 <div
                     className={`flex items-center gap-1 rounded-xl px-1.5 py-1 ${isDark
@@ -123,20 +120,18 @@ export default function InventoryPaginationControls({
                     })}
                 </div>
 
-                <Button
-                    size="sm"
-                    variant="secondary"
+                <button
                     onClick={() => onPageChange(Math.min(pagination.totalPages, currentPage + 1))}
                     disabled={currentPage === pagination.totalPages}
-                    className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg ${isDark
-                        ? '!bg-slate-800/62 !text-white !font-bold disabled:!text-slate-400 disabled:!bg-slate-800/50 disabled:!opacity-100 !backdrop-blur-xl !shadow-[10px_10px_16px_rgba(2,6,23,0.5),-7px_-7px_12px_rgba(148,163,184,0.2)] hover:!bg-slate-700/72'
-                        : '!bg-slate-200/78 !text-slate-800 !font-bold disabled:!text-slate-400 disabled:!bg-slate-200/60 disabled:!opacity-100 !backdrop-blur-xl !shadow-[10px_10px_16px_rgba(148,163,184,0.26),-7px_-7px_12px_rgba(255,255,255,0.98)] hover:!bg-slate-200/88'
-                        }`}
                     aria-label="Página siguiente"
+                    className={`flex items-center gap-1 px-2 sm:px-2.5 h-8 rounded-lg font-bold text-sm transition-all duration-200 disabled:pointer-events-none ${isDark
+                        ? 'bg-slate-700 text-slate-200 shadow-[10px_10px_16px_rgba(2,6,23,0.5),-7px_-7px_12px_rgba(148,163,184,0.15)] hover:bg-slate-600 hover:text-white disabled:bg-slate-800/50 disabled:text-slate-500'
+                        : 'bg-slate-200 text-slate-800 shadow-[10px_10px_16px_rgba(148,163,184,0.26),-7px_-7px_12px_rgba(255,255,255,0.98)] hover:bg-slate-300 disabled:text-slate-400 disabled:bg-slate-200/60'
+                        }`}
                 >
                     <span className="hidden sm:inline">Siguiente</span>
                     <ChevronRight size={16} />
-                </Button>
+                </button>
 
                 <span
                     className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium border ${isDark

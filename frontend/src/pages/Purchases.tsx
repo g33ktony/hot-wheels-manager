@@ -669,6 +669,10 @@ export default function Purchases() {
     const totalItems = purchases?.length || 0
     const totalValue = purchases?.reduce((sum, purchase) => sum + purchase.totalCost, 0) || 0
     const pendingPurchases = purchases?.filter(p => p.status !== 'received').length || 0
+    const primaryTextClass = isDark ? 'text-white' : 'text-slate-900'
+    const secondaryTextClass = isDark ? 'text-slate-400' : 'text-slate-600'
+    const primaryTextStyle = { color: isDark ? '#ffffff' : '#0f172a' }
+    const secondaryTextStyle = { color: isDark ? '#94a3b8' : '#475569' }
     const titleSurfaceClass = isDark
         ? 'rounded-2xl border border-slate-700/70 bg-[linear-gradient(145deg,rgba(245,158,11,0.22),rgba(15,23,42,0.7))] shadow-[12px_12px_24px_rgba(2,6,23,0.52),-10px_-10px_20px_rgba(245,158,11,0.1)] p-4 lg:p-5'
         : 'rounded-2xl border border-white/80 bg-[linear-gradient(145deg,rgba(255,251,235,0.98),rgba(245,158,11,0.18))] shadow-[12px_12px_24px_rgba(148,163,184,0.3),-12px_-12px_24px_rgba(255,255,255,0.94)] p-4 lg:p-5'
@@ -678,8 +682,8 @@ export default function Purchases() {
             {/* Header */}
             <div className={`${titleSurfaceClass} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Compras</h1>
-                    <p className="text-sm text-slate-400">Gestiona tus compras de autos a escala</p>
+                    <h1 className={`text-2xl font-bold ${primaryTextClass}`} style={primaryTextStyle}>Compras</h1>
+                    <p className={`text-sm ${secondaryTextClass}`} style={secondaryTextStyle}>Gestiona tus compras de autos a escala</p>
                 </div>
                 <Button
                     icon={<Plus size={20} />}
@@ -699,8 +703,8 @@ export default function Purchases() {
                                 <ShoppingBag size={20} className="text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Total Compras</p>
-                                <p className="text-xl lg:text-2xl font-bold text-white">{totalItems}</p>
+                                <p className={`text-xs sm:text-sm font-medium ${secondaryTextClass}`} style={secondaryTextStyle}>Total Compras</p>
+                                <p className={`text-xl lg:text-2xl font-bold ${primaryTextClass}`} style={primaryTextStyle}>{totalItems}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -713,8 +717,8 @@ export default function Purchases() {
                                 <DollarSign size={20} className="text-emerald-400" />
                             </div>
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Valor Total</p>
-                                <p className="text-xl lg:text-2xl font-bold text-white">${totalValue.toFixed(2)}</p>
+                                <p className={`text-xs sm:text-sm font-medium ${secondaryTextClass}`} style={secondaryTextStyle}>Valor Total</p>
+                                <p className={`text-xl lg:text-2xl font-bold ${primaryTextClass}`} style={primaryTextStyle}>${totalValue.toFixed(2)}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -727,8 +731,8 @@ export default function Purchases() {
                                 <Calendar size={20} className="text-orange-600" />
                             </div>
                             <div>
-                                <p className="text-xs sm:text-sm font-medium text-slate-400">Pendientes</p>
-                                <p className="text-xl lg:text-2xl font-bold text-white">{pendingPurchases}</p>
+                                <p className={`text-xs sm:text-sm font-medium ${secondaryTextClass}`} style={secondaryTextStyle}>Pendientes</p>
+                                <p className={`text-xl lg:text-2xl font-bold ${primaryTextClass}`} style={primaryTextStyle}>{pendingPurchases}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -738,7 +742,7 @@ export default function Purchases() {
             {/* Purchases List */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-white">Historial de Compras</CardTitle>
+                    <h3 className={`text-base lg:text-lg font-semibold ${primaryTextClass}`} style={primaryTextStyle}>Historial de Compras</h3>
                 </CardHeader>
                 <CardContent>
                     {purchases && purchases.length > 0 ? (
@@ -748,7 +752,7 @@ export default function Purchases() {
                                     {/* Header row */}
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="font-medium text-white text-sm lg:text-base">
+                                            <h3 className={`font-medium text-sm lg:text-base ${primaryTextClass}`} style={primaryTextStyle}>
                                                 {typeof purchase.supplierId === 'object' ? purchase.supplierId.name : suppliers?.find(s => s._id === purchase.supplierId)?.name || 'Proveedor desconocido'}
                                             </h3>
                                             {purchase.hasPendingItems && purchase.pendingItemsCount && purchase.pendingItemsCount > 0 && (
@@ -774,7 +778,7 @@ export default function Purchases() {
                                     </div>
 
                                     {/* Info section */}
-                                    <div className="text-xs lg:text-sm text-slate-400 space-y-1">
+                                    <div className={`text-xs lg:text-sm space-y-1 ${secondaryTextClass}`} style={secondaryTextStyle}>
                                         <p>Fecha: {(() => {
                                             const dateStr = purchase.purchaseDate.toString().split('T')[0];
                                             const [year, month, day] = dateStr.split('-');
@@ -870,8 +874,8 @@ export default function Purchases() {
                     ) : (
                         <div className="text-center py-12">
                             <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-white mb-2">No hay compras registradas</h3>
-                            <p className="text-slate-400">Registra tu primera compra para comenzar</p>
+                            <h3 className={`text-lg font-medium mb-2 ${primaryTextClass}`} style={primaryTextStyle}>No hay compras registradas</h3>
+                            <p className={secondaryTextClass} style={secondaryTextStyle}>Registra tu primera compra para comenzar</p>
                         </div>
                     )}
                 </CardContent>
@@ -1022,21 +1026,21 @@ export default function Purchases() {
                     {/* Items Section */}
                     <div>
                         <div className="mb-4">
-                            <h4 className="text-md font-medium text-white">Items de la Compra</h4>
+                            <h4 className={`text-md font-medium ${primaryTextClass}`}>Items de la Compra</h4>
                         </div>
 
                         {newPurchase.items.length === 0 ? (
-                            <div className="text-center py-8 border-2 border-dashed border-slate-600 rounded-lg">
-                                <ShoppingBag size={48} className="mx-auto text-gray-400 mb-4" />
-                                <p className="text-slate-400">No hay items agregados</p>
-                                <p className="text-sm text-slate-400">Haz clic en "Agregar Item" y selecciona el tipo dentro del formulario</p>
+                            <div className={`text-center py-8 border-2 border-dashed rounded-lg ${isDark ? 'border-slate-600' : 'border-slate-300'}`}>
+                                <ShoppingBag size={48} className={`mx-auto mb-4 ${isDark ? 'text-gray-400' : 'text-slate-400'}`} />
+                                <p className={secondaryTextClass}>No hay items agregados</p>
+                                <p className={`text-sm ${secondaryTextClass}`}>Haz clic en "Agregar Item" y selecciona el tipo dentro del formulario</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {newPurchase.items.map((item, index) => (
-                                    <div key={index} className="border rounded-lg p-4 bg-slate-700/30">
+                                    <div key={index} className={`border rounded-lg p-4 ${isDark ? 'bg-slate-700/30' : 'bg-slate-50'}`}>
                                         <div className="flex items-center justify-between mb-4">
-                                            <h5 className="font-medium text-white">Item {index + 1}</h5>
+                                            <h5 className={`font-medium ${primaryTextClass}`}>Item {index + 1}</h5>
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveItem(index)}
@@ -1070,7 +1074,7 @@ export default function Purchases() {
                                                     }}
                                                     className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${(item.itemType === 'individual' || !item.itemType) && !item.isBox
                                                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                                        : 'border-slate-600 hover:border-gray-400'
+                                                        : isDark ? 'border-slate-600 hover:border-gray-400' : 'border-slate-300 hover:border-gray-400'
                                                         }`}
                                                     style={{
                                                         WebkitTapHighlightColor: 'transparent',
@@ -1095,7 +1099,7 @@ export default function Purchases() {
                                                     }}
                                                     className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'box' || item.isBox
                                                         ? 'border-purple-500 bg-purple-50 text-purple-700'
-                                                        : 'border-slate-600 hover:border-gray-400'
+                                                        : isDark ? 'border-slate-600 hover:border-gray-400' : 'border-slate-300 hover:border-gray-400'
                                                         }`}
                                                     style={{
                                                         WebkitTapHighlightColor: 'transparent',
@@ -1119,8 +1123,8 @@ export default function Purchases() {
                                                         setNewPurchase({ ...newPurchase, items: updatedItems })
                                                     }}
                                                     className={`p-3 border-2 rounded-lg transition-all touch-manipulation min-h-[60px] ${item.itemType === 'series'
-                                                        ? 'border-emerald-400 bg-slate-700 text-emerald-400'
-                                                        : 'border-slate-600 hover:border-gray-400'
+                                                        ? isDark ? 'border-emerald-400 bg-slate-700 text-emerald-400' : 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                                                        : isDark ? 'border-slate-600 hover:border-gray-400' : 'border-slate-300 hover:border-gray-400'
                                                         }`}
                                                     style={{
                                                         WebkitTapHighlightColor: 'transparent',
@@ -1275,7 +1279,7 @@ export default function Purchases() {
                                             /* ========== FORMULARIO PARA CAJA DE SERIE (Registro con cantidades) ========== */
                                             <div className="space-y-4">
                                                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                                    <div className="text-sm font-medium text-white mb-3 flex items-center">
+                                                    <div className="text-sm font-medium text-green-800 mb-3 flex items-center">
                                                         <Package size={16} className="mr-2" />
                                                         Configuración de Caja de Serie
                                                     </div>
@@ -1436,7 +1440,7 @@ export default function Purchases() {
                                                                         <div className="grid grid-cols-3 gap-3 text-sm">
                                                                             <div>
                                                                                 <div className="text-slate-400">Total:</div>
-                                                                                <div className="font-semibold text-white">
+                                                                                <div className={`font-semibold ${primaryTextClass}`}>
                                                                                     {item.seriesSize || 0} piezas
                                                                                 </div>
                                                                             </div>
@@ -1454,7 +1458,7 @@ export default function Purchases() {
                                                                             </div>
                                                                             <div className="col-span-3 pt-2 border-t">
                                                                                 <div className="text-slate-400">Subtotal:</div>
-                                                                                <div className="font-bold text-lg text-white">
+                                                                                <div className={`font-bold text-lg ${primaryTextClass}`}>
                                                                                     ${((item.unitPrice || 0) * (item.seriesSize || 0)).toFixed(2)}
                                                                                 </div>
                                                                             </div>
@@ -1470,7 +1474,7 @@ export default function Purchases() {
                                                 {item.seriesSize && item.seriesSize > 0 && (
                                                     <div className="space-y-3">
                                                         <div className="flex items-center justify-between">
-                                                            <h4 className="font-medium text-white">Registro de Piezas</h4>
+                                                            <h4 className={`font-medium ${primaryTextClass}`}>Registro de Piezas</h4>
                                                             <Button
                                                                 type="button"
                                                                 size="sm"
@@ -1516,7 +1520,7 @@ export default function Purchases() {
                                                                 const remaining = (item.seriesSize || 0) - registeredCount + (piece.quantity || 0) // Incluir la cantidad actual
 
                                                                 return (
-                                                                    <div key={pieceIndex} className="border rounded-lg p-3 bg-slate-800 relative">
+                                                                    <div key={pieceIndex} className={`border rounded-lg p-3 relative ${isDark ? 'bg-slate-800' : 'bg-white border-slate-200'}`}>
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => {
@@ -1534,11 +1538,11 @@ export default function Purchases() {
                                                                         </button>
 
                                                                         <div className="flex items-center justify-between mb-2 pr-6">
-                                                                            <h5 className="font-medium text-white text-sm">
+                                                                            <h5 className={`font-medium ${primaryTextClass} text-sm`}>
                                                                                 Pieza #{piece.position}
                                                                             </h5>
                                                                             {piece.carId && piece.quantity > 0 && (
-                                                                                <span className="text-xs bg-slate-700 text-emerald-400 px-2 py-1 rounded">
+                                                                                <span className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-slate-700 text-emerald-400' : 'bg-slate-100 text-emerald-600'}`}>
                                                                                     ✓ {piece.quantity} unidad{piece.quantity > 1 ? 'es' : ''}
                                                                                 </span>
                                                                             )}
@@ -1681,7 +1685,7 @@ export default function Purchases() {
                                                         </div>
 
                                                         {(item.seriesPieces || []).length === 0 && (
-                                                            <div className="text-center py-8 text-slate-400 bg-slate-700/30 rounded-lg border border-dashed border-slate-600">
+                                                            <div className={`text-center py-8 rounded-lg border border-dashed ${isDark ? 'text-slate-400 bg-slate-700/30 border-slate-600' : 'text-slate-500 bg-slate-50 border-slate-300'}`}>
                                                                 <Package size={32} className="mx-auto mb-2 opacity-50" />
                                                                 <p className="text-sm">No hay piezas registradas</p>
                                                                 <p className="text-xs">Haz clic en "+ Agregar Pieza" para empezar</p>
@@ -1724,8 +1728,8 @@ export default function Purchases() {
                                                 )}
 
                                                 {/* Información Básica */}
-                                                <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-700">
-                                                    <h6 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                                                <div className={`rounded-lg p-4 border ${isDark ? 'bg-slate-700/30 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                                    <h6 className={`text-sm font-semibold ${primaryTextClass} mb-3 flex items-center gap-2`}>
                                                         <Car size={16} />
                                                         Información Básica
                                                     </h6>
@@ -1812,8 +1816,8 @@ export default function Purchases() {
                                                 </div>
 
                                                 {/* Marca y Tipo de Pieza */}
-                                                <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-700">
-                                                    <h6 className="text-sm font-semibold text-gray-700 mb-3">
+                                                <div className={`rounded-lg p-4 border ${isDark ? 'bg-slate-700/30 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                                    <h6 className={`text-sm font-semibold ${primaryTextClass} mb-3`}>
                                                         Clasificación
                                                     </h6>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1961,8 +1965,8 @@ export default function Purchases() {
                                                     )}
 
                                                 {/* Series Section */}
-                                                <div className="bg-slate-700/30 rounded-lg p-4 border border-slate-700">
-                                                    <h6 className="text-sm font-semibold text-gray-700 mb-3">
+                                                <div className={`rounded-lg p-4 border ${isDark ? 'bg-slate-700/30 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+                                                    <h6 className={`text-sm font-semibold ${primaryTextClass} mb-3`}>
                                                         Información de Serie (Opcional)
                                                     </h6>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2085,7 +2089,7 @@ export default function Purchases() {
                         {/* Resumen Total Mejorado */}
                         {newPurchase.items.length > 0 && (
                             <div className="mt-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-5 border-2 border-blue-300 shadow-md">
-                                <h5 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <h5 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
                                     <span className="text-2xl">💰</span>
                                     Resumen de Compra
                                 </h5>
@@ -2094,13 +2098,13 @@ export default function Purchases() {
                                 <div className="space-y-2 mb-4">
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-gray-700">Número de items:</span>
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-blue-900">
                                             {newPurchase.items.length} {newPurchase.items.length === 1 ? 'item' : 'items'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-gray-700">Cantidad total de piezas:</span>
-                                        <span className="font-semibold text-white">
+                                        <span className="font-semibold text-blue-900">
                                             {newPurchase.items.reduce((sum, item) => {
                                                 // Para series, sumar las cantidades de seriesPieces
                                                 if (item.itemType === 'series' && item.seriesPieces && item.seriesPieces.length > 0) {
@@ -2116,8 +2120,8 @@ export default function Purchases() {
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center pt-2 border-t border-blue-200">
-                                        <span className="font-medium text-white">Subtotal de items:</span>
-                                        <span className="font-bold text-lg text-white">
+                                        <span className="font-medium text-blue-900">Subtotal de items:</span>
+                                        <span className="font-bold text-lg text-blue-900">
                                             ${newPurchase.items.reduce((sum, item) => {
                                                 // Para series, calcular: seriesSize × unitPrice
                                                 if (item.itemType === 'series') {
@@ -2134,7 +2138,7 @@ export default function Purchases() {
                                 {newPurchase.shippingCost > 0 && (
                                     <div className="flex justify-between items-center mb-3 py-2 border-t border-blue-200">
                                         <span className="text-sm text-gray-700">Costo de Envío:</span>
-                                        <span className="text-sm font-medium text-white">
+                                        <span className="text-sm font-medium text-blue-900">
                                             +${newPurchase.shippingCost.toFixed(2)}
                                         </span>
                                     </div>
@@ -2375,7 +2379,7 @@ export default function Purchases() {
 
                             {/* Series Information */}
                             <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                                <h4 className="font-medium text-white mb-4">Información de la Serie</h4>
+                                <h4 className="font-medium text-blue-900 mb-4">Información de la Serie</h4>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="md:col-span-2">
