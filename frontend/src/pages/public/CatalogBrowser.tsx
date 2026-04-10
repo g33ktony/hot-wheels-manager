@@ -36,10 +36,6 @@ export default function CatalogBrowser() {
   const [searchParams, setSearchParams] = useSearchParams()
   const isDark = mode === 'dark'
 
-  const pageBackdropClass = isDark
-    ? 'bg-[radial-gradient(circle_at_15%_20%,rgba(14,116,144,0.18),transparent_40%),radial-gradient(circle_at_85%_10%,rgba(59,130,246,0.14),transparent_35%),linear-gradient(180deg,#020617_0%,#0f172a_100%)]'
-    : 'bg-[radial-gradient(circle_at_10%_15%,rgba(56,189,248,0.16),transparent_40%),radial-gradient(circle_at_90%_5%,rgba(14,165,233,0.14),transparent_35%),linear-gradient(180deg,#f4f8ff_0%,#e9eff8_100%)]'
-
   const neumorphSurfaceClass = isDark
     ? 'backdrop-blur-xl bg-slate-900/62 shadow-[14px_14px_26px_rgba(2,6,23,0.52),-10px_-10px_18px_rgba(148,163,184,0.16)]'
     : 'backdrop-blur-xl bg-white/94 shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.99)]'
