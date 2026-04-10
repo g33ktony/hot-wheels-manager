@@ -256,6 +256,7 @@ export default function Layout({ children }: LayoutProps) {
         return routePalettes[path] ? path : '/dashboard'
     }
 
+    // Restaurar fondo dinámico por ruta, pero usando el mismo efecto vistoso para todos
     const currentPalette = routePalettes[resolvePaletteKey(location.pathname)]
 
     const isItemActive = (href: string): boolean => {
@@ -404,8 +405,8 @@ export default function Layout({ children }: LayoutProps) {
             className="min-h-screen overflow-x-hidden w-full max-w-full"
             style={{
                 background: mode === 'dark'
-                    ? `linear-gradient(180deg, ${withAlpha(currentPalette.darkGlow, 0.12)} 0%, rgba(2,6,23,0) 8%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.darkGlow, 0.2)} 0%, transparent 11%), radial-gradient(circle at 90% 90%, rgba(56,189,248,0.03) 0%, transparent 16%), linear-gradient(180deg, #020617 0%, #0f172a 100%)`
-                    : `linear-gradient(180deg, ${withAlpha(currentPalette.lightGlow, 0.15)} 0%, rgba(248,251,255,0) 9%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.lightGlow, 0.22)} 0%, transparent 11%), radial-gradient(circle at 90% 90%, rgba(14,165,233,0.03) 0%, transparent 18%), linear-gradient(180deg, #f8fbff 0%, #eef3fa 100%)`
+                    ? `linear-gradient(145deg,${withAlpha(currentPalette.darkGlow, 0.22)} 0%,rgba(15,23,42,0.72) 100%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.darkGlow, 0.2)} 0%, transparent 40%), linear-gradient(180deg, #020617 0%, #0f172a 100%)`
+                    : `linear-gradient(145deg,${withAlpha(currentPalette.lightGlow, 0.18)} 0%,rgba(196,181,253,0.22) 100%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.lightGlow, 0.22)} 0%, transparent 40%), linear-gradient(180deg, #f8fbff 0%, #eef3fa 100%)`
             }}
         >
             {/* Sidebar — always fixed, always visible. Mobile: icon-only w-14. Desktop: collapsed or expanded. */}
@@ -485,8 +486,10 @@ export default function Layout({ children }: LayoutProps) {
                                     <item.icon size={20} className={`flex-shrink-0 ${!sidebarCollapsed ? 'lg:mr-3' : ''}`} />
                                     {/* Text label: hidden on mobile always; on desktop only when expanded */}
                                     {!sidebarCollapsed && <span className="hidden lg:inline flex-1">{item.name}</span>}
-                                    {/* Short label: shown on desktop when collapsed */}
-                                    <span className={collapsedLabelClass}>{item.shortName || item.name}</span>
+                                    {/* Short label: shown on desktop only when collapsed */}
+                                    {sidebarCollapsed && (
+                                        <span className={collapsedLabelClass}>{item.shortName || item.name}</span>
+                                    )}
                                     {item.badge && item.badge > 0 && (
                                         <span className={`
                     px-1.5 py-0.5 text-xs font-semibold rounded-full absolute top-0.5 right-0.5 lg:static lg:px-2
