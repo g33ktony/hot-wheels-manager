@@ -10,9 +10,11 @@ import Input from '@/components/common/Input'
 import { DEFAULT_PLACEHOLDER } from '@/utils/placeholderLogo'
 import { customersService } from '@/services/customers'
 import { deliveriesService } from '@/services/deliveries'
-import { Trash2 } from 'lucide-react'
+import { Plus, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useCreateCustomer } from '@/hooks/useCustomers'
+import { useDeliveryLocations, useCreateDeliveryLocation } from '@/hooks/useDeliveryLocations'
 import type { CreateDeliveryDto, Customer } from '@shared/types'
 
 interface DeliveryCartModalProps {
@@ -37,7 +39,15 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
     const [scheduledDate, setScheduledDate] = useState(new Date().toISOString().split('T')[0])
     const [scheduledTime, setScheduledTime] = useState('09:00')
     const [location, setLocation] = useState('')
+    const [showCustomLocation, setShowCustomLocation] = useState(false)
+    const [customLocation, setCustomLocation] = useState('')
     const [notes, setNotes] = useState('')
+
+    // Inline new customer form
+    const [showNewCustomer, setShowNewCustomer] = useState(false)
+    const [newCustomerName, setNewCustomerName] = useState('')
+    const [newCustomerEmail, setNewCustomerEmail] = useState('')
+    const [newCustomerPhone, setNewCustomerPhone] = useState('')
 
     // Fetch customers
     const { data: customers } = useQuery(
@@ -45,6 +55,57 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
         () => customersService.getAll(),
         { enabled: isOpen }
     )
+
+    const createCustomerMutation = useCreateCustomer()
+    const { data: deliveryLocations } = useDeliveryLocations()
+    const createLocationMutation = useCreateDeliveryLocation()
+
+    const handleLocationChange = async (value: string) => {
+        if (value === 'other') {
+            setShowCustomLocation(true)
+            setLocation('')
+        } else {
+            setShowCustomLocation(false)
+            setCustomLocation('')
+            setLocation(value)
+        }
+    }
+
+    const handleCustomLocationBlur = async () => {
+        const trimmed = customLocation.trim()
+        if (!trimmed) return
+        const exists = deliveryLocations?.find(loc => loc.name.toLowerCase() === trimmed.toLowerCase())
+        if (!exists) {
+            try {
+                await createLocationMutation.mutateAsync(trimmed)
+            } catch {
+                // toast already shown by hook
+            }
+        }
+        setLocation(trimmed)
+    }
+
+    const handleCreateNewCustomer = async () => {
+        if (!newCustomerName.trim()) {
+            toast.error('El nombre del cliente es requerido')
+            return
+        }
+        try {
+            const created = await createCustomerMutation.mutateAsync({
+                name: newCustomerName.trim(),
+                email: newCustomerEmail.trim() || undefined,
+                phone: newCustomerPhone.trim() || undefined,
+            })
+            setCustomerId(created._id)
+            setShowNewCustomer(false)
+            setNewCustomerName('')
+            setNewCustomerEmail('')
+            setNewCustomerPhone('')
+            toast.success('Cliente creado')
+        } catch {
+            toast.error('Error al crear el cliente')
+        }
+    }
 
     // Create delivery mutation
     const createDeliveryMutation = useMutation(
@@ -146,19 +207,65 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                         <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Cliente *
                         </label>
-                        <select
-                            className={`input w-full ${isDark ? 'bg-slate-800 text-white' : ''}`}
-                            value={customerId}
-                            onChange={(e) => setCustomerId(e.target.value)}
-                            required
-                        >
-                            <option value="">Seleccionar cliente</option>
-                            {customers?.map((customer: Customer) => (
-                                <option key={customer._id} value={customer._id}>
-                                    {customer.name} {customer.email ? `- ${customer.email}` : ''}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="flex gap-2">
+                            <select
+                                className={`input flex-1 ${isDark ? 'bg-slate-800 text-white' : ''}`}
+                                value={customerId}
+                                onChange={(e) => setCustomerId(e.target.value)}
+                                required
+                            >
+                                <option value="">Seleccionar cliente</option>
+                                {customers?.map((customer: Customer) => (
+                                    <option key={customer._id} value={customer._id}>
+                                        {customer.name} {customer.email ? `- ${customer.email}` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                onClick={() => setShowNewCustomer(!showNewCustomer)}
+                                title="Crear nuevo cliente"
+                                className={`flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg border transition-colors ${
+                                    showNewCustomer
+                                        ? isDark ? 'bg-slate-700 border-slate-500 text-white' : 'bg-slate-200 border-slate-400 text-slate-700'
+                                        : isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-slate-300 text-slate-600 hover:bg-slate-100'
+                                }`}
+                            >
+                                {showNewCustomer ? <X size={16} /> : <Plus size={16} />}
+                            </button>
+                        </div>
+
+                        {/* Inline new customer form */}
+                        {showNewCustomer && (
+                            <div className={`mt-2 p-3 rounded-xl border space-y-2 ${isDark ? 'bg-slate-800/60 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
+                                <p className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Nuevo cliente</p>
+                                <Input
+                                    type="text"
+                                    placeholder="Nombre *"
+                                    value={newCustomerName}
+                                    onChange={(e) => setNewCustomerName(e.target.value)}
+                                />
+                                <Input
+                                    type="email"
+                                    placeholder="Email (opcional)"
+                                    value={newCustomerEmail}
+                                    onChange={(e) => setNewCustomerEmail(e.target.value)}
+                                />
+                                <Input
+                                    type="tel"
+                                    placeholder="Teléfono (opcional)"
+                                    value={newCustomerPhone}
+                                    onChange={(e) => setNewCustomerPhone(e.target.value)}
+                                />
+                                <Button
+                                    size="sm"
+                                    onClick={handleCreateNewCustomer}
+                                    disabled={createCustomerMutation.isLoading}
+                                >
+                                    {createCustomerMutation.isLoading ? 'Creando...' : 'Crear cliente'}
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
                     <div>
@@ -188,13 +295,28 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                         <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                             Ubicación *
                         </label>
-                        <Input
-                            type="text"
-                            placeholder="Ej: Centro, Norte, etc."
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
+                        <select
+                            className={`input w-full ${isDark ? 'bg-slate-800 text-white' : ''}`}
+                            value={showCustomLocation ? 'other' : location}
+                            onChange={(e) => handleLocationChange(e.target.value)}
                             required
-                        />
+                        >
+                            <option value="">Seleccionar ubicación</option>
+                            {deliveryLocations?.map((loc) => (
+                                <option key={loc._id} value={loc.name}>{loc.name}</option>
+                            ))}
+                            <option value="other">Otra...</option>
+                        </select>
+                        {showCustomLocation && (
+                            <Input
+                                type="text"
+                                placeholder="Escribe la ubicación..."
+                                value={customLocation}
+                                onChange={(e) => setCustomLocation(e.target.value)}
+                                onBlur={handleCustomLocationBlur}
+                                className="mt-2"
+                            />
+                        )}
                     </div>
                 </div>
 
