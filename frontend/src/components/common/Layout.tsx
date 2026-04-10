@@ -63,6 +63,7 @@ export default function Layout({ children }: LayoutProps) {
         const saved = localStorage.getItem('sidebarCollapsed')
         return saved === 'true'
     })
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [showDeliveryCartModal, setShowDeliveryCartModal] = useState(false)
     const [sidebarDensity, setSidebarDensity] = useState<SidebarDensity>(() => {
@@ -280,6 +281,10 @@ export default function Layout({ children }: LayoutProps) {
         setSidebarCollapsed(!sidebarCollapsed)
     }
 
+    const toggleMobileSidebar = () => {
+        setMobileSidebarOpen(prev => !prev)
+    }
+
     const toggleSidebarDensity = () => {
         setSidebarDensity(prev => (prev === 'compact' ? 'normal' : 'compact'))
     }
@@ -293,18 +298,26 @@ export default function Layout({ children }: LayoutProps) {
     const collapsedItemLayoutClass = sidebarDensity === 'normal'
         ? 'flex-col justify-center gap-0.5 px-1 py-2 lg:gap-1 lg:px-1.5'
         : 'flex-col justify-center gap-0.5 px-1 py-2 lg:gap-1 lg:px-1'
+    const mobileOpenItemLayoutClass = 'flex-row items-center justify-start gap-3 px-4 py-2'
     // Expanded on desktop: horizontal layout
     const expandedItemLayoutClass = 'flex-col justify-center gap-0.5 px-1 py-2 lg:flex-row lg:items-center lg:px-4 lg:gap-0 lg:py-0'
     const collapsedLabelClass = sidebarDensity === 'normal'
         ? 'hidden lg:block text-[10px] leading-tight font-semibold text-center w-full px-0.5'
         : 'hidden lg:block text-[9px] leading-none font-semibold uppercase text-center w-full px-0.5'
 
-    // Handle navigation item click — collapse desktop sidebar
+    // Handle navigation item click
     const handleNavClick = () => {
-        if (window.innerWidth >= 1024) {
+        if (window.innerWidth < 1024) {
+            setMobileSidebarOpen(false)
+        } else {
             setSidebarCollapsed(true)
         }
     }
+
+    // Ensure mobile sidebar closes after route changes
+    useEffect(() => {
+        setMobileSidebarOpen(false)
+    }, [location.pathname, location.search])
 
     // Minimum swipe distance (in px)
     // Filter active boxes (exclude completed ones)
@@ -409,12 +422,21 @@ export default function Layout({ children }: LayoutProps) {
                     : `linear-gradient(145deg,${withAlpha(currentPalette.lightGlow, 0.18)} 0%,rgba(196,181,253,0.22) 100%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.lightGlow, 0.22)} 0%, transparent 40%), linear-gradient(180deg, #f8fbff 0%, #eef3fa 100%)`
             }}
         >
-            {/* Sidebar — always fixed, always visible. Mobile: icon-only w-14. Desktop: collapsed or expanded. */}
+            {/* Sidebar — mobile drawer + desktop collapsed/expanded behavior. */}
+            {mobileSidebarOpen && (
+                <button
+                    type="button"
+                    aria-label="Cerrar menú"
+                    className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-[1px] lg:hidden"
+                    onClick={() => setMobileSidebarOpen(false)}
+                />
+            )}
             <div
                 ref={sidebarRef}
                 className={`
                     fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden backdrop-blur-xl transition-all duration-300
-                    w-14 ${sidebarCollapsed ? collapsedWidthClass : 'lg:w-64'}
+                    w-64 ${sidebarCollapsed ? collapsedWidthClass : 'lg:w-64'}
+                    ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0
                     ${mode === 'dark'
                         ? 'bg-slate-800/74 shadow-[18px_18px_34px_rgba(2,6,23,0.58),-12px_-12px_22px_rgba(148,163,184,0.18)]'
                         : 'bg-white/88 shadow-[18px_18px_34px_rgba(148,163,184,0.3),-12px_-12px_22px_rgba(255,255,255,0.98)]'}
@@ -460,7 +482,9 @@ export default function Layout({ children }: LayoutProps) {
                                     className={`
                                         flex items-center text-base font-medium rounded-lg transition-all duration-200 backdrop-blur-xl will-change-transform
                                         min-h-[40px] touch-manipulation relative select-none
-                                        ${sidebarCollapsed ? collapsedItemLayoutClass : expandedItemLayoutClass}
+                                        ${mobileSidebarOpen
+                                            ? mobileOpenItemLayoutClass
+                                            : (sidebarCollapsed ? collapsedItemLayoutClass : expandedItemLayoutClass)}
                                         ${tabStateClass}
                                     `}
                                     style={{
@@ -484,7 +508,8 @@ export default function Layout({ children }: LayoutProps) {
                                     title={item.name}
                                 >
                                     <item.icon size={20} className={`flex-shrink-0 ${!sidebarCollapsed ? 'lg:mr-3' : ''}`} />
-                                    {/* Text label: hidden on mobile always; on desktop only when expanded */}
+                                    {/* Text label: visible on mobile when drawer is open; on desktop only when expanded */}
+                                    {mobileSidebarOpen && <span className="inline lg:hidden flex-1 truncate">{item.name}</span>}
                                     {!sidebarCollapsed && <span className="hidden lg:inline flex-1">{item.name}</span>}
                                     {/* Short label: shown on desktop only when collapsed */}
                                     {sidebarCollapsed && (
@@ -492,7 +517,10 @@ export default function Layout({ children }: LayoutProps) {
                                     )}
                                     {item.badge && item.badge > 0 && (
                                         <span className={`
-                    px-1.5 py-0.5 text-xs font-semibold rounded-full absolute top-0.5 right-0.5 lg:static lg:px-2
+                    px-1.5 py-0.5 text-xs font-semibold rounded-full
+                    ${mobileSidebarOpen
+                                                ? 'relative top-0 right-0 ml-auto'
+                                                : 'absolute top-0.5 right-0.5 lg:static lg:px-2'}
                     ${sidebarCollapsed ? '' : 'lg:relative lg:top-0 lg:right-0'}
                     ${isActive
                                                 ? 'bg-emerald-500 text-white'
@@ -509,10 +537,22 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
             </div>
 
-            {/* Main content — always offset by sidebar width */}
-            <div className={`flex flex-col overflow-x-hidden min-h-screen ml-14 ${mainOffsetClass}`}>
+            {/* Main content */}
+            <div className={`flex flex-col overflow-x-hidden min-h-screen ml-0 ${mainOffsetClass}`}>
                 {/* Top bar - Fixed header */}
-                <div className={`h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 right-0 z-40 backdrop-blur-xl transition-all duration-300 left-14 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-900/32 !shadow-[0_10px_22px_rgba(2,6,23,0.34)]' : 'bg-white/76 !shadow-[0_10px_22px_rgba(148,163,184,0.22)]'}`}>
+                <div className={`h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-3 fixed top-0 right-0 z-40 backdrop-blur-xl transition-all duration-300 left-0 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-900/32 !shadow-[0_10px_22px_rgba(2,6,23,0.34)]' : 'bg-white/76 !shadow-[0_10px_22px_rgba(148,163,184,0.22)]'}`}>
+                    <button
+                        type="button"
+                        aria-label={mobileSidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+                        title={mobileSidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+                        onClick={toggleMobileSidebar}
+                        className={`lg:hidden p-2 rounded-lg transition-colors backdrop-blur-xl ${mode === 'dark'
+                            ? 'bg-slate-900/44 text-slate-200 hover:bg-slate-800/58 shadow-[10px_10px_18px_rgba(2,6,23,0.55),-7px_-7px_12px_rgba(148,163,184,0.16)]'
+                            : 'bg-white/90 text-slate-600 hover:bg-white shadow-[10px_10px_18px_rgba(148,163,184,0.28),-7px_-7px_12px_rgba(255,255,255,0.98)]'}`}
+                    >
+                        <Menu size={20} className={mode === 'dark' ? 'text-slate-300' : 'text-gray-600'} />
+                    </button>
+
                     {/* Search form */}
                     <form onSubmit={handleSearch} className="flex items-center flex-1 mx-2 md:mx-4 md:max-w-md">
                         <div className="relative w-full">
