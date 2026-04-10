@@ -332,8 +332,8 @@ export default function Inventory() {
             {/* Error display */}
             {error && (
                 <div className={`p-4 rounded-xl backdrop-blur-xl ${isDark
-                    ? 'bg-red-900/28 border border-red-400/30 shadow-[inset_0_3px_3px_rgba(127,29,29,0.45),inset_0_-2px_2px_rgba(255,255,255,0.08)]'
-                    : 'bg-red-50/80 border border-red-200/85 shadow-[inset_0_3px_3px_rgba(252,165,165,0.35),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+                    ? 'bg-red-900/28 border border-red-400/30 shadow-[29,29,0.45),255,255,0.08)]'
+                    : 'bg-red-50/80 border border-red-200/85 shadow-[165,165,0.35),255,255,0.98)]'
                     }`}>
                     <h3 className={`font-bold mb-2 ${isDark ? 'text-red-200' : 'text-red-700'}`}>Error al cargar inventario:</h3>
                     <p className={`text-sm ${isDark ? 'text-red-100/90' : 'text-red-600'}`}>{error.message || String(error)}</p>
@@ -344,13 +344,7 @@ export default function Inventory() {
             <div ref={topRef} />
 
             {/* Header */}
-            <div
-                ref={headerRef}
-                className={`rounded-2xl p-3 sm:p-4 backdrop-blur-xl ${isDark
-                    ? 'bg-slate-900/30 !shadow-[0_8px_20px_rgba(2,6,23,0.28),inset_0_3px_3px_rgba(2,6,23,0.58),inset_0_-2px_2px_rgba(148,163,184,0.08)]'
-                    : 'bg-white/72 !shadow-[0_8px_20px_rgba(148,163,184,0.2),inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
-                    }`}
-            >
+            <div ref={headerRef}>
                 <InventoryHeader
                     isDark={isDark}
                     isSelectionMode={isSelectionMode}

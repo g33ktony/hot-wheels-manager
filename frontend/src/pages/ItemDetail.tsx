@@ -1157,16 +1157,16 @@ export default function ItemDetail() {
         <div className={`min-h-screen pb-20 sm:pb-24 ${isDark ? 'bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.28),_transparent_40%),linear-gradient(to_bottom,_rgb(2,6,23),_rgb(15,23,42),_rgb(2,6,23))' : 'bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.35),_transparent_45%),linear-gradient(to_bottom,_rgb(248,250,252),_rgb(224,242,254),_rgb(239,246,255))]'}`}>
             <div className="sticky top-0 z-10 px-3 sm:px-5 pt-2.5 sm:pt-3">
                 <div className={`max-w-7xl mx-auto rounded-[999px] backdrop-blur-xl border border-transparent ${isDark
-                    ? 'bg-slate-900/62 shadow-[0_10px_24px_rgba(2,6,23,0.38),inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
-                    : 'bg-white/72 shadow-[0_10px_24px_rgba(148,163,184,0.26),inset_0_2px_2px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                    ? 'bg-slate-900/62 shadow-[14px_14px_28px_rgba(2,6,23,0.38),6,23,0.6),255,255,0.12)]'
+                    : 'bg-white/72 shadow-[14px_14px_28px_rgba(148,163,184,0.26),163,184,0.24),255,255,0.98)]'}`}>
                     <div className="px-3 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
                         <Button
                             variant="secondary"
                             size="sm"
                             onClick={() => navigate('/inventory')}
                             className={`!p-2 rounded-xl !backdrop-blur-xl ${isDark
-                                ? '!bg-slate-800/44 !text-slate-400 hover:!bg-slate-700/52 hover:!text-slate-300 !border !border-transparent !shadow-[inset_0_3px_3px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
-                                : '!bg-white/60 !text-slate-500 hover:!bg-white/72 hover:!text-slate-700 !border !border-transparent !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
+                                ? '!bg-slate-800/44 !text-slate-400 hover:!bg-slate-700/52 hover:!text-slate-300 !border !border-transparent !shadow-[6,23,0.65),255,255,0.14)]'
+                                : '!bg-white/60 !text-slate-500 hover:!bg-white/72 hover:!text-slate-700 !border !border-transparent !shadow-[163,184,0.24),255,255,0.98)]'}`}
                         >
                             <ArrowLeft className={`w-5 h-5 ${isDark ? '!text-slate-400' : '!text-slate-500'}`} />
                         </Button>
@@ -1185,18 +1185,18 @@ export default function ItemDetail() {
                     <div className={`rounded-[calc(1.5rem-1px)] px-3 py-3 sm:px-4 sm:py-4 ${isDark ? 'bg-slate-900/75 backdrop-blur-xl' : 'bg-white/85 backdrop-blur-xl'}`}>
                         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs sm:text-sm">
                             <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark
-                                ? 'bg-cyan-500/18 text-cyan-100 border border-transparent shadow-[inset_0_2px_2px_rgba(8,47,73,0.55),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
-                                : 'bg-cyan-100/88 text-cyan-800 border border-transparent shadow-[inset_0_2px_2px_rgba(14,116,144,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                ? 'bg-cyan-500/18 text-cyan-100 border border-transparent shadow-[47,73,0.55),255,255,0.16)]'
+                                : 'bg-cyan-100/88 text-cyan-800 border border-transparent shadow-[116,144,0.2),255,255,0.98)]'}`}>
                                 {formatPieceTypeLabel(item.pieceType) || 'Sin tipo'}
                             </span>
                             <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark
-                                ? 'bg-blue-500/18 text-blue-100 border border-transparent shadow-[inset_0_2px_2px_rgba(30,58,138,0.52),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
-                                : 'bg-blue-100/88 text-blue-800 border border-transparent shadow-[inset_0_2px_2px_rgba(37,99,235,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                ? 'bg-blue-500/18 text-blue-100 border border-transparent shadow-[58,138,0.52),255,255,0.16)]'
+                                : 'bg-blue-100/88 text-blue-800 border border-transparent shadow-[99,235,0.2),255,255,0.98)]'}`}>
                                 {formatConditionLabel(item.condition) || 'Sin condición'}
                             </span>
                             <span className={`px-2.5 py-1 rounded-full font-semibold ${isDark
-                                ? 'bg-emerald-500/18 text-emerald-100 border border-transparent shadow-[inset_0_2px_2px_rgba(6,78,59,0.52),inset_0_-1px_1px_rgba(255,255,255,0.16)]'
-                                : 'bg-emerald-100/88 text-emerald-800 border border-transparent shadow-[inset_0_2px_2px_rgba(5,150,105,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                ? 'bg-emerald-500/18 text-emerald-100 border border-transparent shadow-[78,59,0.52),255,255,0.16)]'
+                                : 'bg-emerald-100/88 text-emerald-800 border border-transparent shadow-[150,105,0.2),255,255,0.98)]'}`}>
                                 {availableQuantity} disponibles
                             </span>
                             <span className={`ml-auto text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -1212,8 +1212,8 @@ export default function ItemDetail() {
                             ? 'bg-gradient-to-br from-cyan-400/26 via-blue-400/18 to-slate-500/24 shadow-[0_16px_36px_rgba(2,6,23,0.42)]'
                             : 'bg-gradient-to-br from-cyan-300/42 via-blue-300/28 to-slate-300/32 shadow-[0_16px_36px_rgba(148,163,184,0.3)]'}`}>
                             <div className={`!rounded-[27px] overflow-hidden backdrop-blur-xl ${isDark
-                                ? 'bg-slate-900/62 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.23),inset_0_-2px_2px_rgba(255,255,255,0.98)]'}`}>
+                                ? 'bg-slate-900/62 shadow-[6,23,0.62),255,255,0.12)]'
+                                : 'bg-white/90 shadow-[163,184,0.23),255,255,0.98)]'}`}>
                                 {selectedPhoto ? (
                                     <div>
                                         <div className="relative group h-[48vh] min-h-[280px] max-h-[520px] sm:h-[58vh] sm:min-h-[360px] sm:max-h-[680px] bg-black flex items-center justify-center">
@@ -1238,8 +1238,8 @@ export default function ItemDetail() {
 
                                         {displayPhotos.length > 1 && (
                                             <div className={`rounded-2xl mx-2 mb-2 sm:mx-3 sm:mb-3 p-2 sm:p-3 flex gap-2 overflow-x-auto border border-transparent ${isDark
-                                                ? 'bg-slate-800/70 shadow-[0_6px_16px_rgba(2,6,23,0.32),inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-                                                : 'bg-white/88 shadow-[0_6px_16px_rgba(148,163,184,0.22),inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                                ? 'bg-slate-800/70 shadow-[0_6px_16px_rgba(2,6,23,0.32),6,23,0.55),255,255,0.1)]'
+                                                : 'bg-white/88 shadow-[0_6px_16px_rgba(148,163,184,0.22),163,184,0.2),255,255,0.98)]'}`}>
                                                 {displayPhotos.map((photo, index) => (
                                                     <button
                                                         key={`${photo.source}-${index}`}
@@ -1247,11 +1247,11 @@ export default function ItemDetail() {
                                                         title={photo.title}
                                                         className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border relative ${safeSelectedPhotoIndex === index
                                                             ? (isDark
-                                                                ? 'border-primary-400 ring-2 ring-primary-300/40 shadow-[inset_0_2px_2px_rgba(30,58,138,0.45),inset_0_-1px_1px_rgba(255,255,255,0.2)]'
-                                                                : 'border-primary-500 ring-2 ring-primary-300/40 shadow-[inset_0_2px_2px_rgba(37,99,235,0.24),inset_0_-1px_1px_rgba(255,255,255,0.85)]')
+                                                                ? 'border-primary-400 ring-2 ring-primary-300/40 shadow-[58,138,0.45),255,255,0.2)]'
+                                                                : 'border-primary-500 ring-2 ring-primary-300/40 shadow-[99,235,0.24),255,255,0.85)]')
                                                             : (isDark
-                                                                ? 'border-slate-600/70 shadow-[inset_0_2px_2px_rgba(2,6,23,0.5),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-                                                                : 'border-slate-300/85 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]')}`}
+                                                                ? 'border-slate-600/70 shadow-[6,23,0.5),255,255,0.1)]'
+                                                                : 'border-slate-300/85 shadow-[163,184,0.2),255,255,0.98)]')}`}
                                                     >
                                                         <img
                                                             src={proxifyImageUrl(photo.url)}
@@ -1281,7 +1281,7 @@ export default function ItemDetail() {
 
                     <div className="lg:col-span-2 space-y-3 sm:space-y-4">
                         <Card className="!rounded-[28px] p-[1px] border border-transparent bg-gradient-to-br from-blue-300/50 via-cyan-300/30 to-indigo-300/35 shadow-[0_18px_40px_rgba(30,64,175,0.36)]">
-                            <div className="!rounded-[27px] bg-gradient-to-br from-primary-600 via-blue-600 to-cyan-600 text-white shadow-[inset_0_2px_2px_rgba(255,255,255,0.2),inset_0_-2px_2px_rgba(3,105,161,0.34)]">
+                            <div className="!rounded-[27px] bg-gradient-to-br from-primary-600 via-blue-600 to-cyan-600 text-white shadow-[255,255,0.2),105,161,0.34)]">
                                 <div className="p-4 sm:p-5">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -1291,7 +1291,7 @@ export default function ItemDetail() {
                                         <DollarSign className="w-10 h-10 sm:w-12 sm:h-12 opacity-50" />
                                     </div>
                                     {!hideCostAndProfitInInventory && (
-                                        <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 rounded-2xl border border-transparent bg-white/8 backdrop-blur-md px-3 py-2.5 shadow-[inset_0_2px_2px_rgba(3,7,18,0.22),inset_0_-1px_1px_rgba(255,255,255,0.22)] space-y-1 text-sm">
+                                        <div className="mt-3 pt-3 sm:mt-4 sm:pt-4 rounded-2xl border border-transparent bg-white/8 backdrop-blur-md px-3 py-2.5 shadow-[7,18,0.22),255,255,0.22)] space-y-1 text-sm">
                                             <div className="flex justify-between">
                                                 <span className="opacity-90">Compra:</span>
                                                 <span className="font-semibold">${purchasePrice.toFixed(2)}</span>
@@ -1314,31 +1314,31 @@ export default function ItemDetail() {
                             ? 'bg-gradient-to-br from-cyan-400/28 via-blue-400/18 to-slate-500/22 shadow-[0_12px_30px_rgba(2,6,23,0.38)]'
                             : 'bg-gradient-to-br from-cyan-300/45 via-blue-300/25 to-slate-300/30 shadow-[0_12px_30px_rgba(148,163,184,0.28)]'}`}>
                             <div className={`!rounded-[27px] p-3 sm:p-4 space-y-2 sm:space-y-3 backdrop-blur-xl ${isDark
-                                ? 'bg-slate-800/74 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.22),inset_0_-2px_2px_rgba(255,255,255,0.99)]'}`}>
+                                ? 'bg-slate-800/74 shadow-[6,23,0.62),255,255,0.12)]'
+                                : 'bg-white/90 shadow-[163,184,0.22),255,255,0.99)]'}`}>
                                 <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Resumen rápido</h2>
                                 <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
                                     <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
-                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
-                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                        ? 'bg-slate-700/60 shadow-[6,23,0.55),255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[163,184,0.2),255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Disponibles</p>
                                         <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{availableQuantity}</p>
                                     </div>
                                     <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
-                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
-                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                        ? 'bg-slate-700/60 shadow-[6,23,0.55),255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[163,184,0.2),255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Reservadas</p>
                                         <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{reservedQuantity}</p>
                                     </div>
                                     <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
-                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
-                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                        ? 'bg-slate-700/60 shadow-[6,23,0.55),255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[163,184,0.2),255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Condición</p>
                                         <p className={`font-semibold capitalize ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.condition}</p>
                                     </div>
                                     <div className={`rounded-xl p-1.5 sm:p-2 ${isDark
-                                        ? 'bg-slate-700/60 shadow-[inset_0_2px_2px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
-                                        : 'bg-slate-100/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                        ? 'bg-slate-700/60 shadow-[6,23,0.55),255,255,0.12)]'
+                                        : 'bg-slate-100/90 shadow-[163,184,0.2),255,255,0.98)]'}`}>
                                         <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Ubicación</p>
                                         <p className={`font-semibold truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.location || 'Sin ubicación'}</p>
                                     </div>
@@ -1363,13 +1363,13 @@ export default function ItemDetail() {
                             ? 'bg-gradient-to-br from-blue-400/30 via-indigo-400/18 to-slate-500/22 shadow-[0_12px_30px_rgba(2,6,23,0.38)]'
                             : 'bg-gradient-to-br from-blue-300/45 via-indigo-300/25 to-slate-300/30 shadow-[0_12px_30px_rgba(148,163,184,0.28)]'}`}>
                             <div className={`!rounded-[27px] p-3 sm:p-4 space-y-2 backdrop-blur-xl ${isDark
-                                ? 'bg-slate-800/74 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.22),inset_0_-2px_2px_rgba(255,255,255,0.99)]'}`}>
+                                ? 'bg-slate-800/74 shadow-[6,23,0.62),255,255,0.12)]'
+                                : 'bg-white/90 shadow-[163,184,0.22),255,255,0.99)]'}`}>
                                 <h2 className={`text-sm sm:text-base font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Acciones</h2>
                                 <Button
                                     className={`w-full justify-center gap-2 h-9 sm:h-10 !border !border-transparent !backdrop-blur-xl ${isDark
-                                        ? '!bg-blue-600/72 !text-blue-50 hover:!bg-blue-600/82 !shadow-[inset_0_2px_2px_rgba(30,58,138,0.55),inset_0_-1px_1px_rgba(255,255,255,0.18)]'
-                                        : '!bg-blue-500/80 !text-white hover:!bg-blue-500/90 !shadow-[inset_0_2px_2px_rgba(37,99,235,0.26),inset_0_-1px_1px_rgba(255,255,255,0.45)]'}`}
+                                        ? '!bg-blue-600/72 !text-blue-50 hover:!bg-blue-600/82 !shadow-[58,138,0.55),255,255,0.18)]'
+                                        : '!bg-blue-500/80 !text-white hover:!bg-blue-500/90 !shadow-[99,235,0.26),255,255,0.45)]'}`}
                                     onClick={() => item && handleEditItem(item)}
                                 >
                                     <Edit className="w-4 h-4" />
@@ -1379,8 +1379,8 @@ export default function ItemDetail() {
                                     <Button
                                         variant="secondary"
                                         className={`w-full justify-center gap-2 h-9 sm:h-10 !font-semibold !opacity-100 !border !border-transparent !backdrop-blur-xl ${isDark
-                                            ? '!bg-red-900/50 !text-red-100 hover:!bg-red-900/62 !shadow-[inset_0_2px_2px_rgba(69,10,10,0.62),inset_0_-1px_1px_rgba(255,255,255,0.12)]'
-                                            : '!bg-red-200/92 !text-red-950 hover:!bg-red-300/95 !shadow-[inset_0_2px_2px_rgba(190,24,93,0.18),inset_0_-1px_1px_rgba(255,255,255,0.92)]'}`}
+                                            ? '!bg-red-900/50 !text-red-100 hover:!bg-red-900/62 !shadow-[10,10,0.62),255,255,0.12)]'
+                                            : '!bg-red-200/92 !text-red-950 hover:!bg-red-300/95 !shadow-[24,93,0.18),255,255,0.92)]'}`}
                                         onClick={() => setShowDeleteConfirm(true)}
                                         disabled={isDeleting}
                                     >
@@ -1397,8 +1397,8 @@ export default function ItemDetail() {
                     ? 'bg-gradient-to-br from-indigo-400/35 via-cyan-400/20 to-slate-500/25 shadow-[0_12px_30px_rgba(2,6,23,0.4)]'
                     : 'bg-gradient-to-br from-indigo-300/55 via-sky-300/35 to-slate-300/35 shadow-[0_12px_30px_rgba(148,163,184,0.3)]'}`}>
                     <div className={`rounded-[calc(1.5rem-1px)] p-3 sm:p-5 space-y-3 sm:space-y-4 backdrop-blur-xl ${isDark
-                        ? 'bg-slate-800/74 shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                        : 'bg-white/90 shadow-[inset_0_3px_3px_rgba(148,163,184,0.22),inset_0_-2px_2px_rgba(255,255,255,0.99)]'}`}>
+                        ? 'bg-slate-800/74 shadow-[6,23,0.62),255,255,0.12)]'
+                        : 'bg-white/90 shadow-[163,184,0.22),255,255,0.99)]'}`}>
                         <h2 className={`text-base sm:text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                             <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                             Ficha técnica completa
@@ -1409,8 +1409,8 @@ export default function ItemDetail() {
                                 <div
                                     key={row.label}
                                     className={`rounded-2xl p-2.5 sm:p-3 ${isDark
-                                        ? 'bg-gradient-to-br from-slate-700/65 to-slate-800/70 border border-transparent shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
-                                        : 'bg-gradient-to-br from-white to-sky-50/85 border border-transparent shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
+                                        ? 'bg-gradient-to-br from-slate-700/65 to-slate-800/70 border border-transparent shadow-[6,23,0.58),255,255,0.14)]'
+                                        : 'bg-gradient-to-br from-white to-sky-50/85 border border-transparent shadow-[163,184,0.2),255,255,0.98)]'}`}
                                 >
                                     <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>{row.label}</p>
                                     <p className={`text-sm sm:text-base font-medium break-words ${isDark ? 'text-white' : 'text-slate-900'}`}>{String(row.value)}</p>
@@ -1420,8 +1420,8 @@ export default function ItemDetail() {
 
                         {item.notes && (
                             <div className={`rounded-xl p-2.5 sm:p-3 ${isDark
-                                ? 'bg-slate-700/50 border border-transparent shadow-[inset_0_2px_2px_rgba(2,6,23,0.56),inset_0_-1px_1px_rgba(255,255,255,0.14)]'
-                                : 'bg-slate-50/90 border border-transparent shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                                ? 'bg-slate-700/50 border border-transparent shadow-[6,23,0.56),255,255,0.14)]'
+                                : 'bg-slate-50/90 border border-transparent shadow-[163,184,0.2),255,255,0.98)]'}`}>
                                 <p className={`text-xs uppercase tracking-wide mb-1 ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>Notas</p>
                                 <p className={`${isDark ? 'text-slate-100' : 'text-slate-800'}`}>{item.notes}</p>
                             </div>
@@ -1432,7 +1432,7 @@ export default function ItemDetail() {
 
             <button
                 onClick={handleOpenShareModal}
-                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-gradient-to-r from-primary-600/92 to-blue-600/92 hover:from-primary-700 hover:to-blue-700 text-white rounded-full p-3 sm:p-4 shadow-[0_16px_32px_rgba(15,23,42,0.35),inset_0_2px_2px_rgba(255,255,255,0.2),inset_0_-1px_1px_rgba(30,64,175,0.38)] transition-all hover:scale-110 z-20 border border-transparent backdrop-blur-xl"
+                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-gradient-to-r from-primary-600/92 to-blue-600/92 hover:from-primary-700 hover:to-blue-700 text-white rounded-full p-3 sm:p-4 shadow-[0_16px_32px_rgba(15,23,42,0.35),255,255,0.2),64,175,0.38)] transition-all hover:scale-110 z-20 border border-transparent backdrop-blur-xl"
                 style={{
                     bottom: `calc(env(safe-area-inset-bottom, 0px) + ${floatingButtonBottom}px)`
                 }}

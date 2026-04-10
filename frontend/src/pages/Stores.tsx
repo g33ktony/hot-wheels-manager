@@ -47,9 +47,7 @@ const StoresPage: React.FC = () => {
   const { mode } = useTheme()
   const { isSysAdmin } = usePermissions()
   const isDark = mode === 'dark'
-  const pageBackdropClass = isDark
-    ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
-    : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+  const pageBackdropClass = 'bg-transparent'
   const { stores, isLoading, error, refetch, createStore, updateUserRole, removeUser, archiveStore, restoreStore } = useStores()
 
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -213,10 +211,10 @@ const StoresPage: React.FC = () => {
     })
 
   return (
-    <div className={`min-h-screen ${pageBackdropClass}`}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className={pageBackdropClass}>
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-8">
+        <div>
           <PageHeader
             title="Administración de Tiendas"
             subtitle="Gestiona todas las tiendas, usuarios y configuraciones"
@@ -236,7 +234,7 @@ const StoresPage: React.FC = () => {
         </div>
 
         {/* Búsqueda */}
-        <Card className="mb-6">
+        <Card>
           <Input
             type="text"
             placeholder="Buscar tienda..."
@@ -598,7 +596,7 @@ const StoresPage: React.FC = () => {
         {selectedUser && (
           <div className="space-y-4">
             <div>
-                        <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {selectedUser.name}
               </p>
               <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>

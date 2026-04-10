@@ -1,6 +1,7 @@
 import React from 'react'
 import { useQuery } from 'react-query'
 import { dashboardService } from '@/services/dashboard'
+import { useTheme } from '@/contexts/ThemeContext'
 import { usePendingItemsStats } from '@/hooks/usePendingItems'
 import { useUpdateHotWheelsCatalog, useGetUpdateStatus } from '@/hooks/useHotWheelsUpdate'
 import { useSearchHotWheels } from '@/hooks/useSearchHotWheels'
@@ -20,6 +21,8 @@ import toast from 'react-hot-toast'
 
 export default function Dashboard() {
     const navigate = useNavigate()
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const { selectedStore } = useStore()
     const { isSysAdmin } = usePermissions()
     const canManageCatalog = isSysAdmin()
@@ -31,10 +34,24 @@ export default function Dashboard() {
     const [selectedUnpaidDelivery, setSelectedUnpaidDelivery] = React.useState<any>(null)
     const [isInitiatingUpdate, setIsInitiatingUpdate] = React.useState(false)
 
-    const dashboardBackdropClass = 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
-    const neumorphSurfaceClass = 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(51,65,85,0.2)]'
-    const neumorphInsetClass = 'rounded-xl border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
-    const neumorphPillStrongClass = '!rounded-xl !border !border-slate-700/75 !bg-slate-800 !text-slate-100 !shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(51,65,85,0.2)] hover:!brightness-110 !transition-all'
+    const dashboardBackdropClass = 'bg-transparent'
+    const neumorphSurfaceClass = isDark
+        ? 'rounded-2xl backdrop-blur-xl bg-slate-900/62 shadow-[14px_14px_26px_rgba(2,6,23,0.52),-10px_-10px_18px_rgba(148,163,184,0.16)]'
+        : 'rounded-2xl backdrop-blur-xl bg-white/94 shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.99)]'
+    const neumorphInsetClass = isDark
+        ? 'rounded-xl border border-slate-600/40 bg-slate-800 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]'
+        : 'rounded-xl border border-slate-300/60 bg-slate-100 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]'
+    const headerActionButtonClass = isDark
+        ? 'rounded-xl border border-slate-600/40 bg-slate-800 text-slate-100 shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(51,65,85,0.2)] hover:brightness-110 disabled:bg-slate-700 disabled:text-slate-400'
+        : 'rounded-xl border border-slate-300/60 bg-white text-slate-700 shadow-[10px_10px_20px_rgba(148,163,184,0.24),-8px_-8px_16px_rgba(255,255,255,0.96)] hover:brightness-105 disabled:bg-slate-200 disabled:text-slate-400'
+
+    const modalSecondaryButtonClass = isDark
+        ? 'rounded-xl border border-slate-600/40 bg-slate-800 text-slate-100 shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(51,65,85,0.2)] hover:brightness-110 disabled:bg-slate-700 disabled:text-slate-400'
+        : 'rounded-xl border border-slate-300/60 bg-white text-slate-700 shadow-[10px_10px_20px_rgba(148,163,184,0.24),-8px_-8px_16px_rgba(255,255,255,0.96)] hover:brightness-105 disabled:bg-slate-200 disabled:text-slate-400'
+
+    const modalPrimaryButtonClass = isDark
+        ? 'flex items-center justify-center gap-2 relative overflow-hidden rounded-xl border border-emerald-400/40 bg-emerald-600/20 text-emerald-100 shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(16,185,129,0.16)] hover:brightness-110 transition-all disabled:bg-slate-700 disabled:text-slate-400 disabled:border-slate-600/40'
+        : 'flex items-center justify-center gap-2 relative overflow-hidden rounded-xl border border-emerald-300/70 bg-emerald-100 text-emerald-800 shadow-[10px_10px_20px_rgba(148,163,184,0.24),-8px_-8px_16px_rgba(255,255,255,0.96)] hover:brightness-105 transition-all disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-300/60'
 
     const { data: metrics, isLoading, error } = useQuery(
         ['dashboard-metrics', selectedStore],
@@ -221,16 +238,16 @@ export default function Dashboard() {
             {/* Header with Update Button */}
             <div className={`flex items-center justify-between gap-4 p-4 lg:p-5 ${neumorphSurfaceClass}`}>
                 <div>
-                    <h1 className="text-xl lg:text-2xl font-bold text-white">Dashboard</h1>
-                    <p className="text-sm lg:text-base text-slate-400">Resumen general de tu negocio de autos a escala</p>
+                    <h1 className={`text-xl lg:text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Dashboard</h1>
+                    <p className={`text-sm lg:text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Resumen general de tu negocio de autos a escala</p>
                 </div>
                 {canManageCatalog && (
                     <div className="flex gap-2 flex-wrap">
                         <Button
                             size="sm"
-                            variant="secondary"
+                            variant="primary"
                             onClick={handleDownload}
-                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillStrongClass}`}
+                            className={`flex items-center gap-2 whitespace-nowrap ${headerActionButtonClass}`}
                             disabled={isDownloading}
                         >
                             <Download size={16} />
@@ -238,18 +255,18 @@ export default function Dashboard() {
                         </Button>
                         <Button
                             size="sm"
-                            variant="secondary"
+                            variant="primary"
                             onClick={() => setShowSearchModal(true)}
-                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillStrongClass}`}
+                            className={`flex items-center gap-2 whitespace-nowrap ${headerActionButtonClass}`}
                         >
                             <Search size={16} />
                             Buscar
                         </Button>
                         <Button
                             size="sm"
-                            variant="secondary"
+                            variant="primary"
                             onClick={() => setShowUpdateModal(true)}
-                            className={`flex items-center gap-2 whitespace-nowrap ${neumorphPillStrongClass}`}
+                            className={`flex items-center gap-2 whitespace-nowrap ${headerActionButtonClass}`}
                             disabled={updateStatus?.progress?.isUpdating}
                         >
                             <RefreshCw size={16} className={updateStatus?.progress?.isUpdating ? 'animate-spin' : ''} />
@@ -315,7 +332,7 @@ export default function Dashboard() {
                 {/* Recent Activity */}
                 <Card className={neumorphSurfaceClass}>
                     <CardHeader>
-                        <CardTitle className="text-white">Actividad Reciente</CardTitle>
+                        <CardTitle className={isDark ? 'text-white' : 'text-slate-900'}>Actividad Reciente</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
@@ -347,8 +364,8 @@ export default function Dashboard() {
                                                 }`}
                                         >
                                             <div className="flex-1">
-                                                <p className="text-sm font-medium text-white">{activity.description}</p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{activity.description}</p>
+                                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                                     {new Date(activity.date).toLocaleDateString('es-ES', {
                                                         year: 'numeric',
                                                         month: 'short',
@@ -367,7 +384,7 @@ export default function Dashboard() {
                                     )
                                 })
                             ) : (
-                                <p className="text-slate-400 text-center py-4">No hay actividad reciente</p>
+                                <p className={`text-center py-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No hay actividad reciente</p>
                             )}
                         </div>
                     </CardContent>
@@ -376,7 +393,7 @@ export default function Dashboard() {
                 {/* Alerts and Notifications */}
                 <Card className={neumorphSurfaceClass}>
                     <CardHeader>
-                        <CardTitle className="flex items-center text-white">
+                        <CardTitle className={`flex items-center ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             <AlertTriangle size={20} className="text-red-500 mr-2" />
                             Alertas y Notificaciones
                         </CardTitle>
@@ -388,7 +405,7 @@ export default function Dashboard() {
                                 <div className={`p-3 ${neumorphInsetClass}`}>
                                     <div className="flex items-center mb-2">
                                         <Calendar size={16} className="text-emerald-400 mr-2" />
-                                        <p className="text-sm font-medium text-white">
+                                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             Entregas programadas para hoy ({metrics.todaysDeliveries.length})
                                         </p>
                                     </div>
@@ -397,8 +414,8 @@ export default function Dashboard() {
                                             <div key={delivery.id} className={`text-xs p-2 ${neumorphInsetClass}`}>
                                                 <div className="flex items-center justify-between">
                                                     <div>
-                                                        <p className="font-medium text-white">{delivery.customerName}</p>
-                                                        <div className="flex items-center gap-3 text-slate-400 mt-1">
+                                                        <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{delivery.customerName}</p>
+                                                        <div className={`flex items-center gap-3 mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                                             <span className="flex items-center gap-1">
                                                                 <Clock size={12} />
                                                                 {delivery.scheduledTime}
@@ -423,7 +440,7 @@ export default function Dashboard() {
                             {metrics.pendingPurchases > 0 && (
                                 <div className={`flex items-center p-3 ${neumorphInsetClass}`}>
                                     <div className="flex-1">
-                                        <p className="text-sm font-medium text-white">
+                                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             Tienes {metrics.pendingPurchases} compras pendientes de recibir
                                         </p>
                                     </div>
@@ -433,7 +450,7 @@ export default function Dashboard() {
                             {metrics.pendingSales > 0 && (
                                 <div className={`flex items-center p-3 ${neumorphInsetClass}`}>
                                     <div className="flex-1">
-                                        <p className="text-sm font-medium text-white">
+                                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             Tienes {metrics.pendingSales} ventas pendientes
                                         </p>
                                     </div>
@@ -443,7 +460,7 @@ export default function Dashboard() {
                             {metrics.pendingDeliveries > 0 && !metrics.todaysDeliveries?.length && (
                                 <div className={`flex items-center p-3 ${neumorphInsetClass}`}>
                                     <div className="flex-1">
-                                        <p className="text-sm font-medium text-white">
+                                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             Tienes {metrics.pendingDeliveries} entregas programadas
                                         </p>
                                     </div>
@@ -453,18 +470,21 @@ export default function Dashboard() {
                             {/* Unpaid Deliveries Alert */}
                             {unpaidDeliveries && unpaidDeliveries.length > 0 && (
                                 <div
-                                    className="flex items-start p-4 rounded-xl cursor-pointer transition-all border border-yellow-500/60 bg-[linear-gradient(145deg,rgba(113,63,18,0.62),rgba(146,64,14,0.56))] shadow-[10px_10px_20px_rgba(2,6,23,0.5),-6px_-6px_12px_rgba(245,158,11,0.08)] hover:brightness-110"
+                                    className={`flex items-start p-4 rounded-xl cursor-pointer transition-all border ${isDark
+                                        ? 'border-yellow-500/60 bg-[linear-gradient(145deg,rgba(113,63,18,0.62),rgba(146,64,14,0.56))] shadow-[10px_10px_20px_rgba(2,6,23,0.5),-6px_-6px_12px_rgba(245,158,11,0.08)] hover:brightness-110'
+                                        : 'border-amber-300/70 bg-[linear-gradient(145deg,rgba(254,243,199,0.95),rgba(253,230,138,0.75))] shadow-[10px_10px_20px_rgba(148,163,184,0.2),-6px_-6px_12px_rgba(255,255,255,0.9)] hover:brightness-105'
+                                        }`}
                                     onClick={() => setSelectedUnpaidDelivery(unpaidDeliveries[0])}
                                 >
                                     <AlertCircle className="text-yellow-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold text-white mb-1">
+                                        <p className={`text-sm font-semibold mb-1 ${isDark ? 'text-white' : 'text-amber-900'}`}>
                                             💳 {unpaidDeliveries.length} Entrega{unpaidDeliveries.length > 1 ? 's' : ''} Sin Cobrar
                                         </p>
-                                        <p className="text-xs text-yellow-200">
+                                        <p className={`text-xs ${isDark ? 'text-yellow-200' : 'text-amber-800'}`}>
                                             Pendiente de pago total: ${unpaidDeliveries.reduce((sum: number, d: any) => sum + (d.totalAmount - d.paidAmount), 0).toFixed(2)}
                                         </p>
-                                        <p className="text-xs text-slate-300 mt-2">
+                                        <p className={`text-xs mt-2 ${isDark ? 'text-slate-300' : 'text-amber-700'}`}>
                                             Click para gestionar pago →
                                         </p>
                                     </div>
@@ -479,10 +499,10 @@ export default function Dashboard() {
                                 >
                                     <AlertCircle className="text-red-500 mt-0.5 mr-3 flex-shrink-0" size={20} />
                                     <div className="flex-1">
-                                        <p className="text-sm font-semibold text-white mb-1">
+                                        <p className={`text-sm font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             🟠 {pendingItemsStats.totalCount} Item{pendingItemsStats.totalCount > 1 ? 's' : ''} Pendiente{pendingItemsStats.totalCount > 1 ? 's' : ''}
                                         </p>
-                                        <p className="text-xs text-slate-300">
+                                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                             Valor total: ${pendingItemsStats.totalValue.toFixed(2)}
                                         </p>
                                         {pendingItemsStats.overdueCount > 0 && (
@@ -490,7 +510,7 @@ export default function Dashboard() {
                                                 ⚠️ {pendingItemsStats.overdueCount} vencido{pendingItemsStats.overdueCount > 1 ? 's' : ''} (+15 días)
                                             </p>
                                         )}
-                                        <p className="text-xs text-slate-300 mt-2">
+                                        <p className={`text-xs mt-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                             Click para gestionar →
                                         </p>
                                     </div>
@@ -498,7 +518,7 @@ export default function Dashboard() {
                             )}
 
                             {metrics.pendingPurchases === 0 && metrics.pendingSales === 0 && metrics.pendingDeliveries === 0 && (!pendingItemsStats || pendingItemsStats.totalCount === 0) && (!unpaidDeliveries || unpaidDeliveries.length === 0) && (
-                                <p className="text-slate-400 text-center py-4">No hay alertas pendientes</p>
+                                <p className={`text-center py-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No hay alertas pendientes</p>
                             )}
                         </div>
                     </CardContent>
@@ -520,8 +540,8 @@ export default function Dashboard() {
                 footer={
                     <div className="flex gap-3">
                         <Button
-                            variant="secondary"
-                            className={`flex-1 ${neumorphPillStrongClass}`}
+                            variant="primary"
+                            className={`flex-1 ${modalSecondaryButtonClass}`}
                             onClick={() => {
                                 setShowUpdateModal(false)
                                 setIsInitiatingUpdate(false)
@@ -535,7 +555,8 @@ export default function Dashboard() {
                         </Button>
                         {updateStatus?.progress?.step !== 'completed' && (
                             <Button
-                                className="flex-1 flex items-center justify-center gap-2 relative overflow-hidden !rounded-xl !border !border-emerald-400/40 !bg-emerald-600/20 !text-emerald-100 !shadow-[10px_10px_20px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(16,185,129,0.16)] hover:!brightness-110 !transition-all"
+                                variant="primary"
+                                className={`flex-1 ${modalPrimaryButtonClass}`}
                                 onClick={() => {
                                     setIsInitiatingUpdate(true)
                                     updateCatalogMutation.mutate()

@@ -19,7 +19,7 @@ export default function PreSalePurchasePage() {
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Pre-Sale Management</h1>
+                    <h1 className="text-2xl font-bold text-white">Pre-Sale Management</h1>
                     <p className="text-slate-400 mt-1">Registra y monitorea tus compras de pre-venta</p>
                 </div>
             </div>

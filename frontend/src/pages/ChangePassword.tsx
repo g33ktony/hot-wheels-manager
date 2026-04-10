@@ -115,7 +115,7 @@ export default function ChangePassword() {
     return (
         <div className={`min-h-screen flex items-center justify-center p-4 ${pageBackdropClass}`}>
             <div className={`p-8 w-full max-w-md ${surfaceClass}`}>
-                <h1 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Cambiar Contraseña</h1>
+                <h1 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Cambiar Contraseña</h1>
                 <p className={`${isDark ? 'text-slate-300' : 'text-gray-600'} mb-6`}>Actualiza tu contraseña de forma segura</p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">

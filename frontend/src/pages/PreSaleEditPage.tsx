@@ -208,7 +208,7 @@ export default function PreSaleEditPage() {
                     <ArrowLeft className="w-5 h-5" />
                     Back to Dashboard
                 </button>
-                <h1 className="text-3xl font-bold text-white">{formData.carModel || formData.carId}</h1>
+                <h1 className="text-2xl font-bold text-white">{formData.carModel || formData.carId}</h1>
                 <p className="text-slate-400 mt-1">{formData.carId}</p>
             </div>
 

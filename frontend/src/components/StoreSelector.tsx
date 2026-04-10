@@ -18,6 +18,9 @@ export default function StoreSelector() {
 
     const currentStore = availableStores.find(s => s.storeId === selectedStore)
     const userStoreInfo = availableStores.find(s => s.storeId === userStore)
+    const topButtonClass = mode === 'dark'
+        ? 'bg-slate-900/44 text-slate-200 hover:bg-slate-900/58 !shadow-[10px_10px_18px_rgba(2,6,23,0.55),-7px_-7px_12px_rgba(148,163,184,0.16)]'
+        : 'bg-white/90 text-slate-600 hover:bg-white !shadow-[10px_10px_18px_rgba(148,163,184,0.28),-7px_-7px_12px_rgba(255,255,255,0.98)]'
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -38,16 +41,17 @@ export default function StoreSelector() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`
-          flex items-center gap-2 px-3 py-2 rounded-lg transition-colors min-h-[44px] backdrop-blur-xl
-          ${mode === 'dark'
-                        ? 'bg-slate-900/34 text-slate-300 hover:bg-slate-900/46 !shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
-                        : 'bg-white/80 text-slate-700 hover:bg-white/90 !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
-                    }
+          flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 min-h-[44px] backdrop-blur-xl touch-manipulation
+          ${topButtonClass}
         `}
                 title="Seleccionar tienda para ver datos (SYS ADMIN)"
                 aria-label="Seleccionar tienda para ver datos"
                 aria-expanded={isOpen}
                 aria-haspopup="listbox"
+                style={{
+                    WebkitTapHighlightColor: 'transparent',
+                    WebkitTouchCallout: 'none',
+                }}
             >
                 <Building2 size={18} />
                 <span className="hidden sm:inline text-sm font-medium truncate max-w-[120px]">
@@ -65,8 +69,8 @@ export default function StoreSelector() {
                     className={`
             absolute top-full right-0 mt-2 w-72 rounded-lg z-50 backdrop-blur-xl
             ${mode === 'dark'
-                            ? 'bg-slate-900/70 !shadow-[0_10px_24px_rgba(2,6,23,0.4),inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
-                            : 'bg-white/88 !shadow-[0_10px_24px_rgba(148,163,184,0.2),inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                            ? 'bg-slate-900/70 !shadow-[14px_14px_28px_rgba(2,6,23,0.4),6,23,0.58),163,184,0.1)]'
+                            : 'bg-white/88 !shadow-[14px_14px_28px_rgba(148,163,184,0.2),163,184,0.2),255,255,0.98)]'
                         }
           `}
                     role="listbox"
@@ -76,7 +80,7 @@ export default function StoreSelector() {
                         <div className="text-xs font-semibold mb-2">
                             👑 Mi Tienda (Lectura/Escritura):
                         </div>
-                        <div className={`px-3 py-2 rounded backdrop-blur-xl ${mode === 'dark' ? 'bg-slate-800/55 !shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-blue-50/85 !shadow-[inset_0_2px_2px_rgba(147,197,253,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
+                        <div className={`px-3 py-2 rounded backdrop-blur-xl ${mode === 'dark' ? 'bg-slate-800/55 !shadow-[6,23,0.58),163,184,0.1)]' : 'bg-blue-50/85 !shadow-[197,253,0.28),255,255,0.98)]'}`}>
                             <div className={`text-sm font-bold ${mode === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
                                 {userStoreInfo?.storeName || userStore}
                             </div>
@@ -113,15 +117,15 @@ export default function StoreSelector() {
                                                 setIsOpen(false)
                                             }}
                                             className={`
-                      w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors
+                      w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
                       flex items-center gap-2 backdrop-blur-xl
                       ${selectedStore === store.storeId
                                                     ? mode === 'dark'
-                                                        ? 'bg-emerald-500/20 text-emerald-300 !shadow-[inset_0_2px_2px_rgba(6,78,59,0.45),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
-                                                        : 'bg-emerald-100/85 text-emerald-700 !shadow-[inset_0_2px_2px_rgba(167,243,208,0.34),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                                        ? 'bg-emerald-500/24 text-emerald-200 shadow-[9px_9px_16px_rgba(6,78,59,0.4),-6px_-6px_10px_rgba(16,185,129,0.16)]'
+                                                        : 'bg-emerald-100/92 text-emerald-700 shadow-[9px_9px_16px_rgba(16,185,129,0.18),-6px_-6px_10px_rgba(255,255,255,0.98)]'
                                                     : mode === 'dark'
-                                                        ? 'text-slate-300 hover:bg-slate-800/55'
-                                                        : 'text-slate-700 hover:bg-slate-100/85'
+                                                        ? 'text-slate-200 bg-slate-900/36 hover:bg-slate-800/56 shadow-[8px_8px_14px_rgba(2,6,23,0.45),-5px_-5px_9px_rgba(148,163,184,0.12)]'
+                                                        : 'text-slate-700 bg-white/82 hover:bg-white shadow-[8px_8px_14px_rgba(148,163,184,0.2),-5px_-5px_9px_rgba(255,255,255,0.98)]'
                                                 }
                     `}
                                             role="option"

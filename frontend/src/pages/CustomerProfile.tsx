@@ -69,9 +69,7 @@ export default function CustomerProfile() {
     )
 
     const isLoading = isLoadingCustomer || isLoadingDeliveries || isLoadingSales
-    const pageBackdropClass = isDark
-        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
-        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+    const pageBackdropClass = 'bg-transparent'
     const headerTextClass = isDark ? 'text-white' : 'text-slate-900'
     const mutedTextClass = isDark ? 'text-slate-400' : 'text-slate-600'
     const neumorphInsetClass = isDark
@@ -131,7 +129,7 @@ export default function CustomerProfile() {
 
     if (customerError || !customer) {
         return (
-            <div className="max-w-6xl mx-auto px-4 py-8">
+            <div className="max-w-6xl mx-auto">
                 <div className="text-center py-12">
                     <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
                     <p className="text-red-600 mb-6">Error al cargar el cliente</p>
@@ -193,7 +191,7 @@ export default function CustomerProfile() {
     }
 
     return (
-        <div className={`max-w-6xl mx-auto px-4 py-6 space-y-6 rounded-3xl ${pageBackdropClass}`}>
+        <div className={`max-w-6xl mx-auto space-y-6 ${pageBackdropClass}`}>
             {/* Header with back button */}
             <div className="flex items-center justify-between mb-6">
                 <Button
@@ -203,7 +201,7 @@ export default function CustomerProfile() {
                 >
                     Volver
                 </Button>
-                <h1 className={`text-2xl lg:text-3xl font-bold ${headerTextClass}`}>Perfil del Cliente</h1>
+                <h1 className={`text-2xl font-bold ${headerTextClass}`}>Perfil del Cliente</h1>
                 <div className="w-[100px]"></div>
             </div>
 

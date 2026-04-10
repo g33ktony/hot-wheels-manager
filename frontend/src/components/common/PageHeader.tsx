@@ -12,8 +12,8 @@ export default function PageHeader({ title, subtitle, icon, actions }: PageHeade
     const { mode } = useTheme()
     const isDark = mode === 'dark'
     const surfaceClass = isDark
-        ? 'rounded-2xl border border-slate-700/70 bg-slate-800/85 p-4 lg:p-5 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_22px_rgba(51,65,85,0.2)]'
-        : 'rounded-2xl border border-white/80 bg-[#eaf0f8] p-4 lg:p-5 shadow-[12px_12px_24px_rgba(148,163,184,0.34),-12px_-12px_24px_rgba(255,255,255,0.96)]'
+        ? 'rounded-2xl backdrop-blur-xl bg-slate-900/62 p-4 lg:p-5 shadow-[14px_14px_26px_rgba(2,6,23,0.52),-10px_-10px_18px_rgba(148,163,184,0.16)]'
+        : 'rounded-2xl backdrop-blur-xl bg-white/94 p-4 lg:p-5 shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.99)]'
 
     return (
         <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ${surfaceClass}`}>

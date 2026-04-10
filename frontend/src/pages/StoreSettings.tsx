@@ -53,9 +53,7 @@ const StoreSettingsPage: React.FC = () => {
     const { createUserInStore } = useUserManagement()
     const { stores, refetch, updateUserRole: updateStoreUserRole, updateUserStatus, removeUser: removeStoreUser } = useStores()
     const isDark = mode === 'dark'
-    const pageBackdropClass = isDark
-        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
-        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+    const pageBackdropClass = 'bg-transparent'
 
     const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'create-user' | 'public-catalog'>('profile')
     const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -416,13 +414,13 @@ const StoreSettingsPage: React.FC = () => {
     }
 
     return (
-        <div className={`min-h-screen ${pageBackdropClass}`}>
-            <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className={pageBackdropClass}>
+            <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
-                <div className="mb-8">
+                <div>
                     <div className="flex items-center gap-3 mb-4">
                         <Settings className={`${isDark ? 'text-blue-400' : 'text-blue-600'}`} size={32} />
-                        <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             Configuración
                         </h1>
                     </div>

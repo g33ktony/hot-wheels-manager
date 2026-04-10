@@ -8,7 +8,6 @@ import {
     Edit,
     MapPin,
     Maximize2,
-    MoreVertical,
     Package,
     ShoppingCart,
     Trash2,
@@ -136,17 +135,53 @@ export default function InventoryGridSection({
         }
     }, [filteredItems.length, viewMode])
 
+    const raisedBadgeClass = isDark
+        ? 'backdrop-blur-md bg-gradient-to-br from-slate-700/30 to-slate-900/35 shadow-[8px_8px_16px_rgba(2,6,23,0.58),-6px_-6px_12px_rgba(148,163,184,0.2)]'
+        : 'backdrop-blur-md bg-gradient-to-br from-white/92 to-slate-100/82 shadow-[8px_8px_16px_rgba(148,163,184,0.34),-6px_-6px_12px_rgba(255,255,255,0.98)]'
+
+    const topTypeShadowClass = isDark
+        ? 'shadow-[8px_8px_16px_rgba(2,6,23,0.58),-6px_-6px_12px_rgba(148,163,184,0.2)]'
+        : 'shadow-[8px_8px_16px_rgba(13,39,80,0.26),-6px_-6px_12px_rgba(255,255,255,0.65)]'
+
+    const recessedPanelClass = isDark
+        ? 'bg-[#1f2735] shadow-[inset_14px_14px_24px_rgba(2,6,23,0.56),inset_-10px_-10px_18px_rgba(148,163,184,0.1)]'
+        : 'bg-[#e5e9f0] shadow-[inset_12px_12px_22px_rgba(13,39,80,0.18),inset_-9px_-9px_16px_rgba(255,255,255,0.98)]'
+
+    const posButtonToneClass = isDark
+        ? '!bg-[linear-gradient(145deg,#3b82f6,#2563eb)] !text-blue-50 hover:!bg-[linear-gradient(145deg,#4b8cf7,#2f6ef0)] !shadow-[8px_8px_16px_rgba(2,6,23,0.58),-6px_-6px_12px_rgba(96,165,250,0.2)] hover:!shadow-[9px_9px_17px_rgba(2,6,23,0.62),-7px_-7px_13px_rgba(96,165,250,0.24)]'
+        : '!bg-[linear-gradient(145deg,#4f8df7,#2f6de6)] !text-white hover:!bg-[linear-gradient(145deg,#5c97ff,#3c79ee)] !shadow-[8px_8px_16px_rgba(13,39,80,0.22),-6px_-6px_12px_rgba(255,255,255,0.94)] hover:!shadow-[9px_9px_17px_rgba(13,39,80,0.26),-7px_-7px_13px_rgba(255,255,255,0.98)]'
+
+    const deliveryButtonToneClass = isDark
+        ? '!bg-[linear-gradient(145deg,#334155,#1f2937)] !text-slate-100 hover:!bg-[linear-gradient(145deg,#3b4a5f,#263244)] hover:!text-white disabled:!text-slate-100 disabled:!bg-[linear-gradient(145deg,#4b5563,#374151)] disabled:!opacity-100 !shadow-[8px_8px_16px_rgba(2,6,23,0.58),-6px_-6px_12px_rgba(148,163,184,0.2)] hover:!shadow-[9px_9px_17px_rgba(2,6,23,0.62),-7px_-7px_13px_rgba(148,163,184,0.24)]'
+        : '!bg-[linear-gradient(145deg,#f3f6fb,#dde5ef)] !text-slate-700 hover:!bg-[linear-gradient(145deg,#f8fafd,#e7edf5)] hover:!text-slate-800 disabled:!text-slate-700 disabled:!bg-[linear-gradient(145deg,#e2e8f0,#cfd8e3)] disabled:!opacity-100 !shadow-[8px_8px_16px_rgba(148,163,184,0.22),-6px_-6px_12px_rgba(255,255,255,0.98)] hover:!shadow-[9px_9px_17px_rgba(148,163,184,0.26),-7px_-7px_13px_rgba(255,255,255,1)]'
+
+    const menuDotsButtonClass = isDark
+        ? 'text-slate-100 bg-slate-900/45 hover:bg-slate-800/70 shadow-[6px_6px_12px_rgba(15,23,42,0.28),-4px_-4px_8px_rgba(255,255,255,0.12)]'
+        : 'text-slate-700 bg-white/78 hover:bg-white/92 shadow-[6px_6px_12px_rgba(15,23,42,0.18),-4px_-4px_8px_rgba(255,255,255,0.85)]'
+
+    const menuDotsStackCompactClass = isDark
+        ? 'flex flex-col items-center justify-center gap-[2px] leading-none'
+        : 'flex flex-col items-center justify-center gap-[2px] leading-none'
+
+    const menuDotsStackFullClass = isDark
+        ? 'flex flex-col items-center justify-center gap-[2px] leading-none'
+        : 'flex flex-col items-center justify-center gap-[2px] leading-none'
+
+    const menuDotClass = isDark
+        ? 'h-[4px] w-[4px] rounded-full border border-white/18 bg-gradient-to-b from-slate-100 to-slate-400 shadow-[1.4px_1.4px_2.8px_rgba(2,6,23,0.75),-1.1px_-1.1px_2.4px_rgba(255,255,255,0.35)]'
+        : 'h-[4px] w-[4px] rounded-full border border-white/85 bg-gradient-to-b from-slate-500 to-slate-800 shadow-[1.4px_1.4px_2.8px_rgba(100,116,139,0.52),-1.1px_-1.1px_2.4px_rgba(255,255,255,1)]'
+
     return (
         <div className="relative">
             {isPrefetchingNext && !isLoading && (
-                <div className="absolute top-4 right-4 z-20 bg-blue-50 shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 border border-blue-200">
+                <div className="absolute top-4 right-4 z-20 bg-blue-50 shadow-lg rounded-lg px-4 py-2 flex items-center gap-2">
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></div>
                     <p className="text-xs text-blue-600 font-medium">Preparando siguiente página...</p>
                 </div>
             )}
 
             {isLoading && hasInventoryData && (
-                <div className="absolute top-4 right-4 z-20 bg-slate-800 shadow-lg rounded-lg px-4 py-2 flex items-center gap-2 border border-slate-700">
+                <div className="absolute top-4 right-4 z-20 bg-slate-800 shadow-lg rounded-lg px-4 py-2 flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500"></div>
                     <p className="text-xs text-slate-400 font-medium">Cargando...</p>
                 </div>
@@ -214,9 +249,9 @@ export default function InventoryGridSection({
                                     hover={!isSelectionMode && isAvailable}
                                     pressEffect={false}
                                     className={`relative overflow-hidden !p-0 !shadow-none ${isDark
-                                        ? 'bg-slate-900/30 backdrop-blur-xl border border-slate-500/30 shadow-[0_10px_24px_rgba(2,6,23,0.35),inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                        : 'bg-white/70 backdrop-blur-xl border border-slate-300/80 shadow-[0_10px_24px_rgba(148,163,184,0.22),inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
-                                        } ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        ? 'bg-slate-900/60 shadow-[14px_14px_26px_rgba(2,6,23,0.58),-10px_-10px_18px_rgba(148,163,184,0.14)]'
+                                        : 'bg-[#edf1f7] shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.95)]'
+                                        } ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-75 cursor-not-allowed' : ''}`}
                                 >
                                     <div
                                         className={`relative h-full min-h-[260px] ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
@@ -277,23 +312,25 @@ export default function InventoryGridSection({
                                                     <div className="relative">
                                                         <button
                                                             type="button"
-                                                            className={`p-1 rounded-md backdrop-blur-md transition-colors ${isDark
-                                                                ? 'text-slate-100 bg-slate-900/45 hover:bg-slate-800/70'
-                                                                : 'text-slate-700 bg-white/78 hover:bg-white/92'} shadow-[inset_0_2px_2px_rgba(15,23,42,0.25),inset_0_-1px_1px_rgba(255,255,255,0.45)]`}
+                                                            className={`p-1 rounded-md backdrop-blur-md transition-colors ${menuDotsButtonClass}`}
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 setOpenMenuItemId(openMenuItemId === item._id ? null : item._id || null)
                                                             }}
                                                             title="Más acciones"
                                                         >
-                                                            <MoreVertical size={14} />
+                                                            <div className={menuDotsStackCompactClass} aria-hidden="true">
+                                                                <div className={menuDotClass}></div>
+                                                                <div className={menuDotClass}></div>
+                                                                <div className={menuDotClass}></div>
+                                                            </div>
                                                         </button>
 
                                                         {openMenuItemId === item._id && (
                                                             <div
-                                                                className={`absolute left-0 mt-1 z-20 min-w-[120px] rounded-lg border p-1 ${isDark
-                                                                    ? 'bg-slate-900/92 border-slate-600/60'
-                                                                    : 'bg-white/95 border-slate-200/85'} backdrop-blur-xl shadow-[0_10px_24px_rgba(15,23,42,0.28)]`}
+                                                                className={`absolute left-0 mt-1 z-20 min-w-[120px] rounded-lg p-1 ${isDark
+                                                                    ? 'bg-slate-900/92'
+                                                                    : 'bg-white/95'} backdrop-blur-xl shadow-[14px_14px_28px_rgba(15,23,42,0.28)]`}
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 {canEdit && (
@@ -329,13 +366,13 @@ export default function InventoryGridSection({
 
                                                 <div className="flex flex-col items-end gap-0.5">
                                                     {item.isSuperTreasureHunt && (
-                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded backdrop-blur-md bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">$TH</span>
+                                                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded bg-gradient-to-r from-yellow-500/50 to-yellow-700/50 text-white ${raisedBadgeClass}`}>$TH</span>
                                                     )}
                                                     {item.isTreasureHunt && !item.isSuperTreasureHunt && (
-                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded backdrop-blur-md bg-green-500/40 text-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">TH</span>
+                                                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded bg-green-500/45 text-white ${raisedBadgeClass}`}>TH</span>
                                                     )}
                                                     {item.isChase && (
-                                                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded backdrop-blur-md bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">CHASE</span>
+                                                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded bg-gradient-to-r from-red-500/45 to-pink-700/45 text-white ${raisedBadgeClass}`}>CHASE</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -343,10 +380,7 @@ export default function InventoryGridSection({
                                             {/* Bottom info panel - compact */}
                                             <div
                                                 data-card-panel="true"
-                                                className={`mt-auto rounded-xl p-2 ${isDark
-                                                    ? 'bg-slate-900/36 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                                    : 'bg-white/80 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
-                                                    }`}
+                                                className={`mt-auto rounded-xl p-2 ${recessedPanelClass}`}
                                             >
                                                 <h3
                                                     className={`text-xs font-semibold truncate leading-tight ${isDark ? 'text-white' : 'text-slate-950'} ${!isSelectionMode && item._id ? 'cursor-pointer hover:text-primary-600 transition-colors' : ''}`}
@@ -372,11 +406,12 @@ export default function InventoryGridSection({
                                                         )}
                                                     </div>
                                                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${operationalStatus === 'Disponible'
-                                                        ? (isDark ? 'bg-emerald-700/35 text-emerald-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-[inset_0_1px_1px_rgba(16,185,129,0.18),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                        ? (isDark ? 'bg-emerald-700/35 text-emerald-100' : 'bg-emerald-100 text-emerald-700')
                                                         : operationalStatus === 'Reservado'
-                                                            ? (isDark ? 'bg-amber-700/35 text-amber-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-[inset_0_1px_1px_rgba(217,119,6,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
-                                                            : (isDark ? 'bg-red-700/35 text-red-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-red-100 text-red-700 border border-red-200 shadow-[inset_0_1px_1px_rgba(220,38,38,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
-                                                        }`}>
+                                                            ? (isDark ? 'bg-amber-700/35 text-amber-100' : 'bg-amber-100 text-amber-700')
+                                                            : (isDark ? 'bg-red-700/35 text-red-100' : 'bg-red-100 text-red-700')
+                                                        } ${raisedBadgeClass}`}
+                                                    >
                                                         {availableQty}u
                                                     </span>
                                                 </div>
@@ -386,10 +421,7 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="primary"
-                                                            className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${isDark
-                                                                ? '!bg-blue-600/65 !text-blue-50 hover:!bg-blue-600/75 !border !border-blue-300/25 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)] hover:!shadow-[inset_0_3px_3px_rgba(15,23,42,0.5),inset_0_-1px_1px_rgba(255,255,255,0.2)]'
-                                                                : '!bg-blue-500/55 !text-white hover:!bg-blue-500/65 !border !border-blue-300/40 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(59,130,246,0.25),inset_0_-1px_1px_rgba(255,255,255,0.5)] hover:!shadow-[inset_0_3px_3px_rgba(59,130,246,0.2),inset_0_-1px_1px_rgba(255,255,255,0.6)]'
-                                                                }`}
+                                                            className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${posButtonToneClass}`}
                                                             onClick={() => onAddToPos(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="POS"
@@ -400,16 +432,15 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="secondary"
-                                                            className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${isDark
-                                                                ? '!bg-slate-800/44 !text-slate-500 hover:!bg-slate-700/52 hover:!text-slate-400 !border !border-slate-300/30 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)] hover:!shadow-[inset_0_3px_3px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.18)]'
-                                                                : '!bg-white/60 !text-slate-500 hover:!bg-white/72 hover:!text-slate-700 !border !border-slate-300/80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] hover:!shadow-[inset_0_3px_3px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]'
-                                                                }`}
+                                                            className={`!min-h-0 h-7 px-1.5 py-0 text-[11px] rounded-lg ${deliveryButtonToneClass}`}
                                                             onClick={() => onAddToDelivery(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="Entrega"
                                                         >
                                                             <Truck size={11} className="mr-0.5" />
-                                                            Entrega
+                                                            <span className={`${!isAvailable || !canCreate ? (isDark ? 'text-slate-100 font-semibold' : 'text-slate-800 font-semibold') : ''}`}>
+                                                                Entrega
+                                                            </span>
                                                         </Button>
                                                     </div>
                                                 )}
@@ -426,9 +457,9 @@ export default function InventoryGridSection({
                                 hover={!isSelectionMode && isAvailable}
                                 pressEffect={false}
                                 className={`relative overflow-hidden !p-0 !shadow-none ${isDark
-                                    ? 'bg-slate-900/30 backdrop-blur-xl border border-slate-500/30 shadow-[0_10px_24px_rgba(2,6,23,0.35),inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                    : 'bg-white/70 backdrop-blur-xl border border-slate-300/80 shadow-[0_10px_24px_rgba(148,163,184,0.22),inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
-                                    } ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    ? 'bg-slate-900/60 shadow-[14px_14px_26px_rgba(2,6,23,0.58),-10px_-10px_18px_rgba(148,163,184,0.14)]'
+                                    : 'bg-[#edf1f7] shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.95)]'
+                                    } ${selectedItems.has(item._id!) ? 'ring-2 ring-primary-500' : ''} ${!isAvailable ? 'opacity-75 cursor-not-allowed' : ''}`}
                             >
                                 <div
                                     className={`relative h-full min-h-[520px] ${isSelectionMode && isAvailable ? 'cursor-pointer' : isSelectionMode ? 'cursor-not-allowed' : ''}`}
@@ -499,41 +530,41 @@ export default function InventoryGridSection({
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             {item.brand ? (
-                                                <div className="px-2.5 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-lg backdrop-blur-md border border-transparent shadow-[inset_0_2px_2px_rgba(0,0,0,0.38),inset_0_-1px_1px_rgba(255,255,255,0.16)]">
+                                                <div className={`px-2.5 py-1 text-xs font-semibold rounded-lg backdrop-blur-md bg-slate-500/30 text-white ${topTypeShadowClass}`}>
                                                     {item.brand}
                                                 </div>
                                             ) : <div />}
 
                                             <div className="flex flex-col items-end gap-1">
                                                 {item.pieceType && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md border border-transparent ${item.pieceType === 'basic'
-                                                        ? isDark ? 'bg-blue-500/30 text-white' : 'bg-blue-400/30 text-white'
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md ${item.pieceType === 'basic'
+                                                        ? 'bg-blue-500/30 text-white'
                                                         : item.pieceType === 'premium'
-                                                            ? isDark ? 'bg-purple-500/30 text-white' : 'bg-purple-400/30 text-white'
+                                                            ? 'bg-purple-500/30 text-white'
                                                             : item.pieceType === 'rlc'
-                                                                ? isDark ? 'bg-orange-500/30 text-white' : 'bg-orange-400/30 text-white'
+                                                                ? 'bg-orange-500/30 text-white'
                                                                 : item.pieceType === 'silver_series'
-                                                                    ? isDark ? 'bg-slate-400/30 text-white' : 'bg-slate-300/30 text-white'
+                                                                    ? 'bg-slate-400/30 text-white'
                                                                     : item.pieceType === 'elite_64'
-                                                                        ? isDark ? 'bg-red-500/30 text-white' : 'bg-red-400/30 text-white'
-                                                                        : isDark ? 'bg-slate-500/30 text-white' : 'bg-slate-400/30 text-white'} shadow-[inset_0_2px_2px_rgba(0,0,0,0.4),inset_0_-1px_1px_rgba(255,255,255,0.15)]`}>
+                                                                        ? 'bg-red-500/30 text-white'
+                                                                        : 'bg-slate-500/30 text-white'} ${topTypeShadowClass}`}>
                                                         {formatPieceType(item.pieceType).toUpperCase()}
                                                     </span>
                                                 )}
 
                                                 {item.isSuperTreasureHunt && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)] ${isDark ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white' : 'bg-gradient-to-r from-yellow-400/40 to-yellow-500/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md ${raisedBadgeClass} ${isDark ? 'bg-gradient-to-r from-yellow-500/40 to-yellow-700/40 text-white' : 'bg-gradient-to-r from-yellow-300/70 to-yellow-400/70 text-slate-900'}`}>
                                                         $TH
                                                     </span>
                                                 )}
                                                 {item.isTreasureHunt && !item.isSuperTreasureHunt && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)] ${isDark ? 'bg-green-500/40 text-white' : 'bg-green-400/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md ${raisedBadgeClass} ${isDark ? 'bg-green-500/40 text-white' : 'bg-green-300/65 text-slate-900'}`}>
                                                         TH
                                                     </span>
                                                 )}
 
                                                 {item.isChase && (
-                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md backdrop-blur-md shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)] ${isDark ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white' : 'bg-gradient-to-r from-red-400/40 to-pink-500/40 text-white'}`}>
+                                                    <span className={`px-2.5 py-1 text-[11px] font-bold rounded-md ${raisedBadgeClass} ${isDark ? 'bg-gradient-to-r from-red-500/40 to-pink-700/40 text-white' : 'bg-gradient-to-r from-red-300/70 to-pink-300/70 text-slate-900'}`}>
                                                         CHASE
                                                     </span>
                                                 )}
@@ -542,10 +573,7 @@ export default function InventoryGridSection({
 
                                         <div
                                             data-card-panel="true"
-                                            className={`mt-auto rounded-2xl p-3 ${isDark
-                                                ? 'bg-slate-900/34 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(255,255,255,0.12)]'
-                                                : 'bg-white/82 border border-transparent backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.3),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
-                                                }`}
+                                            className={`mt-auto rounded-2xl p-3 ${recessedPanelClass}`}
                                         >
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0 flex-1">
@@ -572,18 +600,22 @@ export default function InventoryGridSection({
                                                     <div className="relative flex-shrink-0">
                                                         <button
                                                             type="button"
-                                                            className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-200 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100/90'}`}
+                                                            className={`p-1.5 rounded-md transition-colors backdrop-blur-md ${menuDotsButtonClass}`}
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 setOpenMenuItemId(openMenuItemId === item._id ? null : item._id || null)
                                                             }}
                                                         >
-                                                            <MoreVertical size={16} />
+                                                            <div className={menuDotsStackFullClass} aria-hidden="true">
+                                                                <div className={menuDotClass}></div>
+                                                                <div className={menuDotClass}></div>
+                                                                <div className={menuDotClass}></div>
+                                                            </div>
                                                         </button>
 
                                                         {openMenuItemId === item._id && (
                                                             <div
-                                                                className={`absolute right-0 mt-1 z-20 min-w-[120px] rounded-lg border shadow-lg p-1 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}
+                                                                className={`absolute right-0 mt-1 z-20 min-w-[120px] rounded-lg shadow-lg p-1 ${isDark ? 'bg-slate-800' : 'bg-white'}`}
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 {canEdit && (
@@ -625,31 +657,31 @@ export default function InventoryGridSection({
                                             )}
 
                                             {hasMetaBadge && (
-                                                <div className="mt-2 min-h-[24px] max-h-[24px] overflow-hidden">
+                                                <div className="mt-2 min-h-[24px]">
                                                     {item.seriesId && (
                                                         <div className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full max-w-full ${isDark
-                                                            ? 'bg-purple-300/25 text-purple-100 border border-purple-200/20 shadow-[inset_0_1px_1px_rgba(2,6,23,0.4),inset_0_-1px_0_rgba(255,255,255,0.14)]'
-                                                            : 'bg-purple-100 text-purple-700 border border-purple-200 shadow-[inset_0_1px_1px_rgba(147,51,234,0.16),inset_0_-1px_0_rgba(255,255,255,0.98)]'
-                                                            }`}>
-                                                            <span className="truncate">🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})</span>
+                                                            ? 'bg-purple-300/25 text-purple-100'
+                                                            : 'bg-purple-100 text-purple-700'
+                                                            } ${raisedBadgeClass}`}>
+                                                            <span className="whitespace-normal leading-tight">🎁 {item.seriesName} ({item.seriesPosition}/{item.seriesSize})</span>
                                                         </div>
                                                     )}
 
                                                     {item.isBox && (
                                                         <div className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full max-w-full ${isDark
-                                                            ? 'bg-purple-300/25 text-purple-100 border border-purple-200/20 shadow-[inset_0_1px_1px_rgba(2,6,23,0.4),inset_0_-1px_0_rgba(255,255,255,0.14)]'
-                                                            : 'bg-purple-100 text-purple-700 border border-purple-200 shadow-[inset_0_1px_1px_rgba(147,51,234,0.16),inset_0_-1px_0_rgba(255,255,255,0.98)]'
-                                                            }`}>
-                                                            <span className="truncate">📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas{item.boxStatus === 'sealed' ? ' 🔒' : item.boxStatus === 'unpacking' ? ' ⏳' : ''}</span>
+                                                            ? 'bg-purple-300/25 text-purple-100'
+                                                            : 'bg-purple-100 text-purple-700'
+                                                            } ${raisedBadgeClass}`}>
+                                                            <span className="whitespace-normal leading-tight">📦 {item.boxName} - {item.registeredPieces || 0}/{item.boxSize} piezas{item.boxStatus === 'sealed' ? ' 🔒' : item.boxStatus === 'unpacking' ? ' ⏳' : ''}</span>
                                                         </div>
                                                     )}
 
                                                     {item.sourceBox && !item.isBox && (
                                                         <div className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full max-w-full ${isDark
-                                                            ? 'bg-slate-900/40 text-white border border-slate-400/35 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]'
-                                                            : 'bg-slate-100 text-slate-700 border border-slate-200 shadow-[inset_0_1px_1px_rgba(71,85,105,0.15),inset_0_-1px_0_rgba(255,255,255,0.98)]'
-                                                            }`}>
-                                                            <span className="truncate">📦 De: {item.sourceBox}</span>
+                                                            ? 'bg-slate-900/40 text-white'
+                                                            : 'bg-slate-100 text-slate-700'
+                                                            } ${raisedBadgeClass}`}>
+                                                            <span className="whitespace-normal leading-tight">📦 De: {item.sourceBox}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -659,20 +691,22 @@ export default function InventoryGridSection({
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span
                                                         className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${item.condition === 'mint'
-                                                            ? (isDark ? 'bg-emerald-700/35 text-emerald-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-[inset_0_1px_1px_rgba(16,185,129,0.18),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                            ? (isDark ? 'bg-emerald-700/35 text-emerald-100' : 'bg-emerald-100 text-emerald-700')
                                                             : item.condition === 'good'
-                                                                ? (isDark ? 'bg-blue-700/35 text-blue-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-blue-100 text-blue-700 border border-blue-200 shadow-[inset_0_1px_1px_rgba(37,99,235,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                                ? (isDark ? 'bg-blue-700/35 text-blue-100' : 'bg-blue-100 text-blue-700')
                                                                 : item.condition === 'fair'
-                                                                    ? (isDark ? 'bg-yellow-700/35 text-yellow-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-[inset_0_1px_1px_rgba(217,119,6,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
-                                                                    : (isDark ? 'bg-red-700/35 text-red-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-red-100 text-red-700 border border-red-200 shadow-[inset_0_1px_1px_rgba(220,38,38,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')}`}
+                                                                    ? (isDark ? 'bg-amber-700/35 text-amber-100' : 'bg-amber-100 text-amber-700')
+                                                                    : (isDark ? 'bg-red-700/35 text-red-100' : 'bg-red-100 text-red-700')
+                                                            } ${raisedBadgeClass}`}
                                                     >
                                                         {item.condition === 'mint' ? 'Mint' : item.condition === 'good' ? 'Bueno' : item.condition === 'fair' ? 'Regular' : 'Malo'}
                                                     </span>
                                                     <span className={`px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${operationalStatus === 'Disponible'
-                                                        ? (isDark ? 'bg-emerald-700/35 text-emerald-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-emerald-100 text-emerald-700 border border-emerald-200 shadow-[inset_0_1px_1px_rgba(16,185,129,0.18),inset_0_-1px_0_rgba(255,255,255,0.98)]')
+                                                        ? (isDark ? 'bg-emerald-700/35 text-emerald-100' : 'bg-emerald-100 text-emerald-700')
                                                         : operationalStatus === 'Reservado'
-                                                            ? (isDark ? 'bg-amber-700/35 text-amber-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-[inset_0_1px_1px_rgba(217,119,6,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')
-                                                            : (isDark ? 'bg-red-700/35 text-red-100 shadow-[inset_0_1px_1px_rgba(2,6,23,0.45),inset_0_-1px_0_rgba(255,255,255,0.14)]' : 'bg-red-100 text-red-700 border border-red-200 shadow-[inset_0_1px_1px_rgba(220,38,38,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]')}`}>
+                                                            ? (isDark ? 'bg-amber-700/35 text-amber-100' : 'bg-amber-100 text-amber-700')
+                                                            : (isDark ? 'bg-red-700/35 text-red-100' : 'bg-red-100 text-red-700')
+                                                        } ${raisedBadgeClass}`}>
                                                         {operationalStatus}
                                                     </span>
                                                 </div>
@@ -688,8 +722,8 @@ export default function InventoryGridSection({
                                                 </div>
                                             </div>
                                             <div className={`mt-2 rounded-xl p-2.5 ${isDark
-                                                ? 'bg-slate-900/28 backdrop-blur-md border border-transparent shadow-[inset_0_3px_3px_rgba(0,0,0,0.5),inset_0_-2px_2px_rgba(255,255,255,0.16)]'
-                                                : 'bg-white/54 backdrop-blur-md border border-transparent shadow-[inset_0_3px_3px_rgba(148,163,184,0.34),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+                                                ? 'bg-[#1b2432] shadow-[inset_10px_10px_18px_rgba(2,6,23,0.5),inset_-7px_-7px_12px_rgba(148,163,184,0.08)]'
+                                                : 'bg-[#dde5ef] shadow-[inset_10px_10px_18px_rgba(13,39,80,0.16),inset_-7px_-7px_12px_rgba(255,255,255,0.96)]'
                                                 }`}>
                                                 {hideCostAndProfitInInventory ? (
                                                     <div className="text-xs">
@@ -718,7 +752,7 @@ export default function InventoryGridSection({
                                                     </div>
                                                 )}
                                                 {item.location && (
-                                                    <div className={`flex items-center gap-1 text-xs pt-1 ${isDark ? 'border-t border-slate-500/30 text-white/85' : 'border-t border-slate-200 text-slate-800'}`}>
+                                                    <div className={`flex items-center gap-1 text-xs pt-1 ${isDark ? 'text-white/85' : 'text-slate-800'}`}>
                                                         <MapPin size={12} />
                                                         <span className="truncate">{item.location}</span>
                                                     </div>
@@ -731,10 +765,7 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="primary"
-                                                            className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${isDark
-                                                                ? '!bg-blue-600/65 !text-blue-50 hover:!bg-blue-600/75 !border !border-blue-300/25 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(15,23,42,0.6),inset_0_-1px_1px_rgba(255,255,255,0.16)] hover:!shadow-[inset_0_3px_3px_rgba(15,23,42,0.5),inset_0_-1px_1px_rgba(255,255,255,0.2)]'
-                                                                : '!bg-blue-500/55 !text-white hover:!bg-blue-500/65 !border !border-blue-300/40 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(59,130,246,0.25),inset_0_-1px_1px_rgba(255,255,255,0.5)] hover:!shadow-[inset_0_3px_3px_rgba(59,130,246,0.2),inset_0_-1px_1px_rgba(255,255,255,0.6)]'
-                                                                }`}
+                                                            className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${posButtonToneClass}`}
                                                             onClick={() => onAddToPos(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="Agregar a POS"
@@ -745,16 +776,15 @@ export default function InventoryGridSection({
                                                         <Button
                                                             size="sm"
                                                             variant="secondary"
-                                                            className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${isDark
-                                                                ? '!bg-slate-800/44 !text-slate-500 hover:!bg-slate-700/52 hover:!text-slate-400 !border !border-slate-300/30 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.65),inset_0_-1px_1px_rgba(255,255,255,0.14)] hover:!shadow-[inset_0_3px_3px_rgba(2,6,23,0.55),inset_0_-1px_1px_rgba(255,255,255,0.18)]'
-                                                                : '!bg-white/60 !text-slate-500 hover:!bg-white/72 hover:!text-slate-700 !border !border-slate-300/80 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] hover:!shadow-[inset_0_3px_3px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]'
-                                                                }`}
+                                                            className={`min-h-[38px] px-2 py-2 text-sm rounded-xl ${deliveryButtonToneClass}`}
                                                             onClick={() => onAddToDelivery(item)}
                                                             disabled={!isAvailable || !canCreate}
                                                             title="Agregar a entrega"
                                                         >
                                                             <Truck size={14} className="mr-1" />
-                                                            Entrega
+                                                            <span className={`${!isAvailable || !canCreate ? (isDark ? 'text-slate-100 font-semibold' : 'text-slate-800 font-semibold') : ''}`}>
+                                                                Entrega
+                                                            </span>
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -762,7 +792,7 @@ export default function InventoryGridSection({
                                         </div>
 
                                         {hasPhotos && (
-                                            <div className="absolute bottom-3 left-3 z-20 px-2 py-1 bg-slate-200/20 text-white text-xs font-semibold rounded-md backdrop-blur-md border border-slate-400/45 shadow-[inset_0_1px_1px_rgba(0,0,0,0.35),inset_0_-1px_0_rgba(255,255,255,0.2)]">
+                                            <div className={`absolute bottom-3 left-3 z-20 px-2 py-1 text-xs font-semibold rounded-md backdrop-blur-md ${isDark ? 'bg-slate-900/42 text-white border border-white/15' : 'bg-slate-700/34 text-white border border-white/35'}`}>
                                                 {item.photos!.length} foto{item.photos!.length !== 1 ? 's' : ''}
                                             </div>
                                         )}

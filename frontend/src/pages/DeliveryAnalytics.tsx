@@ -175,9 +175,9 @@ export const DeliveryAnalytics: React.FC = () => {
     }
 
     return (
-        <div className="p-4 md:p-6 bg-slate-700/30 min-h-screen">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Analíticas de Entregas</h1>
+        <div className="max-w-7xl mx-auto space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold text-white mb-2">Analíticas de Entregas</h1>
                 <p className="text-slate-400">Vista general del rendimiento y estado de entregas</p>
             </div>
 

@@ -49,25 +49,23 @@ const POS: React.FC = () => {
   const { mode } = useTheme()
   const isDark = mode === 'dark'
 
-  const pageBackdropClass = isDark
-    ? 'bg-[radial-gradient(circle_at_12%_12%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_88%_8%,rgba(59,130,246,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0f172a_100%)]'
-    : 'bg-[radial-gradient(circle_at_10%_15%,rgba(56,189,248,0.14),transparent_35%),radial-gradient(circle_at_88%_12%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f5f8ff_0%,#e9eff8_100%)]'
+  const pageBackdropClass = 'bg-transparent'
 
   const neumorphSurfaceClass = isDark
-    ? 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_22px_rgba(51,65,85,0.2)]'
-    : 'rounded-2xl border border-white/80 bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.36),-12px_-12px_24px_rgba(255,255,255,0.95)]'
+    ? 'rounded-2xl backdrop-blur-xl bg-slate-900/62 shadow-[14px_14px_26px_rgba(2,6,23,0.52),-10px_-10px_18px_rgba(148,163,184,0.16)]'
+    : 'rounded-2xl backdrop-blur-xl bg-white/94 shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.99)]'
 
   const neumorphInsetClass = isDark
-    ? 'border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
-    : 'border border-white/90 bg-[#edf3fa] shadow-[inset_5px_5px_10px_rgba(148,163,184,0.24),inset_-5px_-5px_10px_rgba(255,255,255,0.92)]'
+    ? 'bg-slate-800 border border-slate-600/40 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]'
+    : 'bg-slate-100 border border-slate-300/60 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]'
 
   const neumorphPillClass = isDark
-    ? 'border border-slate-700/70 bg-slate-800 text-slate-100 shadow-[8px_8px_16px_rgba(2,6,23,0.45),-6px_-6px_12px_rgba(51,65,85,0.16)] hover:brightness-110'
-    : 'border border-white/85 bg-[#eef3fa] text-slate-700 shadow-[8px_8px_16px_rgba(148,163,184,0.3),-8px_-8px_16px_rgba(255,255,255,0.9)] hover:brightness-95'
+    ? 'border-0 bg-slate-800/62 text-white font-bold backdrop-blur-xl shadow-[8px_8px_14px_rgba(2,6,23,0.45),-6px_-6px_10px_rgba(148,163,184,0.1)] hover:bg-slate-700/72'
+    : 'border-0 bg-white/86 text-slate-800 font-bold backdrop-blur-xl shadow-[8px_8px_14px_rgba(148,163,184,0.22),-6px_-6px_10px_rgba(255,255,255,0.96)] hover:bg-white/92'
 
   const neumorphPillActiveClass = isDark
-    ? 'border border-emerald-500/70 bg-emerald-600 text-white shadow-[10px_10px_20px_rgba(2,6,23,0.5),-8px_-8px_16px_rgba(16,185,129,0.2)] hover:brightness-110'
-    : 'border border-emerald-300 bg-emerald-500 text-white shadow-[10px_10px_20px_rgba(14,116,144,0.24),-8px_-8px_16px_rgba(255,255,255,0.75)] hover:brightness-95'
+    ? 'border-0 bg-emerald-600 text-white font-bold backdrop-blur-xl shadow-[8px_8px_14px_rgba(2,6,23,0.45),-6px_-6px_10px_rgba(16,185,129,0.2)] hover:bg-emerald-500'
+    : 'border-0 bg-emerald-500 text-white font-bold backdrop-blur-xl shadow-[8px_8px_14px_rgba(148,163,184,0.22),-6px_-6px_10px_rgba(16,185,129,0.15)] hover:bg-emerald-400'
 
   // Get selected store
   const { selectedStore } = useStore()
@@ -625,478 +623,475 @@ const POS: React.FC = () => {
   }
 
   return (
-    <div className={pageBackdropClass}>
-      <div className="container mx-auto px-4 py-6">
-        <div className={`mb-6 p-5 ${neumorphSurfaceClass}`}>
-          <h1 className={`text-3xl font-bold ${isDark ? '!text-white' : '!text-gray-900'}`}>🛒 Punto de Venta (POS)</h1>
-          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>Búsqueda inteligente con Levenshtein • Datos en tiempo real desde caché</p>
-        </div>
+    <div className={`space-y-6 ${pageBackdropClass}`}>
+      <div className={`mb-6 p-5 ${neumorphSurfaceClass}`}>
+        <h1 className={`text-2xl font-bold ${isDark ? '!text-white' : '!text-slate-900'}`}>🛒 Punto de Venta</h1>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Lista de Inventario */}
-          <div className="lg:col-span-2">
-            <div className={`${neumorphSurfaceClass} p-4`}>
-              {/* Barra de búsqueda */}
-              <div className="mb-4">
-                <input
-                  type="text"
-                  placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
-                  value={searchTerm}
-                  onChange={(e) => updateFilter('searchTerm', e.target.value)}
-                  className={`w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white placeholder-slate-400' : 'text-gray-900 placeholder-gray-500'}`}
-                />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Lista de Inventario */}
+        <div className="lg:col-span-2">
+          <div className={`${neumorphSurfaceClass} p-4`}>
+            {/* Barra de búsqueda */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Buscar por nombre, marca, tipo... (búsqueda inteligente)"
+                value={searchTerm}
+                onChange={(e) => updateFilter('searchTerm', e.target.value)}
+                className={`w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white placeholder-slate-400' : 'text-slate-900 placeholder-slate-400'}`}
+              />
+            </div>
+
+            {/* Filtros */}
+            <div className="mb-4 space-y-3">
+              {/* Primera fila de filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <select
+                  value={filterCondition}
+                  onChange={(e) => updateFilter('filterCondition', e.target.value)}
+                  className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
+                >
+                  <option value="">Todas las condiciones</option>
+                  <option value="mint">Mint</option>
+                  <option value="good">Bueno</option>
+                  <option value="fair">Regular</option>
+                  <option value="poor">Malo</option>
+                </select>
+
+                <select
+                  value={filterBrand}
+                  onChange={(e) => {
+                    updateFilter('filterBrand', e.target.value);
+                    if (!e.target.value) updateFilter('filterPieceType', ''); // Reset tipo al cambiar marca
+                  }}
+                  className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
+                >
+                  <option value="">Todas las marcas</option>
+                  {uniqueBrands.map(brand => (
+                    <option key={brand} value={brand}>{brand}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={filterPieceType}
+                  onChange={(e) => updateFilter('filterPieceType', e.target.value)}
+                  className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 disabled:opacity-50 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
+                  disabled={!filterBrand}
+                >
+                  <option value="">Todos los tipos</option>
+                  <option value="basic">Básico</option>
+                  <option value="premium">Premium</option>
+                  <option value="rlc">RLC</option>
+                  <option value="silver_series">Silver Series</option>
+                  <option value="elite_64">Elite 64</option>
+                </select>
               </div>
 
-              {/* Filtros */}
-              <div className="mb-4 space-y-3">
-                {/* Primera fila de filtros */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  <select
-                    value={filterCondition}
-                    onChange={(e) => updateFilter('filterCondition', e.target.value)}
-                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    <option value="">Todas las condiciones</option>
-                    <option value="mint">Mint</option>
-                    <option value="good">Bueno</option>
-                    <option value="fair">Regular</option>
-                    <option value="poor">Malo</option>
-                  </select>
+              {/* Segunda fila de filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <select
+                  value={filterLocation}
+                  onChange={(e) => updateFilter('filterLocation', e.target.value)}
+                  className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
+                >
+                  <option value="">Todas las ubicaciones</option>
+                  {uniqueLocations.map(location => (
+                    <option key={location} value={location}>{location}</option>
+                  ))}
+                </select>
 
+                {/* Filtro TH/STH solo para Hot Wheels Basic */}
+                {filterBrand === 'Hot Wheels' && filterPieceType === 'basic' && (
                   <select
-                    value={filterBrand}
-                    onChange={(e) => {
-                      updateFilter('filterBrand', e.target.value);
-                      if (!e.target.value) updateFilter('filterPieceType', ''); // Reset tipo al cambiar marca
+                    value={filterTreasureHunt}
+                    onChange={(e) => updateFilter('filterTreasureHunt', e.target.value)}
+                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
+                  >
+                    <option value="">Todos (TH/STH/Normal)</option>
+                    <option value="th">Solo Treasure Hunt (TH)</option>
+                    <option value="sth">Solo Super TH (STH)</option>
+                  </select>
+                )}
+
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterLowStock}
+                    onChange={(e) => updateFilter('filterLowStock', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                    Solo stock bajo (≤3)
+                  </span>
+                </label>
+              </div>
+
+              {/* Tercera fila de filtros */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {/* Filtro Chase */}
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterChase}
+                    onChange={(e) => updateFilter('filterChase', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                    Solo Chase
+                  </span>
+                </label>
+
+                {/* Filtro Fantasy solo para Hot Wheels */}
+                {filterBrand === 'Hot Wheels' && (
+                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
+                    <input
+                      type="checkbox"
+                      checked={filterFantasy}
+                      onChange={(e) => updateFilter('filterFantasy', e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                      Solo Fantasías
+                    </span>
+                  </label>
+                )}
+
+                {/* Filtro Moto */}
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterMoto}
+                    onChange={(e) => updateFilter('filterMoto', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                    Solo Motos 🏍️
+                  </span>
+                </label>
+
+                {/* Filtro Camioneta */}
+                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
+                  <input
+                    type="checkbox"
+                    checked={filterCamioneta}
+                    onChange={(e) => updateFilter('filterCamioneta', e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                    Solo Camionetas 🚚
+                  </span>
+                </label>
+
+                {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
+                  <button
+                    onClick={() => {
+                      updateFilter('searchTerm', '');
+                      updateFilter('filterCondition', '');
+                      updateFilter('filterBrand', '');
+                      updateFilter('filterPieceType', '');
+                      updateFilter('filterLocation', '');
+                      updateFilter('filterLowStock', false);
+                      updateFilter('filterTreasureHunt', 'all');
+                      updateFilter('filterChase', false);
+                      updateFilter('filterFantasy', false);
+                      updateFilter('filterMoto', false);
+                      updateFilter('filterCamioneta', false);
                     }}
-                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${neumorphPillClass}`}
                   >
-                    <option value="">Todas las marcas</option>
-                    {uniqueBrands.map(brand => (
-                      <option key={brand} value={brand}>{brand}</option>
-                    ))}
-                  </select>
-
-                  <select
-                    value={filterPieceType}
-                    onChange={(e) => updateFilter('filterPieceType', e.target.value)}
-                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 disabled:opacity-50 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
-                    disabled={!filterBrand}
-                  >
-                    <option value="">Todos los tipos</option>
-                    <option value="basic">Básico</option>
-                    <option value="premium">Premium</option>
-                    <option value="rlc">RLC</option>
-                    <option value="silver_series">Silver Series</option>
-                    <option value="elite_64">Elite 64</option>
-                  </select>
-                </div>
-
-                {/* Segunda fila de filtros */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  <select
-                    value={filterLocation}
-                    onChange={(e) => updateFilter('filterLocation', e.target.value)}
-                    className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    <option value="">Todas las ubicaciones</option>
-                    {uniqueLocations.map(location => (
-                      <option key={location} value={location}>{location}</option>
-                    ))}
-                  </select>
-
-                  {/* Filtro TH/STH solo para Hot Wheels Basic */}
-                  {filterBrand === 'Hot Wheels' && filterPieceType === 'basic' && (
-                    <select
-                      value={filterTreasureHunt}
-                      onChange={(e) => updateFilter('filterTreasureHunt', e.target.value)}
-                      className={`px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
-                    >
-                      <option value="">Todos (TH/STH/Normal)</option>
-                      <option value="th">Solo Treasure Hunt (TH)</option>
-                      <option value="sth">Solo Super TH (STH)</option>
-                    </select>
-                  )}
-
-                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
-                    <input
-                      type="checkbox"
-                      checked={filterLowStock}
-                      onChange={(e) => updateFilter('filterLowStock', e.target.checked)}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium text-slate-300">
-                      Solo stock bajo (≤3)
-                    </span>
-                  </label>
-                </div>
-
-                {/* Tercera fila de filtros */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  {/* Filtro Chase */}
-                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
-                    <input
-                      type="checkbox"
-                      checked={filterChase}
-                      onChange={(e) => updateFilter('filterChase', e.target.checked)}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium text-slate-300">
-                      Solo Chase
-                    </span>
-                  </label>
-
-                  {/* Filtro Fantasy solo para Hot Wheels */}
-                  {filterBrand === 'Hot Wheels' && (
-                    <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
-                      <input
-                        type="checkbox"
-                        checked={filterFantasy}
-                        onChange={(e) => updateFilter('filterFantasy', e.target.checked)}
-                        className="rounded"
-                      />
-                      <span className="text-sm font-medium text-purple-300">
-                        Solo Fantasías
-                      </span>
-                    </label>
-                  )}
-
-                  {/* Filtro Moto */}
-                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
-                    <input
-                      type="checkbox"
-                      checked={filterMoto}
-                      onChange={(e) => updateFilter('filterMoto', e.target.checked)}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium text-orange-300">
-                      Solo Motos 🏍️
-                    </span>
-                  </label>
-
-                  {/* Filtro Camioneta */}
-                  <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${neumorphInsetClass}`}>
-                    <input
-                      type="checkbox"
-                      checked={filterCamioneta}
-                      onChange={(e) => updateFilter('filterCamioneta', e.target.checked)}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium text-blue-300">
-                      Solo Camionetas 🚚
-                    </span>
-                  </label>
-
-                  {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
-                    <button
-                      onClick={() => {
-                        updateFilter('searchTerm', '');
-                        updateFilter('filterCondition', '');
-                        updateFilter('filterBrand', '');
-                        updateFilter('filterPieceType', '');
-                        updateFilter('filterLocation', '');
-                        updateFilter('filterLowStock', false);
-                        updateFilter('filterTreasureHunt', 'all');
-                        updateFilter('filterChase', false);
-                        updateFilter('filterFantasy', false);
-                        updateFilter('filterMoto', false);
-                        updateFilter('filterCamioneta', false);
-                      }}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${neumorphPillClass}`}
-                    >
-                      Limpiar filtros
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Contador de resultados */}
-              {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
-                <div className={`mb-3 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  {filteredInventory.length} resultado(s) encontrado(s)
-                </div>
-              )}
-
-              <div className="overflow-y-auto max-h-[600px]">
-                {filteredInventory.length === 0 ? (
-                  <p className={`text-center py-8 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                    {searchTerm ? 'No se encontraron artículos' : 'No hay artículos disponibles'}
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredInventory.map(item => {
-                      if (!item._id) return null;
-
-                      // Extraer datos del carId si está poblado
-                      const carData = typeof item.carId === 'object' ? item.carId : null;
-                      const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
-                      const displayName = carData?.name || carIdStr || 'Sin nombre';
-                      const price = item.actualPrice || item.suggestedPrice || 0;
-                      const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
-                      const cartItem = cart.find(c => c._id === item._id);
-                      const cartQty = cartItem?.cartQuantity || 0;
-                      const isInCart = !!cartItem;
-
-                      return (
-                        <div
-                          key={item._id}
-                          className={`rounded-xl overflow-hidden transition-all hover:brightness-110 ${neumorphSurfaceClass}`}
-                        >
-                          {/* Item Image */}
-                          <div className={`relative ${neumorphInsetClass}`}>
-                            {item.photos && item.photos.length > 0 ? (
-                              <img
-                                src={item.photos[item.primaryPhotoIndex || 0]}
-                                alt={displayName}
-                                className="w-full h-48 object-cover"
-                                crossOrigin="anonymous"
-                              />
-                            ) : (
-                              <div className="w-full h-48 flex items-center justify-center bg-slate-700">
-                                <svg className="w-20 h-20 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                                </svg>
-                              </div>
-                            )}
-                            {isInCart && (
-                              <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                En carrito
-                              </div>
-                            )}
-                            {availableQty <= 3 && (
-                              <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                                Solo {availableQty}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Item Details */}
-                          <div className="p-4">
-                            <h3 className={`font-bold text-lg mb-1 line-clamp-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{displayName}</h3>
-                            <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{carIdStr}</p>
-                            <div className="space-y-1 mb-3">
-                              <p className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                                {item.brand} {item.year && `• ${item.year}`}
-                              </p>
-                              {item.color && (
-                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>🎨 {item.color}</p>
-                              )}
-                              {item.series && (
-                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>📦 {item.series}</p>
-                              )}
-                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>🏷️ {formatPieceType(item.pieceType)}</p>
-                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>📍 Disponible: {availableQty}</p>
-                            </div>
-
-                            <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isDark ? 'border-slate-600' : 'border-gray-200'}`}>
-                              <span className="text-2xl font-bold text-emerald-400">
-                                ${price.toFixed(2)}
-                              </span>
-                              {availableQty <= 1 ? (
-                                <button
-                                  onClick={() => addToCart(item)}
-                                  disabled={isInCart}
-                                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
-                                    ? 'bg-slate-600 cursor-not-allowed text-slate-400'
-                                    : neumorphPillClass
-                                    }`}
-                                >
-                                  {isInCart ? '✓ Agregado' : '+ Agregar'}
-                                </button>
-                              ) : (
-                                <div className="flex items-center gap-2">
-                                  {isInCart && (
-                                    <>
-                                      <button
-                                        onClick={() => updateCartQuantity(item._id, cartQty - 1)}
-                                        className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${neumorphPillClass}`}
-                                      >
-                                        −
-                                      </button>
-                                      <span className="font-bold text-lg min-w-[2.5rem] text-center text-white">{cartQty}</span>
-                                    </>
-                                  )}
-                                  <button
-                                    onClick={() => addToCart(item, 1)}
-                                    disabled={cartQty >= availableQty}
-                                    className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${cartQty >= availableQty
-                                      ? 'bg-gray-300 cursor-not-allowed'
-                                      : neumorphPillClass
-                                      }`}
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                    Limpiar filtros
+                  </button>
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Carrito */}
-          <div className="lg:col-span-1">
-            <div className={`p-4 sticky top-4 ${neumorphSurfaceClass}`}>
-              <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Carrito ({cart.length})</h2>
+            {/* Contador de resultados */}
+            {(searchTerm || filterCondition || filterBrand || filterPieceType || filterLocation || filterLowStock || filterTreasureHunt !== 'all' || filterChase || filterFantasy || filterMoto || filterCamioneta) && (
+              <div className={`mb-3 text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                {filteredInventory.length} resultado(s) encontrado(s)
+              </div>
+            )}
 
-              <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
-                {cart.length === 0 ? (
-                  <p className={`text-center py-8 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Carrito vacío</p>
-                ) : (
-                  cart.map(item => {
+            <div className="overflow-y-auto max-h-[600px]">
+              {filteredInventory.length === 0 ? (
+                <p className={`text-center py-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {searchTerm ? 'No se encontraron artículos' : 'No hay artículos disponibles'}
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredInventory.map(item => {
                     if (!item._id) return null;
 
+                    // Extraer datos del carId si está poblado
                     const carData = typeof item.carId === 'object' ? item.carId : null;
                     const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
                     const displayName = carData?.name || carIdStr || 'Sin nombre';
-                    const originalPrice = item.actualPrice || item.suggestedPrice || 0;
+                    const price = item.actualPrice || item.suggestedPrice || 0;
                     const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+                    const cartItem = cart.find(c => c._id === item._id);
+                    const cartQty = cartItem?.cartQuantity || 0;
+                    const isInCart = !!cartItem;
 
                     return (
-                      <div key={item._id} className={`rounded-lg overflow-hidden transition-all ${neumorphInsetClass}`}>
-                        <div className="flex gap-2 p-2">
-                          {/* Cart Item Image */}
-                          <div className="flex-shrink-0">
-                            {item.photos && item.photos.length > 0 ? (
-                              <img
-                                src={item.photos[item.primaryPhotoIndex || 0]}
-                                alt={displayName}
-                                className="w-16 h-16 object-cover rounded border border-slate-600"
-                                crossOrigin="anonymous"
-                              />
-                            ) : (
-                              <div className={`w-16 h-16 rounded border flex items-center justify-center ${isDark ? 'bg-slate-600 border-slate-500' : 'bg-gray-100 border-gray-300'}`}>
-                                <svg className={`w-8 h-8 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                                </svg>
-                              </div>
+                      <div
+                        key={item._id}
+                        className={`rounded-xl overflow-hidden transition-all hover:scale-[1.02] ${neumorphSurfaceClass}`}
+                      >
+                        {/* Item Image */}
+                        <div className={`relative ${neumorphInsetClass}`}>
+                          {item.photos && item.photos.length > 0 ? (
+                            <img
+                              src={item.photos[item.primaryPhotoIndex || 0]}
+                              alt={displayName}
+                              className="w-full h-48 object-cover"
+                              crossOrigin="anonymous"
+                            />
+                          ) : (
+                            <div className={`w-full h-48 flex items-center justify-center ${isDark ? 'bg-slate-700/60' : 'bg-slate-100'}`}>
+                              <svg className="w-20 h-20 text-slate-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                          {isInCart && (
+                            <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                              En carrito
+                            </div>
+                          )}
+                          {availableQty <= 3 && (
+                            <div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                              Solo {availableQty}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Item Details */}
+                        <div className="p-4">
+                          <h3 className={`font-bold text-lg mb-1 line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{displayName}</h3>
+                          <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{carIdStr}</p>
+                          <div className="space-y-1 mb-3">
+                            <p className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                              {item.brand} {item.year && `• ${item.year}`}
+                            </p>
+                            {item.color && (
+                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>🎨 {item.color}</p>
                             )}
+                            {item.series && (
+                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>📦 {item.series}</p>
+                            )}
+                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>🏷️ {formatPieceType(item.pieceType)}</p>
+                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>📍 Disponible: {availableQty}</p>
                           </div>
 
-                          {/* Cart Item Details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                              <div className="flex-1 min-w-0">
-                                <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{displayName}</p>
-                                <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{carIdStr}</p>
-                              </div>
+                          <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isDark ? 'border-slate-600/40' : 'border-slate-200/60'}`}>
+                            <span className="text-2xl font-bold text-emerald-400">
+                              ${price.toFixed(2)}
+                            </span>
+                            {availableQty <= 1 ? (
                               <button
-                                onClick={() => removeFromCart(item._id)}
-                                className="text-red-500 hover:text-red-400 ml-2 flex-shrink-0"
+                                onClick={() => addToCart(item)}
+                                disabled={isInCart}
+                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${isInCart
+                                  ? 'bg-slate-600 cursor-not-allowed text-slate-400'
+                                  : neumorphPillClass
+                                  }`}
                               >
-                                ✕
+                                {isInCart ? '✓ Agregado' : '+ Agregar'}
                               </button>
-                            </div>
-
-                            {/* Price Input */}
-                            <div className="flex items-center gap-1 mb-2">
-                              <span className={`text-xs line-through ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
-                                ${originalPrice.toFixed(2)}
-                              </span>
-                              <input
-                                type="number"
-                                value={item.customPrice}
-                                onChange={(e) =>
-                                  updatePrice(item._id, parseFloat(e.target.value) || 0)
-                                }
-                                className={`flex-1 px-2 py-1 border rounded text-sm font-semibold ${isDark ? 'bg-slate-700 border-slate-600 text-green-600' : 'bg-gray-50 border-gray-300 text-green-600'}`}
-                                step="0.01"
-                                min="0"
-                              />
-                            </div>
-
-                            {/* Quantity Controls */}
-                            {availableQty > 1 && (
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() =>
-                                      updateCartQuantity(item._id, item.cartQuantity - 1)
-                                    }
-                                    className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${neumorphPillClass}`}
-                                  >
-                                    −
-                                  </button>
-                                  <span className={`text-sm font-bold min-w-[2rem] text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                    {item.cartQuantity}
-                                  </span>
-                                  <button
-                                    onClick={() =>
-                                      updateCartQuantity(item._id, item.cartQuantity + 1)
-                                    }
-                                    disabled={item.cartQuantity >= availableQty}
-                                    className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${item.cartQuantity >= availableQty
-                                      ? 'bg-gray-300 cursor-not-allowed'
-                                      : neumorphPillClass
-                                      }`}
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                                <span className="text-xs font-semibold text-emerald-400">
-                                  ${(item.customPrice * item.cartQuantity).toFixed(2)}
-                                </span>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                {isInCart && (
+                                  <>
+                                    <button
+                                      onClick={() => updateCartQuantity(item._id, cartQty - 1)}
+                                      className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${neumorphPillClass}`}
+                                    >
+                                      −
+                                    </button>
+                                    <span className={`font-bold text-lg min-w-[2.5rem] text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>{cartQty}</span>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => addToCart(item, 1)}
+                                  disabled={cartQty >= availableQty}
+                                  className={`w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors ${cartQty >= availableQty
+                                    ? (isDark ? 'bg-slate-600 cursor-not-allowed text-slate-400' : 'bg-slate-200 cursor-not-allowed text-slate-400')
+                                    : neumorphPillClass
+                                    }`}
+                                >
+                                  +
+                                </button>
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
                     );
-                  })
-                )}
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Carrito */}
+        <div className="lg:col-span-1">
+          <div className={`p-4 sticky top-4 ${neumorphSurfaceClass}`}>
+            <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Carrito ({cart.length})</h2>
+
+            <div className="space-y-3 mb-4 max-h-[400px] overflow-y-auto">
+              {cart.length === 0 ? (
+                <p className={`text-center py-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Carrito vacío</p>
+              ) : (
+                cart.map(item => {
+                  if (!item._id) return null;
+
+                  const carData = typeof item.carId === 'object' ? item.carId : null;
+                  const carIdStr = typeof item.carId === 'string' ? item.carId : carData?._id || '';
+                  const displayName = carData?.name || carIdStr || 'Sin nombre';
+                  const originalPrice = item.actualPrice || item.suggestedPrice || 0;
+                  const availableQty = (item.quantity || 0) - (item.reservedQuantity || 0);
+
+                  return (
+                    <div key={item._id} className={`rounded-lg overflow-hidden transition-all ${neumorphInsetClass}`}>
+                      <div className="flex gap-2 p-2">
+                        {/* Cart Item Image */}
+                        <div className="flex-shrink-0">
+                          {item.photos && item.photos.length > 0 ? (
+                            <img
+                              src={item.photos[item.primaryPhotoIndex || 0]}
+                              alt={displayName}
+                              className={`w-16 h-16 object-cover rounded border ${isDark ? 'border-slate-600/40' : 'border-slate-200/60'}`}
+                              crossOrigin="anonymous"
+                            />
+                          ) : (
+                            <div className={`w-16 h-16 rounded border flex items-center justify-center ${isDark ? 'bg-slate-700/60 border-slate-600/40' : 'bg-slate-100 border-slate-200/60'}`}>
+                              <svg className={`w-8 h-8 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Cart Item Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-1">
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-semibold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>{displayName}</p>
+                              <p className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{carIdStr}</p>
+                            </div>
+                            <button
+                              onClick={() => removeFromCart(item._id)}
+                              className="text-red-500 hover:text-red-400 ml-2 flex-shrink-0"
+                            >
+                              ✕
+                            </button>
+                          </div>
+
+                          {/* Price Input */}
+                          <div className="flex items-center gap-1 mb-2">
+                            <span className={`text-xs line-through ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                              ${originalPrice.toFixed(2)}
+                            </span>
+                            <input
+                              type="number"
+                              value={item.customPrice}
+                              onChange={(e) =>
+                                updatePrice(item._id, parseFloat(e.target.value) || 0)
+                              }
+                              className={`flex-1 px-2 py-1 rounded text-sm font-semibold text-green-600 ${neumorphInsetClass}`}
+                              step="0.01"
+                              min="0"
+                            />
+                          </div>
+
+                          {/* Quantity Controls */}
+                          {availableQty > 1 && (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() =>
+                                    updateCartQuantity(item._id, item.cartQuantity - 1)
+                                  }
+                                  className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${neumorphPillClass}`}
+                                >
+                                  −
+                                </button>
+                                <span className={`text-sm font-bold min-w-[2rem] text-center ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                  {item.cartQuantity}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    updateCartQuantity(item._id, item.cartQuantity + 1)
+                                  }
+                                  disabled={item.cartQuantity >= availableQty}
+                                  className={`w-6 h-6 flex items-center justify-center rounded font-bold text-xs ${item.cartQuantity >= availableQty
+                                    ? (isDark ? 'bg-slate-600 cursor-not-allowed text-slate-400' : 'bg-slate-200 cursor-not-allowed text-slate-400')
+                                    : neumorphPillClass
+                                    }`}
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <span className="text-xs font-semibold text-emerald-400">
+                                ${(item.customPrice * item.cartQuantity).toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className={`border-t pt-4 ${isDark ? 'border-slate-600/40' : 'border-slate-200/60'}`}>
+              <div className="mb-4">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  Método de Pago
+                </label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-slate-900'}`}
+                >
+                  <option value="cash">Efectivo</option>
+                  <option value="transfer">Transferencia</option>
+                  <option value="paypal">PayPal</option>
+                  <option value="mercadopago">MercadoPago</option>
+                  <option value="other">Otro</option>
+                </select>
               </div>
 
-              <div className={`border-t pt-4 ${isDark ? 'border-slate-600' : 'border-gray-200'}`}>
-                <div className="mb-4">
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Método de Pago
-                  </label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-slate-500 ${neumorphInsetClass} ${isDark ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    <option value="cash">Efectivo</option>
-                    <option value="transfer">Transferencia</option>
-                    <option value="paypal">PayPal</option>
-                    <option value="mercadopago">MercadoPago</option>
-                    <option value="other">Otro</option>
-                  </select>
-                </div>
-
-                <div className="flex justify-between items-center mb-4">
-                  <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Total:</span>
-                  <span className="text-3xl font-bold text-emerald-400">
-                    ${calculateTotal().toFixed(2)}
-                  </span>
-                </div>
-
-                <button
-                  onClick={processSale}
-                  disabled={cart.length === 0 || processing}
-                  className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
-                    ? (isDark ? 'bg-slate-600 cursor-not-allowed text-slate-400' : 'bg-gray-300 cursor-not-allowed text-gray-500')
-                    : neumorphPillActiveClass
-                    }`}
-                >
-                  {processing ? 'Procesando...' : 'Completar Venta'}
-                </button>
-
-                <button
-                  onClick={() => dispatch(clearCart())}
-                  disabled={cart.length === 0}
-                  className={`w-full mt-2 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${neumorphPillClass}`}
-                >
-                  Limpiar Carrito
-                </button>
+              <div className="flex justify-between items-center mb-4">
+                <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Total:</span>
+                <span className="text-3xl font-bold text-emerald-400">
+                  ${calculateTotal().toFixed(2)}
+                </span>
               </div>
+
+              <button
+                onClick={processSale}
+                disabled={cart.length === 0 || processing}
+                className={`w-full py-3 rounded-lg font-bold text-lg ${cart.length === 0 || processing
+                  ? (isDark ? 'bg-slate-600 cursor-not-allowed text-slate-400' : 'bg-slate-200 cursor-not-allowed text-slate-400')
+                  : neumorphPillActiveClass
+                  }`}
+              >
+                {processing ? 'Procesando...' : 'Completar Venta'}
+              </button>
+
+              <button
+                onClick={() => dispatch(clearCart())}
+                disabled={cart.length === 0}
+                className={`w-full mt-2 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${neumorphPillClass}`}
+              >
+                Limpiar Carrito
+              </button>
             </div>
           </div>
         </div>

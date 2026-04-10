@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 import { useQueryClient } from 'react-query'
 import { usePurchases, useCreatePurchase, useUpdatePurchase, useUpdatePurchaseStatus, useDeletePurchase } from '@/hooks/usePurchases'
 import { useSuppliers, useCreateSupplier } from '@/hooks/useSuppliers'
@@ -30,6 +31,8 @@ const PREDEFINED_BRANDS = [
 ]
 
 export default function Purchases() {
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const queryClient = useQueryClient()
     const [showAddModal, setShowAddModal] = useState(false)
     const [showCreateSupplierModal, setShowCreateSupplierModal] = useState(false)
@@ -666,11 +669,14 @@ export default function Purchases() {
     const totalItems = purchases?.length || 0
     const totalValue = purchases?.reduce((sum, purchase) => sum + purchase.totalCost, 0) || 0
     const pendingPurchases = purchases?.filter(p => p.status !== 'received').length || 0
+    const titleSurfaceClass = isDark
+        ? 'rounded-2xl border border-slate-700/70 bg-[linear-gradient(145deg,rgba(245,158,11,0.22),rgba(15,23,42,0.7))] shadow-[12px_12px_24px_rgba(2,6,23,0.52),-10px_-10px_20px_rgba(245,158,11,0.1)] p-4 lg:p-5'
+        : 'rounded-2xl border border-white/80 bg-[linear-gradient(145deg,rgba(255,251,235,0.98),rgba(245,158,11,0.18))] shadow-[12px_12px_24px_rgba(148,163,184,0.3),-12px_-12px_24px_rgba(255,255,255,0.94)] p-4 lg:p-5'
 
     return (
         <div className="space-y-4 lg:space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className={`${titleSurfaceClass} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
                 <div>
                     <h1 className="text-2xl font-bold text-white">Compras</h1>
                     <p className="text-sm text-slate-400">Gestiona tus compras de autos a escala</p>
@@ -732,7 +738,7 @@ export default function Purchases() {
             {/* Purchases List */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Historial de Compras</CardTitle>
+                    <CardTitle className="text-white">Historial de Compras</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {purchases && purchases.length > 0 ? (

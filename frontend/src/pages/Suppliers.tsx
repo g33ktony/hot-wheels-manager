@@ -10,11 +10,12 @@ import { useTheme } from '@/contexts/ThemeContext'
 export default function Suppliers() {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
-    const pageBackdropClass = isDark
-        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
-        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+    const pageBackdropClass = 'bg-transparent'
     const headerTextClass = isDark ? 'text-white' : 'text-slate-900'
     const mutedTextClass = isDark ? 'text-slate-400' : 'text-slate-600'
+    const titleSurfaceClass = isDark
+        ? 'rounded-2xl border border-slate-700/70 bg-slate-800/82 shadow-[12px_12px_24px_rgba(2,6,23,0.52),-10px_-10px_20px_rgba(51,65,85,0.16)] p-4 lg:p-5'
+        : 'rounded-2xl border border-white/80 bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.3),-12px_-12px_24px_rgba(255,255,255,0.94)] p-4 lg:p-5'
     const neumorphInsetClass = isDark
         ? 'rounded-xl border border-slate-700/70 bg-slate-900/70 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.65),inset_-4px_-4px_10px_rgba(51,65,85,0.2)]'
         : 'rounded-xl border border-white/80 bg-[#e2e8f3] shadow-[inset_4px_4px_9px_rgba(148,163,184,0.28),inset_-4px_-4px_8px_rgba(255,255,255,0.92)]'
@@ -120,8 +121,8 @@ export default function Suppliers() {
     }
 
     return (
-        <div className={`space-y-6 rounded-3xl p-4 lg:p-6 ${pageBackdropClass}`}>
-            <div className="flex justify-between items-center">
+        <div className={`space-y-6 ${pageBackdropClass}`}>
+            <div className={`${titleSurfaceClass} flex justify-between items-center`}>
                 <div>
                     <h1 className={`text-2xl font-bold ${headerTextClass}`}>Proveedores</h1>
                     <p className={mutedTextClass}>Gestión de proveedores para compras</p>

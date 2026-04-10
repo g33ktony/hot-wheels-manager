@@ -44,9 +44,7 @@ interface ModalState {
 export default function Search() {
     const { mode } = useTheme()
     const isDark = mode === 'dark'
-    const pageBackdropClass = isDark
-        ? 'bg-[radial-gradient(circle_at_15%_15%,rgba(16,185,129,0.14),transparent_35%),radial-gradient(circle_at_85%_10%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#020617_0%,#0b1220_100%)]'
-        : 'bg-[radial-gradient(circle_at_8%_8%,rgba(16,185,129,0.14),transparent_32%),radial-gradient(circle_at_88%_6%,rgba(14,165,233,0.14),transparent_30%),linear-gradient(180deg,#f6f9ff_0%,#eaf0f8_100%)]'
+    const pageBackdropClass = 'bg-transparent'
     const neumorphSurfaceClass = isDark
         ? 'rounded-2xl border border-slate-700/70 bg-slate-800/85 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(51,65,85,0.2)]'
         : 'rounded-2xl border border-white/80 bg-[#eaf0f8] shadow-[12px_12px_24px_rgba(148,163,184,0.34),-12px_-12px_24px_rgba(255,255,255,0.96)]'
@@ -393,10 +391,10 @@ export default function Search() {
     }, [])
 
     return (
-        <div className={`min-h-screen p-4 md:p-6 ${pageBackdropClass}`}>
+        <div className={`space-y-6 ${pageBackdropClass}`}>
             {/* Header */}
             <div className="mb-8">
-                <h1 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>🔍 Búsqueda Global</h1>
+                <h1 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>🔍 Búsqueda Global</h1>
                 <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>Encuentra ventas, entregas, items, clientes y preventas</p>
             </div>
 

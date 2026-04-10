@@ -2,6 +2,7 @@ import { Loading } from '@/components/common/Loading'
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from '@/contexts/ThemeContext'
 import { getImageUrl } from '../utils/imageUtils'
 import './CatalogBrowserPage.css'
 
@@ -26,6 +27,8 @@ interface PaginationInfo {
 
 export default function CatalogBrowserPage() {
     const navigate = useNavigate()
+    const { mode } = useTheme()
+    const isDark = mode === 'dark'
     const [items, setItems] = useState<CatalogItem[]>([])
     const [pagination, setPagination] = useState<PaginationInfo>({
         total: 0,
@@ -117,7 +120,7 @@ export default function CatalogBrowserPage() {
     }
 
     return (
-        <div className="catalog-browser-page">
+        <div className={`catalog-browser-page ${isDark ? 'is-dark' : ''}`}>
             <div className="catalog-header">
                 <h1>📋 Gestión de Catálogo</h1>
                 <p>Busca, edita y actualiza items del catálogo</p>

@@ -102,10 +102,10 @@ export default function PendingItemsPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-4xl font-bold text-white flex items-center gap-3">
+            <div>
+                <h1 className="text-2xl font-bold text-white flex items-center gap-3">
                     🟠 Items Pendientes
                 </h1>
                 <p className="text-slate-400 mt-2">

@@ -104,7 +104,7 @@ const PreSaleDashboard: React.FC = () => {
 
     if (error) {
         return (
-            <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+            <div className="p-4 md:p-8 bg-transparent">
                 <div className="max-w-6xl mx-auto">
                     <div className={`border rounded-lg p-6 ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
                         <h3 className={`font-semibold mb-2 ${isDark ? 'text-red-300' : 'text-red-800'}`}>Error loading pre-sales</h3>
@@ -122,7 +122,7 @@ const PreSaleDashboard: React.FC = () => {
     }
 
     return (
-        <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        <div className="p-4 md:p-8 bg-transparent">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
@@ -134,7 +134,7 @@ const PreSaleDashboard: React.FC = () => {
                         <button
                             onClick={handleRefresh}
                             disabled={isLoading}
-                            className={`p-2 rounded-lg transition disabled:opacity-50 ${isDark ? 'hover:bg-slate-700' : 'hover:bg-gray-200'}`}
+                            className={`p-2 rounded-lg transition disabled:opacity-50 ${isDark ? 'text-slate-200 hover:bg-slate-700' : 'text-slate-700 hover:bg-gray-200'}`}
                             title="Refresh"
                         >
                             <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />

@@ -14,14 +14,9 @@ import {
     X,
     Users,
     Building2,
-    LogOut,
     PackageOpen,
     Search as SearchIcon,
-    Sun,
-    Moon,
-    Settings,
     Mail,
-    Store,
     Flag,
     Lock
 } from 'lucide-react'
@@ -37,12 +32,32 @@ import { useAppSelector } from '@/hooks/redux'
 import FloatingActionButton from './FloatingActionButton'
 import DeliveryCartModal from '../DeliveryCartModal'
 import StoreSelector from '../StoreSelector'
+import UserDropdown from './UserDropdown'
 
 interface LayoutProps {
     children: ReactNode
 }
 
 type SidebarDensity = 'compact' | 'normal'
+
+interface RoutePalette {
+    darkGlow: string
+    lightGlow: string
+    darkFrom: string
+    darkTo: string
+    lightFrom: string
+    lightTo: string
+    darkText: string
+    lightText: string
+}
+
+const withAlpha = (color: string, alpha: number): string => {
+    const match = color.match(/rgba?\(([^)]+)\)/)
+    if (!match) return color
+    const [r, g, b] = match[1].split(',').map(part => part.trim())
+    if (!r || !g || !b) return color
+    return `rgba(${r},${g},${b},${alpha})`
+}
 
 export default function Layout({ children }: LayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -61,9 +76,9 @@ export default function Layout({ children }: LayoutProps) {
     const sidebarRef = useRef<HTMLDivElement>(null)
     const location = useLocation()
     const navigate = useNavigate()
-    const { user, logout } = useAuth()
-    const { isSysAdmin, isAdmin } = usePermissions()
-    const { toggleTheme, mode } = useTheme()
+    const { } = useAuth()
+    const { isSysAdmin } = usePermissions()
+    const { mode } = useTheme()
     const { data: boxes } = useBoxes()
     const { data: leadStats } = useLeadStatistics()
     const { data: reportsSummary } = useDataReportsSummary()
@@ -72,6 +87,174 @@ export default function Layout({ children }: LayoutProps) {
     const deliveryCartItems = useAppSelector(state => state.deliveryCart.items)
     const cartItemCount = cartItems.length
     const deliveryCartCount = deliveryCartItems.length
+
+    const routePalettes: Record<string, RoutePalette> = {
+        '/dashboard': {
+            darkGlow: 'rgba(59,130,246,0.24)',
+            lightGlow: 'rgba(59,130,246,0.2)',
+            darkFrom: 'rgba(59,130,246,0.3)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(239,246,255,0.98)',
+            lightTo: 'rgba(219,234,254,0.92)',
+            darkText: 'rgb(219,234,254)',
+            lightText: 'rgb(30,64,175)'
+        },
+        '/inventory': {
+            darkGlow: 'rgba(16,185,129,0.24)',
+            lightGlow: 'rgba(16,185,129,0.2)',
+            darkFrom: 'rgba(16,185,129,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(236,253,245,0.98)',
+            lightTo: 'rgba(209,250,229,0.92)',
+            darkText: 'rgb(209,250,229)',
+            lightText: 'rgb(6,95,70)'
+        },
+        '/pos': {
+            darkGlow: 'rgba(6,182,212,0.24)',
+            lightGlow: 'rgba(6,182,212,0.2)',
+            darkFrom: 'rgba(6,182,212,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(236,254,255,0.98)',
+            lightTo: 'rgba(207,250,254,0.92)',
+            darkText: 'rgb(207,250,254)',
+            lightText: 'rgb(14,116,144)'
+        },
+        '/sales': {
+            darkGlow: 'rgba(168,85,247,0.22)',
+            lightGlow: 'rgba(168,85,247,0.18)',
+            darkFrom: 'rgba(168,85,247,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(245,243,255,0.98)',
+            lightTo: 'rgba(233,213,255,0.9)',
+            darkText: 'rgb(233,213,255)',
+            lightText: 'rgb(91,33,182)'
+        },
+        '/purchases': {
+            darkGlow: 'rgba(245,158,11,0.22)',
+            lightGlow: 'rgba(245,158,11,0.18)',
+            darkFrom: 'rgba(245,158,11,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(255,251,235,0.98)',
+            lightTo: 'rgba(254,243,199,0.9)',
+            darkText: 'rgb(254,243,199)',
+            lightText: 'rgb(146,64,14)'
+        },
+        '/presale': {
+            darkGlow: 'rgba(236,72,153,0.22)',
+            lightGlow: 'rgba(236,72,153,0.18)',
+            darkFrom: 'rgba(236,72,153,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(253,242,248,0.98)',
+            lightTo: 'rgba(251,207,232,0.9)',
+            darkText: 'rgb(251,207,232)',
+            lightText: 'rgb(157,23,77)'
+        },
+        '/boxes': {
+            darkGlow: 'rgba(251,146,60,0.22)',
+            lightGlow: 'rgba(251,146,60,0.18)',
+            darkFrom: 'rgba(251,146,60,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(255,247,237,0.98)',
+            lightTo: 'rgba(254,215,170,0.9)',
+            darkText: 'rgb(254,215,170)',
+            lightText: 'rgb(154,52,18)'
+        },
+        '/deliveries': {
+            darkGlow: 'rgba(34,197,94,0.22)',
+            lightGlow: 'rgba(34,197,94,0.18)',
+            darkFrom: 'rgba(34,197,94,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(240,253,244,0.98)',
+            lightTo: 'rgba(187,247,208,0.9)',
+            darkText: 'rgb(187,247,208)',
+            lightText: 'rgb(22,101,52)'
+        },
+        '/customers': {
+            darkGlow: 'rgba(14,165,233,0.22)',
+            lightGlow: 'rgba(14,165,233,0.18)',
+            darkFrom: 'rgba(14,165,233,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(240,249,255,0.98)',
+            lightTo: 'rgba(186,230,253,0.9)',
+            darkText: 'rgb(186,230,253)',
+            lightText: 'rgb(3,105,161)'
+        },
+        '/leads': {
+            darkGlow: 'rgba(99,102,241,0.22)',
+            lightGlow: 'rgba(99,102,241,0.18)',
+            darkFrom: 'rgba(99,102,241,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(238,242,255,0.98)',
+            lightTo: 'rgba(199,210,254,0.9)',
+            darkText: 'rgb(199,210,254)',
+            lightText: 'rgb(55,48,163)'
+        },
+        '/data-reports': {
+            darkGlow: 'rgba(244,63,94,0.22)',
+            lightGlow: 'rgba(244,63,94,0.18)',
+            darkFrom: 'rgba(244,63,94,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(255,241,242,0.98)',
+            lightTo: 'rgba(254,205,211,0.9)',
+            darkText: 'rgb(254,205,211)',
+            lightText: 'rgb(159,18,57)'
+        },
+        '/admin/users': {
+            darkGlow: 'rgba(132,204,22,0.22)',
+            lightGlow: 'rgba(132,204,22,0.18)',
+            darkFrom: 'rgba(132,204,22,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(247,254,231,0.98)',
+            lightTo: 'rgba(217,249,157,0.9)',
+            darkText: 'rgb(217,249,157)',
+            lightText: 'rgb(77,124,15)'
+        },
+        '/admin/stores': {
+            darkGlow: 'rgba(249,115,22,0.22)',
+            lightGlow: 'rgba(249,115,22,0.18)',
+            darkFrom: 'rgba(249,115,22,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(255,247,237,0.98)',
+            lightTo: 'rgba(254,215,170,0.9)',
+            darkText: 'rgb(254,215,170)',
+            lightText: 'rgb(154,52,18)'
+        },
+        '/catalog': {
+            darkGlow: 'rgba(20,184,166,0.22)',
+            lightGlow: 'rgba(20,184,166,0.18)',
+            darkFrom: 'rgba(20,184,166,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(240,253,250,0.98)',
+            lightTo: 'rgba(153,246,228,0.9)',
+            darkText: 'rgb(153,246,228)',
+            lightText: 'rgb(15,118,110)'
+        },
+        '/suppliers': {
+            darkGlow: 'rgba(217,70,239,0.22)',
+            lightGlow: 'rgba(217,70,239,0.18)',
+            darkFrom: 'rgba(217,70,239,0.28)',
+            darkTo: 'rgba(15,23,42,0.62)',
+            lightFrom: 'rgba(253,244,255,0.98)',
+            lightTo: 'rgba(245,208,254,0.9)',
+            darkText: 'rgb(245,208,254)',
+            lightText: 'rgb(134,25,143)'
+        }
+    }
+
+    const resolvePaletteKey = (path: string): string => {
+        const nestedKeys = ['/inventory', '/customers', '/presale', '/catalog', '/admin/users', '/admin/stores']
+        const nestedMatch = nestedKeys.find((key) => path === key || path.startsWith(`${key}/`))
+        if (nestedMatch) return nestedMatch
+        return routePalettes[path] ? path : '/dashboard'
+    }
+
+    const currentPalette = routePalettes[resolvePaletteKey(location.pathname)]
+
+    const isItemActive = (href: string): boolean => {
+        const cleanHref = href.split('?')[0]
+        if (cleanHref === '/dashboard') return location.pathname === '/dashboard'
+        return location.pathname === cleanHref || location.pathname.startsWith(`${cleanHref}/`)
+    }
 
     // Persist sidebar collapsed state
     useEffect(() => {
@@ -209,14 +392,7 @@ export default function Layout({ children }: LayoutProps) {
         ] : []),
         { name: 'Catálogo Público', shortName: 'Pub', href: '/browse?adminView=true', icon: SearchIcon },
         { name: 'Proveedores', shortName: 'Prov', href: '/suppliers', icon: Building2 },
-        { name: 'Configuración de Tienda', shortName: 'Cfg', href: '/store-settings', icon: Store },
-        { name: 'Tema', shortName: 'Tema', href: '/theme-settings', icon: Settings },
     ]
-
-    const handleLogout = () => {
-        logout()
-        navigate('/login')
-    }
 
     const onTouchStart = (e: React.TouchEvent) => {
         const target = e.target as HTMLElement
@@ -258,7 +434,12 @@ export default function Layout({ children }: LayoutProps) {
 
     return (
         <div
-            className={`min-h-screen ${mode === 'dark' ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-gray-50 via-white to-gray-50'} flex overflow-x-hidden w-full max-w-full`}
+            className="min-h-screen flex overflow-x-hidden w-full max-w-full"
+            style={{
+                background: mode === 'dark'
+                    ? `linear-gradient(180deg, ${withAlpha(currentPalette.darkGlow, 0.12)} 0%, rgba(2,6,23,0) 8%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.darkGlow, 0.2)} 0%, transparent 11%), radial-gradient(circle at 90% 90%, rgba(56,189,248,0.03) 0%, transparent 16%), linear-gradient(180deg, #020617 0%, #0f172a 100%)`
+                    : `linear-gradient(180deg, ${withAlpha(currentPalette.lightGlow, 0.15)} 0%, rgba(248,251,255,0) 9%), radial-gradient(circle at 12% 6%, ${withAlpha(currentPalette.lightGlow, 0.22)} 0%, transparent 11%), radial-gradient(circle at 90% 90%, rgba(14,165,233,0.03) 0%, transparent 18%), linear-gradient(180deg, #f8fbff 0%, #eef3fa 100%)`
+            }}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -278,16 +459,16 @@ export default function Layout({ children }: LayoutProps) {
             <div
                 ref={sidebarRef}
                 className={`
-            fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden border backdrop-blur-xl
+            fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col overflow-hidden backdrop-blur-xl
                 ${sidebarCollapsed && window.innerWidth >= 1024 ? collapsedWidthClass : 'w-64'}
             ${mode === 'dark'
-                        ? 'bg-slate-800/72 border-transparent shadow-[0_16px_34px_rgba(2,6,23,0.42),inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-2px_2px_rgba(148,163,184,0.12)]'
-                        : 'bg-white/84 border-transparent shadow-[0_16px_34px_rgba(148,163,184,0.28),inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'}
+                        ? 'bg-slate-800/74 shadow-[18px_18px_34px_rgba(2,6,23,0.58),-12px_-12px_22px_rgba(148,163,184,0.18)]'
+                        : 'bg-white/88 shadow-[18px_18px_34px_rgba(148,163,184,0.3),-12px_-12px_22px_rgba(255,255,255,0.98)]'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
             >
                 {/* Fixed Sidebar Header */}
-                <div className={`flex items-center h-16 border-b border-transparent flex-shrink-0 z-10 backdrop-blur-xl ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-4'} ${mode === 'dark' ? 'bg-slate-900/42 shadow-[inset_0_-1px_1px_rgba(148,163,184,0.12)]' : 'bg-white/52 shadow-[inset_0_-1px_1px_rgba(148,163,184,0.18)]'}`}>
+                <div className={`flex items-center h-16 flex-shrink-0 z-10 backdrop-blur-xl ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : 'justify-between px-4'} ${mode === 'dark' ? 'bg-slate-900/45 shadow-[0_6px_14px_rgba(2,6,23,0.35)]' : 'bg-white/56 shadow-[0_6px_14px_rgba(148,163,184,0.18)]'}`}>
                     {/* Logo/Title - ocultar texto cuando está colapsado en desktop */}
                     <h1 className={`text-lg lg:text-xl font-bold select-none transition-all ${mode === 'dark' ? 'text-white' : 'text-gray-900'} ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
                         🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}
@@ -295,9 +476,9 @@ export default function Layout({ children }: LayoutProps) {
 
                     {/* Botón toggle collapse (solo desktop) */}
                     <button
-                        className={`hidden lg:block p-2 rounded-lg transition-colors border border-transparent backdrop-blur-xl ${mode === 'dark'
-                            ? 'bg-slate-900/36 text-slate-300 hover:bg-slate-800/52 shadow-[inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)]'
-                            : 'bg-white/82 text-slate-600 hover:bg-white/94 shadow-[inset_0_2px_2px_rgba(148,163,184,0.22),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
+                        className={`hidden lg:block p-2 rounded-lg transition-colors backdrop-blur-xl ${mode === 'dark'
+                            ? 'bg-slate-900/44 text-slate-200 hover:bg-slate-800/58 shadow-[10px_10px_18px_rgba(2,6,23,0.55),-7px_-7px_12px_rgba(148,163,184,0.16)]'
+                            : 'bg-white/90 text-slate-600 hover:bg-white shadow-[10px_10px_18px_rgba(148,163,184,0.28),-7px_-7px_12px_rgba(255,255,255,0.98)]'}`}
                         onClick={toggleSidebarCollapse}
                         aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
                         title={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
@@ -307,9 +488,9 @@ export default function Layout({ children }: LayoutProps) {
 
                     {/* Botón cerrar (solo mobile) */}
                     <button
-                        className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center border border-transparent backdrop-blur-xl ${mode === 'dark'
-                            ? 'bg-slate-900/36 text-slate-300 hover:bg-slate-800/52 shadow-[inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)]'
-                            : 'bg-white/82 text-slate-600 hover:bg-white/94 shadow-[inset_0_2px_2px_rgba(148,163,184,0.22),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}
+                        className={`lg:hidden p-2 -mr-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation flex items-center justify-center backdrop-blur-xl ${mode === 'dark'
+                            ? 'bg-slate-900/44 text-slate-200 hover:bg-slate-800/58 shadow-[10px_10px_18px_rgba(2,6,23,0.55),-7px_-7px_12px_rgba(148,163,184,0.16)]'
+                            : 'bg-white/90 text-slate-600 hover:bg-white shadow-[10px_10px_18px_rgba(148,163,184,0.28),-7px_-7px_12px_rgba(255,255,255,0.98)]'}`}
                         onClick={() => setSidebarOpen(false)}
                         aria-label="Cerrar menú"
                         style={{
@@ -325,27 +506,41 @@ export default function Layout({ children }: LayoutProps) {
                 <div className="flex-1 overflow-y-auto">
                     <nav className="px-3 pt-4 pb-20 space-y-1">
                         {navigationItems.map((item: any) => {
-                            const isActive = location.pathname === item.href
+                            const isActive = isItemActive(item.href)
+                            const itemPalette = routePalettes[resolvePaletteKey(item.href.split('?')[0])] || routePalettes['/dashboard']
+                            const tabStateClass = isActive
+                                ? (mode === 'dark'
+                                    ? 'shadow-[12px_12px_22px_rgba(2,6,23,0.6),-9px_-9px_16px_rgba(148,163,184,0.2)] hover:-translate-y-1'
+                                    : 'shadow-[12px_12px_22px_rgba(148,163,184,0.3),-9px_-9px_16px_rgba(255,255,255,0.98)] hover:-translate-y-1')
+                                : (mode === 'dark'
+                                    ? 'hover:-translate-y-1 active:brightness-95 shadow-[11px_11px_20px_rgba(2,6,23,0.56),-8px_-8px_14px_rgba(148,163,184,0.12)]'
+                                    : 'hover:-translate-y-1 active:brightness-95 shadow-[11px_11px_20px_rgba(148,163,184,0.24),-8px_-8px_14px_rgba(255,255,255,0.98)]')
                             return (
                                 <Link
                                     key={item.name}
                                     to={item.href}
                                     className={`
-                  flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 border border-transparent backdrop-blur-xl
+                  flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 backdrop-blur-xl will-change-transform
                   min-h-[44px] touch-manipulation relative select-none
                   ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'}
-                  ${isActive
-                                            ? item.highlight
-                                                ? (mode === 'dark' ? 'bg-emerald-500/16 text-emerald-200 shadow-[inset_0_2px_2px_rgba(6,78,59,0.5),inset_0_-1px_1px_rgba(255,255,255,0.14)]' : 'bg-emerald-100/82 text-emerald-800 shadow-[inset_0_2px_2px_rgba(16,185,129,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]')
-                                                : (mode === 'dark' ? 'bg-blue-500/16 text-blue-200 shadow-[inset_0_2px_2px_rgba(30,58,138,0.48),inset_0_-1px_1px_rgba(255,255,255,0.14)]' : 'bg-blue-100/82 text-blue-800 shadow-[inset_0_2px_2px_rgba(37,99,235,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]')
-                                            : item.highlight
-                                                ? (mode === 'dark' ? 'text-orange-300 bg-orange-500/8 hover:bg-orange-500/16 hover:text-orange-200 active:bg-orange-500/22 shadow-[inset_0_2px_2px_rgba(124,45,18,0.45),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'text-orange-700 bg-orange-50/70 hover:bg-orange-50 hover:text-orange-800 active:bg-orange-100 shadow-[inset_0_2px_2px_rgba(251,146,60,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]')
-                                                : (mode === 'dark' ? 'text-slate-200 bg-slate-900/20 hover:bg-slate-800/42 hover:text-white active:bg-slate-700/55 shadow-[inset_0_2px_2px_rgba(2,6,23,0.52),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'text-slate-700 bg-white/68 hover:bg-white/86 hover:text-slate-900 active:bg-slate-100 shadow-[inset_0_2px_2px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]')
-                                        }
+                  ${tabStateClass}
                 `}
                                     style={{
                                         WebkitTapHighlightColor: 'transparent',
                                         WebkitTouchCallout: 'none',
+                                        background: isActive
+                                            ? (mode === 'dark'
+                                                ? `linear-gradient(145deg, ${withAlpha(itemPalette.darkGlow, 0.66)}, rgba(15,23,42,0.74))`
+                                                : `linear-gradient(145deg, ${withAlpha(itemPalette.lightGlow, 0.62)}, ${withAlpha(itemPalette.lightGlow, 0.28)})`)
+                                            : (mode === 'dark'
+                                                ? `linear-gradient(145deg, ${withAlpha(itemPalette.darkGlow, 0.34)}, rgba(15,23,42,0.58))`
+                                                : `linear-gradient(145deg, ${withAlpha(itemPalette.lightGlow, 0.34)}, rgba(241,245,249,0.9))`),
+                                        border: mode === 'dark'
+                                            ? `1px solid ${isActive ? withAlpha(itemPalette.darkGlow, 0.7) : withAlpha(itemPalette.darkGlow, 0.42)}`
+                                            : undefined,
+                                        color: isActive
+                                            ? (mode === 'dark' ? itemPalette.darkText : itemPalette.lightText)
+                                            : (mode === 'dark' ? 'rgb(226,232,240)' : 'rgb(51,65,85)')
                                     }}
                                     onClick={handleNavClick}
                                     title={sidebarCollapsed ? item.name : undefined}
@@ -368,52 +563,6 @@ export default function Layout({ children }: LayoutProps) {
                                 </Link>
                             )
                         })}
-
-                        {/* Change Password button */}
-                        <Link
-                            to="/change-password"
-                            onClick={handleNavClick}
-                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation mt-4 border border-transparent backdrop-blur-xl ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark'
-                                ? 'text-blue-300 bg-blue-500/10 hover:bg-blue-500/16 hover:text-blue-200 active:bg-blue-500/22 shadow-[inset_0_2px_2px_rgba(30,58,138,0.48),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-                                : 'text-blue-700 bg-blue-50/78 hover:bg-blue-50 hover:text-blue-800 active:bg-blue-100 shadow-[inset_0_2px_2px_rgba(37,99,235,0.16),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
-                            style={{
-                                WebkitTapHighlightColor: 'transparent',
-                                WebkitTouchCallout: 'none',
-                            }}
-                            title={sidebarCollapsed ? 'Cambiar contraseña' : undefined}
-                        >
-                            <Lock size={22} className={`flex-shrink-0 ${!sidebarCollapsed ? 'mr-3' : ''}`} />
-                            {!sidebarCollapsed && <span className="flex-1 select-none">Cambiar contraseña</span>}
-                            {sidebarCollapsed && <span className={collapsedLabelClass}>Clave</span>}
-                        </Link>
-
-                        {/* Logout button */}
-                        <button
-                            onClick={handleLogout}
-                            className={`w-full flex items-center py-3 text-base font-medium rounded-lg transition-all duration-200 min-h-[44px] touch-manipulation border border-transparent backdrop-blur-xl ${sidebarCollapsed ? collapsedItemLayoutClass : 'px-4'} ${mode === 'dark'
-                                ? 'text-red-300 bg-red-500/10 hover:bg-red-500/16 hover:text-red-200 active:bg-red-500/22 shadow-[inset_0_2px_2px_rgba(127,29,29,0.45),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-                                : 'text-red-700 bg-red-50/78 hover:bg-red-50 hover:text-red-800 active:bg-red-100 shadow-[inset_0_2px_2px_rgba(220,38,38,0.16),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
-                            style={{
-                                WebkitTapHighlightColor: 'transparent',
-                                WebkitTouchCallout: 'none',
-                            }}
-                            title={sidebarCollapsed ? 'Cerrar sesión' : undefined}
-                        >
-                            <LogOut size={22} className={`flex-shrink-0 ${!sidebarCollapsed ? 'mr-3' : ''}`} />
-                            {!sidebarCollapsed && <span className="flex-1 select-none">Cerrar sesión</span>}
-                            {sidebarCollapsed && <span className={collapsedLabelClass}>Salir</span>}
-                        </button>
-
-                        {/* Density toggle (desktop only) */}
-                        <button
-                            onClick={toggleSidebarDensity}
-                            className={`hidden lg:flex w-full items-center justify-center py-2 mt-1 rounded-lg text-xs font-semibold transition-all duration-200 border border-transparent backdrop-blur-xl ${mode === 'dark'
-                                ? 'text-slate-200 bg-slate-900/24 hover:bg-slate-800/44 active:bg-slate-700/58 shadow-[inset_0_2px_2px_rgba(2,6,23,0.52),inset_0_-1px_1px_rgba(148,163,184,0.1)]'
-                                : 'text-slate-700 bg-white/68 hover:bg-white/86 active:bg-slate-100 shadow-[inset_0_2px_2px_rgba(148,163,184,0.18),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
-                            title={`Cambiar a modo ${sidebarDensity === 'compact' ? 'normal' : 'compacto'}`}
-                        >
-                            {sidebarDensity === 'compact' ? 'Normal' : 'Compacto'}
-                        </button>
                     </nav>
                 </div>
             </div>
@@ -421,7 +570,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Main content */}
             <div className="flex-1 flex flex-col w-full max-w-full overflow-x-hidden min-h-screen">
                 {/* Top bar - Fixed header */}
-                <div className={`h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto backdrop-blur-xl transition-all duration-300 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-900/30 !shadow-[0_8px_20px_rgba(2,6,23,0.28),inset_0_3px_3px_rgba(2,6,23,0.58),inset_0_-2px_2px_rgba(148,163,184,0.08)]' : 'bg-white/72 !shadow-[0_8px_20px_rgba(148,163,184,0.2),inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'}`}>
+                <div className={`h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-4 fixed top-0 left-0 right-0 z-40 w-full lg:w-auto backdrop-blur-xl transition-all duration-300 ${sidebarCollapsed ? collapsedHeaderOffsetClass : 'lg:left-64'} ${mode === 'dark' ? 'bg-slate-900/32 !shadow-[0_10px_22px_rgba(2,6,23,0.34)]' : 'bg-white/76 !shadow-[0_10px_22px_rgba(148,163,184,0.22)]'}`}>
                     <button
                         className={`lg:hidden p-2 -ml-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center ${mode === 'dark' ? 'hover:bg-slate-700 active:bg-slate-600' : 'hover:bg-gray-100 active:bg-gray-200'}`}
                         onClick={() => setSidebarOpen(true)}
@@ -444,8 +593,8 @@ export default function Layout({ children }: LayoutProps) {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className={`w-full pl-10 pr-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm transition-colors backdrop-blur-xl ${mode === 'dark'
-                                    ? 'bg-slate-900/34 text-slate-100 placeholder-slate-400 !shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(148,163,184,0.1)] focus:ring-1 focus:ring-emerald-500'
-                                    : 'bg-white/80 text-slate-700 placeholder-slate-500 !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] focus:ring-1 focus:ring-emerald-500'
+                                    ? 'bg-slate-800 border border-slate-600/40 text-slate-100 placeholder-slate-400 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)] focus:ring-1 focus:ring-emerald-500'
+                                    : 'bg-slate-100 border border-slate-300/60 text-slate-700 placeholder-slate-500 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)] focus:ring-1 focus:ring-emerald-500'
                                     }`}
                             />
                         </div>
@@ -455,39 +604,11 @@ export default function Layout({ children }: LayoutProps) {
                         {/* Store Selector for sys_admin */}
                         <StoreSelector />
 
-                        {/* Theme toggle button */}
-                        <button
-                            onClick={toggleTheme}
-                            className={`p-2 rounded-lg transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center backdrop-blur-xl ${mode === 'dark'
-                                ? 'bg-slate-900/36 text-slate-200 hover:bg-slate-900/52 !shadow-[inset_0_2px_2px_rgba(2,6,23,0.6),inset_0_-1px_1px_rgba(148,163,184,0.12)]'
-                                : 'bg-white/82 text-slate-600 hover:bg-white/94 !shadow-[inset_0_2px_2px_rgba(148,163,184,0.22),inset_0_-1px_1px_rgba(255,255,255,0.99)]'}`}
-                            aria-label={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
-                            title={`Cambiar a ${mode === 'dark' ? 'light' : 'dark'} mode`}
-                            style={{
-                                WebkitTapHighlightColor: 'transparent',
-                                WebkitTouchCallout: 'none',
-                            }}
-                        >
-                            {mode === 'dark' ? (
-                                <Sun size={20} className="text-slate-200" />
-                            ) : (
-                                <Moon size={20} className="text-slate-600" />
-                            )}
-                        </button>
-
-                        <div className={`text-sm hidden sm:flex items-center gap-2 select-none px-3 py-1.5 rounded-lg backdrop-blur-xl ${mode === 'dark' ? 'bg-slate-900/34 text-slate-300 !shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-white/80 text-slate-600 !shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
-                            <span className="font-medium">{user?.name || 'Usuario'}</span>
-                            {isSysAdmin() && (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold backdrop-blur-xl ${mode === 'dark' ? 'bg-red-700/35 text-red-100 !shadow-[inset_0_2px_2px_rgba(127,29,29,0.45),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-red-100/85 text-red-700 !shadow-[inset_0_2px_2px_rgba(252,165,165,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
-                                    👑 SYS ADMIN
-                                </span>
-                            )}
-                            {isAdmin() && !isSysAdmin() && (
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold backdrop-blur-xl ${mode === 'dark' ? 'bg-amber-700/35 text-amber-100 !shadow-[inset_0_2px_2px_rgba(120,53,15,0.45),inset_0_-1px_1px_rgba(148,163,184,0.1)]' : 'bg-amber-100/85 text-amber-700 !shadow-[inset_0_2px_2px_rgba(253,186,116,0.28),inset_0_-1px_1px_rgba(255,255,255,0.98)]'}`}>
-                                    🔐 ADMIN
-                                </span>
-                            )}
-                        </div>
+                        {/* User dropdown menu */}
+                        <UserDropdown
+                            sidebarDensity={sidebarDensity}
+                            onToggleSidebarDensity={toggleSidebarDensity}
+                        />
                     </div>
                 </div>
 

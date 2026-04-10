@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
 import { UserModel } from '../models/User'
 import Store from '../models/Store'
 
@@ -24,6 +25,15 @@ const getJWTSecret = (): string => {
 // Login
 export const login = async (req: Request, res: Response) => {
   try {
+    // Avoid internal 500s when DB is down; return a clear transient error instead
+    if (mongoose.connection.readyState !== 1) {
+      console.error('Login error: MongoDB not connected. readyState =', mongoose.connection.readyState)
+      return res.status(503).json({
+        success: false,
+        message: 'Base de datos no disponible temporalmente. Intenta de nuevo en unos segundos.'
+      })
+    }
+
     const JWT_SECRET = getJWTSecret()
     
     const { email, password } = req.body

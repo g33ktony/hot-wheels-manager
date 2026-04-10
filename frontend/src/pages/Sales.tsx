@@ -4,10 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useStore } from '@/contexts/StoreContext'
 import { useCanEditStore } from '@/hooks/useCanEditStore'
 import { useSales, useDeleteSale } from '@/hooks/useSales'
-import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
-import Input from '@/components/common/Input'
-import PageHeader from '@/components/common/PageHeader'
 import SaleCard from '@/components/SaleCard'
 import { SaleDetailsModal } from '@/components/SaleDetailsModal'
 import { Loading } from '@/components/common/Loading'
@@ -26,6 +23,18 @@ export default function Sales() {
     const [showImageModal, setShowImageModal] = useState(false)
     const [allImagesForModal, setAllImagesForModal] = useState<string[]>([])
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+    const titleSurfaceClass = isDark
+        ? 'rounded-2xl border border-slate-700/70 bg-[linear-gradient(145deg,rgba(168,85,247,0.22),rgba(15,23,42,0.72))] p-4 lg:p-5 shadow-[12px_12px_24px_rgba(2,6,23,0.56),-10px_-10px_20px_rgba(168,85,247,0.12)]'
+        : 'rounded-2xl border border-white/80 bg-[linear-gradient(145deg,rgba(245,243,255,0.98),rgba(196,181,253,0.22))] p-4 lg:p-5 shadow-[12px_12px_24px_rgba(148,163,184,0.3),-12px_-12px_24px_rgba(255,255,255,0.95)]'
+
+    const neumorphSurfaceClass = isDark
+        ? 'rounded-2xl border border-slate-700/70 bg-slate-900/90 shadow-[14px_14px_26px_rgba(2,6,23,0.56),-10px_-10px_18px_rgba(148,163,184,0.1)]'
+        : 'rounded-2xl backdrop-blur-xl bg-white/94 shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.99)]'
+
+    const neumorphInsetClass = isDark
+        ? 'bg-slate-800/95 border border-slate-600/45 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]'
+        : 'bg-slate-100 border border-slate-300/60 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]'
 
     const { data: sales, isLoading, error } = useSales(selectedStore || undefined)
     const deleteSaleMutation = useDeleteSale()
@@ -104,39 +113,40 @@ export default function Sales() {
 
     return (
         <div className="space-y-6">
-            <PageHeader
-                title="Ventas"
-                subtitle="Todas las ventas se realizan a través del POS"
-            />
+            <div className={titleSurfaceClass}>
+                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Ventas</h1>
+                <p className={`text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Todas las ventas se realizan a través del POS</p>
+            </div>
 
             {/* Filters */}
-            <Card>
+            <div className={`p-4 ${neumorphSurfaceClass}`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative">
-                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                        <Input
+                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 z-10" />
+                        <input
+                            type="text"
                             placeholder="Buscar por comprador..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10"
+                            className={`w-full pl-10 pr-4 py-2 rounded-lg ${neumorphInsetClass} ${isDark ? 'text-white placeholder-slate-400' : 'text-slate-900 placeholder-slate-400'}`}
                         />
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                             {filteredSales.length} venta{filteredSales.length !== 1 ? 's' : ''} encontrada{filteredSales.length !== 1 ? 's' : ''}
                         </span>
                     </div>
                 </div>
-            </Card>
+            </div>
 
             {/* Sales List */}
             {filteredSales.length === 0 ? (
-                <Card>
+                <div className={`p-4 ${neumorphSurfaceClass}`}>
                     <div className="text-center py-12">
                         <ShoppingCart size={48} className="mx-auto text-slate-400 mb-4" />
                         <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No hay ventas registradas</h3>
-                        <p className={`mb-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <p className={`mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                             {searchTerm
                                 ? 'No se encontraron ventas con los filtros aplicados'
                                 : 'Comienza registrando tu primera venta'
@@ -151,7 +161,7 @@ export default function Sales() {
                             </Button>
                         )}
                     </div>
-                </Card>
+                </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     {filteredSales.map((sale) => (

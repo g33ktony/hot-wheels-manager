@@ -1,4 +1,3 @@
-import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
 import { ChevronDown, ChevronUp, Search, SlidersHorizontal, X } from 'lucide-react'
@@ -67,11 +66,11 @@ export default function InventoryFilters({
     onHandleHideFantasyChange,
 }: InventoryFiltersProps) {
     const panelClass = isDark
-        ? 'bg-slate-900/30 backdrop-blur-xl !shadow-[0_8px_20px_rgba(2,6,23,0.28),inset_0_3px_3px_rgba(2,6,23,0.58),inset_0_-2px_2px_rgba(148,163,184,0.08)]'
-        : 'bg-white/72 backdrop-blur-xl !shadow-[0_8px_20px_rgba(148,163,184,0.2),inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-2px_2px_rgba(255,255,255,0.98)]'
+        ? 'rounded-2xl border border-slate-700/70 backdrop-blur-xl bg-slate-900/90 p-4 lg:p-4 shadow-[14px_14px_26px_rgba(2,6,23,0.56),-10px_-10px_18px_rgba(148,163,184,0.1)]'
+        : 'rounded-2xl backdrop-blur-xl bg-white/94 p-4 lg:p-4 shadow-[14px_14px_26px_rgba(148,163,184,0.28),-10px_-10px_18px_rgba(255,255,255,0.99)]'
     const controlClass = isDark
-        ? 'bg-slate-900/34 border-slate-500/40 text-slate-100 placeholder-slate-300 backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-        : 'bg-white/80 border-slate-300/85 text-slate-800 placeholder-slate-600 backdrop-blur-xl shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+        ? 'bg-slate-800 border-slate-600/40 text-slate-100 placeholder-slate-400 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]'
+        : 'bg-slate-100 border-slate-300/60 text-slate-800 placeholder-slate-500 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]'
 
     const activeFilterChips: Array<{ key: string; label: string }> = []
 
@@ -169,14 +168,14 @@ export default function InventoryFilters({
         + (filterTreasureHunt !== 'all' ? 1 : 0)
 
     return (
-        <Card className={`p-4 lg:p-4 !border-0 ${panelClass}`}>
+        <div className={panelClass}>
             <div className="space-y-4 w-full">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-sm">
                         <span className={`${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Resultados:</span>
                         <span className={`inline-flex items-center justify-center min-w-[32px] px-2 py-0.5 text-xs font-semibold rounded-full border ${isDark
-                            ? 'bg-primary-500/28 text-primary-100 border-primary-300/35 shadow-[inset_0_1px_1px_rgba(30,64,175,0.4),inset_0_-1px_0_rgba(255,255,255,0.16)]'
-                            : 'bg-primary-100/85 text-primary-700 border-primary-200 shadow-[inset_0_1px_1px_rgba(59,130,246,0.2),inset_0_-1px_0_rgba(255,255,255,0.98)]'
+                            ? 'bg-slate-800/62 text-primary-200 border-primary-400/30 shadow-[inset_3px_3px_6px_rgba(2,6,23,0.48),inset_-2px_-2px_5px_rgba(148,163,184,0.1)]'
+                            : 'bg-slate-100/86 text-primary-700 border-primary-200/60 shadow-[inset_3px_3px_6px_rgba(148,163,184,0.22),inset_-2px_-2px_5px_rgba(255,255,255,0.94)]'
                             }`}>
                             {filteredItemsCount}
                         </span>
@@ -187,8 +186,8 @@ export default function InventoryFilters({
                             size="sm"
                             onClick={clearAllFilters}
                             className={isDark
-                                ? '!bg-slate-800/46 !text-slate-500 !font-semibold !border !border-slate-500/35 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(148,163,184,0.12)] hover:!bg-slate-800/56 hover:!text-slate-400'
-                                : '!bg-slate-200/60 !text-slate-500 !font-semibold !border !border-slate-400/70 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.88)] hover:!bg-slate-200/72 hover:!text-slate-700'}
+                                ? '!bg-slate-800/62 !text-slate-400 !font-semibold !border-0 !backdrop-blur-xl !shadow-[8px_8px_14px_rgba(2,6,23,0.45),-6px_-6px_10px_rgba(148,163,184,0.1)] hover:!bg-slate-800/72 hover:!text-slate-300'
+                                : '!bg-white/86 !text-slate-500 !font-semibold !border-0 !backdrop-blur-xl !shadow-[8px_8px_14px_rgba(148,163,184,0.22),-6px_-6px_10px_rgba(255,255,255,0.96)] hover:!bg-white/92 hover:!text-slate-700'}
                         >
                             Limpiar todo
                         </Button>
@@ -244,9 +243,9 @@ export default function InventoryFilters({
 
                     <button
                         onClick={onToggleAdvancedFilters}
-                        className={`flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-lg border text-sm font-medium transition-colors whitespace-nowrap backdrop-blur-xl ${showAdvancedFilters
-                            ? isDark ? 'bg-primary-500/22 border-primary-400/35 text-primary-200 shadow-[inset_0_2px_2px_rgba(30,64,175,0.45),inset_0_-1px_1px_rgba(255,255,255,0.12)]' : 'bg-primary-100/80 border-primary-200 text-primary-700 shadow-[inset_0_2px_2px_rgba(59,130,246,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
-                            : isDark ? 'bg-slate-900/34 border-slate-500/40 text-slate-200 hover:bg-slate-900/46 shadow-[inset_0_2px_2px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/80 border-slate-300/85 text-slate-700 hover:bg-white/90 shadow-[inset_0_2px_2px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                        className={`flex items-center gap-2 px-4 py-3 min-h-[44px] rounded-lg border-0 text-sm font-medium transition-colors whitespace-nowrap backdrop-blur-xl ${showAdvancedFilters
+                            ? isDark ? 'bg-primary-500/22 text-primary-200 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]' : 'bg-primary-100/80 text-primary-700 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]'
+                            : isDark ? 'bg-slate-800/62 text-slate-200 hover:bg-slate-800/72 shadow-[8px_8px_14px_rgba(2,6,23,0.45),-6px_-6px_10px_rgba(148,163,184,0.1)]' : 'bg-white/86 text-slate-700 hover:bg-white/92 shadow-[8px_8px_14px_rgba(148,163,184,0.22),-6px_-6px_10px_rgba(255,255,255,0.96)]'
                             }`}
                     >
                         <SlidersHorizontal size={16} />
@@ -267,9 +266,9 @@ export default function InventoryFilters({
                                 key={chip.key}
                                 type="button"
                                 onClick={() => clearSingleFilter(chip.key)}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors backdrop-blur-xl ${isDark
-                                    ? 'bg-slate-900/36 border-slate-500/40 text-slate-200 hover:bg-slate-900/50 shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-                                    : 'bg-white/82 border-slate-300/85 text-slate-700 hover:bg-white/92 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border-0 transition-colors backdrop-blur-xl ${isDark
+                                    ? 'bg-slate-800/52 text-slate-200 hover:bg-slate-800/66 shadow-[6px_6px_12px_rgba(2,6,23,0.45),-4px_-4px_8px_rgba(148,163,184,0.08)]'
+                                    : 'bg-white/86 text-slate-700 hover:bg-white/94 shadow-[6px_6px_12px_rgba(148,163,184,0.2),-4px_-4px_8px_rgba(255,255,255,0.96)]'
                                     }`}
                             >
                                 <span>{chip.label}</span>
@@ -343,8 +342,8 @@ export default function InventoryFilters({
                             {((filterBrand && ['mini gt', 'kaido house', 'm2 machines'].includes(filterBrand.toLowerCase())) ||
                                 (filterBrand?.toLowerCase() === 'hot wheels' && filterPieceType === 'premium')) && (
                                     <label className={`flex items-center gap-2 input cursor-pointer rounded-lg ${isDark
-                                        ? 'bg-slate-900/34 border-slate-500/40 hover:bg-slate-900/46 backdrop-blur-xl shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-                                        : 'bg-white/80 border-slate-300/85 hover:bg-white/92 backdrop-blur-xl shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                        ? 'bg-slate-800/62 border-slate-600/40 hover:bg-slate-800/72 backdrop-blur-xl shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]'
+                                        : 'bg-slate-100/86 border-slate-300/60 hover:bg-slate-100/92 backdrop-blur-xl shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]'
                                         }`}>
                                         <input
                                             type="checkbox"
@@ -380,8 +379,8 @@ export default function InventoryFilters({
                             </select>
 
                             <label className={`flex items-center gap-2 input cursor-pointer rounded-lg ${isDark
-                                ? 'bg-slate-900/34 border-slate-500/40 hover:bg-slate-900/46 backdrop-blur-xl shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]'
-                                : 'bg-white/80 border-slate-300/85 hover:bg-white/92 backdrop-blur-xl shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]'
+                                ? 'bg-slate-800/62 border-slate-600/40 hover:bg-slate-800/72 backdrop-blur-xl shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]'
+                                : 'bg-slate-100/86 border-slate-300/60 hover:bg-slate-100/92 backdrop-blur-xl shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]'
                                 }`}>
                                 <input
                                     type="checkbox"
@@ -429,7 +428,7 @@ export default function InventoryFilters({
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border transition-colors backdrop-blur-xl ${filterFantasyOnly ? (isDark ? 'bg-primary-500/22 border-primary-400/40 shadow-[inset_0_2px_2px_rgba(30,64,175,0.42),inset_0_-1px_1px_rgba(255,255,255,0.12)]' : 'bg-primary-100/85 border-primary-200 shadow-[inset_0_2px_2px_rgba(59,130,246,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]') : (isDark ? 'bg-slate-900/34 border-slate-500/40 hover:bg-slate-900/46 shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/80 border-slate-300/85 hover:bg-white/92 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]')}`}>
+                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border-0 transition-colors backdrop-blur-xl ${filterFantasyOnly ? (isDark ? 'bg-primary-500/22 text-primary-200 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]' : 'bg-primary-100/80 text-primary-700 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]') : (isDark ? 'bg-slate-800/52 hover:bg-slate-800/66 shadow-[6px_6px_12px_rgba(2,6,23,0.45),-4px_-4px_8px_rgba(148,163,184,0.08)]' : 'bg-white/86 hover:bg-white/92 shadow-[6px_6px_12px_rgba(148,163,184,0.2),-4px_-4px_8px_rgba(255,255,255,0.96)]')}`}>
                                 <input
                                     type="checkbox"
                                     checked={filterFantasyOnly}
@@ -441,7 +440,7 @@ export default function InventoryFilters({
                                 </span>
                             </label>
 
-                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border transition-colors backdrop-blur-xl ${filterFantasy ? (isDark ? 'bg-primary-500/22 border-primary-400/40 shadow-[inset_0_2px_2px_rgba(30,64,175,0.42),inset_0_-1px_1px_rgba(255,255,255,0.12)]' : 'bg-primary-100/85 border-primary-200 shadow-[inset_0_2px_2px_rgba(59,130,246,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]') : (isDark ? 'bg-slate-900/34 border-slate-500/40 hover:bg-slate-900/46 shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/80 border-slate-300/85 hover:bg-white/92 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]')}`}>
+                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border-0 transition-colors backdrop-blur-xl ${filterFantasy ? (isDark ? 'bg-primary-500/22 text-primary-200 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]' : 'bg-primary-100/80 text-primary-700 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]') : (isDark ? 'bg-slate-800/52 hover:bg-slate-800/66 shadow-[6px_6px_12px_rgba(2,6,23,0.45),-4px_-4px_8px_rgba(148,163,184,0.08)]' : 'bg-white/86 hover:bg-white/92 shadow-[6px_6px_12px_rgba(148,163,184,0.2),-4px_-4px_8px_rgba(255,255,255,0.96)]')}`}>
                                 <input
                                     type="checkbox"
                                     checked={filterFantasy}
@@ -453,7 +452,7 @@ export default function InventoryFilters({
                                 </span>
                             </label>
 
-                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border transition-colors backdrop-blur-xl ${filterMoto ? (isDark ? 'bg-primary-500/22 border-primary-400/40 shadow-[inset_0_2px_2px_rgba(30,64,175,0.42),inset_0_-1px_1px_rgba(255,255,255,0.12)]' : 'bg-primary-100/85 border-primary-200 shadow-[inset_0_2px_2px_rgba(59,130,246,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]') : (isDark ? 'bg-slate-900/34 border-slate-500/40 hover:bg-slate-900/46 shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/80 border-slate-300/85 hover:bg-white/92 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]')}`}>
+                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border-0 transition-colors backdrop-blur-xl ${filterMoto ? (isDark ? 'bg-primary-500/22 text-primary-200 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]' : 'bg-primary-100/80 text-primary-700 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]') : (isDark ? 'bg-slate-800/52 hover:bg-slate-800/66 shadow-[6px_6px_12px_rgba(2,6,23,0.45),-4px_-4px_8px_rgba(148,163,184,0.08)]' : 'bg-white/86 hover:bg-white/92 shadow-[6px_6px_12px_rgba(148,163,184,0.2),-4px_-4px_8px_rgba(255,255,255,0.96)]')}`}>
                                 <input
                                     type="checkbox"
                                     checked={filterMoto}
@@ -465,7 +464,7 @@ export default function InventoryFilters({
                                 </span>
                             </label>
 
-                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border transition-colors backdrop-blur-xl ${filterCamioneta ? (isDark ? 'bg-primary-500/22 border-primary-400/40 shadow-[inset_0_2px_2px_rgba(30,64,175,0.42),inset_0_-1px_1px_rgba(255,255,255,0.12)]' : 'bg-primary-100/85 border-primary-200 shadow-[inset_0_2px_2px_rgba(59,130,246,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]') : (isDark ? 'bg-slate-900/34 border-slate-500/40 hover:bg-slate-900/46 shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/80 border-slate-300/85 hover:bg-white/92 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]')}`}>
+                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border-0 transition-colors backdrop-blur-xl ${filterCamioneta ? (isDark ? 'bg-primary-500/22 text-primary-200 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]' : 'bg-primary-100/80 text-primary-700 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]') : (isDark ? 'bg-slate-800/52 hover:bg-slate-800/66 shadow-[6px_6px_12px_rgba(2,6,23,0.45),-4px_-4px_8px_rgba(148,163,184,0.08)]' : 'bg-white/86 hover:bg-white/92 shadow-[6px_6px_12px_rgba(148,163,184,0.2),-4px_-4px_8px_rgba(255,255,255,0.96)]')}`}>
                                 <input
                                     type="checkbox"
                                     checked={filterCamioneta}
@@ -477,7 +476,7 @@ export default function InventoryFilters({
                                 </span>
                             </label>
 
-                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border transition-colors backdrop-blur-xl ${filterFastFurious ? (isDark ? 'bg-primary-500/22 border-primary-400/40 shadow-[inset_0_2px_2px_rgba(30,64,175,0.42),inset_0_-1px_1px_rgba(255,255,255,0.12)]' : 'bg-primary-100/85 border-primary-200 shadow-[inset_0_2px_2px_rgba(59,130,246,0.18),inset_0_-1px_1px_rgba(255,255,255,0.98)]') : (isDark ? 'bg-slate-900/34 border-slate-500/40 hover:bg-slate-900/46 shadow-[inset_0_2px_2px_rgba(2,6,23,0.58),inset_0_-1px_1px_rgba(255,255,255,0.1)]' : 'bg-white/80 border-slate-300/85 hover:bg-white/92 shadow-[inset_0_2px_2px_rgba(148,163,184,0.2),inset_0_-1px_1px_rgba(255,255,255,0.98)]')}`}>
+                            <label className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer border-0 transition-colors backdrop-blur-xl ${filterFastFurious ? (isDark ? 'bg-primary-500/22 text-primary-200 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.52),inset_-3px_-3px_6px_rgba(148,163,184,0.1)]' : 'bg-primary-100/80 text-primary-700 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.24),inset_-3px_-3px_6px_rgba(255,255,255,0.94)]') : (isDark ? 'bg-slate-800/52 hover:bg-slate-800/66 shadow-[6px_6px_12px_rgba(2,6,23,0.45),-4px_-4px_8px_rgba(148,163,184,0.08)]' : 'bg-white/86 hover:bg-white/92 shadow-[6px_6px_12px_rgba(148,163,184,0.2),-4px_-4px_8px_rgba(255,255,255,0.96)]')}`}>
                                 <input
                                     type="checkbox"
                                     checked={filterFastFurious}
@@ -497,8 +496,8 @@ export default function InventoryFilters({
                                     size="sm"
                                     onClick={clearAllFilters}
                                     className={isDark
-                                        ? '!bg-slate-900/34 !text-slate-100 !border !border-slate-400/30 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(255,255,255,0.1)] hover:!bg-slate-900/46'
-                                        : '!bg-white/80 !text-slate-800 !border !border-slate-300/85 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] hover:!bg-white/90'}
+                                        ? '!bg-slate-800/62 !text-slate-300 !border-0 !backdrop-blur-xl !shadow-[8px_8px_14px_rgba(2,6,23,0.45),-6px_-6px_10px_rgba(148,163,184,0.1)] hover:!bg-slate-800/72'
+                                        : '!bg-white/86 !text-slate-700 !border-0 !backdrop-blur-xl !shadow-[8px_8px_14px_rgba(148,163,184,0.22),-6px_-6px_10px_rgba(255,255,255,0.96)] hover:!bg-white/92'}
                                 >
                                     Limpiar filtros avanzados
                                 </Button>
@@ -514,14 +513,14 @@ export default function InventoryFilters({
                             size="sm"
                             onClick={clearAllFilters}
                             className={isDark
-                                ? '!bg-slate-900/34 !text-slate-100 !border !border-slate-400/30 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(2,6,23,0.62),inset_0_-1px_1px_rgba(255,255,255,0.1)] hover:!bg-slate-900/46'
-                                : '!bg-white/80 !text-slate-800 !border !border-slate-300/85 !backdrop-blur-xl !shadow-[inset_0_3px_3px_rgba(148,163,184,0.24),inset_0_-1px_1px_rgba(255,255,255,0.98)] hover:!bg-white/90'}
+                                ? '!bg-slate-800/62 !text-slate-300 !border-0 !backdrop-blur-xl !shadow-[8px_8px_14px_rgba(2,6,23,0.45),-6px_-6px_10px_rgba(148,163,184,0.1)] hover:!bg-slate-800/72'
+                                : '!bg-white/86 !text-slate-700 !border-0 !backdrop-blur-xl !shadow-[8px_8px_14px_rgba(148,163,184,0.22),-6px_-6px_10px_rgba(255,255,255,0.96)] hover:!bg-white/92'}
                         >
                             Limpiar filtros
                         </Button>
                     </div>
                 )}
             </div>
-        </Card>
+        </div>
     )
 }
