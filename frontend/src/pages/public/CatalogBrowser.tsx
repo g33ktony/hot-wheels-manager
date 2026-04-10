@@ -52,9 +52,7 @@ export default function CatalogBrowser() {
     ? 'bg-emerald-600 text-white border-0 shadow-[8px_8px_14px_rgba(2,6,23,0.45),-6px_-6px_10px_rgba(16,185,129,0.2)]'
     : 'bg-emerald-500 text-white border-0 shadow-[8px_8px_14px_rgba(148,163,184,0.22),-6px_-6px_10px_rgba(16,185,129,0.15)]'
 
-  const featuredShellClass = isDark
-    ? 'max-w-2xl mx-auto rounded-3xl px-5 py-6 bg-slate-900/56 backdrop-blur-xl shadow-[16px_16px_32px_rgba(2,6,23,0.55),-12px_-12px_24px_rgba(148,163,184,0.12)]'
-    : 'max-w-2xl mx-auto rounded-3xl px-5 py-6 bg-white/92 backdrop-blur-xl shadow-[16px_16px_32px_rgba(148,163,184,0.28),-12px_-12px_24px_rgba(255,255,255,0.98)]'
+
 
   const featuredCardClass = isDark
     ? 'max-w-sm mx-auto rounded-2xl overflow-hidden transition-all duration-300 bg-slate-900/62 backdrop-blur-xl shadow-[14px_14px_28px_rgba(2,6,23,0.58),-12px_-12px_24px_rgba(148,163,184,0.14)]'
