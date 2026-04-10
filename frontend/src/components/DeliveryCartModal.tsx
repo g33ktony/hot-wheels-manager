@@ -95,8 +95,9 @@ export default function DeliveryCartModal({ isOpen, onClose }: DeliveryCartModal
                 name: newCustomerName.trim(),
                 email: newCustomerEmail.trim() || undefined,
                 phone: newCustomerPhone.trim() || undefined,
+                contactMethod: 'other',
             })
-            setCustomerId(created._id)
+            setCustomerId(created._id ?? '')
             setShowNewCustomer(false)
             setNewCustomerName('')
             setNewCustomerEmail('')
