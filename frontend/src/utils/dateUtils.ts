@@ -71,6 +71,33 @@ export function formatDateLocale(
 }
 
 /**
+ * Format a date-like value as a calendar date (day/month/year) without timezone day-shift.
+ * Useful for date-only fields stored as ISO strings.
+ */
+export function formatCalendarDate(
+  dateValue: Date | string | undefined | null,
+  locale: string = 'es-MX'
+): string {
+  if (!dateValue) return 'Fecha inválida';
+
+  // For ISO strings, keep the calendar date portion as source of truth.
+  if (typeof dateValue === 'string') {
+    const isoMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      const safeDate = new Date(Number(year), Number(month) - 1, Number(day));
+      if (!Number.isNaN(safeDate.getTime())) {
+        return safeDate.toLocaleDateString(locale);
+      }
+    }
+  }
+
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return 'Fecha inválida';
+  return date.toLocaleDateString(locale, { timeZone: 'UTC' });
+}
+
+/**
  * Get the start of a date range (30 days ago)
  * Used for default date filtering
  * @param daysBack - Number of days to go back

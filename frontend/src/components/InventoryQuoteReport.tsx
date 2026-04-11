@@ -3,6 +3,7 @@ import html2canvas from 'html2canvas'
 import { Download, Share2, FileText, Edit2, Check, X } from 'lucide-react'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import { useTheme } from '@/contexts/ThemeContext'
 import type { InventoryItem } from '@shared/types'
 
 interface QuoteItem {
@@ -21,6 +22,12 @@ interface InventoryQuoteReportProps {
 }
 
 export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteReportProps) {
+  const { mode } = useTheme()
+  const isDark = mode === 'dark'
+  const actionButtonClass = isDark
+    ? '!bg-slate-800/92 !text-slate-100 !border !border-slate-600 !shadow-[10px_10px_20px_rgba(2,6,23,0.52),-6px_-6px_14px_rgba(148,163,184,0.06)] hover:!bg-slate-700/92'
+    : 'shadow-[8px_8px_16px_rgba(148,163,184,0.25),-6px_-6px_14px_rgba(255,255,255,0.96)]'
+  const tableHeaderClass = isDark ? 'text-slate-200' : 'text-slate-900'
   const reportRef = useRef<HTMLDivElement>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [showPreview, setShowPreview] = useState(true)
@@ -86,7 +93,7 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
 
     try {
       const canvas = await html2canvas(clone, {
-        backgroundColor: '#ffffff',
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
         scale,
         useCORS: true,
         allowTaint: true,
@@ -290,9 +297,12 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
   }
 
   const ReportContent = (
-    <div className="bg-white p-8" style={{ minHeight: '400px' }}>
+    <div className={`p-8 rounded-[28px] border ${isDark
+      ? 'border-slate-700/80 bg-[linear-gradient(160deg,#0f172a_0%,#1e293b_46%,#0b1220_100%)] shadow-[22px_22px_48px_rgba(2,6,23,0.65),-16px_-16px_34px_rgba(148,163,184,0.1)]'
+      : 'border-slate-200/80 bg-[linear-gradient(160deg,#f8fbff_0%,#eef3fb_46%,#f6f9ff_100%)] shadow-[22px_22px_48px_rgba(148,163,184,0.28),-16px_-16px_34px_rgba(255,255,255,0.96)]'
+      }`} style={{ minHeight: '400px' }}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t-lg -mx-8 -mt-8 mb-6">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-2xl mb-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_12px_28px_rgba(37,99,235,0.34)]">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2">{companyName}</h1>
           <p className="text-lg">Cotización de Inventario</p>
@@ -303,33 +313,36 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <p className="text-sm text-gray-600">Fecha</p>
-            <p className="text-lg font-semibold">{formatDate()}</p>
+            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Fecha</p>
+            <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatDate()}</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Total de Items</p>
-            <p className="text-lg font-semibold">{quoteItems.length}</p>
+            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Total de Items</p>
+            <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{quoteItems.length}</p>
           </div>
         </div>
       </div>
 
       {/* Items Table */}
       <div className="mb-6">
-        <table className="w-full border-collapse">
+        <table className={`w-full border-collapse rounded-xl overflow-hidden ${isDark
+          ? 'shadow-[12px_12px_26px_rgba(2,6,23,0.55),-9px_-9px_20px_rgba(148,163,184,0.08)]'
+          : 'shadow-[12px_12px_26px_rgba(148,163,184,0.2),-9px_-9px_20px_rgba(255,255,255,0.9)]'
+          }`}>
           <thead>
-            <tr className="bg-gray-100 border-b-2 border-gray-300">
-              <th className="text-left p-3 text-sm font-semibold">#</th>
-              <th className="text-left p-3 text-sm font-semibold">Modelo</th>
-              <th className="text-left p-3 text-sm font-semibold">Marca</th>
-              <th className="text-left p-3 text-sm font-semibold">Tipo</th>
-              <th className="text-left p-3 text-sm font-semibold">Condición</th>
-              <th className="text-right p-3 text-sm font-semibold">Precio</th>
+            <tr className={`${isDark ? 'bg-slate-800 border-b-2 border-slate-600' : 'bg-gray-100 border-b-2 border-gray-300'}`}>
+              <th className={`text-left p-3 text-sm font-semibold ${tableHeaderClass}`}>#</th>
+              <th className={`text-left p-3 text-sm font-semibold ${tableHeaderClass}`}>Modelo</th>
+              <th className={`text-left p-3 text-sm font-semibold ${tableHeaderClass}`}>Marca</th>
+              <th className={`text-left p-3 text-sm font-semibold ${tableHeaderClass}`}>Tipo</th>
+              <th className={`text-left p-3 text-sm font-semibold ${tableHeaderClass}`}>Condición</th>
+              <th className={`text-right p-3 text-sm font-semibold ${tableHeaderClass}`}>Precio</th>
             </tr>
           </thead>
           <tbody>
             {quoteItems.map((item, index) => (
-              <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
-                <td className="p-3 text-sm">{index + 1}</td>
+              <tr key={index} className={`${isDark ? 'border-b border-slate-700 hover:bg-slate-800/40' : 'border-b border-gray-200 hover:bg-gray-50'}`}>
+                <td className={`p-3 text-sm ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{index + 1}</td>
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {item.inventoryItem.photos && item.inventoryItem.photos.length > 0 && (
@@ -340,16 +353,16 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
                       />
                     )}
                     <div>
-                      <p className="text-sm font-medium">{item.carInfo?.model || item.inventoryItem.carId || 'Sin modelo'}</p>
+                      <p className={`text-sm font-medium ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{item.carInfo?.model || item.inventoryItem.carId || 'Sin modelo'}</p>
                       {item.carInfo?.series && (
-                        <p className="text-xs text-gray-600">{item.carInfo.series}</p>
+                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>{item.carInfo.series}</p>
                       )}
                     </div>
                   </div>
                 </td>
-                <td className="p-3 text-sm">{getBrandLabel(item.inventoryItem)}</td>
-                <td className="p-3 text-sm">{getPieceTypeLabel(item.inventoryItem)}</td>
-                <td className="p-3 text-sm capitalize">{item.inventoryItem.condition}</td>
+                <td className={`p-3 text-sm ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{getBrandLabel(item.inventoryItem)}</td>
+                <td className={`p-3 text-sm ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{getPieceTypeLabel(item.inventoryItem)}</td>
+                <td className={`p-3 text-sm capitalize ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{item.inventoryItem.condition}</td>
                 <td className="p-3 text-right">
                   {showPreview && editingPriceIndex === index ? (
                     <div className="flex items-center justify-end gap-2">
@@ -377,7 +390,7 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
                     </div>
                   ) : (
                     <div className="flex items-center justify-end gap-2">
-                      <span className="text-sm font-medium">{formatCurrency(item.customPrice)}</span>
+                      <span className={`text-sm font-medium ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{formatCurrency(item.customPrice)}</span>
                       {showPreview && (
                         <button
                           onClick={() => handlePriceEdit(index)}
@@ -396,19 +409,19 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
       </div>
 
       {/* Summary */}
-      <div className="border-t-2 border-gray-300 pt-4">
+      <div className={`border-t-2 pt-4 ${isDark ? 'border-slate-600' : 'border-gray-300'}`}>
         <div className="flex justify-end">
           <div className="w-80">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-600">Total de piezas:</span>
-              <span className="font-medium">{getTotalQuantity()}</span>
+              <span className={`${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Total de piezas:</span>
+              <span className={`font-medium ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{getTotalQuantity()}</span>
             </div>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium">{formatCurrency(getTotalPrice())}</span>
+              <span className={`${isDark ? 'text-slate-300' : 'text-gray-600'}`}>Subtotal:</span>
+              <span className={`font-medium ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{formatCurrency(getTotalPrice())}</span>
             </div>
-            <div className="flex justify-between items-center mb-2 text-lg font-bold border-t pt-2">
-              <span>Total:</span>
+            <div className={`flex justify-between items-center mb-2 text-lg font-bold border-t pt-2 ${isDark ? 'border-slate-600' : 'border-gray-300'}`}>
+              <span className={isDark ? 'text-slate-100' : 'text-gray-900'}>Total:</span>
               <span className="text-blue-600">{formatCurrency(getTotalPrice())}</span>
             </div>
           </div>
@@ -417,14 +430,14 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
 
       {/* Notes */}
       {notes && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Notas:</p>
-          <p className="text-sm text-gray-600 whitespace-pre-wrap">{notes}</p>
+        <div className={`${isDark ? 'mt-6 p-4 bg-slate-800/60 rounded-lg border border-slate-700' : 'mt-6 p-4 bg-gray-50 rounded-lg'}`}>
+          <p className={`text-sm font-semibold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-700'}`}>Notas:</p>
+          <p className={`text-sm whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>{notes}</p>
         </div>
       )}
 
       {/* Footer */}
-      <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
+      <div className={`mt-8 pt-6 border-t text-center text-sm ${isDark ? 'border-slate-700 text-slate-300' : 'border-gray-200 text-gray-600'}`}>
         <p>Gracias por tu interés. Esta cotización es válida por 7 días.</p>
         <p className="mt-2">Para más información, contáctanos.</p>
       </div>
@@ -432,10 +445,13 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
   )
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-slate-950/56 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className={`rounded-2xl border max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col ${isDark
+        ? 'border-slate-700/80 bg-[linear-gradient(160deg,#0f172a_0%,#1e293b_46%,#0b1220_100%)] shadow-[24px_24px_48px_rgba(2,6,23,0.6),-14px_-14px_32px_rgba(148,163,184,0.1)]'
+        : 'border-slate-200/80 bg-[linear-gradient(160deg,#f8fbff_0%,#eef3fb_46%,#f6f9ff_100%)] shadow-[24px_24px_48px_rgba(15,23,42,0.32),-14px_-14px_32px_rgba(255,255,255,0.72)]'
+        }`}>
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 flex items-center justify-between shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_12px_24px_rgba(37,99,235,0.34)]">
           <div className="flex items-center gap-2">
             <FileText size={24} />
             <h2 className="text-xl font-bold">Cotización de Inventario</h2>
@@ -450,27 +466,30 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
 
         {/* Preview Section */}
         {showPreview && (
-          <div className="p-4 bg-gray-50 border-b">
+          <div className={`p-4 border-b ${isDark ? 'bg-slate-900/40 border-slate-700/80' : 'bg-white/70 border-slate-200/70'}`}>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-200' : 'text-gray-700'}`}>
                 Notas adicionales (opcional)
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isDark
+                  ? 'border-slate-600 bg-slate-800/80 text-slate-100 placeholder-slate-400 shadow-[inset_6px_6px_12px_rgba(2,6,23,0.45),inset_-6px_-6px_12px_rgba(148,163,184,0.08)]'
+                  : 'border-slate-300/70 bg-white/85 text-gray-900 placeholder-gray-400 shadow-[inset_6px_6px_12px_rgba(148,163,184,0.16),inset_-6px_-6px_12px_rgba(255,255,255,0.95)]'
+                  }`}
                 rows={3}
                 placeholder="Agrega notas o condiciones especiales para esta cotización..."
               />
             </div>
-            <p className="text-sm text-gray-600 mb-2">
+            <p className={`text-sm mb-2 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
               Puedes editar los precios haciendo clic en el ícono de lápiz junto a cada precio.
             </p>
             <div className="flex gap-2 flex-wrap">
               <Button
                 onClick={generatePDF}
                 disabled={isGenerating}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${actionButtonClass}`}
               >
                 <Download size={18} />
                 Descargar PDF
@@ -479,7 +498,7 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
                 variant="secondary"
                 onClick={shareReport}
                 disabled={isGenerating}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${actionButtonClass}`}
               >
                 <Share2 size={18} />
                 Compartir
@@ -498,9 +517,12 @@ export default function InventoryQuoteReport({ items, onClose }: InventoryQuoteR
         {/* Loading Overlay */}
         {isGenerating && (
           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
-            <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-4">
+            <div className={`${isDark
+              ? 'bg-slate-900 rounded-xl p-6 flex flex-col items-center gap-4 shadow-[16px_16px_30px_rgba(2,6,23,0.55),-10px_-10px_20px_rgba(148,163,184,0.08)]'
+              : 'bg-white rounded-xl p-6 flex flex-col items-center gap-4 shadow-[16px_16px_30px_rgba(15,23,42,0.25),-10px_-10px_20px_rgba(255,255,255,0.85)]'
+              }`}>
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <p className="text-gray-700 font-medium">Generando reporte...</p>
+              <p className={`font-medium ${isDark ? 'text-slate-100' : 'text-gray-700'}`}>Generando reporte...</p>
             </div>
           </div>
         )}

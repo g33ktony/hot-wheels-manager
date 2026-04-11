@@ -1,6 +1,7 @@
 import React from 'react'
 import { MapPin } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { formatCalendarDate } from '@/utils/dateUtils'
 import type { Delivery, DeliveryItem } from '@shared/types'
 
 type DeliveryItemWithExtras = Omit<DeliveryItem, 'inventoryItemId'> & {
@@ -78,7 +79,7 @@ export const DeliveryDetailContent: React.FC<DeliveryDetailContentProps> = ({
                         </p>
                         <p>
                             <span className={textMuted}>Fecha de Entrega:</span>
-                            <span className={`${textPrimary} font-medium ml-2`}>{new Date(delivery.scheduledDate || delivery.createdAt).toLocaleDateString('es-ES')}</span>
+                            <span className={`${textPrimary} font-medium ml-2`}>{formatCalendarDate(delivery.scheduledDate || delivery.createdAt, 'es-MX')}</span>
                         </p>
                         <div>
                             <span className={textMuted}>Estado:</span>

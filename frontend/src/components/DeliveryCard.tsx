@@ -2,6 +2,7 @@ import { Delivery, InventoryItem } from '../../../shared/types'
 import Button from '@/components/common/Button'
 import { CheckCircle, Clock, MapPin, Package, Calendar, Eye, Edit, Share2, Trash2 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { formatCalendarDate } from '@/utils/dateUtils'
 
 interface DeliveryCardProps {
     delivery: Delivery
@@ -83,16 +84,7 @@ export default function DeliveryCard({
     // Format date safely - handle both Date objects and strings
     const formatDeliveryDate = () => {
         try {
-            const date = typeof delivery.scheduledDate === 'string'
-                ? new Date(delivery.scheduledDate)
-                : delivery.scheduledDate instanceof Date
-                    ? delivery.scheduledDate
-                    : new Date()
-
-            const day = String(date.getDate()).padStart(2, '0')
-            const month = String(date.getMonth() + 1).padStart(2, '0')
-            const year = date.getFullYear()
-            return `${day}/${month}/${year}`
+            return formatCalendarDate(delivery.scheduledDate, 'es-MX')
         } catch (e) {
             return 'Fecha inválida'
         }

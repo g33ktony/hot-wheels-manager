@@ -5,6 +5,7 @@ import DeliveryEditForm from './DeliveryEditForm'
 import { deliveriesService } from '../services/deliveries'
 import type { CreateDeliveryDto, Delivery, InventoryItem, Payment } from '@shared/types'
 import type { PreSaleItem } from '@/services/presale'
+import { formatCalendarDate } from '@/utils/dateUtils'
 
 type PaymentStatus = 'paid' | 'pending' | 'partial'
 
@@ -69,16 +70,10 @@ export const DeliveryDetailsModal: React.FC<DeliveryDetailsModalProps> = ({
     // Helper function to safely format dates
     const formatDate = (dateValue: unknown): string => {
         try {
-            const date = typeof dateValue === 'string'
-                ? new Date(dateValue)
-                : dateValue instanceof Date
-                    ? dateValue
-                    : new Date()
-
-            if (isNaN(date.getTime())) {
-                return 'Fecha inválida'
-            }
-            return date.toLocaleDateString('es-MX')
+            return formatCalendarDate(
+                (dateValue instanceof Date || typeof dateValue === 'string') ? dateValue : null,
+                'es-MX'
+            )
         } catch (e) {
             return 'Fecha inválida'
         }

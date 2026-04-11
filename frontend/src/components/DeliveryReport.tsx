@@ -265,9 +265,9 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   }
 
   const ReportContent = (
-    <div className="bg-white p-8" style={{ minHeight: '400px' }}>
+    <div className="p-8 rounded-[28px] border border-slate-200/80 bg-[linear-gradient(160deg,#f8fbff_0%,#eef3fb_46%,#f6f9ff_100%)] shadow-[22px_22px_48px_rgba(148,163,184,0.28),-16px_-16px_34px_rgba(255,255,255,0.96)]" style={{ minHeight: '400px' }}>
       {/* Header with brand colors */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t-lg -mx-8 -mt-8 mb-6">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-2xl mb-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_12px_28px_rgba(37,99,235,0.34)]">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2">🏎️ {import.meta.env.VITE_STORE_NAME || '2Fast Wheels Garage'}</h1>
           <h2 className="text-xl font-semibold opacity-90">Reporte de Entrega</h2>
@@ -306,7 +306,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
           <div className="w-1 bg-blue-600 rounded" style={{ height: '28px' }}></div>
           Cliente
         </h3>
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200">
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-5 rounded-xl border border-gray-200 shadow-[inset_6px_6px_14px_rgba(148,163,184,0.18),inset_-6px_-6px_14px_rgba(255,255,255,0.95)]">
           <p className="text-xl font-bold text-gray-900 mb-2">{delivery.customer?.name}</p>
           <div className="flex flex-col gap-2 text-sm">
             {delivery.customer?.phone && (
@@ -331,21 +331,21 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
           <div className="bg-blue-600 rounded" style={{ width: '4px', height: '28px' }}></div>
           Detalles de Entrega
         </h3>
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-xl border border-blue-200 shadow-[inset_6px_6px_14px_rgba(96,165,250,0.18),inset_-6px_-6px_14px_rgba(255,255,255,0.95)]">
           <div className="flex flex-wrap gap-4 mb-4">
-            <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
+            <div className="bg-white p-3 rounded-lg flex-1 shadow-[8px_8px_18px_rgba(148,163,184,0.22),-5px_-5px_14px_rgba(255,255,255,0.96)]" style={{ minWidth: '200px' }}>
               <p className="text-xs text-gray-600 mb-1">📅 Fecha programada</p>
               <p className="font-bold text-gray-900">{formatDate(delivery.scheduledDate)}</p>
             </div>
             {delivery.scheduledTime && (
-              <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
+              <div className="bg-white p-3 rounded-lg flex-1 shadow-[8px_8px_18px_rgba(148,163,184,0.22),-5px_-5px_14px_rgba(255,255,255,0.96)]" style={{ minWidth: '200px' }}>
                 <p className="text-xs text-gray-600 mb-1">🕐 Hora</p>
                 <p className="font-bold text-gray-900">{formatTime(delivery.scheduledTime)}</p>
               </div>
             )}
           </div>
 
-          <div className="bg-white p-3 rounded-lg">
+          <div className="bg-white p-3 rounded-lg shadow-[8px_8px_18px_rgba(148,163,184,0.22),-5px_-5px_14px_rgba(255,255,255,0.96)]">
             <p className="text-xs text-gray-600 mb-1">📍 Ubicación</p>
             <p className="font-semibold text-gray-900">{delivery.location}</p>
           </div>
@@ -364,7 +364,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
           <div className="bg-blue-600 rounded" style={{ width: '4px', height: '28px' }}></div>
           Artículos
         </h3>
-        <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="border-2 border-gray-200 rounded-xl overflow-hidden shadow-[14px_14px_28px_rgba(148,163,184,0.2),-10px_-10px_22px_rgba(255,255,255,0.9)]">
           <div className="w-full">
             <table className="w-full" style={{ tableLayout: 'fixed' }}>
               <thead className="bg-gradient-to-r from-gray-700 to-gray-800 text-white">
@@ -435,13 +435,13 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
             <div className="bg-blue-600 rounded" style={{ width: '4px', height: '28px' }}></div>
             Información de Pago
           </h3>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border border-green-200">
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-xl border border-green-200 shadow-[inset_6px_6px_14px_rgba(34,197,94,0.14),inset_-6px_-6px_14px_rgba(255,255,255,0.96)]">
             <div className="flex flex-wrap gap-3">
-              <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
+              <div className="bg-white p-3 rounded-lg flex-1 shadow-[8px_8px_18px_rgba(148,163,184,0.22),-5px_-5px_14px_rgba(255,255,255,0.96)]" style={{ minWidth: '200px' }}>
                 <p className="text-xs text-gray-600 mb-1">💵 Monto Pagado</p>
                 <p className="text-lg font-bold text-green-700">{formatCurrency(delivery.paidAmount || 0)}</p>
               </div>
-              <div className="bg-white p-3 rounded-lg flex-1" style={{ minWidth: '200px' }}>
+              <div className="bg-white p-3 rounded-lg flex-1 shadow-[8px_8px_18px_rgba(148,163,184,0.22),-5px_-5px_14px_rgba(255,255,255,0.96)]" style={{ minWidth: '200px' }}>
                 <p className="text-xs text-gray-600 mb-1">📊 Estado del Pago</p>
                 <p className="text-lg font-bold text-gray-900 capitalize">{delivery.paymentStatus || 'Pendiente'}</p>
               </div>
@@ -465,7 +465,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
   // Render inline content when embedded
   if (inline) {
     return (
-      <div className="p-6 relative">
+      <div className="p-6 relative rounded-2xl border border-slate-200/70 bg-white/80 shadow-[14px_14px_30px_rgba(148,163,184,0.2),-10px_-10px_22px_rgba(255,255,255,0.94)]">
         {isGenerating && (
           <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
@@ -504,27 +504,27 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
 
   // Default: full-screen modal with header actions
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-x-hidden">
-      <div className="bg-white rounded-lg shadow-xl max-w-full sm:max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center p-6 border-b gap-4 flex-wrap" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="fixed inset-0 bg-slate-950/56 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-x-hidden">
+      <div className="rounded-2xl border border-slate-200/80 bg-[linear-gradient(160deg,#f8fbff_0%,#eef3fb_46%,#f6f9ff_100%)] shadow-[24px_24px_48px_rgba(15,23,42,0.32),-14px_-14px_32px_rgba(255,255,255,0.72)] max-w-full sm:max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-6 border-b border-slate-200/80 gap-4 flex-wrap" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <h2 className="text-xl font-bold text-gray-900">Reporte de Entrega</h2>
           <div className="flex flex-wrap gap-2 items-center">
-            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Compartir reporte">
+            <Button onClick={shareImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0 shadow-[8px_8px_16px_rgba(148,163,184,0.25),-6px_-6px_14px_rgba(255,255,255,0.96)]" disabled={isGenerating} aria-label="Compartir reporte">
               <Share2 size={16} />
               <span className="hidden sm:inline">Compartir</span>
             </Button>
 
-            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Descargar reporte">
+            <Button onClick={generateImage} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0 shadow-[8px_8px_16px_rgba(148,163,184,0.25),-6px_-6px_14px_rgba(255,255,255,0.96)]" disabled={isGenerating} aria-label="Descargar reporte">
               <Download size={16} />
               <span className="hidden sm:inline">Descargar</span>
             </Button>
 
-            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0" disabled={isGenerating} aria-label="Generar PDF">
+            <Button onClick={generatePDF} variant="secondary" size="sm" className="flex items-center gap-2 min-w-0 shadow-[8px_8px_16px_rgba(148,163,184,0.25),-6px_-6px_14px_rgba(255,255,255,0.96)]" disabled={isGenerating} aria-label="Generar PDF">
               <FileText size={16} />
               <span className="hidden sm:inline">PDF</span>
             </Button>
 
-            <Button onClick={onClose} variant="secondary" size="sm" className="min-w-0" disabled={isGenerating} aria-label="Cerrar reporte">
+            <Button onClick={onClose} variant="secondary" size="sm" className="min-w-0 shadow-[8px_8px_16px_rgba(148,163,184,0.25),-6px_-6px_14px_rgba(255,255,255,0.96)]" disabled={isGenerating} aria-label="Cerrar reporte">
               <span className="hidden sm:inline">Cerrar</span>
             </Button>
 
@@ -537,7 +537,7 @@ export default function DeliveryReport({ delivery, onClose, inline }: DeliveryRe
           </div>
         </div>
 
-        <div className="p-6 relative">
+        <div className="p-6 relative rounded-2xl border border-slate-200/70 bg-white/82 shadow-[14px_14px_30px_rgba(148,163,184,0.2),-10px_-10px_22px_rgba(255,255,255,0.94)]">
           {isGenerating && (
             <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center">
               <div className="text-sm text-gray-700">Generando imagen, por favor espera...</div>

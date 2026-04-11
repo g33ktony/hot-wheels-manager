@@ -293,15 +293,21 @@ export default function CollageGenerator({
 
             const cellWidth = 1000 // High quality cells
             const cellHeight = 1000
-            const borderWidth = 1 // Thin border to separate images
+            const borderWidth = 24 // Soft gap for neumorphic spacing
             const headerHeight = 0 // No header - minimalist
             const footerHeight = 0 // No footer - minimalist
+            const outerPadding = 40
+            const imageInset = 22
 
-            canvas.width = cols * cellWidth + (cols - 1) * borderWidth
-            canvas.height = rows * cellHeight + (rows - 1) * borderWidth + headerHeight + footerHeight
+            canvas.width = cols * cellWidth + (cols - 1) * borderWidth + (outerPadding * 2)
+            canvas.height = rows * cellHeight + (rows - 1) * borderWidth + headerHeight + footerHeight + (outerPadding * 2)
 
-            // White background for clean look
-            ctx.fillStyle = '#ffffff'
+            // Neumorphic gradient background for shared collage assets
+            const bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
+            bgGradient.addColorStop(0, '#f8fbff')
+            bgGradient.addColorStop(0.5, '#eef4ff')
+            bgGradient.addColorStop(1, '#f4f8ff')
+            ctx.fillStyle = bgGradient
             ctx.fillRect(0, 0, canvas.width, canvas.height)
 
             let loadedImages = 0
@@ -321,19 +327,34 @@ export default function CollageGenerator({
                 img.onload = () => {
                     const col = index % cols
                     const row = Math.floor(index / cols)
-                    const x = col * (cellWidth + borderWidth)
-                    const y = row * (cellHeight + borderWidth) + headerHeight
+                    const x = outerPadding + (col * (cellWidth + borderWidth))
+                    const y = outerPadding + (row * (cellHeight + borderWidth)) + headerHeight
 
-                    // White background for cell
-                    ctx.fillStyle = '#ffffff'
+                    // Neumorphic card shadow and panel for each image cell
+                    ctx.fillStyle = 'rgba(148,163,184,0.28)'
+                    ctx.fillRect(x + 9, y + 11, cellWidth, cellHeight)
+                    ctx.fillStyle = 'rgba(255,255,255,0.95)'
+                    ctx.fillRect(x - 5, y - 5, cellWidth, cellHeight)
+                    const cardGradient = ctx.createLinearGradient(x, y, x + cellWidth, y + cellHeight)
+                    cardGradient.addColorStop(0, '#ffffff')
+                    cardGradient.addColorStop(1, '#edf2fb')
+                    ctx.fillStyle = cardGradient
                     ctx.fillRect(x, y, cellWidth, cellHeight)
 
+                    const imageX = x + imageInset
+                    const imageY = y + imageInset
+                    const imageWidth = cellWidth - (imageInset * 2)
+                    const imageHeight = cellHeight - (imageInset * 2)
+
+                    ctx.fillStyle = '#ffffff'
+                    ctx.fillRect(imageX, imageY, imageWidth, imageHeight)
+
                     // Draw image - CONTAIN mode to show full image with proper proportions
-                    const scale = Math.min(cellWidth / img.width, cellHeight / img.height)
+                    const scale = Math.min(imageWidth / img.width, imageHeight / img.height)
                     const scaledWidth = img.width * scale
                     const scaledHeight = img.height * scale
-                    const imgX = x + (cellWidth - scaledWidth) / 2
-                    const imgY = y + (cellHeight - scaledHeight) / 2
+                    const imgX = imageX + (imageWidth - scaledWidth) / 2
+                    const imgY = imageY + (imageHeight - scaledHeight) / 2
 
                     // Enable image smoothing for best quality
                     ctx.imageSmoothingEnabled = true
@@ -344,11 +365,11 @@ export default function CollageGenerator({
                     if (showPricesOnCollage) {
                         // Semi-transparent overlay at top for price (minimal, overlaid on image)
                         const overlayHeight = 90
-                        const gradient = ctx.createLinearGradient(x, y, x, y + overlayHeight)
+                        const gradient = ctx.createLinearGradient(imageX, imageY, imageX, imageY + overlayHeight)
                         gradient.addColorStop(0, 'rgba(0, 0, 0, 0.7)')
                         gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
                         ctx.fillStyle = gradient
-                        ctx.fillRect(x, y, cellWidth, overlayHeight)
+                        ctx.fillRect(imageX, imageY, imageWidth, overlayHeight)
 
                         // Price text - top center, overlaid on image
                         ctx.fillStyle = '#ffffff'
@@ -357,7 +378,7 @@ export default function CollageGenerator({
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
                         ctx.shadowBlur = 8
                         ctx.shadowOffsetY = 2
-                        ctx.fillText(`$${item.customPrice.toFixed(2)}`, x + cellWidth / 2, y + 60)
+                        ctx.fillText(`$${item.customPrice.toFixed(2)}`, imageX + imageWidth / 2, imageY + 60)
                         ctx.shadowColor = 'transparent'
                         ctx.shadowBlur = 0
                         ctx.shadowOffsetY = 0
@@ -368,11 +389,11 @@ export default function CollageGenerator({
                     if (availableQty > 0) {
                         // Semi-transparent overlay at bottom
                         const bottomOverlayHeight = 70
-                        const bottomGradient = ctx.createLinearGradient(x, y + cellHeight - bottomOverlayHeight, x, y + cellHeight)
+                        const bottomGradient = ctx.createLinearGradient(imageX, imageY + imageHeight - bottomOverlayHeight, imageX, imageY + imageHeight)
                         bottomGradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
                         bottomGradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)')
                         ctx.fillStyle = bottomGradient
-                        ctx.fillRect(x, y + cellHeight - bottomOverlayHeight, cellWidth, bottomOverlayHeight)
+                        ctx.fillRect(imageX, imageY + imageHeight - bottomOverlayHeight, imageWidth, bottomOverlayHeight)
 
                         ctx.fillStyle = '#ffffff'
                         ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif'
@@ -380,7 +401,7 @@ export default function CollageGenerator({
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'
                         ctx.shadowBlur = 8
                         ctx.shadowOffsetY = 2
-                        ctx.fillText(`${availableQty} disponibles`, x + cellWidth / 2, y + cellHeight - 25)
+                        ctx.fillText(`${availableQty} disponibles`, imageX + imageWidth / 2, imageY + imageHeight - 25)
                         ctx.shadowColor = 'transparent'
                         ctx.shadowBlur = 0
                         ctx.shadowOffsetY = 0
@@ -390,8 +411,8 @@ export default function CollageGenerator({
                     if (item.item.isChase) {
                         const badgeWidth = 140
                         const badgeHeight = 60
-                        const badgeX = x + cellWidth - badgeWidth - 15
-                        const badgeY = y + 15
+                        const badgeX = imageX + imageWidth - badgeWidth - 15
+                        const badgeY = imageY + 15
 
                         // Red background badge
                         ctx.fillStyle = '#DC2626'
@@ -752,11 +773,11 @@ export default function CollageGenerator({
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, index)}
                                     onDragEnd={handleDragEnd}
-                                    className={`bg-white border-2 rounded-lg overflow-hidden relative group cursor-move transition-all ${draggedIndex === index
+                                    className={`bg-[linear-gradient(145deg,#f8fbff,#eef3fb)] border rounded-xl overflow-hidden relative group cursor-move transition-all shadow-[12px_12px_24px_rgba(148,163,184,0.22),-10px_-10px_20px_rgba(255,255,255,0.9)] ${draggedIndex === index
                                         ? 'opacity-50 border-gray-400'
                                         : dragOverIndex === index
                                             ? 'border-blue-500 bg-blue-50'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                            : 'border-slate-200/80 hover:border-blue-300'
                                         }`}
                                 >
                                     {/* Indicador de posición */}
@@ -871,8 +892,8 @@ export default function CollageGenerator({
                 {currentStep === 'preview' && (
                     <div className="space-y-6">
                         {generatedCollages.map((collageUrl, index) => (
-                            <div key={index} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                <div className="p-4 bg-gray-50 border-b border-gray-200">
+                            <div key={index} className="bg-[linear-gradient(145deg,#f8fbff,#eef3fb)] border border-slate-200/80 rounded-xl overflow-hidden shadow-[16px_16px_32px_rgba(148,163,184,0.22),-10px_-10px_22px_rgba(255,255,255,0.9)]">
+                                <div className="p-4 bg-white/65 border-b border-slate-200/80">
                                     <h4 className="font-medium text-gray-900">
                                         Collage {index + 1} de {generatedCollages.length}
                                     </h4>
@@ -887,7 +908,7 @@ export default function CollageGenerator({
                                         className="w-full rounded-lg"
                                     />
                                 </div>
-                                <div className="p-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+                                <div className="p-4 bg-white/65 border-t border-slate-200/80 flex gap-3">
                                     <Button
                                         variant="secondary"
                                         onClick={() => downloadCollage(collageUrl, index)}
@@ -911,7 +932,7 @@ export default function CollageGenerator({
                         {/* Action Buttons */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Download All Images Button */}
-                            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-6">
+                            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl p-6 shadow-[14px_14px_28px_rgba(34,197,94,0.16),-10px_-10px_22px_rgba(255,255,255,0.9)]">
                                 <div className="flex items-start gap-4">
                                     <div className="flex-shrink-0">
                                         <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
@@ -940,7 +961,7 @@ export default function CollageGenerator({
                             </div>
 
                             {/* PDF Generation Button */}
-                            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6">
+                            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 shadow-[14px_14px_28px_rgba(59,130,246,0.16),-10px_-10px_22px_rgba(255,255,255,0.9)]">
                                 <div className="flex items-start gap-4">
                                     <div className="flex-shrink-0">
                                         <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">

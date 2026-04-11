@@ -4,7 +4,7 @@ import { SaleModel } from '../models/Sale';
 import { InventoryItemModel } from '../models/InventoryItem';
 import { CustomerModel } from '../models/Customer';
 import { HotWheelsCarModel } from '../models/HotWheelsCar';
-import { getDayRangeUTC } from '../utils/dateUtils';
+import { getDayRangeUTC, parseDateStringToUTC, dateToString } from '../utils/dateUtils';
 import { createStoreFilter } from '../utils/storeAccess';
 
 // Get all deliveries
@@ -352,17 +352,16 @@ export const createDelivery = async (req: Request, res: Response) => {
     // Handle scheduledDate - parse correctly if it's a string
     let parsedScheduledDate: Date;
     if (scheduledDate && typeof scheduledDate === 'string') {
-      // If it's a date string like "2026-01-24", parse it as local date
-      const { startDate } = getDayRangeUTC(scheduledDate);
-      parsedScheduledDate = startDate;
+      // If it's a date string like "2026-04-17", parse it as local date and convert to UTC
+      parsedScheduledDate = parseDateStringToUTC(scheduledDate);
     } else if (scheduledDate) {
       // If it's already a Date object, use it as is
       parsedScheduledDate = new Date(scheduledDate);
     } else {
       // Default to today at midnight UTC
       const today = new Date();
-      const { startDate } = getDayRangeUTC(today.toISOString().split('T')[0]);
-      parsedScheduledDate = startDate;
+      const todayString = dateToString(today);
+      parsedScheduledDate = parseDateStringToUTC(todayString);
     }
 
     const delivery = new DeliveryModel({
@@ -450,7 +449,14 @@ export const updateDelivery = async (req: Request, res: Response) => {
     }
     
     delivery.items = enrichedItems;
-    delivery.scheduledDate = scheduledDate || delivery.scheduledDate;
+    
+    // Parse scheduledDate correctly if it's a string
+    if (scheduledDate && typeof scheduledDate === 'string') {
+      delivery.scheduledDate = parseDateStringToUTC(scheduledDate);
+    } else if (scheduledDate) {
+      delivery.scheduledDate = scheduledDate;
+    }
+    
     delivery.scheduledTime = scheduledTime || delivery.scheduledTime;
     delivery.location = location || delivery.location;
     delivery.status = status || delivery.status;

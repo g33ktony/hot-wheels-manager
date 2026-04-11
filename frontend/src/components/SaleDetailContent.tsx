@@ -34,6 +34,12 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
     const cardBg = isDark ? 'bg-slate-800' : 'bg-white'
     const cardBorder = isDark ? 'border-slate-700' : 'border-gray-200'
     const labelBg = isDark ? 'bg-slate-900/50' : 'bg-gray-50'
+    const sectionCardClass = isDark
+        ? 'rounded-2xl border border-slate-700/80 bg-slate-900/38 p-4 shadow-[12px_12px_24px_rgba(2,6,23,0.55),-8px_-8px_16px_rgba(148,163,184,0.09)]'
+        : 'rounded-2xl border border-slate-200/80 bg-white/82 p-4 shadow-[12px_12px_24px_rgba(148,163,184,0.22),-8px_-8px_16px_rgba(255,255,255,0.95)]'
+    const metricCardClass = isDark
+        ? 'p-3 rounded-xl border border-slate-700 bg-slate-900/55 shadow-[inset_5px_5px_10px_rgba(2,6,23,0.4),inset_-4px_-4px_8px_rgba(148,163,184,0.08)]'
+        : 'p-3 rounded-xl border border-slate-200 bg-slate-50/90 shadow-[inset_5px_5px_10px_rgba(148,163,184,0.18),inset_-4px_-4px_8px_rgba(255,255,255,0.94)]'
 
     const totalProfit = sale.items?.reduce((total: number, item: any) => {
         const profit = item.profit !== undefined && item.profit !== null ? item.profit : (item.quantity * (item.unitPrice || 0) - (item.costPrice || 0) * item.quantity)
@@ -50,7 +56,7 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
         <div className={isDark ? 'space-y-6' : 'space-y-6'}>
             {/* General Info and Financial Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className={sectionCardClass}>
                     <h3 className={`font-semibold ${textPrimary} mb-3`}>
                         {isDark ? '📋 Información General' : 'Información General'}
                     </h3>
@@ -89,7 +95,7 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                     </div>
                 </div>
 
-                <div>
+                <div className={sectionCardClass}>
                     <h3 className={`font-semibold ${textPrimary} mb-3`}>
                         {isDark ? '💰 Resumen Financiero' : 'Resumen Financiero'}
                     </h3>
@@ -133,7 +139,7 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                         const photos = item.photos || inventoryItem?.photos || []
 
                         return (
-                            <div key={idx} className={`border rounded-lg overflow-hidden ${cardBorder} ${cardBg} shadow-md hover:shadow-lg transition-shadow`}>
+                            <div key={idx} className={`border rounded-2xl overflow-hidden ${cardBorder} ${cardBg} shadow-[14px_14px_26px_rgba(2,6,23,0.35),-9px_-9px_18px_rgba(148,163,184,0.1)] hover:shadow-[16px_16px_30px_rgba(2,6,23,0.4),-11px_-11px_22px_rgba(148,163,184,0.12)] transition-shadow`}>
                                 {/* Photos Grid - Always Show */}
                                 <div className={`${isDark ? 'bg-slate-900' : 'bg-gray-100'} p-3 border-b ${cardBorder} min-h-[120px] flex items-center justify-center`}>
                                     {photos.length > 0 ? (
@@ -141,7 +147,7 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                                             {photos.slice(0, 4).map((photo: string, photoIdx: number) => (
                                                 <div
                                                     key={photoIdx}
-                                                    className={`aspect-square rounded overflow-hidden ${isDark ? 'bg-slate-700 border-slate-600 hover:border-emerald-500' : 'bg-gray-200 border-gray-300 hover:border-emerald-500'} border transition-all cursor-pointer`}
+                                                    className={`aspect-square rounded-xl overflow-hidden ${isDark ? 'bg-slate-700 border-slate-600 hover:border-emerald-500 shadow-[inset_4px_4px_8px_rgba(2,6,23,0.4),inset_-3px_-3px_6px_rgba(148,163,184,0.08)]' : 'bg-gray-200 border-gray-300 hover:border-emerald-500 shadow-[inset_4px_4px_8px_rgba(148,163,184,0.2),inset_-3px_-3px_6px_rgba(255,255,255,0.9)]'} border transition-all cursor-pointer`}
                                                     onClick={() => onOpenImageModal && onOpenImageModal(photos)}
                                                 >
                                                     <img
@@ -174,19 +180,19 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
                                 <div className="p-4 space-y-3">
                                     <p className={`font-bold text-lg ${textPrimary}`}>{item.carName || 'Artículo desconocido'}</p>
                                     <div className="grid grid-cols-2 gap-3 text-sm">
-                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                        <div className={`${metricCardClass}`}>
                                             <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>Cantidad</p>
                                             <p className={`${textPrimary} font-bold text-base`}>{item.quantity}</p>
                                         </div>
-                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                        <div className={`${metricCardClass}`}>
                                             <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>P. Unitario</p>
                                             <p className={`${isDark ? 'text-emerald-400' : 'text-green-600'} font-bold text-base`}>${item.unitPrice?.toFixed(2) || '0.00'}</p>
                                         </div>
-                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                        <div className={`${metricCardClass}`}>
                                             <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>Costo Unit.</p>
                                             <p className={`${isDark ? 'text-orange-400' : 'text-orange-600'} font-bold text-base`}>${(item.costPrice || 0).toFixed(2)}</p>
                                         </div>
-                                        <div className={`${labelBg} p-3 rounded border ${cardBorder}`}>
+                                        <div className={`${metricCardClass}`}>
                                             <p className={`text-xs font-semibold ${textMuted} uppercase tracking-wide mb-1`}>Ganancia</p>
                                             <p className={`font-bold text-base ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                                                 ${((item.profit !== undefined && item.profit !== null) ? item.profit : (item.quantity * (item.unitPrice || 0) - (item.costPrice || 0) * item.quantity)).toFixed(2)}
@@ -210,7 +216,7 @@ export const SaleDetailContent: React.FC<SaleDetailContentProps> = ({
 
             {/* Notes */}
             {sale.notes && (
-                <div className={`rounded-lg p-4 border ${cardBorder} ${cardBg} shadow-md`}>
+                <div className={`rounded-2xl p-4 border ${cardBorder} ${cardBg} shadow-[12px_12px_24px_rgba(2,6,23,0.35),-8px_-8px_16px_rgba(148,163,184,0.1)]`}>
                     <h3 className={`font-semibold ${textPrimary} mb-2`}>
                         {isDark ? '📝 Notas' : 'Notas'}
                     </h3>
